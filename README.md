@@ -1,0 +1,2 @@
+# AI-Powered Fire Spread Prediction and Containment System
+AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
