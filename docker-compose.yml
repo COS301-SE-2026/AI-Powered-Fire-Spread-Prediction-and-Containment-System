@@ -1,0 +1,92 @@
+services:
+  postgres:
+    image: postgis/postgis:15-3.5
+    platform: linux/amd64
+    container_name: postgres-db
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./database/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+
+  backend:
+    build:
+      context: ./app/backend/src
+      dockerfile: Dockerfile
+    container_name: python-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    volumes:
+      - ./app/backend/src:/app
+    ports:
+      - "8000:8000"
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  frontend:
+    build:
+      context: ./app/frontend/src
+      dockerfile: Dockerfile
+    container_name: next-frontend
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    volumes:
+      - ./app/frontend/src:/app
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    command: ["npm", "run", "dev"]
+
+  pwa:
+    build:
+      context: ./app/pwa
+      dockerfile: Dockerfile
+    container_name: pwa-react-native
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    volumes:
+      - ./app/pwa:/app
+    ports:
+      - "19006:19006"
+    environment:
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: 0.0.0.0
+    command: ["npx", "expo", "start", "--web", "--host", "0.0.0.0"]
+
+volumes:
+  pgadmin-data:

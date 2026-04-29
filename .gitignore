@@ -1,0 +1,7 @@
+.env
+database/postgres/
+node_modules/
+app/frontend/src/node_modules/
+app/backend/src/__pycache__/
+app/pwa/node_modules/
+.expo/
