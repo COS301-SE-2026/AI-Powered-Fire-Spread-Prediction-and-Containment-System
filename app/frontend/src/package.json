@@ -5,6 +5,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
+    "lint": "next lint",
     "test:e2e": "npx playwright test",
     "test:e2e:headed": "npx playwright test --headed",
     "test:e2e:report": "npx playwright show-report",
@@ -16,6 +17,8 @@
     "react-dom": "18.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.44.0",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5"
   }
 }
