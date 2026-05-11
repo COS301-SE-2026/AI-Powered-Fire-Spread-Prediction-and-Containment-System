@@ -12,5 +12,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 19006
-ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
-CMD ["npx", "expo", "start", "--web", "--host", "0.0.0.0"]
+ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=localhost
+CMD ["npx", "expo", "start", "--web", "--host", "localhost"]
