@@ -27,7 +27,6 @@ services:
     env_file:
       - .env
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     volumes:
       - pgadmin-data:/var/lib/pgadmin
@@ -69,7 +68,7 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
-    command: ["npm", "run", "dev"]
+    command: ["sh", "-c", "yarn install && yarn dev"]
 
   pwa:
     build:
@@ -88,7 +87,7 @@ services:
       - "19006:19006"
     environment:
       EXPO_DEVTOOLS_LISTEN_ADDRESS: localhost
-    command: ["npx", "expo", "start", "--web", "--host", "localhost"]
+    command: ["yarn", "start", "--host", "localhost"]
 
 volumes:
   pgadmin-data:

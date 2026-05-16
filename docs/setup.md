@@ -3,11 +3,37 @@
 ## Prerequisites
 
 - Install Docker Engine and Docker Compose / Docker CLI with Compose support.
+- Install Yarn globally or enable Corepack:
+
+```bash
+npm i -g yarn
+```
+
+```bash
+corepack enable
+```
 - Copy `.env.example` to `.env` at the repository root and fill in the required values:
 
 ```bash
 cp .env.example .env
 ```
+
+## Frontend styling (Tailwind + DaisyUI)
+
+The Next.js frontend uses Tailwind CSS with DaisyUI.
+
+From `app/frontend/src`, install dependencies:
+
+```bash
+yarn add -D tailwindcss postcss autoprefixer daisyui
+```
+
+These files are expected in the frontend package:
+
+- `tailwind.config.js`
+- `postcss.config.js`
+- `styles/globals.css`
+- `pages/_app.js` (imports `styles/globals.css`)
 
 ## Build the Docker containers
 
@@ -38,6 +64,11 @@ Or run it in detached mode:
 ```bash
 docker compose up -d
 ```
+
+## Notes on dependency installs
+
+The frontend and PWA services mount `node_modules` as named volumes for development.
+Their container commands run `yarn install` on startup to populate these volumes.
 
 ## Verify the services
 

@@ -7,10 +7,11 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm install
+RUN corepack enable \
+  && yarn install
 
 COPY . .
 
 EXPOSE 19006
 ENV EXPO_DEVTOOLS_LISTEN_ADDRESS=localhost
-CMD ["npx", "expo", "start", "--web", "--host", "localhost"]
+CMD ["yarn", "start", "--host", "localhost"]
