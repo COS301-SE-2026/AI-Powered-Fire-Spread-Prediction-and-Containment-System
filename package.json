@@ -1,0 +1,17 @@
+{
+  "name": "fire-spread-monorepo",
+  "private": true,
+  "workspaces": [
+    "app/backend/src",
+    "app/frontend/src",
+    "app/pwa"
+  ],
+  "scripts": {
+    "dev": "yarn --cwd app/frontend/src dev",
+    "build": "yarn --cwd app/frontend/src build",
+    "lint": "yarn --cwd app/frontend/src lint",
+    "test:e2e": "yarn --cwd app/frontend/src test:e2e",
+    "test:e2e:backend": "yarn --cwd app/backend/src test:e2e",
+    "pwa:start": "yarn --cwd app/pwa start"
+  }
+}

@@ -107,3 +107,37 @@ docker compose logs -f
 ```bash
 docker compose logs -f frontend
 ```
+
+## Commands for yarn
+
+- Run the commands from the root of the repository to execute them in the correct context:
+
+```bash
+yarn dev
+yarn build
+yarn lint
+yarn test:e2e
+yarn test:e2e:backend
+yarn pwa:start
+```
+
+- To run from app/backend/src:
+
+```bash
+yarn start
+yarn dev
+yarn api
+```
+
+- To run from app/frontend/src:
+
+```bash
+yarn dev
+yarn build
+yarn start
+yarn lint
+yarn test:e2e
+yarn test:e2e:headed
+yarn test:e2e:report
+yarn test:e2e:install
+```
