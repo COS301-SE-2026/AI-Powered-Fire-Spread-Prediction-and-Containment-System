@@ -10,6 +10,15 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
   <img width="200" alt="EPI-USE Logo" src="https://github.com/user-attachments/assets/a64cc7a0-b267-4556-8766-9d84aa081142" style="vertical-align: middle;" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img width="180" alt="Panic! At The Kernel" src="https://github.com/user-attachments/assets/bab70c16-1867-457d-8f90-6fb9a9cdc221" style="vertical-align: middle;" />
 </p>
+<br><br>
+
+[![GitHub Actions](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml/badge.svg)](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml)
+[![Coveralls](https://coveralls.io/repos/github/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/badge.svg?branch=main)](https://coveralls.io/github/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System?branch=main)
+[![Codecov](https://codecov.io/gh/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/branch/main/graph/badge.svg)](https://codecov.io/gh/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=COS301-SE-2026_AI-Powered-Fire-Spread-Prediction-and-Containment-System&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=COS301-SE-2026_AI-Powered-Fire-Spread-Prediction-and-Containment-System)
+[![GitHub issues](https://img.shields.io/github/issues/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System)](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/issues)
+<!-- [![Uptime Robot](https://img.shields.io/uptimerobot/status/m000000000000000000000000?label=Uptime%20Robot)](https://stats.uptimerobot.com/<YOUR_PUBLIC_KEY>) -->
+
 
 # Documentation
 ## Demo 1
@@ -17,6 +26,8 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 - [Design Specification]()
 - [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
 - [Demo 1 Video]()
+
+
 
 # Meet Our Team
 
