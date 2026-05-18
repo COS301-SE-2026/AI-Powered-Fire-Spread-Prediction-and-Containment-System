@@ -1,7 +1,15 @@
 # AI-Powered Fire Spread Prediction and Containment System
+
+<img width="1000" height=auto alt="IMG_3845" src="https://github.com/user-attachments/assets/091bb66c-d1be-4a49-a719-d89436be8231" />
+
 AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
 
 <h2 align="center">Team: Panic! At The Kernel in collaboration with EPI-USE Africa</h2>
+
+<p align="center">
+  <img width="200" alt="EPI-USE Logo" src="https://github.com/user-attachments/assets/a64cc7a0-b267-4556-8766-9d84aa081142" style="vertical-align: middle;" />
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img width="180" alt="Panic! At The Kernel" src="https://github.com/user-attachments/assets/bab70c16-1867-457d-8f90-6fb9a9cdc221" style="vertical-align: middle;" />
+</p>
 
 # Documentation
 ## Demo 1
