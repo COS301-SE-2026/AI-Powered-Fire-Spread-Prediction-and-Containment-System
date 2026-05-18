@@ -1,10 +1,10 @@
 import React from 'react';
 import { Wind, Droplets, Flame, Thermometer } from 'lucide-react';
-import Button from '../components/ui/Button';
-import ReportCard from '../components/ui/ReportCard';
-import WeatherWidget from '../components/ui/WeatherWidget';
-import MapOverlay from '../components/ui/MapOverlay';
-import MapPopup from '../components/ui/MapPopup';
+import Button from '../components/Button';
+import ReportCard from '../components/ReportCard';
+import WeatherWidget from '../components/WeatherWidget';
+import MapOverlay from '../components/MapOverlay';
+import MapPopup from '../components/MapPopup';
 
 export default function DashboardPage() {
   return (
