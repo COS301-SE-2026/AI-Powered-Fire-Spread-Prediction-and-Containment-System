@@ -18,7 +18,7 @@ class LoginRequest(BaseModel):
     password: str
 
 class SetupResponse(BaseModel):
-    otpauth_uri: str
+    otpauth_url: str
 
 class VerifyRequest(BaseModel):
     username: str
