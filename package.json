@@ -13,5 +13,11 @@
     "test:e2e": "yarn --cwd app/frontend/src test:e2e",
     "test:e2e:backend": "yarn --cwd app/backend/src test:e2e",
     "pwa:start": "yarn --cwd app/pwa start"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.5.0",
+    "daisyui": "^5.5.19",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.3.0"
   }
 }
