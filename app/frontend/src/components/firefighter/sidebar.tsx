@@ -11,9 +11,8 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
             </div>
 
             <aside className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-[92px] hover:w-64 shrink-0 shadow-2xl shadow-black/50">
-                <div className="h-20 flex items-center justify-center w-full mt-4 shrink-0">
-                    <div className="size-12 bg-ignite rounded-md transition-transform group-hover:scale-105 shadow-lg shadow-ignite/20" />
-                </div>
+                
+                <div className="h-8 w-full mt-4 shrink-0"></div>
 
                 <div className="w-full text-center mt-6 mb-2 px-2 shrink-0">
                     <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block group-hover:hidden">MAIN</span>
@@ -56,15 +55,6 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
                 </div>
 
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-4 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side">
-                    <div className="flex items-center gap-3 w-full">
-                        <div className="size-10 rounded-full bg-carbon-card ring-2 ring-carbon-bg overflow-hidden shrink-0">
-                            <div className="w-full h-full bg-gradient-to-tr from-torch to-ignite" />
-                        </div>
-                        <div className="hidden group-hover:flex flex-col min-w-0">
-                            <span className="text-xs font-bold text-neutral truncate">Fire Fighter</span>
-                            <span className="text-[10px] font-medium text-ignite truncate">Active Session</span>
-                        </div>
-                    </div>
                     <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                         <LogOut className="size-6 shrink-0" />
                         <span className="text-sm font-semibold hidden group-hover:inline">Log Out System</span>
