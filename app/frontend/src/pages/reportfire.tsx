@@ -45,11 +45,9 @@ export default function ReportPage() {
         {/* Map (3 cols) */}
         <section className="xl:col-span-3 flex flex-col gap-3 min-h-0">
           { <div className="flex-1 rounded-md overflow-hidden border border-white/5 shadow-2xl">
-           // <FireMap location={location} />
+            {/*<FireMap location={location} />*/}
           </div> }
-          <div className="border border-white/5 rounded-md p-3">
             <MapKey />
-          </div>
         </section>
 
         {/* Sidebar (1 col) */}
@@ -58,8 +56,6 @@ export default function ReportPage() {
 
             <ReportDetailsForm
               location={location}
-              boundarySize={boundarySize}
-              onBoundarySizeChange={handleBoundarySizeChange}
               onSubmit={handleSubmit}
             />
 
