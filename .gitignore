@@ -5,4 +5,25 @@ app/frontend/src/node_modules/
 app/backend/src/__pycache__/
 app/pwa/node_modules/
 .expo/
+
+# Next.js
 .next/
+out/
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Tests
+coverage/
+test-results/
+playwright-report/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Local env files
+.env.*
