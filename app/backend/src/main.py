@@ -3,8 +3,6 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from TwoFactorAuth.twoStepAuth import router as auth_router
 
-app.include_router(auth_router)
-
 app = FastAPI(
     title="Fire Spread Prediction API",
     description="API for fire spread prediction, containment planning, and PostGIS-backed geo data.",
@@ -13,6 +11,8 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
 )
+
+app.include_router(auth_router)
 
 class PingResponse(BaseModel):
     status: str
