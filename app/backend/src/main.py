@@ -5,7 +5,7 @@ from typing import Optional
 from db import get_db_connection, init_db
 from auth import hash_password, verify_password, create_access_token
 from fastapi.middleware.cors import CORSMiddleware
-
+from TwoFactorAuth.twoStepAuth import router as auth_router
 
 app = FastAPI(
     title="Fire Spread Prediction API",
@@ -36,6 +36,8 @@ class TokenResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+app.include_router(auth_router)
 
 class PingResponse(BaseModel):
     status: str
