@@ -34,7 +34,7 @@ export default function FirefighterDashboard() {
                         
                         {/* Header overlay on map */}
                         <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center">
-                            <span className="font-bold text-sm tracking-wide text-neutral/80">LIVE FIRE MAP</span>
+                            <span className="font-bold text-m tracking-wide text-neutral/80">LIVE FIRE MAP</span>
                         </div>
                         
                         {/* map */}
