@@ -6,3 +6,4 @@ app/backend/src/__pycache__/
 app/pwa/node_modules/
 .expo/
 .next/
+app/frontend/src/.env.local
