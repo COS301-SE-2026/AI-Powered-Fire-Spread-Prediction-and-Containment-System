@@ -13,7 +13,7 @@ export function FireMap() {
                 zoom: 12
             }}
             style={{ width: '100%', height: '100%' }}
-            mapStyle="mapbox://styles/mapbox/dark-v11"
+            mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
             <Marker longitude={28.0473} latitude={-26.2041} anchor="center">
                 <div className="relative flex items-center justify-center size-6">

@@ -19,15 +19,15 @@ const mockReports = [
 ];
 
 const statusColor = (s: string) => ({
-    Active: 'bg-ignite/20 text-flare border border-ignite/30',
-    Pending: 'bg-torch/20 text-torch border border-torch/30',
-    Contained: 'bg-humidity/20 text-humidity border border-humidity/30',
+    Active: 'bg-ignite/20 text-flare border border-ignite/40',
+    Pending: 'bg-torch/20 text-torch border border-torch/35',
+    Contained: 'bg-humidity/20 text-humidity border border-humidity/35',
 }[s] ?? 'bg-carbon-card text-neutral/50');
 export function NearbyReports() {
     return(
         <div className="h-full overflow-y-auto flex flex-col p-2">
         {mockReports.map((report) => (
-            <div key={report.id} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-card mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
+            <div key={report.id} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
                 <div>
                     <p className="font-semibold text-sm">{report.location}</p>
                     <p className="text-xs opacity-50">{report.distance} · {report.time}</p>
