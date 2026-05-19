@@ -1,5 +1,6 @@
 {
   "name": "fire-spread-pwa",
+  "version": "1.0.0",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -8,11 +9,12 @@
   },
   "dependencies": {
     "expo": "~49.0.0",
-    "expo-status-bar": "~1.4.4",
+    "expo-status-bar": "~1.6.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "react-native": "0.72.9",
-    "react-native-web": "~0.19.13"
+    "react-native": "0.72.10",
+    "react-native-web": "~0.19.13",
+    "@expo/webpack-config": "^19.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.22.9"
