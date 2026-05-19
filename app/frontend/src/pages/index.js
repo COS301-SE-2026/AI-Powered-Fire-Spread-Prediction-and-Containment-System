@@ -11,11 +11,20 @@ export default function Home() {
   }, []);
 
   return (
-    <main style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', fontFamily: 'sans-serif'}}>
-      <div style={{textAlign: 'center'}}>
-        <h1>Fire Spread Prediction</h1>
-        <p>Backend response: {message}</p>
-        <p>API endpoint: <code>{process.env.NEXT_PUBLIC_API_URL}</code></p>
+    <main className="min-h-screen bg-base-200 flex items-center justify-center p-6">
+      <div className="card w-full max-w-md bg-base-100 shadow-xl">
+        <div className="card-body">
+          <h1 className="card-title">Fire Spread Prediction</h1>
+          <p>Backend response: {message}</p>
+          <p>
+            API endpoint: <code className="text-xs">{process.env.NEXT_PUBLIC_API_URL}</code>
+          </p>
+          <div className="card-actions justify-end">
+            <button className="btn btn-primary" type="button">
+              Refresh
+            </button>
+          </div>
+        </div>
       </div>
     </main>
   );
