@@ -2,6 +2,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import { SidebarLayout } from '../components/firefighter/sidebar';
 import { QuickActions } from '../components/firefighter/quickActions';
+import { NearbyReports } from '../components/firefighter/nearbyReports';
 
 const FireMap = dynamic(
     () => import('../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -46,7 +47,7 @@ export default function FirefighterDashboard() {
                                 <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
                                     Weather Statistics
                                 </h2>
-                                
+
                             </div>
                             <div>
                                 <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
@@ -61,7 +62,7 @@ export default function FirefighterDashboard() {
 
                     {/* Right Column */}
                     <div className="xl:col-span-4 flex flex-col gap-4 overflow-y-auto">
-                        
+                        <NearbyReports/>
                     </div>
                 </div>
             </div> 
