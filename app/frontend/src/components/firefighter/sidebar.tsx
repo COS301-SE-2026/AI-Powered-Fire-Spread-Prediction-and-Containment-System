@@ -12,7 +12,10 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
 
             <aside className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-[92px] hover:w-64 shrink-0 shadow-2xl shadow-black/50">
                 
-                <div className="h-8 w-full mt-4 shrink-0"></div>
+                <div className="flex items-center justify-center group-hover:justify-start group-hover:px-4 mt-6 mb-4 px-2 shrink-0 transition-all duration-300 w-full">
+                    <img src="/images/logo-small.png" alt="FireAway" className="h-12 w-10 object-contain group-hover:hidden"/>
+                    <img src="/images/logo-large.png" alt="FireAway" className="h-20 w-48 object-contain hidden group-hover:block"/>
+                </div>
 
                 <div className="w-full text-center mt-6 mb-2 px-2 shrink-0">
                     <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block group-hover:hidden">MAIN</span>

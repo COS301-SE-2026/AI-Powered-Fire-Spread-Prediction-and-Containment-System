@@ -9,7 +9,7 @@ interface StatCardProps {
 
 function StatCard({label, value, icon, iconColor = "bg-base-100"}: StatCardProps) {
     return(
-        <div className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-card w-full h-full">
+        <div className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke w-full h-full">
             {/* Icon wrapper */}
             <div className={`size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center shrink-0 ${iconColor}`}>
                 {icon}

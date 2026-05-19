@@ -4,6 +4,7 @@ import { SidebarLayout } from '../components/firefighter/sidebar';
 import { QuickActions } from '../components/firefighter/quickActions';
 import { NearbyReports } from '../components/firefighter/nearbyReports';
 import { EnvironmentWidgets } from '../components/firefighter/weatherStats';
+import { MapStatsOverlay } from '../components/firefighter/mapStat';
 
 const FireMap = dynamic(
     () => import('../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -35,13 +36,14 @@ export default function FirefighterDashboard() {
 
                     <div className="xl:col-span-8 flex flex-col gap-4 min-h-0">
                         {/* Map */}
-                        <div className="flex-1 rounded-2xl bg-carbon-side/40 border border-carbon-card backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 min-h-[380px]">
-                            <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center">
+                        <div className="flex-1 rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 min-h-[380px]">
+                            <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                                 <span className="font-bold text-m tracking-wide text-neutral/80">LIVE FIRE MAP</span>
                             </div>
                             <div className="flex-1 w-full h-full pt-[53px]"> 
                                 <FireMap />
                             </div>
+                            <MapStatsOverlay/>
                         </div>
                         <div className="grid grid-cols-2 gap-2 shrink-0">
                             <div className="flex flex-col">
