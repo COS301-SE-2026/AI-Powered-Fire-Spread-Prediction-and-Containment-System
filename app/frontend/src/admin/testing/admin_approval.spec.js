@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-test.description('Admin approve/revoke role workflow', ()=> {
+test.describe('Admin approve/revoke role workflow', ()=> {
 
     test.beforeEach(async ({page}) => {
         //mock JWT Admin Token
@@ -15,7 +15,7 @@ test.description('Admin approve/revoke role workflow', ()=> {
         await page.goto('/admin/role-management');
     });
 
-    test('SUCCESS PATH: Form handles role changes and network submission', async ({page}) => {
+    test('SUCCESS: Handles admin clicking on firefighter radio button and clicking "Approve"', async ({page}) => {
         //is the structure of the form correct
         //need to add check for form (sub-issue on project board)
 
@@ -56,7 +56,7 @@ test.description('Admin approve/revoke role workflow', ()=> {
         await expect(page.locator('.alert-success')).toBeVisible();
     });
 
-    test('NAVIGATION: Click Cancel cancels workflow and redirects', async ({ page }) => {
+    test('NAVIGATION: Handles when an admin clicks on the cancel button -> should navigate back to the main page.', async ({ page }) => {
         const cancelButton = page.locator('[data-testid="cancel-approval-button"]');
         await expect(cancelButton).toBeVisible();
 
