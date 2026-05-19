@@ -65,8 +65,8 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
                 </div>
             </aside>
 
-            <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden relative z-10">
-                <main className="p-12 grow flex flex-col w-full max-w-[1800px] mx-auto">
+            <div className="flex-1 flex flex-col min-h-screen overflow-y-auto overflow-x-hidden relative z-10">
+                <main className="p-6 flex flex-col w-full max-w-[1800px] mx-auto flex-1">
                     {children}
                 </main>
             </div>
