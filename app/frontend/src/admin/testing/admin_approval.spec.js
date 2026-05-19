@@ -1,6 +1,6 @@
 import {test, expect} from '@playwright/test';
 
-test.describe('Admin approve/revoke role workflow', ()=> {
+test.describe('Admin approve role change.', ()=> {
 
     test.beforeEach(async ({page}) => {
         //mock JWT Admin Token
@@ -15,7 +15,7 @@ test.describe('Admin approve/revoke role workflow', ()=> {
         await page.goto('/admin/role-management');
     });
 
-    test('SUCCESS: Handles admin clicking on firefighter radio button and clicking "Approve"', async ({page}) => {
+    test('SUCCESS: Handles admin clicking on firefighter radio button and clicking "Approve".', async ({page}) => {
         //is the structure of the form correct
         //need to add check for form (sub-issue on project board)
 
@@ -66,4 +66,45 @@ test.describe('Admin approve/revoke role workflow', ()=> {
         //verify navigation back to main
         await expect(page).toHaveURL(/\/admin\/dashboard|\/admin/);
     });
-})
+
+    test('SUCCESS: Handles admin clicking on firefighter radio button and clicking "Approve".', async ({page}) => {
+        //is the structure of the form correct
+        //need to add check for form (sub-issue on project board)
+
+        //note-to-self tells framework to scan DOM tree to find element that matches what is in the parentheses
+        const userCard = page.locator('[data-testid="requesting-user-details"]');
+        await expect(userCard).toBeVisible();
+        await expect(userCard).containText('Piet Pompies (piet.pompies@mail.com)');
+
+        //select radiogroup admin button
+        const adminRadio = page.locator('input[type="radio"][data-testid="role-option-firefighter"]');
+        await expect(adminRadio).toBeVisible();
+        await adminRadio.check();
+        await expect(adminRadio).toBeChecked();
+
+        //network intercept
+        await page.route('**/api/admin/role-approval', async (route) => {
+            const request = route.request();
+            const payload = JSON.parse(request.postData());
+
+            expect(payload.action).toBe('approve');
+            expect(payload.target_role).toBe('Admin');
+
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    status: 'success',
+                    updated_role: 'Admin'
+                })
+            });
+        });
+
+        //onClick approve
+        const approveButton = page.locator('[data-testid="submit-approve-button"]');
+        await expect(approveButton).toBeVisible();
+        await approveButton.click();
+
+        await expect(page.locator('.alert-success')).toBeVisible();
+    });
+});
