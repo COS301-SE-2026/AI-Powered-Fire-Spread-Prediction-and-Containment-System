@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { SidebarLayout } from '../components/firefighter/sidebar';
 import { QuickActions } from '../components/firefighter/quickActions';
 import { NearbyReports } from '../components/firefighter/nearbyReports';
+import { EnvironmentWidgets } from '../components/firefighter/weatherStats';
 
 const FireMap = dynamic(
     () => import('../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -42,18 +43,24 @@ export default function FirefighterDashboard() {
                                 <FireMap />
                             </div>
                         </div>
-                        <div className="grid md:grid-cols-2 xl-gird-cols-6 gap-2 flex-1 min-h-0">
-                            <div>
+                        <div className="grid md:grid-cols-2 gap-2 flex-1 min-h-0 items-stretch">
+                            
+                            <div className="flex flex-col h-full">
                                 <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
                                     Environment Variables
                                 </h2>
+                                <div className="flex-1 min-h-0">
+                                    <EnvironmentWidgets/>
+                                </div>
 
                             </div>
-                            <div>
+                            <div className="flex flex-col h-full">
                                 <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
                                     Quick Actions
                                 </h2>
-                                <QuickActions />
+                                <div className="flex-1 min-h-0">
+                                    <QuickActions />
+                                </div>
                             </div>
                         </div>
                         
