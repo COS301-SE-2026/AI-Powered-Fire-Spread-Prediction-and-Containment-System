@@ -26,4 +26,4 @@ playwright-report/
 .expo-shared/
 
 # Local env files
-.env.*
+.env.*app/frontend/src/.env.local
