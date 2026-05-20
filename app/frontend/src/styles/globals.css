@@ -40,6 +40,8 @@
   --color-carbon-side: #0C0F1A;
   --color-carbon-card: #101420;
   --color-carbon-input: #151A26;
+  --color-carbon-elevated: #161B2A;
+  --color-carbon-stroke: #1E2436;
   --color-smoke-hover: #1E2436;
 
   --color-wind:     #378ADD;
@@ -55,6 +57,11 @@
   --radius-md: 4px;
 }
 
+.sidebar-surface {
+  background: linear-gradient(180deg, #0C0F1A 0%, #0E1018 100%);
+  border-right: 1px solid rgba(232, 69, 0, 0.08);
+}
+
 .global-atmos {
   position: fixed;
   inset: 0;
@@ -67,9 +74,9 @@
   position: absolute;
   top: -10%; 
   right: -8%;
-  width: 55vw; 
-  height: 55vh;
-  background: radial-gradient(ellipse at 60% 30%, rgba(232, 69, 0, 0.10) 0%, transparent 70%);
+  width: 75vw; 
+  height: 75vh;
+  background: radial-gradient(ellipse at 60% 30%, rgba(232, 69, 0, 0.13) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(120px);
 }
@@ -80,7 +87,18 @@
   left: -8%;
   width: 35vw; 
   height: 40vh;
-  background: radial-gradient(ellipse at 30% 50%, rgba(255, 107, 43, 0.04) 0%, transparent 70%);
+  background: radial-gradient(ellipse at 30% 50%, rgba(255, 107, 43, 0.07) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(100px);
+}
+
+.ga-bloom-tertiary {
+  position: absolute;
+  bottom: -5%;
+  left: 20%;
+  width: 40vw;
+  height: 30vh;
+  background: radial-gradient(ellipse at 50% 80%, rgba(92, 24, 0, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(140px);
 }
