@@ -11,7 +11,7 @@
     "build": "yarn --cwd app/frontend/src build",
     "lint": "yarn --cwd app/frontend/src lint",
     "test:e2e": "yarn --cwd app/frontend/src test:e2e",
-    "test:e2e:backend": "yarn --cwd app/backend/src test:e2e",
+    "test:e2e:backend": "pytest -q app/backend/src/testing_config/e2e",
     "pwa:start": "yarn --cwd app/pwa start"
   },
   "devDependencies": {
