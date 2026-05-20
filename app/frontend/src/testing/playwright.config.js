@@ -1,5 +1,8 @@
 const config = {
-  testDir: './testing_config/e2e',
+  testDir: './testing',
+  testMatch: [
+    '**/reportFire/**/*.spec.@(js|ts|tsx)'
+  ],
   timeout: 30000,
   expect: {
     timeout: 5000,
