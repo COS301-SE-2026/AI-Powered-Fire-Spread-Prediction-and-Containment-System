@@ -1,6 +1,6 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { SidebarLayout } from '../components/firefighter/sidebar';
+import { SideBarLayout } from '../components/demoSidebar';
 import { QuickActions } from '../components/firefighter/quickActions';
 import { NearbyReports } from '../components/firefighter/nearbyReports';
 import { EnvironmentWidgets } from '../components/firefighter/weatherStats';
@@ -22,7 +22,7 @@ const FireMap = dynamic(
 
 export default function FirefighterDashboard() {
     return(
-        <SidebarLayout>
+        <SideBarLayout>
             <div className="flex flex-col p-6">
                 <header className="mb-4 flex items-center justify-between">
                     <div>
@@ -72,6 +72,6 @@ export default function FirefighterDashboard() {
                     </div>
                 </div>
             </div> 
-        </SidebarLayout>
+        </SideBarLayout>
     );
 }
