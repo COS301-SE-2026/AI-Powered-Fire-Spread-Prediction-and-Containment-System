@@ -5,4 +5,5 @@ torch==2.2.2
 geoalchemy2==0.13.0
 python-dotenv==1.0.0
 pylint==3.2.6
+pytest==8.2.2
 pyotp==2.9.0
