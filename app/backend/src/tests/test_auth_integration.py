@@ -7,9 +7,7 @@ def test_register_success(client: TestClient, sample_user):
     assert response.json()["message"] == "User created successfully"
 
 def test_register_duplicate_email(client: TestClient, sample_user):
-    # First registration
     client.post("/api/register", json=sample_user)
-    # Duplicate
     response = client.post("/api/register", json=sample_user)
     assert response.status_code == 400
     assert response.json()["detail"] == "Email already registered"
