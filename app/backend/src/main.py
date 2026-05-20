@@ -28,7 +28,7 @@ class UserRegister(BaseModel):
     name: str
     surname: str
     id_number: str
-    licence_number: Optional[str] = None    #for firefighters
+    licence_number: Optional[str] = None  # for fierefighters
     role: str = "User"
 
 class UserLogin(BaseModel):
@@ -47,7 +47,41 @@ app.include_router(auth_router)
 class PingResponse(BaseModel):
     status: str
     db_host: str
+@app.post("/api/login", tags=["Auth"])
+def login(user: UserLogin):
+    """Authenticate user and return JWT token or require 2FA."""
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, email, hashed_password, is_2fa_enabled FROM users WHERE email = %s",
+                (user.email,)
+            )
+            db_user = cur.fetchone()
+            if not db_user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Incorrect email or password",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
 
+            if not verify_password(user.password, db_user["hashed_password"]):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Incorrect email or password",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+            # If 2FA is enabled, do not issue token yet
+            if db_user["is_2fa_enabled"]:
+                return {
+                    "message": "2FA required",
+                    "user_id": db_user["id"],
+                    "email": db_user["email"]
+                }
+
+            # No 2FA – issue JWT immediately
+            access_token = create_access_token(data={"sub": db_user["email"], "user_id": db_user["id"]})
+            return {"access_token": access_token, "token_type": "bearer"}
 @app.on_event("startup")
 def startup():
     init_db()
@@ -63,18 +97,27 @@ def health():
 def ping():
     return {"message": "pong"}
 
-@app.post("/api/register", ...)
+
+@app.post("/api/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
 def register(user: UserRegister):
+    """Register a new user with all fields."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
-            # ... check existing email ...
+            cur.execute("SELECT id FROM users WHERE email = %s", (user.email,))
+            existing = cur.fetchone()
+            if existing:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Email already registered"
+                )
+
             hashed = hash_password(user.password)
             cur.execute(
                 """INSERT INTO users 
-                    (email, hashed_password, name, surname, id_number, licence_number, role)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+                   (email, hashed_password, name, surname, id_number, licence_number, role)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
                 (user.email, hashed, user.name, user.surname, user.id_number,
-                user.licence_number, user.role)
+                 user.licence_number, user.role)
             )
             new_id = cur.fetchone()["id"]
         conn.commit()

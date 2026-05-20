@@ -1,13 +1,12 @@
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import time
 import pytest
 from fastapi.testclient import TestClient
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from main import app
-
+import uuid
 TEST_DB_NAME = "test_fire_db"
 os.environ["POSTGRES_DB"] = TEST_DB_NAME
 
@@ -42,7 +41,7 @@ def client():
 
 @pytest.fixture
 def sample_user():
-    unique_email = f"testuser_{int(time.time())}@example.com"
+    unique_email = f"testuser_{uuid.uuid4()}@example.com"
     return {
         "email": unique_email,
         "password": "test123",
