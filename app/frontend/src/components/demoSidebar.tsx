@@ -2,9 +2,7 @@ import React, { Children, useState } from 'react';
 import { BookAlert, Map, LayoutDashboard, Settings, LogOut,
     ShieldAlert, Flame, User, UserCircle,
     ChevronDown, BookAlertIcon, CheckSquare,
-    Bell, Users, PlusCircle,
-    Icon
-
+    Bell, Users, PlusCircle, MapPin, Icon
 } from 'lucide-react';
 
 const NavLink = ({ icon: Icon, label}: { icon: any, label: string}) => (
@@ -45,3 +43,86 @@ const SideBarDropdown = ({ title, icon: Icon, defaultOpen = false, children }: {
         </li>
     );
 };
+
+export function SideBarLayout({ children }: { children?: React.ReactNode }){
+    return(
+        <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialised realtive z-0">
+            {/* Atmospheric Background Blooms */}
+            <div className="global-atmos">
+                <div className="ga-bloom-primary"></div>
+                <div className="ga-bloom-secondary"></div>
+            </div>
+
+            <aside className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-[92px] hover:w-64 shrink-0 shadow-2xl shadow-black/50">
+
+            {/* Logo Area */}
+            <div className="flex items-center justify-center group-hover:justify-start group-hover:px-6 mt-6 mb-4 px-2 shrink-0 transition-all duration-300 w-full">
+                <img src="/images/logo-small.png" alt="FireAway" className="h-12 w-10 object-contain group-hover:hidden"/>
+                <img src="/images/logo-large.png" alt="FireAway" className="h-20 w-48 object-contain hidden group-hover:block"/>
+            </div>
+
+            {/* Main Navigation */}
+                <div className="w-full grow overflow-y-auto overflow-x-hidden scrollbar-hide">
+                    <ul className="menu w-full px-3 space-y-2 flex flex-col items-center group-hover:items-start">
+                        
+                        {/* Admin Dropdown */}
+                        <SideBarDropdown title="Admin Portal" icon={ShieldAlert}>
+                            <NavLink icon={LayoutDashboard} label="Admin Dashboard" />
+                            <NavLink icon={Users} label="Role Approvals" />
+                            <NavLink icon={CheckSquare} label="Verify Reports" />
+                        </SideBarDropdown >
+
+                        {/* Firefighter Dropdown */}
+                        <SideBarDropdown  title="Firefighter Tools" icon={Flame} defaultOpen={true}>
+                            <NavLink icon={LayoutDashboard} label="Tactical Dashboard" />
+                            <NavLink icon={MapPin} label="Log Containment Line" />
+                            <NavLink icon={Map} label="Fire Simulation AI" />
+                            <NavLink icon={CheckSquare} label="Review Pending Fires" />
+                        </SideBarDropdown >
+
+                        {/* Registered User Dropdown */}
+                        <SideBarDropdown  title="Registered User" icon={User}>
+                            <NavLink icon={Map} label="Live Map (User View)" />
+                            <NavLink icon={PlusCircle} label="Report a Fire" />
+                            <NavLink icon={Bell} label="Proximity Alerts" />
+                        </SideBarDropdown >
+
+                        {/* Guest Dropdown */}
+                        <SideBarDropdown  title="Guest Access" icon={UserCircle}>
+                            <NavLink icon={Map} label="Public Fire Map" />
+                            <NavLink icon={PlusCircle} label="Submit Anonymous Report" />
+                            <NavLink icon={BookAlert} label="Login / Register" />
+                        </SideBarDropdown >
+
+                        {/* Settings Section */}
+                        <div className="w-full text-center mt-6 mb-1 px-2 border-t border-carbon-card pt-4 shrink-0">
+                            <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block group-hover:hidden">SYS</span>
+                            <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase hidden group-hover:block text-left px-2">SYSTEM SETTINGS</span>
+                        </div>
+
+                        <li className="w-full mt-auto pb-4">
+                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
+                                <Settings className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
+                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Global Settings</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                 {/* Footer Action */}
+                <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-4 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
+                    <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        <LogOut className="size-6 shrink-0" />
+                        <span className="text-sm font-semibold hidden group-hover:inline">End Demo Session</span>
+                    </button>
+                </div>
+            </aside>
+
+            <div className="flex-1 flex flex-col min-h-screen overflow-y-auto overflow-x-hidden relative z-10">
+                <main className="p-6 flex flex-col w-full max-w-[1800px] mx-auto flex-1">
+                    {children}
+                </main>
+            </div>
+        </div>
+    );
+}
