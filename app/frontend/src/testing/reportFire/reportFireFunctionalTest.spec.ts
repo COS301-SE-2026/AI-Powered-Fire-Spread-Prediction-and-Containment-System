@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Report Fire page', () => {
-  test('submits, shows reference/status, and resets', async ({ page }) => {
+  test('submits, shows status/reference, resets form but keeps status, generates new ref on next submission', async ({ page }) => {
     // Mock Mapbox autocomplete
     await page.route(/api\.mapbox\.com\/geocoding\/v5\/mapbox\.places\/.*\.json/, async (route) => {
       await route.fulfill({
@@ -17,33 +17,47 @@ test.describe('Report Fire page', () => {
 
     await page.goto('/reportfire');
 
-    // Location must be selected, not just typed
+    // ─── FIRST SUBMISSION ───
     const locationInput = page.getByPlaceholder('Drop a pin or type your address');
+    const descriptionInput = page.getByPlaceholder('E.g., Surface line fire spreading northeast toward residential properties...');
+
     await locationInput.fill('Corner of 5th Ave');
     await page.getByRole('button', { name: 'Corner of 5th Ave and Pine St' }).click();
-
-    // Description
-    await page
-      .getByPlaceholder('E.g., Surface line fire spreading northeast toward residential properties...')
-      .fill('Brush fire near the treeline, moderate wind.');
-
-    // Photo (required on desktop)
+    await descriptionInput.fill('Brush fire near the treeline, moderate wind.');
     await page.locator('input[type="file"]').setInputFiles('app/frontend/src/testing/fixtures/fire.jpg');
 
-    // Submit
     await page.getByRole('button', { name: 'Submit Fire Report' }).click();
 
-    // Status + reference number
+    // Capture first reference number
+    const firstRefMatch = await page.locator('text=/Ref #FW-/').textContent();
+    const firstRef = firstRefMatch?.match(/FW-[\w-]+/)?.[0];
+
     await expect(page.getByText('Report submitted')).toBeVisible();
-    await expect(page.getByText(/Ref #FW-/)).toBeVisible();
+    await expect(page.getByText(`Ref #${firstRef}`)).toBeVisible();
 
-    // If you want "Verified" done, the app must set statusIndex >= 2
-    // await expect(page.getByText('Verified')).toBeVisible();
+    // Wait for form reset (1s timeout in handleSubmit)
+    await page.waitForTimeout(1100);
 
-    // Reset assertions (form clears immediately)
+    // Form should be cleared, but status should still be visible
     await expect(locationInput).toHaveValue('Click the map to drop a pin');
-    await expect(
-      page.getByPlaceholder('E.g., Surface line fire spreading northeast toward residential properties...')
-    ).toHaveValue('');
+    await expect(descriptionInput).toHaveValue('');
+    await expect(page.getByText(`Ref #${firstRef}`)).toBeVisible(); // Status persists
+
+    // ─── SECOND SUBMISSION ───
+    await locationInput.fill('5th Ave and Elm');
+    await page.getByRole('button', { name: 'Corner of 5th Ave and Pine St' }).click(); // Mock returns same result
+    await descriptionInput.fill('Different fire location, spreading rapidly.');
+    await page.locator('input[type="file"]').setInputFiles('app/frontend/src/testing/fixtures/fire.jpg');
+
+    await page.getByRole('button', { name: 'Submit Fire Report' }).click();
+
+    // Capture second reference number
+    const secondRefMatch = await page.locator('text=/Ref #FW-/').textContent();
+    const secondRef = secondRefMatch?.match(/FW-[\w-]+/)?.[0];
+
+    // Verify new ref is different from first
+    await expect(firstRef).not.toBe(secondRef);
+    await expect(page.getByText(`Ref #${secondRef}`)).toBeVisible();
+    await expect(page.getByText('Report submitted')).toBeVisible();
   });
 });
