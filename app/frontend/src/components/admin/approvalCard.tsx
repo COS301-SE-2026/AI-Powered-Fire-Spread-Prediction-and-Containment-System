@@ -6,7 +6,7 @@ interface RoleRequest {
   id: string;
   email: string;
   currentRole: string;
-  requestedRole: 'Firefighter' | 'Admin';
+  requestedRole: 'Admin';
 }
 
 interface AdminApprovalCardProps {
