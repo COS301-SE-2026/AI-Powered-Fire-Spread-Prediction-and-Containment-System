@@ -1,11 +1,11 @@
 {
   "name": "fire-spread-backend-e2e",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:e2e": "jest --config testing_config/jest.config.js"
-  },
-  "devDependencies": {
-    "axios": "^1.6.0",
-    "jest": "^29.7.0"
+    "test": "pytest",
+    "test:e2e": "pytest testing_config/e2e",
+    "test:e2e:verbose": "pytest -vv testing_config/e2e",
+    "test:coverage": "pytest --cov"
   }
 }
