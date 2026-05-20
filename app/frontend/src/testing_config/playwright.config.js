@@ -1,5 +1,9 @@
 const config = {
-  testDir: "./e2e",
+  testDir: './testing',
+  testMatch: [
+    '**/reportFire/**/*.spec.@(js|ts|tsx)',
+    '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
+  ],
   timeout: 30000,
   expect: {
     timeout: 5000,
@@ -10,12 +14,12 @@ const config = {
   workers: process.env.CI ? 1 : undefined,
   use: {
     headless: true,
-    baseURL: process.env.FRONTEND_URL || "http://localhost:3000",
+    baseURL: process.env.FRONTEND_URL || 'http://localhost:3000',
     actionTimeout: 0,
-    trace: "on-first-retry",
+    trace: 'on-first-retry',
   },
   webServer: {
-    command: "npm run dev",
+    command: 'npm run dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
   },
