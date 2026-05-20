@@ -7,7 +7,6 @@ from auth import hash_password, verify_password, create_access_token
 from fastapi.middleware.cors import CORSMiddleware
 from TwoFactorAuth.twoStepAuth import router as auth_router
 from admin import adminRoleApproval
-from admin import adminRoleApproval
 
 app = FastAPI(
     title="Fire Spread Prediction API",
@@ -99,6 +98,8 @@ def health():
 def ping():
     return {"message": "pong"}
 
+# Include admin role approval routes
+app.include_router(adminRoleApproval.router)
 
 @app.post("/api/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED, tags=["Auth"])
 def register(user: UserRegister):
