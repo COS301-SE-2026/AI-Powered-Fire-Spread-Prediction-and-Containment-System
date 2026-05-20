@@ -7,6 +7,7 @@ from auth import hash_password, verify_password, create_access_token
 from fastapi.middleware.cors import CORSMiddleware
 from TwoFactorAuth.twoStepAuth import router as auth_router
 from admin import adminRoleApproval
+from admin import adminRoleApproval
 
 app = FastAPI(
     title="Fire Spread Prediction API",
