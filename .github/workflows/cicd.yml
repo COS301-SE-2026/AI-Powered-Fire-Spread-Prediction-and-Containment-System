@@ -1,6 +1,11 @@
 name: CI/CD
+<<<<<<< HEAD
 on: 
 
+=======
+
+on:
+>>>>>>> origin/dev
   pull_request:
     branches:
       - main
@@ -9,7 +14,10 @@ jobs:
   backend-e2e:
     name: Backend E2E
     runs-on: ubuntu-latest
+<<<<<<< HEAD
     if: github.event.pull_request.head.ref == 'dev'
+=======
+>>>>>>> origin/dev
     defaults:
       run:
         working-directory: app/backend/src
@@ -17,6 +25,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+<<<<<<< HEAD
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -38,6 +47,26 @@ jobs:
         run:
           working-directory: app/backend/src
       steps:
+=======
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest testing_config/e2e
+
+  backend-pylint:
+    name: Backend Lint (pylint)
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: app/backend/src
+    steps:
+>>>>>>> origin/dev
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -55,7 +84,10 @@ jobs:
   frontend-build:
     name: Frontend Build
     runs-on: ubuntu-latest
+<<<<<<< HEAD
     if: github.event.pull_request.head.ref == 'dev'
+=======
+>>>>>>> origin/dev
     defaults:
       run:
         working-directory: app/frontend/src
@@ -67,6 +99,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+<<<<<<< HEAD
           cache: npm
           cache-dependency-path: app/frontend/src/package-lock.json
 
@@ -75,3 +108,13 @@ jobs:
 
       - name: Build
         run: npm run build
+=======
+          cache: yarn
+          cache-dependency-path: app/frontend/src/package-lock.json
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn run build
+>>>>>>> origin/dev
