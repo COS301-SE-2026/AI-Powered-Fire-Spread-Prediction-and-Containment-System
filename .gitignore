@@ -5,5 +5,7 @@ app/frontend/src/node_modules/
 app/backend/src/__pycache__/
 app/pwa/node_modules/
 .expo/
+
+# Next.js
 .next/
 app/frontend/src/.env.local
