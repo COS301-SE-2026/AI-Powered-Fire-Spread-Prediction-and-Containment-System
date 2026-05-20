@@ -15,7 +15,7 @@ const FireMap = dynamic(
     loading: () => (
       <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
         <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-          Initializing Map Layer
+          Loading...
         </span>
       </div>
     ),
@@ -28,6 +28,8 @@ const STEPS = [
   { label: "Add details and submit" },
 ];
 
+type SubmitState = "idle" | "loading" | "error";
+
 export default function ReportPage() {
   const [activeStep, setActiveStep]     = useState(0);
   const [location, setLocation]         = useState("Click the map to drop a pin");
@@ -35,8 +37,9 @@ export default function ReportPage() {
   const [statusIndex, setStatusIndex]   = useState(-1);
   const [mapKey, setMapKey]             = useState(0);
   const [activeRefNum, setActiveRefNum] = useState("");
-  /** Coords from the form's geocoding search — passed as a prop to FireMap */
   const [externalPin, setExternalPin]   = useState<{ lng: number; lat: number } | null>(null);
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function handleBoundarySizeChange(value: number) {
     setBoundarySize(value);
@@ -48,26 +51,42 @@ export default function ReportPage() {
     setActiveStep((prev) => Math.max(prev, 1));
   }
 
-  /** Called when user picks an address from the form's autocomplete */
+  // Called when user picks an address from the form's autocomplete 
   function handleLocationSearch(loc: { lat: number; lng: number; address: string }) {
     setLocation(loc.address);
     setActiveStep((prev) => Math.max(prev, 1));
-    // Pass coords to FireMap via prop — no ref needed
     setExternalPin({ lng: loc.lng, lat: loc.lat });
   }
 
-  function generateMockRef(): string {
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const randomHex = Math.random().toString(16).substring(2, 7).toUpperCase();
-    return `FW-${today}-${randomHex}`;
-  }
+  async function handleSubmit(data: ReportFormData) {
+    setSubmitState("loading");
+    setSubmitError(null);
 
-  function handleSubmit(data: ReportFormData) {
-    const newReference = generateMockRef();
-    setActiveRefNum(newReference);
-    setStatusIndex(0);
+    try {
+      const res = await fetch("http://localhost:8000/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          location:            data.location,
+          description:         data.description,
+          lat:                 externalPin?.lat ?? null,
+          lng:                 externalPin?.lng ?? null,
+          boundary_radius_km:  boundarySize,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.detail ?? `Server error ${res.status}`);
+      }
+ 
+    const report = await res.json();
+   
+    setActiveRefNum(report.reference_number);
+    setStatusIndex(report.status_index);
     setActiveStep(2);
-    console.log(`Fire report submitted. Ref: ${newReference}`, data);
+    setSubmitState("idle");
+
     setTimeout(() => {
       setActiveStep(0);
       setLocation("Click the map to drop a pin");
@@ -75,6 +94,10 @@ export default function ReportPage() {
       setExternalPin(null);
       setMapKey((k) => k + 1);
     }, 1000);
+    } catch (err: any) {
+      setSubmitState("error");
+      setSubmitError(err?.message ?? "Submission failed. Please try again.");
+    }
   }
 
   return (
@@ -98,7 +121,7 @@ export default function ReportPage() {
             <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-m tracking-wide text-neutral/80 uppercase font-display">
-                  Live Incident Map Context
+                  Live Map 
                 </span>
               </div>
               <div className="flex-1 w-full h-full pt-[53px]">
@@ -113,7 +136,7 @@ export default function ReportPage() {
 
             <div className="flex flex-col">
               <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                Map Legend Variables
+                Map Legend
               </h2>
               <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm p-4 shadow-xl">
                 <MapKey />
@@ -123,9 +146,6 @@ export default function ReportPage() {
 
           {/* Right Column */}
           <div className="xl:col-span-4 flex flex-col gap-3" style={{ maxHeight: '100%' }}>
-            <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase shrink-0">
-              Operational Parameters
-            </h2>
             <div
               className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card p-5 shadow-2xl flex flex-col gap-5 overflow-y-auto"
               style={{ maxHeight: 'calc(480px + 1rem + 155px)' }}
