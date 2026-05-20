@@ -1,17 +1,10 @@
+import pyotp
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import pyotp
 from db import get_db_connection
-from auth import verify_password
+from auth import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-class SetupRequest(BaseModel):
-    email: str
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
 
 class SetupResponse(BaseModel):
     otpauth_url: str
@@ -19,31 +12,7 @@ class SetupResponse(BaseModel):
 class VerifyRequest(BaseModel):
     username: str
     code: str
-@router.post("/login")
-def login(payload: LoginRequest):
-    # Replace in-memory lookup with database query
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, email, hashed_password, is_2fa_enabled, totp_secret FROM users WHERE email = %s",
-                (payload.username,)
-            )
-            user = cur.fetchone()
-            if not user:
-                raise HTTPException(status_code=401, detail="Invalid credentials")
 
-            # Verify password using your existing function
-            if not verify_password(payload.password, user["hashed_password"]):
-                raise HTTPException(status_code=401, detail="Invalid credentials")
-
-            if user["is_2fa_enabled"]:
-                # 2FA required – but the real token will be issued by /verify-2fa
-                # For compatibility with their original response:
-                return {"message": "2FA required", "user_id": user["id"]}
-            else:
-                # No 2FA – issue JWT (you may want to call create_access_token here)
-                # But keep original response for now:
-                return {"status": "ok", "token": "dummy"}   # or integrate JWT
 @router.post("/setup-2fa", response_model=SetupResponse)
 def setup_2fa(username: str):
     with get_db_connection() as conn:
@@ -56,14 +25,14 @@ def setup_2fa(username: str):
             secret = pyotp.random_base32()
             otpauth_url = pyotp.TOTP(secret).provisioning_uri(name=username, issuer_name="FireSpreadApp")
 
-            # Store secret and enable 2FA
             cur.execute(
                 "UPDATE users SET totp_secret = %s, is_2fa_enabled = TRUE WHERE email = %s",
                 (secret, username)
             )
             conn.commit()
 
-    return {"otpauth_url": otpauth_url}@router.post("/verify-2fa")
+    return {"otpauth_url": otpauth_url}
+
 @router.post("/verify-2fa")
 def verify_2fa(payload: VerifyRequest):
     with get_db_connection() as conn:
@@ -79,4 +48,7 @@ def verify_2fa(payload: VerifyRequest):
             totp = pyotp.TOTP(user["totp_secret"])
             if not totp.verify(payload.code, valid_window=1):
                 raise HTTPException(status_code=401, detail="Invalid code")
-    return {"status": "verified"}
+
+            # Issue JWT after successful 2FA
+            access_token = create_access_token(data={"sub": user["email"], "user_id": user["id"]})
+            return {"access_token": access_token, "token_type": "bearer"}
