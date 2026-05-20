@@ -4,11 +4,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { Feature, Polygon } from 'geojson';
 import mapboxgl from 'mapbox-gl';
 const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
-import 'mapbox-gl/dist/mapbox-gl.css';  
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
   onBoundarySizeChange?: (radiusKm: number) => void;
+  /** When set, the map flies here and drops a pin (from form search) */
+  externalPin?: { lng: number; lat: number } | null;
 }
 
 function makeCircle(centerLng: number, centerLat: number, radiusKm: number, steps = 80): Feature<Polygon> {
@@ -45,7 +47,7 @@ function formatRadius(km: number): string {
 const INITIAL_RADIUS_KM = 0.2;
 const INITIAL_ZOOM = 15.5;
 
-export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps) {
+export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
   const mapRef = useRef<any>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
@@ -59,10 +61,20 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps
   useEffect(() => { markerPosRef.current = markerPos; }, [markerPos]);
   useEffect(() => { radiusKmRef.current = radiusKm; }, [radiusKm]);
 
+  // ── EXTERNAL PIN (from form search) ──────────────────────────
+  useEffect(() => {
+    if (!externalPin) return;
+    const { lng, lat } = externalPin;
+    setMarkerPos({ lng, lat });
+    setRadiusKm(INITIAL_RADIUS_KM);
+    radiusKmRef.current = INITIAL_RADIUS_KM;
+    onBoundarySizeChange?.(INITIAL_RADIUS_KM);
+    mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
+  }, [externalPin]);
+
   // ── PIN MARKER ────────────────────────────────────────────────
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
-
     pinMarkerRef.current?.remove();
 
     const el = document.createElement('div');
@@ -82,14 +94,12 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps
     return () => { pinMarkerRef.current?.remove(); };
   }, [markerPos]);
 
-  // ── RIM HANDLE MARKER (WITH GEOMETRIC CIRCLE LOCK) ──
+  // ── RIM HANDLE MARKER ─────────────────────────────────────────
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
-
     rimMarkerRef.current?.remove();
 
     const rimPos = getRimHandlePos(markerPos.lng, markerPos.lat, radiusKmRef.current);
-
     const el = document.createElement('div');
     el.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:4px;cursor:grab;';
 
@@ -113,37 +123,20 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps
     rimMarker.on('drag', () => {
       const pos = markerPosRef.current;
       if (!pos) return;
-
-      // 1. Get raw cursor placement coordinates
       const rawLngLat = rimMarker.getLngLat();
-
-      // 2. Compute directional angle (theta) from origin pin center to current mouse coordinates
       const deltaLng = rawLngLat.lng - pos.lng;
       const deltaLat = rawLngLat.lat - pos.lat;
       const theta = Math.atan2(deltaLat, deltaLng);
-
-      // 3. Determine distance parameters using your haversine metric system
       const rawRadius = haversineKm(pos.lat, pos.lng, rawLngLat.lat, rawLngLat.lng);
       const newRadius = Math.max(0.2, Math.min(rawRadius, 25));
-
-      // 4. Convert radius kilometer values to localized map coordinate deltas
       const latRadius = newRadius / 111;
       const lngRadius = newRadius / (111 * Math.cos((pos.lat * Math.PI) / 180));
-
-      // 5. Constrain the visual handle vector to snap directly to the perimeter line
       const lockedLng = pos.lng + lngRadius * Math.cos(theta);
       const lockedLat = pos.lat + latRadius * Math.sin(theta);
-
-      // 6. Override the marker's visual position on the canvas on the fly
       rimMarker.setLngLat([lockedLng, lockedLat]);
-
-      // 7. Update circle geometry properties inside the viewport map instantly
       const source = mapRef.current?.getMap()?.getSource('boundary') as mapboxgl.GeoJSONSource | undefined;
       source?.setData(makeCircle(pos.lng, pos.lat, newRadius));
-
-      // 8. Sync metrics updates to DOM text node layers
       label.textContent = formatRadius(newRadius);
-
       radiusKmRef.current = newRadius;
       onBoundarySizeChange?.(newRadius);
     });
@@ -156,7 +149,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps
 
     rimMarkerRef.current = rimMarker;
     return () => { rimMarkerRef.current?.remove(); };
-  }, [markerPos]); 
+  }, [markerPos]);
 
   // ── MAP CLICK ─────────────────────────────────────────────────
   const handleMapClick = useCallback(async (e: any) => {
@@ -168,7 +161,6 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps
     setRadiusKm(INITIAL_RADIUS_KM);
     radiusKmRef.current = INITIAL_RADIUS_KM;
     onBoundarySizeChange?.(INITIAL_RADIUS_KM);
-
     mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
 
     try {
@@ -189,14 +181,14 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange }: FireMapProps
 
   return (
     <Map
-        ref={mapRef}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        initialViewState={{ longitude: 28.0473, latitude: -26.2041, zoom: 12 }}
-        style={{ width: '100%', height: '100%', pointerEvents: 'auto' }} // ← already auto, but...
-        mapStyle="mapbox://styles/mapbox/navigation-night-v1"
-        onClick={handleMapClick}
-        cursor="crosshair"
-        >
+      ref={mapRef}
+      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+      initialViewState={{ longitude: 28.0473, latitude: -26.2041, zoom: 12 }}
+      style={{ width: '100%', height: '100%', pointerEvents: 'auto' }}
+      mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+      onClick={handleMapClick}
+      cursor="crosshair"
+    >
       {circleData && (
         <Source id="boundary" type="geojson" data={circleData}>
           <Layer id="boundary-fill" type="fill" paint={{ "fill-color": "#E84500", "fill-opacity": 0.10 }} />
