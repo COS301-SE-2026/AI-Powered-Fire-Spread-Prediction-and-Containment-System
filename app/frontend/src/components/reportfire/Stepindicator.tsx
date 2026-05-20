@@ -1,38 +1,33 @@
-// components/StepIndicator.tsx
-// ─────────────────────────────────────────────────────────────
-// Static numbered instruction steps shown above the map.
-// ─────────────────────────────────────────────────────────────
+import React from "react";
 
 type Step = {
-  label: string;
+    label: string;
 };
 
 type Props = {
-  steps: Step[];
+    steps: Step[];
 };
 
 export default function StepIndicator({ steps }: Props) {
-  return (
-    <ol className="flex items-center gap-6 flex-wrap">
-      {steps.map((step, i) => {
-        return (
-          <li key={i} className="flex items-center gap-2.5">
-            {/* Numbered Badge - Using solid Ignite Orange matching theme metrics */}
-            <span
-              className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 bg-[var(--color-ignite)] text-[var(--color-primary-content)]"
-            >
-              {i + 1}
-            </span>
+    return (
+        <ol className="flex items-center gap-6 flex-wrap font-body text-primary-content">
+            {steps.map((step, i) => {
+                return (
+                    <li key={i} className="flex items-center gap-2.5">
+                        
+                        {/* Numbered Badge */}
+                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 bg-ignite text-primary-content">
+                            {i + 1}
+                        </span>
 
-            {/* Label - Using clear, crisp white typography */}
-            <span
-              className="text-xs md:text-sm font-semibold tracking-wide font-[var(--font-body)] text-[var(--color-primary-content)]"
-            >
-              {step.label}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
+                        {/* Label  */}
+                        <span className="text-xs md:text-sm font-semibold tracking-wide">
+                            {step.label}
+                        </span>
+
+                    </li>
+                );
+            })}
+        </ol>
+    );
 }
