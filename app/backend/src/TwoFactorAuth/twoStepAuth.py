@@ -1,21 +1,10 @@
+import pyotp
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-import pyotp
+from db import get_db_connection
+from auth import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-# Mock in-memory store 
-USERS = {
-    "alice": {
-        "password_hash": "$2b$12$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",  # bcrypt
-        "totp_secret": None,
-        "is_2fa_enabled": False,
-    }
-}
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
 
 class SetupResponse(BaseModel):
     otpauth_url: str
@@ -24,42 +13,42 @@ class VerifyRequest(BaseModel):
     username: str
     code: str
 
-@router.post("/login")
-def login(payload: LoginRequest):
-    user = USERS.get(payload.username)
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    # TODO: verify bcrypt password here
-    # if not verify_password(payload.password, user["password_hash"]):
-    #     raise HTTPException(status_code=401, detail="Invalid credentials")
-
-    if user["is_2fa_enabled"]:
-        return {"message": "2FA required"}
-    return {"status": "ok"}
-
 @router.post("/setup-2fa", response_model=SetupResponse)
 def setup_2fa(username: str):
-    user = USERS.get(username)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    secret = pyotp.random_base32()
-    user["totp_secret"] = secret
-    user["is_2fa_enabled"] = True
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT id FROM users WHERE email = %s", (username,))
+            user = cur.fetchone()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
 
-    # For Google Authenticator
-    otpauth_url = pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name="FireSpreadApp")
+            secret = pyotp.random_base32()
+            otpauth_url = pyotp.TOTP(secret).provisioning_uri(name=username, issuer_name="FireSpreadApp")
+
+            cur.execute(
+                "UPDATE users SET totp_secret = %s, is_2fa_enabled = TRUE WHERE email = %s",
+                (secret, username)
+            )
+            conn.commit()
+
     return {"otpauth_url": otpauth_url}
 
 @router.post("/verify-2fa")
 def verify_2fa(payload: VerifyRequest):
-    user = USERS.get(payload.username)
-    if not user or not user["is_2fa_enabled"]:
-        raise HTTPException(status_code=404, detail="User not found or 2FA not enabled")
-    
-    totp = pyotp.TOTP(user["totp_secret"])
-    if not totp.verify(payload.code, valid_window=1):
-        raise HTTPException(status_code=401, detail="Invalid code")
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, email, totp_secret FROM users WHERE email = %s AND is_2fa_enabled = TRUE",
+                (payload.username,)
+            )
+            user = cur.fetchone()
+            if not user or not user["totp_secret"]:
+                raise HTTPException(status_code=404, detail="User not found or 2FA not enabled")
 
-    return {"status": "verified"}
+            totp = pyotp.TOTP(user["totp_secret"])
+            if not totp.verify(payload.code, valid_window=1):
+                raise HTTPException(status_code=401, detail="Invalid code")
+
+            # Issue JWT after successful 2FA
+            access_token = create_access_token(data={"sub": user["email"], "user_id": user["id"]})
+            return {"access_token": access_token, "token_type": "bearer"}
