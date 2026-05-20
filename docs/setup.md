@@ -124,6 +124,7 @@ yarn pwa:start
 - To run from app/backend/src:
 
 ```bash
+pytest testing_config/e2e
 yarn start
 yarn dev
 yarn api
