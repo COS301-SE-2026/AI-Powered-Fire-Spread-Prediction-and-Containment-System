@@ -8,6 +8,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from TwoFactorAuth.twoStepAuth import router as auth_router
 from loginAndRegister.register import router as register_router
 from loginAndRegister.login import router as login_router
+from admin import adminRoleApproval
+
 app = FastAPI(
     title="Fire Spread Prediction API",
     description="API for fire spread prediction, containment planning, and PostGIS-backed geo data.",
@@ -63,6 +65,8 @@ def health():
 def ping():
     return {"message": "pong"}
 
+# Include admin role approval routes
+app.include_router(adminRoleApproval.router)
 
 app.include_router(register_router)
 app.include_router(login_router)
