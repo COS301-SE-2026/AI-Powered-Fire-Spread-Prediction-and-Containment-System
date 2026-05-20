@@ -1,6 +1,7 @@
 import os
 from fastapi import FastAPI
 from pydantic import BaseModel
+from admin import adminRoleApproval
 
 app = FastAPI(
     title="Fire Spread Prediction API",
@@ -25,3 +26,6 @@ def health():
 @app.get("/api/ping", tags=["Health"])
 def ping():
     return {"message": "pong"}
+
+# Include admin role approval routes
+app.include_router(adminRoleApproval.router)

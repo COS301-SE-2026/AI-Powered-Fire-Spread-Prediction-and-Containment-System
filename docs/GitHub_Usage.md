@@ -36,3 +36,4 @@ When creating a pull request, please follow these guidelines:
 - Ensure that your code is well-documented and follows the coding standards of the project.
 - Provide a clear and concise description of the changes you have made.
 - Please ensure you add Megan as a reviewer to your pull request for code review and approval.
+- If you have any queries pertaining to an issue you are working on, please @Megglez in the comments of the issue or pull request for clarification instead of sending a messge on whatsapp. This helps us keep all communication related to the project organized and easily accessible for future reference.
