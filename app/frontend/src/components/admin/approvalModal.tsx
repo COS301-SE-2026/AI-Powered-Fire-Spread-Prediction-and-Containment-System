@@ -17,8 +17,8 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject }: Rol
     const isPending = request.status === 'pending';
 
     return (
-        <dialog open className="modal modal-open">
-            <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-lg shadow-ignite/5 max-w-md p-8">
+        <dialog open className="modal modal-open backdrop-blur-sm bg-black/40">
+            <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md p-8">
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
