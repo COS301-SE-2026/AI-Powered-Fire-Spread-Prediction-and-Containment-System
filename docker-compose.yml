@@ -44,7 +44,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./app/backend/src:/app:Z
     ports:
