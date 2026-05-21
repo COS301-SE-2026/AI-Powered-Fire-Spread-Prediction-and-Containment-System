@@ -32,14 +32,14 @@ export default function Landing() {
 
         {/* Card with buttons */}
         <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm">
-          <h1 className="text-4xl font-bold text-neutral mb-2">Welcome!</h1>
+          <h1 className="text-4xl font-bold text-neutral mb-4">Welcome!</h1>
           <div className="space-y-4">
-            <Link href="/register">
+            <Link href="/register" className="mb-4 block">
               <button className="w-full py-2 bg-ember hover:bg-deep text-white font-medium rounded-md transition">
                 Register
               </button>
             </Link>
-            <Link href="/login">
+            <Link href="/login" className="mb-3 block">
               <button className="w-full py-2 border border-carbon-stroke hover:bg-carbon-elevated text-white/90 rounded-md transition">
                 Login
               </button>
