@@ -78,7 +78,7 @@ export default function StyleGuidePage() {
                   textAlign: 'left',
                   padding: '9px 20px',
                   fontFamily: 'var(--font-body)',
-                  fontSize: '13px',
+                  fontSize: '16px',
                   fontWeight: active === id ? 600 : 400,
                   color: active === id ? 'var(--color-ignite)' : '#A0A8B8',
                   backgroundColor: active === id ? 'rgba(232,69,0,0.08)' : 'transparent',
@@ -122,18 +122,19 @@ export default function StyleGuidePage() {
 
               <p style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '11px',
-                color: '#5A6278',
+                fontSize: '16px',
+                color: '#A0A8B8',
                 letterSpacing: '0.25em',
                 textTransform: 'uppercase',
                 marginBottom: '28px',
+                fontWeight: 500,
               }}>
                 Brand Style Guide
               </p>
 
               <p style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: '16px',
+                fontSize: '18px',
                 color: '#A0A8B8',
                 maxWidth: '640px',
                 lineHeight: '1.75',
@@ -157,7 +158,7 @@ export default function StyleGuidePage() {
               >
                 <h2 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: '28px',
+                  fontSize: '32px',
                   fontWeight: 800,
                   letterSpacing: '0.04em',
                   textTransform: 'uppercase',

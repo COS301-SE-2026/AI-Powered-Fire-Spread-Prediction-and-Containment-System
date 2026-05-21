@@ -17,8 +17,8 @@ export default function LogoSection() {
             <img src="/images/logo-large.png" alt="Fireaway large logo" style={{ height: '80px', objectFit: 'contain' }} />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-card)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#EDEAE5', marginBottom: '2px' }}>logo-large.png</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>Sidebar expanded · min-width 120px</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#EDEAE5', marginBottom: '4px' }}>logo-large.png</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0' }}>Sidebar expanded · min-width 120px</p>
           </div>
         </div>
 
@@ -28,8 +28,8 @@ export default function LogoSection() {
             <img src="/images/logo-small.png" alt="Fireaway small logo" style={{ height: '48px', objectFit: 'contain' }} />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-card)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#EDEAE5', marginBottom: '2px' }}>logo-small.png</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>Sidebar collapsed · 40×48px</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#EDEAE5', marginBottom: '4px' }}>logo-small.png</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0' }}>Sidebar collapsed · 40×48px</p>
           </div>
         </div>
 
@@ -38,7 +38,7 @@ export default function LogoSection() {
       {/* Placement rules */}
       <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderBottom: '1px solid var(--color-carbon-stroke)' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
             Placement & Sizing Rules
           </p>
         </div>
@@ -60,25 +60,25 @@ export default function LogoSection() {
               borderBottom: i < arr.length - 1 ? '1px solid var(--color-carbon-stroke)' : 'none',
             }}
           >
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#A0A8B8', lineHeight: 1.5 }}>{rule}</p>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '15px', color: '#A0ACC0', lineHeight: 1.6 }}>{rule}</p>
           </div>
         ))}
       </div>
 
       {/* Icon library */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Icon Library - Lucide React
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderBottom: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: '#A0A8B8', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: '#A0ACC0', lineHeight: 1.6 }}>
               All icons use the Lucide React library at 24×24px in nav and 20×20px inline.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1px', backgroundColor: 'var(--color-carbon-stroke)' }}>
             {[
-              { Icon: LayoutDashboard, name: 'LayoutDashboard', usage: 'Dashboard nav'    },
+              { Icon: LayoutDashboard, name: 'Dashboard',       usage: 'Dashboard nav'    },
               { Icon: Flame,           name: 'Flame',           usage: 'Fire / alerts'    },
               { Icon: Map,             name: 'Map',             usage: 'Map views'        },
               { Icon: BookAlert,       name: 'BookAlert',       usage: 'Reports'          },
@@ -107,8 +107,8 @@ export default function LogoSection() {
                 }}
               >
                 <Icon size={24} color="#EDEAE5" strokeWidth={2} />
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#EDEAE5', lineHeight: 1.3 }}>{name}</p>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '10px', color: '#5A6278' }}>{usage}</p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', color: '#EDEAE5', lineHeight: 1.3 }}>{name}</p>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: '#A0ACC0' }}>{usage}</p>
               </div>
             ))}
           </div>
