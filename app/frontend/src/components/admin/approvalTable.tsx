@@ -14,10 +14,10 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
     );
 
     return (
-        <div className="rounded-2xl border border-carbon-card overflow-hidden">
+        <div className="rounded-2xl border border-carbon-card overflow-hidden bg-carbon-side/60 shadow-xl shadow-black/30 max-h-[600px] overflow-y-auto">
             <table className="w-full">
-                <thead>
-                    <tr className="bg-carbon-side border-b border-carbon-card">
+                <thead className="sticky top-0 z-10">
+                    <tr className="bg-carbon-bg border-b border-ignite/20">
                         <th className="text-left text-xs font-bold tracking-widest text-neutral/40 uppercase px-4 py-3">Name</th>
                         <th className="text-left text-xs font-bold tracking-widest text-neutral/40 uppercase px-4 py-3">Email</th>
                         <th className="text-left text-xs font-bold tracking-widest text-neutral/40 uppercase px-4 py-3">Role</th>
@@ -37,7 +37,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                         filtered.map((req) => {
                             const badge: BadgeStyle = statusBadge[req.status] ?? statusBadge.none;
                             return (
-                                <tr key={req.request_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors">
+                                <tr key={req.request_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
                                     <td className="px-4 py-3 text-sm text-neutral font-medium">{req.user_full_name}</td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{req.email ?? '-'}</td>
                                     <td className="px-4 py-3 text-sm text-neutral/70 capatilize">{req.role}</td>
