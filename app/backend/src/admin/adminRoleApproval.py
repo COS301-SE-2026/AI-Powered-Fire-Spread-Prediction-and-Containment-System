@@ -1,71 +1,70 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from typing import List
+from datetime import datetime
+from db import get_db
+from models import RoleRequestDB, User
 from pydantic import BaseModel
-from typing import List, Literal
 
 router = APIRouter(prefix="/api/admin/roles", tags=["Admin"])
-
-RoleType = Literal["firefighter", "admin"]
-StatusType = Literal["pending", "approved", "rejected"]
-
-# MOCK FIREFIGHTER LICENSES
-FIREFIGHTER_LICENSE_IDS = {
-    "FF-1001",
-    "FF-1002",
-    "FF-2001",
-}
 
 class RoleRequest(BaseModel):
     request_id: str
     user_id: str
-    role: RoleType
-    status: StatusType
-    firefighter_license_id: str | None = None   #only required for firefighters
+    user_full_name: str | None = None
+    email: str | None = None
+    role: str
+    status: str
+    firefighter_license_id: str | None = None
+    created_at: datetime | None = None
 
+    class Config:
+        from_attributes = True
 
-# MOCK DATA 
-ROLE_REQUESTS = [
-    {
-        "request_id": "req_1",
-        "user_id": "user_1",
-        "role": "firefighter",
-        "status": "pending",
-        "firefighter_license_id": "FF-1001",
-    },
-    {
-        "request_id": "req_2",
-        "user_id": "user_2",
-        "role": "admin",
-        "status": "pending",
-    },
-]
+FIREFIGHTER_LICENSE_IDS = {"FF-1001", "FF-1002", "FF-2001"}
 
 @router.get("/role-requests", response_model=List[RoleRequest])
-def get_role_requests():
-    return ROLE_REQUESTS
+def get_role_requests(db: Session = Depends(get_db)):
+    return db.query(RoleRequestDB).all()
 
 @router.post("/role-requests/{request_id}/approve", response_model=RoleRequest)
-def approve_role_request(request_id: str):
-    for req in ROLE_REQUESTS:
-        if request_id == req["request_id"]:
-            if req["status"] != "pending":
-                raise HTTPException(status_code=400, detail="Request already processed")
-            
-            if req["role"] == "firefighter":
-                license_id = req.get("firefighter_license_id")
-                if not license_id or license_id not in FIREFIGHTER_LICENSE_IDS:
-                    req["status"] = "rejected"
-                    return req  # Automatically reject if license is invalid or missing
+def approve_role_request(request_id: str, db: Session = Depends(get_db)):
+    req = db.query(RoleRequestDB).filter(RoleRequestDB.request_id == request_id).first()
+    
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    if req.status != "pending":
+        raise HTTPException(status_code=400, detail="Request already processed")
 
-            req["status"] = "approved"
+    # Business Logic
+    if req.role == "firefighter":
+        if req.firefighter_license_id not in FIREFIGHTER_LICENSE_IDS:
+            req.status = "rejected"
+            db.commit()
+            db.refresh(req)
             return req
-    raise HTTPException(status_code=404, detail="Request not found")
+        
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if user:
+        user.role = req.role
+
+    req.status = "approved"
+    db.commit()
+    db.refresh(req)
+    return req
 
 @router.post("/role-requests/{request_id}/reject", response_model=RoleRequest)
-def reject_role_request(request_id: str):
-    for req in ROLE_REQUESTS:
-        if request_id == req["request_id"]:
-            if req["status"] != "pending":
-                raise HTTPException(status_code=400, detail="Request already processed")
-            req["status"] = "rejected"
-            return req
-    raise HTTPException(status_code=404, detail="Request not found")
+def reject_role_request(request_id: str, db: Session = Depends(get_db)):
+    req = db.query(RoleRequestDB).filter(RoleRequestDB.request_id == request_id).first()
+    
+    if not req:
+        raise HTTPException(status_code=404, detail="Request not found")
+        
+    if req.status != "pending":
+        raise HTTPException(status_code=400, detail="Request already processed")
+    
+    req.status = "rejected"
+    db.commit()
+    db.refresh(req)
+    return req
