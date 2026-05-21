@@ -94,7 +94,7 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
                         <SideBarDropdown title="Admin Portal" icon={ShieldAlert} isSidebarHovered={isHovered}>
                             <NavLink icon={LayoutDashboard} label="Admin Dashboard" />
                             <NavLink icon={TrendingUp} label="Analytics" />
-                            <NavLink icon={Map} label="Live Map" />
+                            <NavLink icon={Map} label="Live Map" href="/guests" />
                             <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvalPage" />
                             <NavLink icon={Flame} label="Reported Fires" />
                         </SideBarDropdown >
@@ -114,7 +114,7 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
 
                         {/* Guest Dropdown */}
                         <SideBarDropdown  title="Guest Access" icon={UserCircle} isSidebarHovered={isHovered}>
-                            <NavLink icon={Map} label="Public Fire Map" />
+                            <NavLink icon={Map} label="Public Fire Map" href="/guests" />
                             <NavLink icon={PlusCircle} label="Submit Report" href="/reportfire" />
                         </SideBarDropdown >
                     </ul>
