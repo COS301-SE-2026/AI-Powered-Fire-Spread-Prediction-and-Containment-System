@@ -9,6 +9,7 @@ from TwoFactorAuth.twoStepAuth import router as auth_router
 from loginAndRegister.register import router as register_router
 from loginAndRegister.login import router as login_router
 from admin import adminRoleApproval
+from reportfire import reportFire
 
 app = FastAPI(
     title="Fire Spread Prediction API",
@@ -52,7 +53,11 @@ class PingResponse(BaseModel):
     db_host: str
 @app.on_event("startup")
 def startup():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Warning: Could not connect to database: {e}")
+        print("Running without database — mock data only.")
 
 @app.get("/health", response_model=PingResponse, tags=["Health"])
 def health():
@@ -70,3 +75,5 @@ app.include_router(adminRoleApproval.router)
 
 app.include_router(register_router)
 app.include_router(login_router)
+
+app.include_router(reportFire.router)
