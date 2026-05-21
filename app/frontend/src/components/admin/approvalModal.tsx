@@ -1,4 +1,5 @@
 import { RoleRequest } from "../../types/admin";
+import { statusBadge } from './statusBadge';
 
 interface RoleApprovalModalProps {
     request: RoleRequest;
@@ -7,12 +8,6 @@ interface RoleApprovalModalProps {
     onReject: (id:string) => void;
     onRevoke: (id:string) => void;
 }
-
-const statusColor = (s: string) => ({
-    pending: 'bg-torch/20 text-torch border border-torch/30',
-    approved: 'bg-humidity/20 text-humidity border border-humidity/30',
-    rejected: 'bg-ignite/20 text-flare border border-ignite/30',
-}[s] ?? 'bg-carbon-card text-neutral/50');
 
 export function RoleApprovalModal({ request, onClose, onApprove, onReject }: RoleApprovalModalProps) {
     const isPending = request.status === 'pending';
@@ -35,17 +30,22 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject }: Rol
                     </div>
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Account Created</p>
-                        <p className="text-sm font-semibold text-neutral">14 May 2026</p>
+                        <p className="text-sm font-semibold text-neutral">{request.created_at ? new Date(request.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }): '—'}</p>
                     </div>
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Email</p>
-                        <p className="text-sm font-semibold text-neutral">user@test.co.za</p>
+                        <p className="text-sm font-semibold text-neutral">{request.email ?? '—'}</p>
                     </div>
                     <div>
-                        <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Status</p>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColor(request.status)}`}>
-                            {request.status}
-                        </span>
+                    <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Status</p>
+                    {(() => {
+                        const badge = statusBadge[request.status] ?? {};
+                        return (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ?? 'bg-carbon-card'} ${badge.text ?? 'text-neutral/50'} ${badge.border ?? 'border-carbon-card'}`}>
+                                {request.status}
+                            </span>
+                        );
+                        })()}
                     </div>
                 </div>
 
