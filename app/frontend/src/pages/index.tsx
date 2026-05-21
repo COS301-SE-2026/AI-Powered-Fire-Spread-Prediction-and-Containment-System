@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 
 export default function Landing() {
   const router = useRouter();
@@ -11,26 +12,47 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080B12] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#12151E] border border-white/10 rounded-xl p-8 text-center">
-        <h1 className="text-4xl font-bold text-[#EDEAE5] mb-4">Welcome!</h1>
-        <div className="space-y-4">
-          <Link href="/register">
-            <button className="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition">
-              Register
+    <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
+      <div className="global-atmos">
+        <div className="ga-bloom-primary" />
+        <div className="ga-bloom-secondary" />
+        <div className="ga-bloom-tertiary" />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
+        {/* Logo outside the card */}
+        <div className="mb-8">
+          <Image
+            src="/images/logo-large.png"
+            alt="Fire Spread Prediction Logo"
+            width={450}
+            height={450}
+            className="mx-auto"
+          />
+        </div>
+
+        {/* Card with buttons */}
+        <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm">
+          <h1 className="text-4xl font-bold text-neutral mb-2">Welcome!</h1>
+          <p className="text-white/60 mb-8">Fire Spread Prediction & Containment System</p>
+          <div className="space-y-4">
+            <Link href="/register">
+              <button className="w-full py-2 bg-ember hover:bg-deep text-white font-medium rounded-md transition">
+                Register
+              </button>
+            </Link>
+            <Link href="/login">
+              <button className="w-full py-2 border border-carbon-stroke hover:bg-carbon-elevated text-white/90 rounded-md transition">
+                Login
+              </button>
+            </Link>
+            <button
+              onClick={handleGuest}
+              className="w-full py-2 text-white/80 hover:text-white transition"
+            >
+              Sign in as Guest
             </button>
-          </Link>
-          <Link href="/login">
-            <button className="w-full py-2 border border-white/20 hover:bg-white/5 text-white/90 rounded-md transition">
-              Login
-            </button>
-          </Link>
-          <button
-            onClick={handleGuest}
-            className="w-full py-2 text-white/80 hover:text-white transition"
-          >
-            Guest
-          </button>
+          </div>
         </div>
       </div>
     </div>
