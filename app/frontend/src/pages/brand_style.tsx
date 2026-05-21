@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import ColoursSection from '../components/brandStyle/ColoursSection';
 import TypographySection from '../components/brandStyle/TypographySection';
 import LogoSection from '../components/brandStyle/LogoSection';
-import ComponentsSection from '../components/brandStyle/ColoursSection';
+import ComponentsSection from '../components/brandStyle/ComponentsSection';
 import AccessibilitySection from '../components/brandStyle/AccessabilitySection';
 import DesignPrinciplesSection from '../components/brandStyle/DesignPrinciplesSection';
 
