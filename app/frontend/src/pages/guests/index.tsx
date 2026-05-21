@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { SidebarLayout } from '../../components/firefighter/sidebar';
+import { SideBarLayout } from '../../components/demoSidebar';
 import { NearbyReports } from '../../components/firefighter/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import Button from '../../components/Button';
@@ -32,7 +32,7 @@ export default function GuestPublicDashboard() {
     };
 
     return (
-        <SidebarLayout>
+        <SideBarLayout hideLogout>
             <div className="flex flex-col p-6">
                 
                 {/*Public View Header*/}
@@ -64,13 +64,6 @@ export default function GuestPublicDashboard() {
                                 </h2>
                                 <EnvironmentWidgets />
                             </div>
-
-                            {/*Report fire*/}
-                            <div className="flex flex-col">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                                    Public Alert Setup
-                                </h2>
-                            </div>
                         </div>                  
                     </div>
 
@@ -91,6 +84,6 @@ export default function GuestPublicDashboard() {
                 </div>
 
             </div> 
-        </SidebarLayout>
+        </SideBarLayout>
     );
 }
