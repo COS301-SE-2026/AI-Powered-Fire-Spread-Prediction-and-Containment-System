@@ -11,7 +11,7 @@ export default function ComponentsSection() {
 
       {/* Buttons */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Buttons
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -22,14 +22,14 @@ export default function ComponentsSection() {
             <Button variant="fire"  className="h-11 min-h-[44px] px-4" disabled>Unavailable</Button>
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>dark · red · ghost · fire (disabled) — min touch target 44px</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>dark  red  ghost  fire (disabled) - min touch target 44px</p>
           </div>
         </div>
       </div>
 
       {/* Badges */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Status Badges
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -47,14 +47,14 @@ export default function ComponentsSection() {
             })}
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>pending · approved · rejected · revoked — used on report and admin cards</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>pending  approved  rejected  revoked - used on report and admin cards</p>
           </div>
         </div>
       </div>
 
       {/* Environment Widgets */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Environment Widgets
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -62,14 +62,14 @@ export default function ComponentsSection() {
             <EnvironmentWidgets />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>Wind · Temperature · Fire Danger · Humidity — used on the Firefighter Dashboard</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>Wind  Temperature  Fire Danger  Humidity - used on the Firefighter Dashboard</p>
           </div>
         </div>
       </div>
 
       {/* Nearby Reports */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Nearby Reports
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -77,14 +77,14 @@ export default function ComponentsSection() {
             <NearbyReports />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>Scrollable list · each row shows location, distance, time, and a Badge · used on Firefighter Dashboard</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>Scrollable list - each row shows location, distance, time, and a Badge - used on Firefighter Dashboard</p>
           </div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Quick Actions
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -92,14 +92,14 @@ export default function ComponentsSection() {
             <QuickActions />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>Action grid on the Firefighter Dashboard · each action maps to a primary workflow</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>Action grid on the Firefighter Dashboard - each action maps to a primary workflow</p>
           </div>
         </div>
       </div>
 
       {/* Report Form */}
       <div>
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '16px' }}>
           Report Details Form
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
@@ -107,7 +107,7 @@ export default function ComponentsSection() {
             <ReportDetailsForm />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278' }}>Location · Description · Attach Evidence · Submit — inputs use carbon-input background with carbon-stroke border</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>Location - Description  Attach Evidence  Submit - inputs use carbon-input background with carbon-stroke border</p>
           </div>
         </div>
       </div>

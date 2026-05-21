@@ -12,7 +12,7 @@ export default function ColoursSection() {
           { name: 'Sidebar',   hex: '#0C0F1A', role: 'Background - sidebar & nav' },
           { name: 'Card',      hex: '#101420', role: 'Background - cards & panels' },
           { name: 'Text',      hex: '#EDEAE5', role: 'Text - headings & body' },
-          { name: 'Muted',     hex: '#A0A8B8', role: 'Text - secondary & labels' },
+          { name: 'Muted',     hex: '#A0ACC0', role: 'Text - secondary & labels' },
         ].map(({ name, hex, role }) => (
           <div key={hex} style={{
             border: '1px solid var(--color-carbon-stroke)',
@@ -34,9 +34,9 @@ export default function ColoursSection() {
               backgroundColor: 'var(--color-carbon-card)',
               flex: 1,
             }}>
-              <p style={{ fontFamily: 'var(--font-display)', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', color: '#EDEAE5', marginBottom: '4px' }}>{name}</p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#EDEAE5', marginBottom: '6px' }}>{hex}</p>
-              <p style={{ fontSize: '11px', color: '#A0A8B8', lineHeight: 1.5 }}>{role}</p>
+              <p style={{ fontFamily: 'var(--font-display)', fontSize: '18px', fontWeight: 700, textTransform: 'uppercase', color: '#EDEAE5', marginBottom: '4px' }}>{name}</p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', color: '#EDEAE5', marginBottom: '6px' }}>{hex}</p>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: '#A0ACC0', lineHeight: 1.5 }}>{role}</p>
             </div>
           </div>
         ))}
@@ -45,18 +45,18 @@ export default function ColoursSection() {
       {/* Contrast Ratios */}
       <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderBottom: '1px solid var(--color-carbon-stroke)' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: '#5A6278', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-            Contrast Ratios — WCAG AA
+          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+            Contrast Ratios - WCAG AA
           </p>
         </div>
 
         {[
           { fg: '#EDEAE5', bg: '#080B12', pair: '#EDEAE5 on #080B12', ratio: '16.4:1', pass: true  },
-          { fg: '#A0A8B8', bg: '#080B12', pair: '#A0A8B8 on #080B12', ratio: '7.2:1',  pass: true  },
-          { fg: '#E84500', bg: '#080B12', pair: '#E84500 on #080B12', ratio: '5.1:1',  pass: true  },
-          { fg: '#FFAA00', bg: '#101420', pair: '#FFAA00 on #101420', ratio: '8.3:1',  pass: true  },
-          { fg: '#1D9E75', bg: '#101420', pair: '#1D9E75 on #101420', ratio: '4.6:1',  pass: true  },
-          { fg: '#FFFFFF', bg: '#E84500', pair: '#FFFFFF on #E84500', ratio: '3.9:1',  pass: false },
+          { fg: '#A0ACC0', bg: '#080B12', pair: '#A0ACC0 on #080B12', ratio: '8.58:1',  pass: true  },
+          { fg: '#E84500', bg: '#080B12', pair: '#E84500 on #080B12', ratio: '6:1',  pass: true  },
+          { fg: '#FFAA00', bg: '#101420', pair: '#FFAA00 on #101420', ratio: '9.62:1',  pass: true  },
+          { fg: '#1D9E75', bg: '#101420', pair: '#1D9E75 on #101420', ratio: '5.42:1',  pass: true  },
+          { fg: '#FFFFFF', bg: '#E84500', pair: '#FFFFFF on #E84500', ratio: '3.97:1',  pass: false },
         ].map(({ fg, bg, pair, ratio, pass }, i, arr) => (
           <div
             key={pair}
@@ -74,16 +74,16 @@ export default function ColoursSection() {
               <div style={{ width: '16px', height: '16px', borderRadius: '2px', backgroundColor: fg, border: '1px solid rgba(255,255,255,0.08)' }} />
               <div style={{ width: '16px', height: '16px', borderRadius: '2px', backgroundColor: bg, border: '1px solid rgba(255,255,255,0.08)' }} />
             </div>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: '#A0A8B8' }}>{pair}</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: '#EDEAE5' }}>{ratio}</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', color: '#A0ACC0', fontWeight: 500 }}>{pair}</p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '16px', color: '#EDEAE5', fontWeight: 500 }}>{ratio}</p>
             <p style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '11px',
+              fontSize: '15px',
               color: pass ? '#1D9E75' : '#FFAA00',
               minWidth: '80px',
               textAlign: 'right',
             }}>
-              {pass ? '✓ Pass' : '△ Large only'}
+              {pass ? ' Pass' : ' Large only'}
             </p>
           </div>
         ))}
