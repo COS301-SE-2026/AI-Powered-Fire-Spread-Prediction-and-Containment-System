@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from db import engine, SessionLocal, Base
-from models import User, RoleRequestDB, FireReportModel, FireReport, FireReportCreate
+from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from auth import hash_password
 
 # 20 Users: 3 Admins, 5 Firefighters, 12 Users
@@ -177,6 +177,9 @@ def seed():
 
         print("\nSeeding role requests...")
         seed_role_requests(db, users_by_email)
+
+        print("\nSeeding fire reports...")
+        seed_fire_reports(db, users_by_email)
 
         db.commit()
         print("\nSeed complete!")

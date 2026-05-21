@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import datetime
-from database import get_db
-from models import RoleRequestDB 
+from db import get_db
+from models import RoleRequestDB, User
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/admin/roles", tags=["Admin"])
@@ -33,7 +33,7 @@ def approve_role_request(request_id: str, db: Session = Depends(get_db)):
     
     if not req:
         raise HTTPException(status_code=404, detail="Request not found")
-        
+    
     if req.status != "pending":
         raise HTTPException(status_code=400, detail="Request already processed")
 
@@ -44,6 +44,10 @@ def approve_role_request(request_id: str, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(req)
             return req
+        
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if user:
+        user.role = req.role
 
     req.status = "approved"
     db.commit()
