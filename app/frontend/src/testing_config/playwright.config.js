@@ -1,5 +1,5 @@
 const config = {
-  testDir: './testing',
+  testDir: '../testing',
   testMatch: [
     '**/reportFire/**/*.spec.@(js|ts|tsx)',
     '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
@@ -19,7 +19,7 @@ const config = {
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npm run dev',
+      command: 'yarn dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
   },
