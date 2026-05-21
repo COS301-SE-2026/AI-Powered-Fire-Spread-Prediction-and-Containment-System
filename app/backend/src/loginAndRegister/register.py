@@ -1,10 +1,14 @@
-from fastapi import APIRouter, HTTPException, status
+import uuid
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from db import get_db_connection
+from sqlalchemy.orm import Session
+from db import get_db
+from models import User
 from auth import hash_password
 
 router = APIRouter(prefix="/api", tags=["Auth"])
+
 
 class UserRegister(BaseModel):
     email: EmailStr
@@ -15,30 +19,32 @@ class UserRegister(BaseModel):
     licence_number: Optional[str] = None
     role: str = "User"
 
+
 class MessageResponse(BaseModel):
     message: str
 
-@router.post("/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
-def register(user: UserRegister):
-    """Register a new user."""
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT id FROM users WHERE email = %s", (user.email,))
-            existing = cur.fetchone()
-            if existing:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Email already registered"
-                )
 
-            hashed = hash_password(user.password)
-            cur.execute(
-                """INSERT INTO users 
-                   (email, hashed_password, name, surname, id_number, licence_number, role)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-                (user.email, hashed, user.name, user.surname, user.id_number,
-                 user.licence_number, user.role)
-            )
-            new_id = cur.fetchone()["id"]
-        conn.commit()
+@router.post("/api/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+def register(user: UserRegister, db: Session = Depends(get_db)):
+    """Register a new user."""
+    existing = db.query(User).filter(User.email == user.email).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered",
+        )
+
+    new_user = User(
+        id=f"usr_{uuid.uuid4().hex[:8]}",
+        email=user.email,
+        hashed_password=hash_password(user.password),
+        name=user.name,
+        surname=user.surname,
+        id_number=user.id_number,
+        license_number=user.licence_number,
+        role=user.role,
+        is_2fa_enabled=False,
+    )
+    db.add(new_user)
+    db.commit()
     return {"message": "User created successfully"}

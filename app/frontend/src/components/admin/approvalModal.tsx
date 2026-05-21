@@ -67,7 +67,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
 
                 {/* Actions */}
                 <div className="border-t border-ignite/30 pt-4 flex justify-end gap-2">
-                    {isPending ? (
+                    {request.status === 'pending' && (
                         <>
                             <button onClick={() => onReject(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
                                 Reject
@@ -76,7 +76,8 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                                 Approve
                             </button>
                         </>
-                    ) : (
+                    )}
+                    {request.status === 'approved' && (
                         <button onClick={() => onRevoke(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
                             Revoke
                         </button>
