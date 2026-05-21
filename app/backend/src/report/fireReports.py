@@ -5,7 +5,7 @@ from typing import List
 from datetime import datetime
 import uuid
 
-from database import get_db
+from db import get_db
 from models import FireReportModel, FireReport, FireReportCreate, ReportStatus
 
 router = APIRouter(prefix="/api/reports", tags=["Fire Reports"])
