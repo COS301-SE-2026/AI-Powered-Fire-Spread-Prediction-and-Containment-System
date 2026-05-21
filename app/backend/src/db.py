@@ -12,13 +12,19 @@ DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
+
 def get_db():
+    """FastAPI dependency — yields a SQLAlchemy session."""
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
 
+
+def init_db():
+    """Create all tables on startup."""
+    from models import User, RoleRequestDB  # noqa: F401
+    Base.metadata.create_all(bind=engine)
