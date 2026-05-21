@@ -9,7 +9,7 @@ interface RoleApprovalModalProps {
     onRevoke: (id:string) => void;
 }
 
-export function RoleApprovalModal({ request, onClose, onApprove, onReject }: RoleApprovalModalProps) {
+export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRevoke }: RoleApprovalModalProps) {
     const isPending = request.status === 'pending';
 
     return (
@@ -79,7 +79,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject }: Rol
                             </button>
                         </>
                     ) : (
-                        <button className="text-xs font-semibold px-4 py-2 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover transition-colors">
+                        <button onClick={() => onRevoke(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
                             Revoke
                         </button>
                     )}

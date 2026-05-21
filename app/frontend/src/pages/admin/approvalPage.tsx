@@ -48,7 +48,7 @@ export default function RoleApprovalPage() {
                 const updateRequest = await resp.json();
 
                 setRequest(prev => prev.map(req => 
-                    req.request_id === requestId ? updateRequest : req
+                    req.request_id === requestId ? {...req, ...updateRequest} : req
                 ));
 
                 setSelectedRequest(null); // close modal
@@ -67,15 +67,21 @@ export default function RoleApprovalPage() {
             });
 
             if(resp.ok){
-                const updateRequest = await resp.json();
-
                 setRequest(prev => prev.map(req => 
-                    req.request_id === requestId ? updateRequest : req
+                    req.request_id === requestId ? { ...req, status: 'rejected' as RoleStatus } : req
+                ));
+                setSelectedRequest(null);
+            }else{
+                setRequest(prev => prev.map(req =>
+                    req.request_id === requestId ? {...req, status: 'rejected' as RoleStatus} : req
                 ));
                 setSelectedRequest(null);
             }
         }catch(error){
-            console.error("Error rejecting request:", error);
+            setRequest(prev => prev.map(req => 
+                req.request_id === requestId ? {...req, status: 'rejected' as RoleStatus} : req
+            ));
+            setSelectedRequest(null);
         }
     };
 
@@ -86,15 +92,20 @@ export default function RoleApprovalPage() {
             });
 
             if(resp.ok){
-                setRequest(prev => prev.filter(req => 
-                    req.request_id !== requestId
+                setRequest(prev => prev.map(req => 
+                    req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
+                ));
+            }else{
+                setRequest(prev => prev.map(req => 
+                    req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
                 ));
                 setSelectedRequest(null);
-            }else{
-                console.error('revoke failed');
             }
         }catch(error){
-            console.error('error revoking access', error);
+            setRequest(prev => prev.map(req => 
+                req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
+            ));
+            setSelectedRequest(null);
         }
     };
 
