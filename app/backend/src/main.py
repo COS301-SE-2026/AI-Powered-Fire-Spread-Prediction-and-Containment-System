@@ -1,75 +1,31 @@
-import os
-from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel, EmailStr
-from typing import Optional
-from db import get_db_connection, init_db
-from auth import hash_password, verify_password, create_access_token
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from TwoFactorAuth.twoStepAuth import router as auth_router
-from loginAndRegister.register import router as register_router
-from loginAndRegister.login import router as login_router
-from admin import adminRoleApproval
+from db import init_db
+from seed import seed
+from admin.adminRoleApproval import router as admin_router
+from report.fireReports import router as fire_reports_router
+
+init_db()
+
+seed()
 
 app = FastAPI(
-    title="Fire Spread Prediction API",
-    description="API for fire spread prediction, containment planning, and PostGIS-backed geo data.",
-    version="0.1.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
+    title="FireAway API",
+    description="Backend for the AI-Powered Fire Spread Prediction and Containment System",
+    version="1.0.0"
 )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000"],  # Next.js local development URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-class UserRegister(BaseModel):
-    email: EmailStr
-    password: str
-    name: str
-    surname: str
-    id_number: str
-    licence_number: Optional[str] = None  # for fierefighters
-    role: str = "User"
 
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
+app.include_router(admin_router)
+app.include_router(fire_reports_router)
 
-class TokenResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-class MessageResponse(BaseModel):
-    message: str
-
-app.include_router(auth_router)
-
-class PingResponse(BaseModel):
-    status: str
-    db_host: str
-@app.on_event("startup")
-def startup():
-    try:
-        init_db()
-    except Exception as e:
-        print(f"DB not available: {e}, continuing without DB")
-
-@app.get("/health", response_model=PingResponse, tags=["Health"])
-def health():
-    return {
-        "status": "ok",
-        "db_host": os.environ.get("DB_HOST", "postgres"),
-    }
-
-@app.get("/api/ping", tags=["Health"])
-def ping():
-    return {"message": "pong"}
-
-# Include admin role approval routes
-app.include_router(adminRoleApproval.router)
-
-app.include_router(register_router)
-app.include_router(login_router)
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "FireAway API is running and connected to PostgreSQL."}
