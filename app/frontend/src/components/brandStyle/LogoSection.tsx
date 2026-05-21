@@ -8,10 +8,10 @@ export default function LogoSection() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-      {/* Logo variants */}
+      {/* logo variants */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
 
-        {/* Large logo */}
+        {/* large logo */}
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           <div style={{ height: '160px', backgroundColor: 'var(--color-carbon-side)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src="/images/logo-large.png" alt="Fireaway large logo" style={{ height: '80px', objectFit: 'contain' }} />
@@ -22,7 +22,7 @@ export default function LogoSection() {
           </div>
         </div>
 
-        {/* Small logo */}
+        {/* small logo */}
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           <div style={{ height: '160px', backgroundColor: 'var(--color-carbon-side)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <img src="/images/logo-small.png" alt="Fireaway small logo" style={{ height: '48px', objectFit: 'contain' }} />
@@ -35,7 +35,6 @@ export default function LogoSection() {
 
       </div>
 
-      {/* Placement rules */}
       <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderBottom: '1px solid var(--color-carbon-stroke)' }}>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>
@@ -73,7 +72,7 @@ export default function LogoSection() {
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderBottom: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: '#A0ACC0', lineHeight: 1.6 }}>
-              All icons use the Lucide React library at 24×24px in nav and 20×20px inline.
+              All icons use the Lucide React library at 24×24 px.
             </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1px', backgroundColor: 'var(--color-carbon-stroke)' }}>
