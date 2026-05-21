@@ -66,7 +66,15 @@ const SideBarDropdown = ({ title, icon: Icon, defaultOpen = false, isSidebarHove
     );
 };
 
-export function SideBarLayout({ children, hideLogout = false, }: { children?: React.ReactNode; hideLogout?: boolean }) {
+export function SideBarLayout({
+    children,
+    hideLogout = false,
+    hideLoginRegister = false,
+}: {
+    children?: React.ReactNode;
+    hideLogout?: boolean;
+    hideLoginRegister?: boolean;
+}) {
 
     const [isHovered, setIsHovered] = useState(false);
 
@@ -138,10 +146,12 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
 
                  {/* Footer Action */}
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-2 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
-                    <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-                        <UserCircle className="size-6 shrink-0 text-ignite" />
-                        <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
-                    </Link>
+                    {!hideLoginRegister && (
+                        <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                            <UserCircle className="size-6 shrink-0 text-ignite" />
+                            <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
+                        </Link>
+                    )}
                     
                     {!hideLogout && (
   <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
