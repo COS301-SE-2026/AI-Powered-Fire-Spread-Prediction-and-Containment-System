@@ -57,14 +57,12 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Current Role</p>
                         <p className="text-sm font-semibold text-neutral">{request.role}</p>
                     </div>
-                    {isPending && (
                         <div>
                             <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Requested Role</p>
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
                                 {request.role}
                             </span>
                         </div>
-                    )}
                 </div>
 
                 {/* Actions */}
