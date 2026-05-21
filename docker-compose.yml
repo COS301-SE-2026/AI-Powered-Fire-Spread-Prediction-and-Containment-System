@@ -44,7 +44,8 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./app/backend/src:/app:Z
     ports:
@@ -70,26 +71,26 @@ services:
       NODE_ENV: development
     command: ["sh", "-c", "yarn install && yarn dev"]
 
-  pwa:
-    build:
-      context: ./app/pwa
-      dockerfile: Dockerfile
-    container_name: pwa-react-native
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      - backend
-    volumes:
-      - ./app/pwa:/app
-       - pwa_node_modules:/app/node_modules
-    ports:
-      - "19006:19006"
-    environment:
-      EXPO_DEVTOOLS_LISTEN_ADDRESS: localhost
-    command: ["yarn", "start", "--host", "localhost"]
+  # pwa:
+  #   build:
+  #     context: ./app/pwa
+  #     dockerfile: Dockerfile
+  #   container_name: pwa-react-native
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - backend
+  #   volumes:
+  #     - ./app/pwa:/app
+  #      - pwa_node_modules:/app/node_modules
+  #   ports:
+  #     - "19006:19006"
+  #   environment:
+  #     EXPO_DEVTOOLS_LISTEN_ADDRESS: localhost
+  #   command: ["yarn", "start", "--host", "localhost"]
 
 volumes:
   pgadmin-data:
   frontend_node_modules:
-  pwa_node_modules:
+  # pwa_node_modules:
