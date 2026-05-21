@@ -51,7 +51,7 @@ export default function Login() {
             src="/images/logo-large.png"
             alt="Fire Spread Prediction Logo"
             width={450}
-            height={124500}
+            height={450}
             className="mx-auto"
           />
         </div>
@@ -95,7 +95,7 @@ export default function Login() {
             </button>
           </form>
           <div className="text-center mt-4 text-sm text-white/40">
-            <Link href="/forgot-password" className="hover:text-primary">Forgot password?</Link> • 
+            <Link href="/forgot-password" className="hover:text-primary">Forgot password? </Link>
             <Link href="/cant-login" className="hover:text-primary"> Can't log in?</Link>
           </div>
         </div>
