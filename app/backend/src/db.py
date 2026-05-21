@@ -6,7 +6,7 @@ def get_db_connection():
     return psycopg2.connect(
         host=os.environ.get("DB_HOST", "postgres"),
         port=os.environ.get("DB_PORT", "5432"),
-        database=os.environ.get("POSTGRES_DB", "fire_prediction"),
+        database=os.environ.get("POSTGRES_DB", "mydb"),
         user=os.environ.get("POSTGRES_USER", "postgres"),
         password=os.environ.get("POSTGRES_PASSWORD", ""),
         cursor_factory=RealDictCursor
