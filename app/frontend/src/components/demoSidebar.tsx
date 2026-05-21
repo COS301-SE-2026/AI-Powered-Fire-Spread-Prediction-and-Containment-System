@@ -95,7 +95,7 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
                             <NavLink icon={LayoutDashboard} label="Admin Dashboard" />
                             <NavLink icon={TrendingUp} label="Analytics" />
                             <NavLink icon={Map} label="Live Map" />
-                            <NavLink icon={ShieldAlert} label="Role Approvals" />
+                            <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvalPage" />
                             <NavLink icon={Flame} label="Reported Fires" />
                         </SideBarDropdown >
 
