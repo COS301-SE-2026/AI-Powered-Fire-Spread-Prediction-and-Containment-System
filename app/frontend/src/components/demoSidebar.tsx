@@ -109,7 +109,7 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
                         {/* Registered User Dropdown */}
                         <SideBarDropdown  title="Registered User" icon={User} isSidebarHovered={isHovered}>
                             <NavLink icon={Map} label="Live Map (User View)" />
-                            <NavLink icon={PlusCircle} label="Report a Fire" />
+                            <NavLink icon={PlusCircle} label="Report a Fire" href="/reportfire" />
                         </SideBarDropdown >
 
                         {/* Guest Dropdown */}
