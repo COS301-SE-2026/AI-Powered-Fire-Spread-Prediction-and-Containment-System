@@ -22,7 +22,7 @@ const FireMap = dynamic(
 
 export default function FirefighterDashboard() {
     return(
-        <SideBarLayout>
+        <SideBarLayout hideLoginRegister>
             <div className="flex flex-col p-6">
                 <header className="mb-4 flex items-center justify-between">
                     <div>
