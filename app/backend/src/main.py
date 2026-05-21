@@ -52,7 +52,10 @@ class PingResponse(BaseModel):
     db_host: str
 @app.on_event("startup")
 def startup():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        print(f"DB not available: {e}, continuing without DB")
 
 @app.get("/health", response_model=PingResponse, tags=["Health"])
 def health():
