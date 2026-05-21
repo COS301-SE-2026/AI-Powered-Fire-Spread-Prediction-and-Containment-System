@@ -1,13 +1,7 @@
 import { UserStar } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-
-interface RoleRequest {
-    request_id: string;
-    user_id: string;
-    role: 'user' | 'admin' | 'firefighter';
-    status: 'pending' | 'approved' | 'rejected';
-
-}
+import type { RoleRequest } from '../../types/admin';
+import { RoleApprovalModal } from '../../components/admin/approvalModal';
 
 export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
@@ -17,7 +11,7 @@ export default function RoleApprovalPage() {
     useEffect(() => {
         const fetchRequest = async() => {
             try{
-                const resp = await fetch('/api/admin/roles/role-request');
+                const resp = await fetch('/api/admin/roles/role-requests');
                 const data = await resp.json();
                 setRequest(data);
             }catch (error){
@@ -29,7 +23,7 @@ export default function RoleApprovalPage() {
 
     const handleApprove = async (requestId: string) => {
         try{
-            const resp = await fetch(`/api/admin/roles/role-request/${requestId}/approve`, {
+            const resp = await fetch(`/api/admin/roles/role-requests/${requestId}/approve`, {
                 method: 'POST'
             });
 
@@ -51,7 +45,7 @@ export default function RoleApprovalPage() {
 
     const handleReject = async(requestId: string) => {
         try{
-            const resp = await fetch(`/api/admin/roles/role-request/${requestId}/rejected`, {
+            const resp = await fetch(`/api/admin/roles/role-requests/${requestId}/reject`, {
                 method: 'POST'
             });
 
@@ -76,16 +70,11 @@ export default function RoleApprovalPage() {
 
             {/* modal overlay */}
             {selectedRequest && (
-                <div className="fixed inset-0 bg-black/50 flex items-center z-50">
-                    <div>
-                        {/* modal content */}
-                        <div className="flex justify-end gap-2 mt-4">
-                            <button onClick={() => handleReject(selectedRequest.request_id)}>Reject</button>
-                            <button onClick={() => handleApprove(selectedRequest.request_id)}>Approve</button>
-                        </div>
-                    </div>
-                </div>
+                <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject}/>
             )}
+            <button onClick={() => setSelectedRequest({ request_id: 'req_1', user_id: 'user_1', role: 'firefighter', status: 'pending' })}>
+                Test Modal
+            </button>
         </div>
     );
 }
