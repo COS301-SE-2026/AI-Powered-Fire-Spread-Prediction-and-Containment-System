@@ -34,14 +34,14 @@ def test_reject_firefighter_with_invalid_license(client):
     reset_requests()
 
     adminRoleApproval.ROLE_REQUESTS.append({
-        "request_id": "req_3",
-        "user_id": "user_3",
+        "request_id": "req_13",
+        "user_id": "user_13",
         "role": "firefighter",
         "status": "pending",
         "firefighter_license_id": "INVALID"
     })
 
-    response = client.post("/api/admin/roles/role-requests/req_3/approve")
+    response = client.post("/api/admin/roles/role-requests/req_13/approve")
     assert response.status_code == 200
     assert response.json()["status"] == "rejected"
 
@@ -58,6 +58,7 @@ def test_approve_already_processed_request_returns_400(client):
     client.post("/api/admin/roles/role-requests/req_2/reject")
     response = client.post("/api/admin/roles/role-requests/req_2/approve")
     assert response.status_code == 400
+    assert response.json()["detail"] == "Request already processed"
 
 def test_request_not_found_returns_404(client):
     reset_requests()
