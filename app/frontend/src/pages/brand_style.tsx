@@ -5,7 +5,8 @@ import ColoursSection      from '../components/brandStyle/ColoursSection';
 import TypographySection   from '../components/brandStyle/Typographysection';
 import LogoSection         from '../components/brandStyle/Logosection';
 import ComponentsSection   from '../components/brandStyle/Componentssection';
-
+import AccessibilitySection from '../components/brandStyle/AccessabilitySection';
+import DesignPrinciplesSection from '../components/brandStyle/DesignPrinciplesSection';
 
 const sections = [
   { id: 'colours',       label: 'Colour Palette'    },
@@ -22,6 +23,8 @@ function SectionContent({ id, label }: { id: string; label: string }) {
     case 'typography': return <TypographySection />;
     case 'logo':       return <LogoSection />;
     case 'components': return <ComponentsSection />;
+    case 'accessibility': return <AccessibilitySection />;
+    case 'principles': return <DesignPrinciplesSection/>;
   }
 }
 
