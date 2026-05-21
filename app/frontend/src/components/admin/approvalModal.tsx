@@ -5,6 +5,7 @@ interface RoleApprovalModalProps {
     onClose: () => void;
     onApprove: (id:string) => void;
     onReject: (id:string) => void;
+    onRevoke: (id:string) => void;
 }
 
 const statusColor = (s: string) => ({
