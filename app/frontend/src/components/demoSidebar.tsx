@@ -50,7 +50,7 @@ const SideBarDropdown = ({ title, icon: Icon, defaultOpen = false, isSidebarHove
     );
 };
 
-export function SideBarLayout({ children }: { children?: React.ReactNode }){
+export function SideBarLayout({ children, hideLogout = false, }: { children?: React.ReactNode; hideLogout?: boolean }) {
 
     const [isHovered, setIsHovered] = useState(false);
 
@@ -109,10 +109,28 @@ export function SideBarLayout({ children }: { children?: React.ReactNode }){
                         <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase hidden group-hover:block text-left px-2">SYSTEM SETTINGS</span>
                     </div>
 
-                    <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                            <Settings className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                            <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Global Settings</span>
-                    </button>
+                    {!hideLogout && (
+  <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
+    <Settings className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
+    <span className="text-sm font-semibold hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+      Global Settings
+    </span>
+  </button>
+)}
+
+{!hideLogout && (
+  <button className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+    <UserCircle className="size-6 shrink-0 text-ignite" />
+    <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
+  </button>
+)}
+
+{!hideLogout && (
+  <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+    <LogOut className="size-6 shrink-0" />
+    <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
+  </button>
+)}
                 </div>
 
                  {/* Footer Action */}
@@ -122,10 +140,12 @@ export function SideBarLayout({ children }: { children?: React.ReactNode }){
                         <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
                     </button>
                     
-                    <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-                        <LogOut className="size-6 shrink-0" />
-                        <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
-                    </button>
+                    {!hideLogout && (
+  <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+    <LogOut className="size-6 shrink-0" />
+    <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
+  </button>
+)}
                 </div>
             </aside>
 
