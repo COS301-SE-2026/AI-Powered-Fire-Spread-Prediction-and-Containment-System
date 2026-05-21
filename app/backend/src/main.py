@@ -4,6 +4,8 @@ from db import init_db
 from seed import seed
 from admin.adminRoleApproval import router as admin_router
 from report.fireReports import router as fire_reports_router
+from loginAndRegister.register import router as register_router
+from loginAndRegister.login import router as login_router
 
 init_db()
 
@@ -25,6 +27,8 @@ app.add_middleware(
 
 app.include_router(admin_router)
 app.include_router(fire_reports_router)
+app.include_router(register_router)
+app.include_router(login_router)
 
 @app.get("/")
 def read_root():
