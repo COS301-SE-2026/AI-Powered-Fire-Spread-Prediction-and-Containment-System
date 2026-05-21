@@ -19,8 +19,7 @@ export default function Landing() {
         <div className="ga-bloom-tertiary" />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
-        {/* Logo outside the card */}
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen p-4 pt-[20vh]">        {/* Logo outside the card */}
         <div className="mb-8">
           <Image
             src="/images/logo-large.png"
@@ -34,7 +33,6 @@ export default function Landing() {
         {/* Card with buttons */}
         <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm">
           <h1 className="text-4xl font-bold text-neutral mb-2">Welcome!</h1>
-          <p className="text-white/60 mb-8">Fire Spread Prediction & Containment System</p>
           <div className="space-y-4">
             <Link href="/register">
               <button className="w-full py-2 bg-ember hover:bg-deep text-white font-medium rounded-md transition">
