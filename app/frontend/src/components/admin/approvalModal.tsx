@@ -55,7 +55,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject }: Rol
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Current Role</p>
-                        <p className="text-sm font-semibold text-neutral">Guest</p>
+                        <p className="text-sm font-semibold text-neutral">{request.role}</p>
                     </div>
                     {isPending && (
                         <div>
