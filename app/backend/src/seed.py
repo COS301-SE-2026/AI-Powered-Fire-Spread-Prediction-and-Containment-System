@@ -44,11 +44,11 @@ SEED_ROLE_REQUESTS = [
     {"request_id": "req_11", "user_email": "deon.s@fireaway.co.za", "role": "admin", "firefighter_license_id": None, "status": "rejected"},
     {"request_id": "req_12", "user_email": "zanele.m@fireaway.co.za", "role": "admin", "firefighter_license_id": None, "status": "revoked"},
     {"request_id": "req_13", "user_email": "bianca.n@fireaway.co.za", "role": "admin", "firefighter_license_id": None, "status": "revoked"},
-    {"request_id": "req_14", "user_email": "thandiwe.k@fireaway.co.za", "role": "admin", "firefighter_license_id": "FF-1001", "status": "pending"},
-    {"request_id": "req_15", "user_email": "siyabonga.z@fireaway.co.za", "role": "admin", "firefighter_license_id": "FF-1004", "status": "pending"},
-    {"request_id": "req_16", "user_email": "pieter.m@fireaway.co.za", "role": "admin", "firefighter_license_id": "FF-1002", "status": "rejected"},
-    {"request_id": "req_17", "user_email": "kagiso.m@fireaway.co.za", "role": "admin", "firefighter_license_id": "FF-1005", "status": "rejected"},
-    {"request_id": "req_18", "user_email": "fatima.p@fireaway.co.za", "role": "admin", "firefighter_license_id": "FF-1003", "status": "revoked"},
+    {"request_id": "req_14", "user_email": "thandiwe.k@fireaway.co.za", "role": "firefighter", "firefighter_license_id": "FF-1001", "status": "pending"},
+    {"request_id": "req_15", "user_email": "siyabonga.z@fireaway.co.za", "role": "firefighter", "firefighter_license_id": "FF-1004", "status": "pending"},
+    {"request_id": "req_16", "user_email": "pieter.m@fireaway.co.za", "role": "firefighter", "firefighter_license_id": "FF-1002", "status": "rejected"},
+    {"request_id": "req_17", "user_email": "kagiso.m@fireaway.co.za", "role": "firefighter", "firefighter_license_id": "FF-1005", "status": "rejected"},
+    {"request_id": "req_18", "user_email": "fatima.p@fireaway.co.za", "role": "firefighter", "firefighter_license_id": "FF-1003", "status": "revoked"},
 ]
 
 # 18 Fire Reports around Pretoria
