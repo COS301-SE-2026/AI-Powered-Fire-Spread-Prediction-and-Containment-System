@@ -4,6 +4,8 @@ from typing import List, Literal
 
 router = APIRouter(prefix="/api/admin/roles", tags=["Admin"])
 
+# Firefighters auto approved if they have a valid license, otherwise rejected. Admins require manual approval.
+
 RoleType = Literal["firefighter", "admin"]
 StatusType = Literal["pending", "approved", "rejected"]
 

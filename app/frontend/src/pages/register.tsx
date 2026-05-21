@@ -44,7 +44,7 @@ export default function Register() {
         licence_number: form.role === 'Firefighter' ? form.licenceNumber : null,
         role: form.role,
       });
-      router.push(`/verify-2fa?email=${encodeURIComponent(form.email)}`);
+      router.push(`/login\?registered=true/`);
     } catch (err: any) {
       setError(err.message);
     } finally {
