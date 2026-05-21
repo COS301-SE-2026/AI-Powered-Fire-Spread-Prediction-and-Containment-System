@@ -101,7 +101,7 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
 
                         {/* Firefighter Dropdown */}
                         <SideBarDropdown  title="Firefighter Tools" icon={Flame} defaultOpen={true} isSidebarHovered={isHovered}>
-                            <NavLink icon={LayoutDashboard} label="Firefigther Dashboard" />
+                            <NavLink icon={LayoutDashboard} label="Firefigther Dashboard" href="/firefighterDashboard" />
                             <NavLink icon={BookAlert} label="Reported Fires" />
                             <NavLink icon={Map} label="Fire Simulation AI" />
                         </SideBarDropdown >
@@ -134,19 +134,6 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
   </button>
 )}
 
-{!hideLogout && (
-    <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-        <UserCircle className="size-6 shrink-0 text-ignite" />
-        <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
-    </Link>
-)}
-
-{!hideLogout && (
-  <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-    <LogOut className="size-6 shrink-0" />
-    <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
-  </button>
-)}
                 </div>
 
                  {/* Footer Action */}
