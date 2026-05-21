@@ -72,16 +72,10 @@ export default function RoleApprovalPage() {
                 ));
                 setSelectedRequest(null);
             }else{
-                setRequest(prev => prev.map(req =>
-                    req.request_id === requestId ? {...req, status: 'rejected' as RoleStatus} : req
-                ));
-                setSelectedRequest(null);
+                console.error("Reject failed:", await resp.text());
             }
         }catch(error){
-            setRequest(prev => prev.map(req => 
-                req.request_id === requestId ? {...req, status: 'rejected' as RoleStatus} : req
-            ));
-            setSelectedRequest(null);
+            console.error("Error rejecting request", error);
         }
     };
 
@@ -95,17 +89,12 @@ export default function RoleApprovalPage() {
                 setRequest(prev => prev.map(req => 
                     req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
                 ));
+                setSelectedRequest(null)
             }else{
-                setRequest(prev => prev.map(req => 
-                    req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
-                ));
-                setSelectedRequest(null);
+                console.error("Revoke failed:", await resp.text());
             }
         }catch(error){
-            setRequest(prev => prev.map(req => 
-                req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
-            ));
-            setSelectedRequest(null);
+            console.error("Error revoking request", error);
         }
     };
 
