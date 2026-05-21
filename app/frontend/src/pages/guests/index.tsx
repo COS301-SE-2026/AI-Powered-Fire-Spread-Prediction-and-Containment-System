@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { SidebarLayout } from '../../components/firefighter/sidebar';
-import { NearbyReports } from '../../components/NearbyReports';
-import { EnvironmentWidgets } from '../../components/WeatherStats';
+import { NearbyReports } from '../../components/firefighter/nearbyReports';
+import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import Button from '../../components/Button';
 
 const PublicFireMap = dynamic(
