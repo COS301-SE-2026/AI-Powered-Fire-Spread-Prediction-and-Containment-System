@@ -1,7 +1,7 @@
-import { UserStar } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import type { RoleRequest } from '../../types/admin';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';
+import { SideBarLayout } from '../../components/demoSidebar';
 
 export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
@@ -63,18 +63,20 @@ export default function RoleApprovalPage() {
     };
 
     return(
-        <div className="p-6 flex flex-col h-full w-full">
-            {/* Header + filter */}
+        <SideBarLayout>
+            <div className="p-6 flex flex-col h-full w-full">
+                {/* Header + filter */}
 
-            {/* table */}
+                {/* table */}
 
-            {/* modal overlay */}
-            {selectedRequest && (
-                <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject}/>
-            )}
-            <button onClick={() => setSelectedRequest({ request_id: 'req_1', user_id: 'user_1', user_full_name: "James Smith", role: 'firefighter', status: 'pending' })}>
-                Test Modal
-            </button>
-        </div>
+                {/* modal overlay */}
+                {selectedRequest && (
+                    <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject}/>
+                )}
+                <button onClick={() => setSelectedRequest({ request_id: 'req_1', user_id: 'user_1', user_full_name: "James Smith", role: 'firefighter', status: 'pending' })}>
+                    Test Modal
+                </button>
+            </div>
+        </SideBarLayout>
     );
 }
