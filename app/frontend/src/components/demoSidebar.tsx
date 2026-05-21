@@ -5,14 +5,29 @@ import { BookAlert, Map, LayoutDashboard, Settings, LogOut,
     ChevronDown, TrendingUp, PlusCircle
 } from 'lucide-react';
 
-const NavLink = ({ icon: Icon, label}: { icon: any, label: string}) => (
-    <button className="py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral">
-        <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all"/>
-        <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 tranistion-opacity duration-200 whitespace-nowrap">
-            {label}
-        </span>
-    </button>
-);
+const NavLink = ({ icon: Icon, label, href }: { icon: any; label: string; href?: string }) => {
+    const content = (
+        <>
+            <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all" />
+            <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 tranistion-opacity duration-200 whitespace-nowrap">
+                {label}
+            </span>
+        </>
+    );
+
+    const className =
+        "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral";
+
+    return href ? (
+        <Link href={href} className={className}>
+            {content}
+        </Link>
+    ) : (
+        <button className={className}>
+            {content}
+        </button>
+    );
+};
 
 const SideBarDropdown = ({ title, icon: Icon, defaultOpen = false, isSidebarHovered, children }: { 
     title: string; 
@@ -100,7 +115,7 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
                         {/* Guest Dropdown */}
                         <SideBarDropdown  title="Guest Access" icon={UserCircle} isSidebarHovered={isHovered}>
                             <NavLink icon={Map} label="Public Fire Map" />
-                            <NavLink icon={PlusCircle} label="Submit Report" />
+                            <NavLink icon={PlusCircle} label="Submit Report" href="/reportfire" />
                         </SideBarDropdown >
                     </ul>
 
