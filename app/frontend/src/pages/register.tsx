@@ -29,10 +29,44 @@ export default function Register() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    // Clear the error when user starts typing again
+    if (error) setError('');
+  };
+
+  const validateForm = (): string | null => {
+    // Name
+    if (!form.name.trim()) return 'Name is required';
+    if (form.name.length < 2) return 'Name must be at least 2 characters';
+    // Surname
+    if (!form.surname.trim()) return 'Surname is required';
+    if (form.surname.length < 2) return 'Surname must be at least 2 characters';
+    // Email
+    if (!form.email.trim()) return 'Email is required';
+    //yes, I found the regex online
+      const emailRegex = /^(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$/i;
+    if (!emailRegex.test(form.email)) return 'Please enter a valid email address';
+    // ID/Passport
+    if (!form.idNumber.trim()) return 'ID/Passport number is required';
+    if (form.idNumber.length < 13) return 'ID number must be at least 13 characters';
+    // Password
+    if (!form.password) return 'Password is required';
+    if (form.password.length < 8) return 'Password must be at least 8 characters';
+    if (!/[A-Za-z]/.test(form.password)) return 'Password must contain at least one letter';
+    if (!/\d/.test(form.password)) return 'Password must contain at least one number';
+    // Licence number (only if Firefighter)
+    if (form.role === 'Firefighter' && !form.licenceNumber.trim()) {
+      return 'Licence number is required for firefighters';
+    }
+    return null;
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
     setError('');
     setIsLoading(true);
     try {
@@ -160,11 +194,11 @@ export default function Register() {
                   value={form.licenceNumber}
                   onChange={handleChange}
                   className="w-full px-3 py-2 bg-carbon-input border border-carbon-stroke rounded-md text-neutral focus:outline-none focus:ring-1 focus:ring-primary"
-                  required
+                  required={form.role === 'Firefighter'}
                 />
               </div>
             )}
-            {error && <div className="col-span-2 bg-error/10 border border-error/50 text-error text-sm p-2 rounded">{error}</div>}
+            {error && <div className="col-span-2 bg-error/10 border border-error/50 text-torch text-sm p-2 rounded">{error}</div>}
             <div className="col-span-2 mt-2">
               <button type="submit" disabled={isLoading} className="w-full py-2 bg-ember hover:bg-deep text-white font-medium rounded-md transition disabled:opacity-50">
                 {isLoading ? 'Registering...' : 'Register now'}
