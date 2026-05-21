@@ -1,4 +1,5 @@
 import React, { Children, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { BookAlert, Map, LayoutDashboard, Settings, LogOut,
     ShieldAlert, Flame, User, UserCircle,
     ChevronDown, TrendingUp, PlusCircle
@@ -119,10 +120,10 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
 )}
 
 {!hideLogout && (
-  <button className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-    <UserCircle className="size-6 shrink-0 text-ignite" />
-    <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
-  </button>
+    <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+        <UserCircle className="size-6 shrink-0 text-ignite" />
+        <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
+    </Link>
 )}
 
 {!hideLogout && (
@@ -135,10 +136,10 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
 
                  {/* Footer Action */}
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-2 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
-                    <button className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                    <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                         <UserCircle className="size-6 shrink-0 text-ignite" />
                         <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
-                    </button>
+                    </Link>
                     
                     {!hideLogout && (
   <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
