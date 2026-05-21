@@ -1,10 +1,10 @@
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 
-import ColoursSection      from '../components/brandStyle/ColoursSection';
-import TypographySection   from '../components/brandStyle/Typographysection';
-import LogoSection         from '../components/brandStyle/Logosection';
-import ComponentsSection   from '../components/brandStyle/Componentssection';
+import ColoursSection from '../components/brandStyle/ColoursSection';
+import TypographySection from '../components/brandStyle/TypographySection';
+import LogoSection from '../components/brandStyle/LogoSection';
+import ComponentsSection from '../components/brandStyle/ColoursSection';
 import AccessibilitySection from '../components/brandStyle/AccessabilitySection';
 import DesignPrinciplesSection from '../components/brandStyle/DesignPrinciplesSection';
 
