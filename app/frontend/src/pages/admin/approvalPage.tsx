@@ -72,7 +72,7 @@ export default function RoleApprovalPage() {
             {selectedRequest && (
                 <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject}/>
             )}
-            <button onClick={() => setSelectedRequest({ request_id: 'req_1', user_id: 'user_1', role: 'firefighter', status: 'pending' })}>
+            <button onClick={() => setSelectedRequest({ request_id: 'req_1', user_id: 'user_1', user_full_name: "James Smith", role: 'firefighter', status: 'pending' })}>
                 Test Modal
             </button>
         </div>
