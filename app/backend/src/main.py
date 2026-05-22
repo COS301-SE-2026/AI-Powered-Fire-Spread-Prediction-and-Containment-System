@@ -15,6 +15,7 @@ if os.environ.get("SKIP_DB_INIT") != "1":
 
 if os.environ.get("SKIP_SEED") != "1":
     seed()
+from reportfire import reportFire
 
 app = FastAPI(
     title="FireAway API",
