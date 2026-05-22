@@ -24,7 +24,7 @@ class MessageResponse(BaseModel):
     message: str
 
 
-@router.post("/api/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
 def register(user: UserRegister, db: Session = Depends(get_db)):
     """Register a new user."""
     existing = db.query(User).filter(User.email == user.email).first()

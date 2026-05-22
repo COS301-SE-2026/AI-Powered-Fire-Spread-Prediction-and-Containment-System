@@ -6,7 +6,7 @@ const nextConfig = {
         return[
             {
                 source: '/api/:path*',
-                destination: 'http://python-backend:8000/api/:path*',
+                destination: 'http://backend:8000/api/:path*',
             }
         ]
     }
