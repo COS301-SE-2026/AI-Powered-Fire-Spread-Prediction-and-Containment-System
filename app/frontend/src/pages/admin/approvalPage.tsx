@@ -29,7 +29,7 @@ export default function RoleApprovalPage() {
                     return;
                 }
                 const data = await resp.json();
-                setRequest(data); 
+                setRequest(data.data ?? []);
             }catch (error){
                 console.error("Failed to load role requests", error);
                 setRequest(mockRequests);

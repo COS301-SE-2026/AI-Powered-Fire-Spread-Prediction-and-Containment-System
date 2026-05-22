@@ -154,11 +154,11 @@ export function SideBarLayout({
                     )}
                     
                     {!hideLogout && (
-  <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-    <LogOut className="size-6 shrink-0" />
-    <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
-  </button>
-)}
+                    <Link href="/"className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        <LogOut className="size-6 shrink-0" />
+                        <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
+                    </Link>
+                    )}
                 </div>
             </aside>
 
