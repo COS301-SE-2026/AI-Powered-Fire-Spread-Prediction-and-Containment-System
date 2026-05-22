@@ -9,8 +9,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
   onBoundarySizeChange?: (radiusKm: number) => void;
-  /** When set, the map flies here and drops a pin (from form search) */
   externalPin?: { lng: number; lat: number } | null;
+  fireReports?: any[];  // ADD THIS
 }
 
 function makeCircle(centerLng: number, centerLat: number, radiusKm: number, steps = 80): Feature<Polygon> {
@@ -47,7 +47,7 @@ function formatRadius(km: number): string {
 const INITIAL_RADIUS_KM = 0.2;
 const INITIAL_ZOOM = 15.5;
 
-export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
+export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, fireReports }: FireMapProps) {
   const mapRef = useRef<any>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);

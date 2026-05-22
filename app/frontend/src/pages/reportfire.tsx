@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import dynamic from "next/dynamic";
 import { SidebarLayout } from "../components/reportfire/Sidebar";
 import StepIndicator from "../components/reportfire/Stepindicator";
@@ -38,8 +38,15 @@ export default function ReportPage() {
   const [mapKey, setMapKey]             = useState(0);
   const [activeRefNum, setActiveRefNum] = useState("");
   const [externalPin, setExternalPin]   = useState<{ lng: number; lat: number } | null>(null);
-  const [submitState, setSubmitState] = useState<SubmitState>("idle");
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [fireReports, setFireReports] = useState<any[]>([]);
+
+    useEffect(() => {
+    fetch('/api/reports')
+      .then(res => res.json())
+      .then(data => setFireReports(data))
+      .catch(err => console.error('Failed to fetch reports', err));
+  }, []);
+
 
   function handleBoundarySizeChange(value: number) {
     setBoundarySize(value);
@@ -62,43 +69,35 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
 
-    try {
-      const res = await fetch("http://localhost:8000/api/reports", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          location:            data.location,
-          description:         data.description,
-          lat:                 externalPin?.lat ?? null,
-          lng:                 externalPin?.lng ?? null,
-          boundary_radius_km:  boundarySize,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.detail ?? `Server error ${res.status}`);
-      }
- 
+  async function handleSubmit(data: ReportFormData) {
+  try {
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: data.location,
+        description: data.description,
+        lat: externalPin?.lat ?? 0,
+        lng: externalPin?.lng ?? 0,
+        boundary_radius_km: boundarySize,
+        user_id: null,
+      }),
+    });
     const report = await res.json();
-   
     setActiveRefNum(report.reference_number);
-    setStatusIndex(report.status_index);
+    setStatusIndex(0);
     setActiveStep(2);
-    setSubmitState("idle");
-
     setTimeout(() => {
       setActiveStep(0);
-      setLocation("Click the map to drop a pin");
+      setLocation('Click the map to drop a pin');
       setBoundarySize(2);
       setExternalPin(null);
       setMapKey((k) => k + 1);
     }, 1000);
-    } catch (err: any) {
-      setSubmitState("error");
-      setSubmitError(err?.message ?? "Submission failed. Please try again.");
-    }
+  } catch (err) {
+    console.error('Failed to submit report', err);
   }
+}
 
   return (
     <SidebarLayout>
@@ -130,6 +129,7 @@ export default function ReportPage() {
                   externalPin={externalPin}
                   onLocationSelect={handleLocationSelect}
                   onBoundarySizeChange={handleBoundarySizeChange}
+                  fireReports={fireReports}
                 />
               </div>
             </div>
