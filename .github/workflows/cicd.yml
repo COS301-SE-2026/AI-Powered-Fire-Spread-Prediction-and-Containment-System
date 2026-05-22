@@ -1,0 +1,72 @@
+name: CI/CD
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  backend-e2e:
+    name: Backend E2E
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/backend/src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest tests
+
+  backend-pylint:
+    name: Backend Lint (pylint)
+    runs-on: ubuntu-latest
+    defaults:
+        run:
+            working-directory: app/backend/src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pylint
+        run: pylint **/*.py --fail-under=8.0
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend/src
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: app/frontend/src/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build
+        run: yarn run build

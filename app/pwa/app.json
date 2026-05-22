@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Fire Spread PWA",
+    "slug": "fire-spread-pwa",
+    "version": "1.0.0",
+    "sdkVersion": "49.0.0",
+    "platforms": ["ios", "android", "web"]
+  }
+}

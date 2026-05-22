@@ -1,0 +1,15 @@
+[MASTER]
+ignore=testing_config
+
+[MESSAGES CONTROL]
+disable=
+    C0114,
+    C0115,
+    C0116,
+    W0511
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=10

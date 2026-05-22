@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Exo+2:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: ignis --default;
+}
+
+@plugin "daisyui/theme" {
+  name: "ignis";
+  --color-primary: #E84500;
+  --color-primary-content: #EDEAE5;
+  --color-neutral: #151A26;
+  --color-neutral-content: #EDEAE5;
+  --color-base-100: #080B12;
+  --color-base-200: #0C0F1A;
+  --color-base-300: #101420;
+  --color-warning: #FFAA00;
+  --color-warning-content: #C98B00;
+  --color-success: #1A7A3A;
+  --color-success-content: #22C55E;
+  --color-error: #E84500;
+  --color-error-content: #FF6B2B;
+}
+
+@theme {
+  --color-char: #1A0500;
+  --color-deep: #5C1800;
+  --color-ember: #9C2D00;
+  --color-ignite: #E84500;
+  --color-flare: #FF6B2B;
+  --color-torch: #FFAA00;
+  --color-flash: #FFE566;
+  --color-neutral: #ffffff;
+  --color-neutral-content: #151A26;
+
+  --color-carbon-bg: #080B12;
+  --color-carbon-side: #0C0F1A;
+  --color-carbon-card: #101420;
+  --color-carbon-input: #151A26;
+  --color-carbon-elevated: #161B2A;
+  --color-carbon-stroke: #1E2436;
+  --color-smoke-hover: #1E2436;
+
+  --color-wind:     #378ADD;
+  --color-humidity: #1D9E75;
+  --color-danger:   #E84500;  /* already --color-ignite, reuse that */
+  --color-temp:     #FFAA00;  /* already --color-torch, reuse that */
+
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+  --font-mono: 'Fira Code', monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+}
+
+.sidebar-surface {
+  background: linear-gradient(180deg, #0C0F1A 0%, #0E1018 100%);
+  border-right: 1px solid rgba(232, 69, 0, 0.08);
+}
+
+.global-atmos {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.ga-bloom-primary {
+  position: absolute;
+  top: -10%; 
+  right: -8%;
+  width: 75vw; 
+  height: 75vh;
+  background: radial-gradient(ellipse at 60% 30%, rgba(232, 69, 0, 0.13) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+.ga-bloom-secondary {
+  position: absolute;
+  top: 35%; 
+  left: -8%;
+  width: 35vw; 
+  height: 40vh;
+  background: radial-gradient(ellipse at 30% 50%, rgba(255, 107, 43, 0.07) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.ga-bloom-tertiary {
+  position: absolute;
+  bottom: -5%;
+  left: 20%;
+  width: 40vw;
+  height: 30vh;
+  background: radial-gradient(ellipse at 50% 80%, rgba(92, 24, 0, 0.12) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(140px);
+}
