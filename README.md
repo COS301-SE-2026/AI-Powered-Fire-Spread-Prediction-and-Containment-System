@@ -25,7 +25,7 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 - [System Requirements Specification](docs/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
 - [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
 - [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
-- [Demo 1 Video]()
+- [Demo 1 Video](https://drive.google.com/file/d/16Z-MCgUCJp-F70VOWNHeQ-Bj-QO6Uusz/view?usp=sharing)
 
 
 
