@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from db import init_db
@@ -6,10 +7,13 @@ from admin.adminRoleApproval import router as admin_router
 from report.fireReports import router as fire_reports_router
 from loginAndRegister.register import router as register_router
 from loginAndRegister.login import router as login_router
+from TwoFactorAuth.twoStepAuth import router as two_factor_router
 
-init_db()
+if os.environ.get("SKIP_DB_INIT") != "1":
+    init_db()
 
-seed()
+if os.environ.get("SKIP_SEED") != "1":
+    seed()
 
 app = FastAPI(
     title="FireAway API",
@@ -29,7 +33,18 @@ app.include_router(admin_router)
 app.include_router(fire_reports_router)
 app.include_router(register_router)
 app.include_router(login_router)
+app.include_router(two_factor_router)
 
 @app.get("/")
 def read_root():
     return {"status": "online", "message": "FireAway API is running and connected to PostgreSQL."}
+
+
+@app.get("/api/ping")
+def ping():
+    return {"message": "pong"}
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
