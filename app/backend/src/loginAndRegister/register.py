@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+import os
 from db import get_db_connection
 from auth import hash_password
 
@@ -32,13 +33,37 @@ def register(user: UserRegister):
                 )
 
             hashed = hash_password(user.password)
-            cur.execute(
-                """INSERT INTO users 
-                   (email, hashed_password, name, surname, id_number, licence_number, role)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
-                (user.email, hashed, user.name, user.surname, user.id_number,
-                 user.licence_number, user.role)
-            )
-            new_id = cur.fetchone()["id"]
+            use_sqlite = os.environ.get("USE_SQLITE", "0") == "1"
+            if use_sqlite:
+                cur.execute(
+                    """INSERT INTO users
+                       (email, hashed_password, name, surname, id_number, licence_number, role)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s)""",
+                    (
+                        user.email,
+                        hashed,
+                        user.name,
+                        user.surname,
+                        user.id_number,
+                        user.licence_number,
+                        user.role,
+                    ),
+                )
+            else:
+                cur.execute(
+                    """INSERT INTO users 
+                       (email, hashed_password, name, surname, id_number, licence_number, role)
+                       VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
+                    (
+                        user.email,
+                        hashed,
+                        user.name,
+                        user.surname,
+                        user.id_number,
+                        user.licence_number,
+                        user.role,
+                    ),
+                )
+                _ = cur.fetchone()["id"]
         conn.commit()
     return {"message": "User created successfully"}

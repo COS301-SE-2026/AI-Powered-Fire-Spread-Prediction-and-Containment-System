@@ -9,6 +9,7 @@ from TwoFactorAuth.twoStepAuth import router as auth_router
 from loginAndRegister.register import router as register_router
 from loginAndRegister.login import router as login_router
 from admin import adminRoleApproval
+from app.services import incident_service, weather_service
 
 app = FastAPI(
     title="Fire Spread Prediction API",
@@ -70,3 +71,25 @@ app.include_router(adminRoleApproval.router)
 
 app.include_router(register_router)
 app.include_router(login_router)
+
+PUBLIC_FIRE_FIELDS = {
+    "incident_id",
+    "latitude",
+    "longitude",
+    "severity_level",
+    "containment_status",
+}
+
+
+@app.get("/api/v1/incidents/public")
+def get_public_incidents():
+    fires = incident_service.get_active_public_fires()
+    return [
+        {key: value for key, value in fire.items() if key in PUBLIC_FIRE_FIELDS}
+        for fire in fires
+    ]
+
+
+@app.get("/api/v1/environment/public")
+def get_public_environment():
+    return weather_service.get_current_environment_stats()
