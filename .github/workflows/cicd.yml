@@ -63,7 +63,7 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: app/frontend/src/package-lock.json
+          cache-dependency-path: app/frontend/src/yarn.lock
 
       - name: Install dependencies
         run: yarn install
