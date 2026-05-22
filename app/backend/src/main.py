@@ -15,7 +15,8 @@ seed()
 app = FastAPI(
     title="FireAway API",
     description="Backend for the AI-Powered Fire Spread Prediction and Containment System",
-    version="1.0.0"
+    version="1.0.0",
+    redirect_slashes=False,
 )
 
 app.add_middleware(

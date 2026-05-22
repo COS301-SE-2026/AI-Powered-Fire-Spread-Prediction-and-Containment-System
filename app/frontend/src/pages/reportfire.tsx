@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import dynamic from "next/dynamic";
 import { SidebarLayout } from "../components/reportfire/Sidebar";
 import StepIndicator from "../components/reportfire/Stepindicator";
@@ -37,6 +37,15 @@ export default function ReportPage() {
   const [activeRefNum, setActiveRefNum] = useState("");
   /** Coords from the form's geocoding search — passed as a prop to FireMap */
   const [externalPin, setExternalPin]   = useState<{ lng: number; lat: number } | null>(null);
+  const [fireReports, setFireReports] = useState<any[]>([]);
+
+    useEffect(() => {
+    fetch('/api/reports')
+      .then(res => res.json())
+      .then(data => setFireReports(data))
+      .catch(err => console.error('Failed to fetch reports', err));
+  }, []);
+
 
   function handleBoundarySizeChange(value: number) {
     setBoundarySize(value);
@@ -62,20 +71,35 @@ export default function ReportPage() {
     return `FW-${today}-${randomHex}`;
   }
 
-  function handleSubmit(data: ReportFormData) {
-    const newReference = generateMockRef();
-    setActiveRefNum(newReference);
+  async function handleSubmit(data: ReportFormData) {
+  try {
+    const res = await fetch('/api/reports', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        location: data.location,
+        description: data.description,
+        lat: externalPin?.lat ?? 0,
+        lng: externalPin?.lng ?? 0,
+        boundary_radius_km: boundarySize,
+        user_id: null,
+      }),
+    });
+    const report = await res.json();
+    setActiveRefNum(report.reference_number);
     setStatusIndex(0);
     setActiveStep(2);
-    console.log(`Fire report submitted. Ref: ${newReference}`, data);
     setTimeout(() => {
       setActiveStep(0);
-      setLocation("Click the map to drop a pin");
+      setLocation('Click the map to drop a pin');
       setBoundarySize(2);
       setExternalPin(null);
       setMapKey((k) => k + 1);
     }, 1000);
+  } catch (err) {
+    console.error('Failed to submit report', err);
   }
+}
 
   return (
     <SidebarLayout>
@@ -107,6 +131,7 @@ export default function ReportPage() {
                   externalPin={externalPin}
                   onLocationSelect={handleLocationSelect}
                   onBoundarySizeChange={handleBoundarySizeChange}
+                  fireReports={fireReports}
                 />
               </div>
             </div>
