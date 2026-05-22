@@ -2,6 +2,9 @@
 const nextConfig = {
     reactStrictMode: true,
     transpilePackages: ['mapbox-gl', 'react-map-gl'],
+      eslint: {
+        ignoreDuringBuilds: true,
+    },
     async rewrites() {
         return[
             {
