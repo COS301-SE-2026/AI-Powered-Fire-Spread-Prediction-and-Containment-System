@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { SidebarLayout } from "../components/reportfire/Sidebar";
+import { SideBarLayout } from '../components/demoSidebar';
 import StepIndicator from "../components/reportfire/Stepindicator";
 import MapKey from "../components/reportfire/Mapkey";
 import ReportDetailsForm, { type ReportFormData } from "../components/reportfire/Reportdetailsform";
@@ -38,15 +38,16 @@ export default function ReportPage() {
   const [mapKey, setMapKey]             = useState(0);
   const [activeRefNum, setActiveRefNum] = useState("");
   const [externalPin, setExternalPin]   = useState<{ lng: number; lat: number } | null>(null);
-  const [fireReports, setFireReports] = useState<any[]>([]);
+  const [fireReports, setFireReports]   = useState<any[]>([]);
+  const [submitState, setSubmitState]   = useState<SubmitState>("idle");
+  const [submitError, setSubmitError]   = useState<string | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     fetch('/api/reports')
       .then(res => res.json())
       .then(data => setFireReports(data))
       .catch(err => console.error('Failed to fetch reports', err));
   }, []);
-
 
   function handleBoundarySizeChange(value: number) {
     setBoundarySize(value);
@@ -58,7 +59,6 @@ export default function ReportPage() {
     setActiveStep((prev) => Math.max(prev, 1));
   }
 
-  // Called when user picks an address from the form's autocomplete 
   function handleLocationSearch(loc: { lat: number; lng: number; address: string }) {
     setLocation(loc.address);
     setActiveStep((prev) => Math.max(prev, 1));
@@ -68,39 +68,40 @@ export default function ReportPage() {
   async function handleSubmit(data: ReportFormData) {
     setSubmitState("loading");
     setSubmitError(null);
-
-  async function handleSubmit(data: ReportFormData) {
-  try {
-    const res = await fetch('/api/reports', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: data.location,
-        description: data.description,
-        lat: externalPin?.lat ?? 0,
-        lng: externalPin?.lng ?? 0,
-        boundary_radius_km: boundarySize,
-        user_id: null,
-      }),
-    });
-    const report = await res.json();
-    setActiveRefNum(report.reference_number);
-    setStatusIndex(0);
-    setActiveStep(2);
-    setTimeout(() => {
-      setActiveStep(0);
-      setLocation('Click the map to drop a pin');
-      setBoundarySize(2);
-      setExternalPin(null);
-      setMapKey((k) => k + 1);
-    }, 1000);
-  } catch (err) {
-    console.error('Failed to submit report', err);
+    try {
+      const res = await fetch('/api/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: data.location,
+          description: data.description,
+          lat: externalPin?.lat ?? 0,
+          lng: externalPin?.lng ?? 0,
+          boundary_radius_km: boundarySize,
+          user_id: null,
+        }),
+      });
+      const report = await res.json();
+      setActiveRefNum(report.reference_number);
+      setStatusIndex(0);
+      setActiveStep(2);
+      setSubmitState("idle");
+      setTimeout(() => {
+        setActiveStep(0);
+        setLocation('Click the map to drop a pin');
+        setBoundarySize(2);
+        setExternalPin(null);
+        setMapKey((k) => k + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to submit report', err);
+      setSubmitState("error");
+      setSubmitError("Failed to submit report. Please try again.");
+    }
   }
-}
 
   return (
-    <SidebarLayout>
+    <SideBarLayout>
       <div className="flex flex-col p-6">
         <header className="mb-4 flex items-center justify-between">
           <div>
@@ -120,7 +121,7 @@ export default function ReportPage() {
             <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-m tracking-wide text-neutral/80 uppercase font-display">
-                  Live Map 
+                  Live Map
                 </span>
               </div>
               <div className="flex-1 w-full h-full pt-[53px]">
@@ -163,6 +164,6 @@ export default function ReportPage() {
 
         </div>
       </div>
-    </SidebarLayout>
+    </SideBarLayout>
   );
 }
