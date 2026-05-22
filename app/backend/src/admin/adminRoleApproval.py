@@ -21,11 +21,17 @@ class RoleRequest(BaseModel):
     class Config:
         from_attributes = True
 
+
+class RoleRequestList(BaseModel):
+    data: List[RoleRequest]
+    total: int
+
 FIREFIGHTER_LICENSE_IDS = {"FF-1001", "FF-1002", "FF-2001", "FF-1003", "FF-1004", "FF-1005"}
 
-@router.get("/role-requests", response_model=List[RoleRequest])
+@router.get("/role-requests", response_model=RoleRequestList)
 def get_role_requests(db: Session = Depends(get_db)):
-    return db.query(RoleRequestDB).all()
+    requests = db.query(RoleRequestDB).all()
+    return {"data": requests, "total": len(requests)}
 
 @router.post("/role-requests/{request_id}/approve", response_model=RoleRequest)
 def approve_role_request(request_id: str, db: Session = Depends(get_db)):
@@ -35,7 +41,7 @@ def approve_role_request(request_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Request not found")
     
     if req.status != "pending":
-        raise HTTPException(status_code=400, detail="Request already processed")
+        raise HTTPException(status_code=400, detail=f"Request already {req.status}")
 
     if req.role == "firefighter":
         if req.firefighter_license_id not in FIREFIGHTER_LICENSE_IDS:
