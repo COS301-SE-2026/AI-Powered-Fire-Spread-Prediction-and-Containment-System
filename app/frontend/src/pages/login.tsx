@@ -127,7 +127,7 @@ export default function Login() {
           </form>
           <div className="text-center mt-4 text-sm text-white/40">
             <Link href="/forgot-password" className="hover:text-primary">Forgot password? </Link>
-            <Link href="/cant-login" className="hover:text-primary"> Can't log in?</Link>
+            <Link href="/cant-login" className="hover:text-primary"> Can&apos;t log in?</Link>
           </div>
         </div>
       </div>
