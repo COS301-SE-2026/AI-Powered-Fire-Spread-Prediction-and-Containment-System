@@ -25,13 +25,6 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if db_user.is_2fa_enabled:
-        return {
-            "message": "2FA required",
-            "user_id": db_user.id,
-            "email": db_user.email,
-        }
-
     access_token = create_access_token(
         data={"sub": db_user.email, "user_id": db_user.id}
     )

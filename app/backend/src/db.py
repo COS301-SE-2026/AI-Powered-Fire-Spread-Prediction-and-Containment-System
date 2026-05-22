@@ -26,5 +26,5 @@ def get_db():
 
 def init_db():
     """Create all tables on startup."""
-    from models import User, RoleRequestDB  # noqa: F401
+    from models import User, RoleRequestDB  
     Base.metadata.create_all(bind=engine)
