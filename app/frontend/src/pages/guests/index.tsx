@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { SidebarLayout } from '../../components/firefighter/sidebar';
+import { SideBarLayout } from '../../components/demoSidebar';
 import { NearbyReports } from '../../components/firefighter/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import Button from '../../components/Button';
@@ -32,7 +32,7 @@ export default function GuestPublicDashboard() {
     };
 
     return (
-        <SidebarLayout>
+        <SideBarLayout hideLogout>
             <div className="flex flex-col p-6">
                 
                 {/*Public View Header*/}
@@ -52,26 +52,9 @@ export default function GuestPublicDashboard() {
                     <div className="xl:col-span-8 flex flex-col gap-6">
                         
                         {/*Map*/}
-                        <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[480px] w-full shadow-md">
+                        <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
                             <PublicFireMap />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 shrink-0">
-                            {/*Environmental icons*/}
-                            <div className="flex flex-col">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                                    Environment Variables
-                                </h2>
-                                <EnvironmentWidgets />
-                            </div>
-
-                            {/*Report fire*/}
-                            <div className="flex flex-col">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                                    Public Alert Setup
-                                </h2>
-                            </div>
-                        </div>                  
+                        </div>            
                     </div>
 
                     {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
@@ -91,6 +74,6 @@ export default function GuestPublicDashboard() {
                 </div>
 
             </div> 
-        </SidebarLayout>
+        </SideBarLayout>
     );
 }
