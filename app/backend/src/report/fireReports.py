@@ -10,7 +10,7 @@ from models import FireReportModel, FireReport, FireReportCreate, ReportStatus
 
 router = APIRouter(prefix="/api/reports", tags=["Fire Reports"])
 
-@router.get("/", response_model=List[FireReport])
+@router.get("", response_model=List[FireReport])
 def get_fire_reports(db: Session = Depends(get_db)):
     """Fetch all fire reports and extract Lat/Lng for the frontend map."""
     
@@ -38,7 +38,7 @@ def get_fire_reports(db: Session = Depends(get_db)):
     return formatted_reports
 
 
-@router.post("/", response_model=FireReport)
+@router.post("", response_model=FireReport)
 def create_fire_report(report: FireReportCreate, db: Session = Depends(get_db)):
     year = datetime.now().year
     unique_hex = uuid.uuid4().hex[:6].upper()
