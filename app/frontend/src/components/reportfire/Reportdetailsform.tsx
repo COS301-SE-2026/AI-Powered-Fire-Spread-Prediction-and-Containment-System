@@ -18,12 +18,20 @@ type Props = {
     location?: string;
     onSubmit?: (data: ReportFormData) => void;
     onLocationSearch?: (loc: { lat: number; lng: number; address: string }) => void;
+    isSubmitting?: boolean;
+    submitError?: string | null;
 };
 
 const baseInput =
     "w-full bg-white/10 border rounded-md text-sm text-white placeholder-white/30 focus:outline-none focus:border-ignite focus:bg-white/15 transition-colors";
 
-export default function ReportDetailsForm({ location = "", onSubmit, onLocationSearch }: Props) {
+export default function ReportDetailsForm({ 
+    location = "", 
+    onSubmit, 
+    onLocationSearch,
+    isSubmitting = false,
+    submitError,
+}: Props) {
     const [editableLocation, setEditableLocation] = useState(location);
     const [description, setDescription] = useState("");
     const [photo, setPhoto] = useState<File | null>(null);
@@ -252,15 +260,23 @@ export default function ReportDetailsForm({ location = "", onSubmit, onLocationS
                 </div>
 
                 {/* Submit */}
-                <div className="pt-4 border-t border-white/5 mt-1">
-                    <button
-                        type="submit"
-                        className="w-full h-11 bg-ignite hover:bg-ignite/90 active:scale-[0.98] text-white font-display font-bold tracking-widest uppercase text-sm rounded-md transition-all shadow-lg shadow-ignite/20"
-                    >
-                        Submit Fire Report
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full h-11 bg-ignite hover:bg-ignite/90 active:scale-[0.98] text-white font-display font-bold tracking-widest uppercase text-sm rounded-md transition-all shadow-lg shadow-ignite/20 ${
+                        isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                >
+                    {isSubmitting ? "Submitting..." : "Submit Fire Report"}
+                </button>
 
+                {/* Add below the button */}
+                {submitError && (
+                    <div className="flex items-center gap-1.5 text-error text-xs font-medium mt-2">
+                        <AlertTriangle size={13} />
+                        <span>{submitError}</span>
+                    </div>
+                )}
             </div>
         </form>
     );

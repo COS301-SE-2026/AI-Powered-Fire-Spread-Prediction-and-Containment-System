@@ -9,7 +9,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
   onBoundarySizeChange?: (radiusKm: number) => void;
-  /** When set, the map flies here and drops a pin (from form search) */
+
   externalPin?: { lng: number; lat: number } | null;
 }
 
@@ -49,6 +49,7 @@ const INITIAL_ZOOM = 15.5;
 
 export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
   const mapRef = useRef<any>(null);
+  const [mounted, setMounted] = useState(false);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
   const markerPosRef = useRef(markerPos);
@@ -60,6 +61,9 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
 
   useEffect(() => { markerPosRef.current = markerPos; }, [markerPos]);
   useEffect(() => { radiusKmRef.current = radiusKm; }, [radiusKm]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // ── EXTERNAL PIN (from form search) ──────────────────────────
   useEffect(() => {
@@ -179,6 +183,8 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
   // ── RENDER ────────────────────────────────────────────────────
   const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
 
+  if (!mounted) return null;
+  
   return (
     <Map
       ref={mapRef}

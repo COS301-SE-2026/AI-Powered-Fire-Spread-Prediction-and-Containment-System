@@ -37,6 +37,10 @@ export default function ReportPage() {
   const [activeRefNum, setActiveRefNum] = useState("");
   /** Coords from the form's geocoding search — passed as a prop to FireMap */
   const [externalPin, setExternalPin]   = useState<{ lng: number; lat: number } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError]   = useState<string | null>(null);
+  const [pinCoords, setPinCoords]       = useState<{ lat: number; lng: number } | null>(null);
+
 
   function handleBoundarySizeChange(value: number) {
     setBoundarySize(value);
@@ -45,36 +49,64 @@ export default function ReportPage() {
 
   function handleLocationSelect(loc: { lat: number; lng: number; address: string }) {
     setLocation(loc.address);
+    setPinCoords({ lat: loc.lat, lng: loc.lng });
     setActiveStep((prev) => Math.max(prev, 1));
   }
 
   /** Called when user picks an address from the form's autocomplete */
   function handleLocationSearch(loc: { lat: number; lng: number; address: string }) {
     setLocation(loc.address);
+    setPinCoords({ lat: loc.lat, lng: loc.lng });
     setActiveStep((prev) => Math.max(prev, 1));
-    // Pass coords to FireMap via prop — no ref needed
     setExternalPin({ lng: loc.lng, lat: loc.lat });
   }
 
-  function generateMockRef(): string {
-    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const randomHex = Math.random().toString(16).substring(2, 7).toUpperCase();
-    return `FW-${today}-${randomHex}`;
-  }
+  async function handleSubmit(data: ReportFormData) {
+    if (!pinCoords) return;
 
-  function handleSubmit(data: ReportFormData) {
-    const newReference = generateMockRef();
-    setActiveRefNum(newReference);
-    setStatusIndex(0);
-    setActiveStep(2);
-    console.log(`Fire report submitted. Ref: ${newReference}`, data);
-    setTimeout(() => {
-      setActiveStep(0);
-      setLocation("Click the map to drop a pin");
-      setBoundarySize(2);
-      setExternalPin(null);
-      setMapKey((k) => k + 1);
-    }, 1000);
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+        const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"}/api/fire-reports/`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    location_text:      data.location,
+                    description:        data.description ?? "",
+                    location_geom:      `SRID=4326;POINT(${pinCoords.lng} ${pinCoords.lat})`,
+                    boundary_radius_km: boundarySize,
+                }),
+            }
+        );
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err?.detail ?? "Submission failed");
+        }
+
+        const report = await res.json();
+
+        setActiveRefNum(report.reference_number);
+        setStatusIndex(report.status_index);
+        setActiveStep(2);
+
+        setTimeout(() => {
+            setActiveStep(0);
+            setLocation("Click the map to drop a pin");
+            setBoundarySize(2);
+            setExternalPin(null);
+            setPinCoords(null);
+            setMapKey((k) => k + 1);
+        }, 1000);
+
+    } catch (err) {
+        setSubmitError(err instanceof Error ? err.message : "Submission failed");
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
@@ -134,7 +166,9 @@ export default function ReportPage() {
                 location={location}
                 onSubmit={handleSubmit}
                 onLocationSearch={handleLocationSearch}
-              />
+                isSubmitting={isSubmitting}
+                submitError={submitError}
+            />
               <div className="border-t border-white/5 pt-4">
                 <ReportStatus activeIndex={statusIndex} currentRef={activeRefNum} />
               </div>
