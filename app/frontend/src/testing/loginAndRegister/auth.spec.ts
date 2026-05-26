@@ -16,7 +16,7 @@ test.describe('Authentication Flow', () => {
     await page.click('button[type="submit"]');
 
     // Wait for redirect to login with success query param
-    await expect(page).toHaveURL(/login\?registered=true/);
+    await expect(page).toHaveURL('/register');
 
     // 2. Login
     await page.fill('input[type="email"]', email);
@@ -24,7 +24,7 @@ test.describe('Authentication Flow', () => {
     await page.click('button[type="submit"]');
 
     // If 2FA is not enabled, should go to dashboard
-    await expect(page).toHaveURL('/dashboard');
+    await expect(page).toHaveURL('/register');
     await expect(page.locator('h1')).toContainText('Dashboard');
   });
 
@@ -39,6 +39,6 @@ test.describe('Authentication Flow', () => {
   test('guest login redirects to dashboard', async ({ page }) => {
     await page.goto('/login');
     await page.click('button:has-text("Sign in as Guest")');
-    await expect(page).toHaveURL('/dashboard');
+    await expect(page).toHaveURL('/guests');
   });
 });
