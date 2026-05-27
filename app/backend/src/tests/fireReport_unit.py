@@ -2,8 +2,6 @@ import pytest
 import re
 from datetime import datetime
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from unittest.mock import patch, MagicMock
 
 from main import app 
@@ -33,6 +31,19 @@ def mock_db():
 def client():
     return TestClient(app)
 
+@pytest.fixture
+def mock_report():
+    report = MagicMock()
+    report.reference_number = f"FR-{datetime.now().year}-ABC123"
+    report.user_id = valid_payload["user_id"]
+    report.location_text = valid_payload["location"]
+    report.description = valid_payload["description"]
+    report.boundary_radius_km = valid_payload["boundary_radius_km"]
+    report.status.value = "received"
+    report.status_index = 0
+    report.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
+    return report
+
 ###test endpoint get_fire_reports
 #mock_db.query().all() returns [] 
 def test_empty_reports(client, mock_db):
@@ -41,109 +52,52 @@ def test_empty_reports(client, mock_db):
     assert response.status_code == 200 #success response 
     assert response.json() == []
 
-def test_return_report(client, mock_db):
-    mock_report = MagicMock()
-    #sets all attributes endpoint reads
-    mock_report.reference_number = "FR-2025-ABC123"
-    mock_report.user_id = None
-    mock_report.location_text = "5th Ave and Pine St"
-    mock_report.description = "Brush fire near treeline"
-    mock_report.boundary_radius_km = 2.0
-    mock_report.status.value = "received"
-    mock_report.status_index = 0
-    mock_report.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
-    
-    mock_db.query.return_value.all.return_value = [ (mock_report, 47.608013, -122.335167) ]
-
+def test_return_report(client, mock_db, mock_report):
+    mock_db.query.return_value.all.return_value = [ (mock_report, valid_payload["lat"], valid_payload["lng"]) ]
     response = client.get("/api/reports")
     assert response.status_code == 200 
-
     report = response.json()[0]
-    assert report["reference_number"] == "FR-2025-ABC123"
-    assert report["lat"] == 47.608013
-    assert report["lng"] == -122.335167
-    assert report["location"] == "5th Ave and Pine St"
+    assert report["reference_number"] == mock_report.reference_number
+    assert report["lat"] == pytest.approx(valid_payload["lat"])
+    assert report["lng"] == pytest.approx(valid_payload["lng"])
+    assert report["location"] == valid_payload["location"]
     assert report["status"] == "received"
 
-def test_get_lat_lng(client, mock_db):
-    mock_report = MagicMock()
-    mock_report.reference_number = "FR-2025-ABC123"
-    mock_report.user_id = None                        
-    mock_report.location_text = "5th Ave"             
-    mock_report.description = "Brush fire"            
-    mock_report.boundary_radius_km = 2.0              
-    mock_report.status.value = "received"
-    mock_report.status_index = 0                     
-    mock_report.submitted_at = datetime(2025, 1, 1, 0, 0)
-
-    mock_db.query.return_value.all.return_value = [ (mock_report, -33.9249, 18.4241) ]
-
+def test_get_lat_lng(client, mock_db, mock_report):
+    mock_db.query.return_value.all.return_value = [(mock_report, -33.9249, 18.4241)]
     response = client.get("/api/reports")
     report = response.json()[0]
-    assert report["lat"] == -33.9249
-    assert report["lng"] == 18.4241
+    assert report["lat"] == pytest.approx(-33.9249)
+    assert report["lng"] == pytest.approx(18.4241)
 
-def test_multiple_returns(client, mock_db):
-    mock_report_1 = MagicMock()
-    mock_report_1.reference_number = "FR-2025-AAA111"
-    mock_report_1.user_id = None
-    mock_report_1.location_text = "5th Ave"
-    mock_report_1.description = "Brush fire"
-    mock_report_1.boundary_radius_km = 2.0
-    mock_report_1.status.value = "received"
-    mock_report_1.status_index = 0
-    mock_report_1.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
-
+def test_multiple_returns(client, mock_db, mock_report):
     mock_report_2 = MagicMock()
-    mock_report_2.reference_number = "FR-2025-BBB222"
-    mock_report_2.user_id = None
-    mock_report_2.location_text = "Elm Street"
-    mock_report_2.description = "Forest fire"
+    mock_report_2.reference_number = f"FR-{datetime.now().year}-BBB222"
+    mock_report_2.user_id = valid_payload["user_id"]
+    mock_report_2.location_text = valid_payload["location"]
+    mock_report_2.description = valid_payload["description"]
     mock_report_2.boundary_radius_km = 5.0
     mock_report_2.status.value = "received"
     mock_report_2.status_index = 0
     mock_report_2.submitted_at = datetime(2025, 1, 2, 12, 0, 0)
     
-    mock_db.query.return_value.all.return_value = [ (mock_report_1, 47.608013, -122.335167), (mock_report_2, -33.9249, 18.4241) ]
-
+    mock_db.query.return_value.all.return_value = [ (mock_report, valid_payload["lat"], valid_payload["lng"]), (mock_report_2, -33.9249, 18.4241) ]
     response = client.get("/api/reports")
-
     assert response.status_code == 200
     assert len(response.json()) == 2
-    assert response.json()[0]["reference_number"] == "FR-2025-AAA111"
-    assert response.json()[1]["reference_number"] == "FR-2025-BBB222"
+    assert response.json()[0]["reference_number"] == mock_report.reference_number
+    assert response.json()[1]["reference_number"] == mock_report_2.reference_number
 
 ###create_fire_report endpoint
 # returns 200
-def test_create_report(client, mock_db):
-    mock_report = MagicMock()
-    mock_report.reference_number = "FR-2025-ABC123"
-    mock_report.user_id = None
-    mock_report.location_text = "5th Ave and Pine St"
-    mock_report.description = "Brush fire near treeline"
-    mock_report.boundary_radius_km = 2.0
-    mock_report.status.value = "received"
-    mock_report.status_index = 0
-    mock_report.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
-
+def test_create_report(client, mock_db, mock_report):
     with patch("report.fireReports.FireReportModel") as MockModel:
         MockModel.return_value = mock_report 
         response = client.post("/api/reports", json=valid_payload)
-    
     assert response.status_code == 200
 
 #test reference number format
-def test_ref_format(client, mock_db):
-    mock_report = MagicMock()
-    mock_report.reference_number = f"FR-{datetime.now().year}-ABC123"
-    mock_report.user_id = None
-    mock_report.location_text = "5th Ave and Pine St"
-    mock_report.description = "Brush fire near treeline"
-    mock_report.boundary_radius_km = 2.0
-    mock_report.status.value = "received"
-    mock_report.status_index = 0
-    mock_report.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
-
+def test_ref_format(client, mock_db, mock_report):
     with patch("report.fireReports.FireReportModel") as MockModel:
         MockModel.return_value = mock_report
         response = client.post("/api/reports", json=valid_payload)
@@ -153,17 +107,7 @@ def test_ref_format(client, mock_db):
     assert re.match(rf"FR-{year}-[A-F0-9]{{6}}", ref)
 
 #test status 
-def test_status(client, mock_db):
-    mock_report = MagicMock()
-    mock_report.user_id = None
-    mock_report.reference_number = "FR-2025-ABC123"
-    mock_report.location_text = "5th Ave and Pine St"
-    mock_report.description = "Brush fire near treeline"
-    mock_report.boundary_radius_km = 2.0
-    mock_report.status.value = "received"
-    mock_report.status_index = 0
-    mock_report.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
-
+def test_status(client, mock_db, mock_report):
     with patch("report.fireReports.FireReportModel") as MockModel:
         MockModel.return_value = mock_report
         response = client.post("/api/reports", json=valid_payload)
@@ -172,27 +116,11 @@ def test_status(client, mock_db):
     assert response.json()["status_index"] == 0
 
 #test lat lng return 
-def test_post_lat_lng(client, mock_db):
-    mock_report = MagicMock()
-    mock_report.user_id = None
-    mock_report.reference_number = "FR-2025-ABC123"
-    mock_report.location_text = "5th Ave and Pine St"
-    mock_report.description = "Brush fire near treeline"
-    mock_report.boundary_radius_km = 2.0
-    mock_report.status.value = "received"
-    mock_report.status_index = 0
-    mock_report.submitted_at = datetime(2025, 1, 1, 12, 0, 0)
-
+def test_post_lat_lng(client, mock_db, mock_report):
     with patch("report.fireReports.FireReportModel") as MockModel:
         MockModel.return_value = mock_report
         response = client.post("/api/reports", json=valid_payload)
     
-    assert response.json()["lat"] == valid_payload["lat"]
-    assert response.json()["lng"] == valid_payload["lng"]
+    assert response.json()["lat"] == pytest.approx(valid_payload["lat"])
+    assert response.json()["lng"] == pytest.approx(valid_payload["lng"])
 
-
-
-
-
-
-        
