@@ -176,4 +176,36 @@ class TestApproveRoleRequest:
 
         assert result.status == "approved"
 
+# Test reject_role_request
+
+class TestRejectRoleRequest:
+    def test_reject_pending_request(self):
+        req = make_request(status = "pending")
+        db = query_side_effect(make_db(), {roleRequestDB: req})
+
+        result = reject_role_request("req-1", db = db)
+
+        assert result.status == "rejected"
+        db.commit.assert_called_once()
+
+    def test_reject_nonexistent(self):
+        db = query_side_effect(make_db(), {roleRequestDB: None})
+
+        with pytest.raises(HTTPException) as exc:
+            reject_role_request("no-such-id", db = db)
+
+        assert exc.value.status_code == 404
+
+    def test_reject_already_processed(self):
+        for already_done in ("approved", "rejected", "revoked"):
+            req = make_request(status = already_done)
+            db = query_side_effect(make_db(), {roleRequestDB: req})
+
+            with pytest.raises(HTTPException) as exc:
+                reject_role_request("req-1", db = db)
+            
+            assert exc.value.status_code == 400
+
+
+# Test revoke_role_request
 
