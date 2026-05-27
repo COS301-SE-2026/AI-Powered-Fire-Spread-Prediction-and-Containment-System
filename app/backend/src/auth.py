@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, timedelta, timezone
-from fastapi import Depends, HTTPException, status 
 from jose import jwt
 import bcrypt
 
