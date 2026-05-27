@@ -208,4 +208,50 @@ class TestRejectRoleRequest:
 
 
 # Test revoke_role_request
+class TestRevkeRoleRequest:
+    def test_revoke_approved(self):     # demotes user to guest
+        req = make_request(status = "approved", role = "firefighter")
+        user = make_user(role = "firefighter")
+        db = query_side_effect(make_db(), {roleRequestDB: req, user: user})
 
+        result = revoke_role_request("req-1", db = db)
+
+        assert result.status == "revoked"
+        assert user.role == "guest"
+        db.commit.assert_called_once()
+
+    def test_revoke_nonexistent(self):
+        db = query_side_effect(make_db(), {roleRequestDB: None})
+
+        with pytest.raises(HTTPException) as exc:
+            revoke_role_request("no-such-id", db = db)
+
+        assert exc.value.status_code == 404
+
+    def test_revoke_pending_request(self):
+        req = make_request(status = "pending")
+        db = query_side_effect(make_db(), {roleRequestDB: req})
+
+        with pytest.raises(HTTPException) as exc:
+            revoke_role_request("req-1", db = db)
+
+        assert exc.value.status_code == 400
+
+    def test_revoke_rejected(self):
+        req = make_request(status = "rejected")
+        db = query_side_effect(make_db(), {roleRequestDB: req})
+
+        with pytest.raises(HTTPException) as exc:
+            revoke_role_request("req-1", db = db)
+        
+        assert exc.value.status_code == 400
+
+    def test_revoke_with_no_matching_user(self):
+        """User lookup returns None. Raise 404 instead of silent succeed"""
+        req = make_request(status = "approved")
+        db = query_side_effect(make_db(), {roleRequestDB: req, user: None})
+
+        with pytest.raises(HTTPException) as exc:
+            revoke_role_request("req-1", db = db)
+        
+        assert exc.value.status_code == 404
