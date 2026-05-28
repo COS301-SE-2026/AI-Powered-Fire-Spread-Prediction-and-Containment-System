@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test": "pytest",
+    "test:local": "SKIP_DB_INIT=1 SKIP_SEED=1 pytest",
     "test:e2e": "pytest testing_config/e2e",
     "test:e2e:verbose": "pytest -vv testing_config/e2e",
     "test:coverage": "pytest --cov"

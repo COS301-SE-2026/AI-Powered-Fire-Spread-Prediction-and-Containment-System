@@ -25,7 +25,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests
-        run: pytest testing_config/e2e
+        run: pytest tests
 
   backend-pylint:
     name: Backend Lint (pylint)
@@ -46,7 +46,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run pylint
-        run: pylint .
+        run: pylint **/*.py --fail-under=8.0
 
   frontend-build:
     name: Frontend Build
@@ -63,7 +63,7 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: app/frontend/src/package-lock.json
+          cache-dependency-path: app/frontend/src/yarn.lock
 
       - name: Install dependencies
         run: yarn install

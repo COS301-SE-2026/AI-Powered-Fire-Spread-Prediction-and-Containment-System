@@ -8,7 +8,7 @@ export default function Landing() {
 
   const handleGuest = () => {
     localStorage.setItem('token', 'guest-token-' + Date.now());
-    router.push('/dashboard');
+    router.push('/guests');
   };
 
   return (
