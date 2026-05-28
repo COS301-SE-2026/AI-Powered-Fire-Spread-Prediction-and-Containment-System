@@ -51,10 +51,12 @@ def approve_role_request(request_id: str, db: Session = Depends(get_db)):
             return req
         
     user = db.query(User).filter(User.id == req.user_id).first()
-    if user:
-        user.role = req.role
-
+    if not user:
+        
+        raise HTTPException(status_code=404, detail="User not found")
+    user.role = req.role
     req.status = "approved"
+
     db.commit()
     db.refresh(req)
     return req
@@ -85,9 +87,10 @@ def revoke_role_request(request_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Only approved requests can be revoked")
     
     user = db.query(User).filter(User.id == req.user_id).first()
-    if user:
-        user.role = "guest"
-
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.role = "guest"
     req.status = "revoked"
     db.commit()
     db.refresh(req)
