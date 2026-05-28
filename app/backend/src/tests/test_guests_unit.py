@@ -27,7 +27,7 @@ class TestFireReportSchemaValidation:
         base.update(overrides)
         return base
 
-    def test_valid_fire_report_schema():
+    def test_valid_fire_report_schema(self):
         """tests if the fire report follows the valid data schema"""
 
         report = FireReport(**self._valid_payload())
