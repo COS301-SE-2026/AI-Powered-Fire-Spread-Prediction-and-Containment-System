@@ -1,17 +1,33 @@
 import React, { Children, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { BookAlert, Map, LayoutDashboard, Settings, LogOut,
     ShieldAlert, Flame, User, UserCircle,
     ChevronDown, TrendingUp, PlusCircle
 } from 'lucide-react';
 
-const NavLink = ({ icon: Icon, label}: { icon: any, label: string}) => (
-    <button className="py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral">
-        <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all"/>
-        <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 tranistion-opacity duration-200 whitespace-nowrap">
-            {label}
-        </span>
-    </button>
-);
+const NavLink = ({ icon: Icon, label, href }: { icon: any; label: string; href?: string }) => {
+    const content = (
+        <>
+            <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all" />
+            <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 tranistion-opacity duration-200 whitespace-nowrap">
+                {label}
+            </span>
+        </>
+    );
+
+    const className =
+        "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral";
+
+    return href ? (
+        <Link href={href} className={className}>
+            {content}
+        </Link>
+    ) : (
+        <button className={className}>
+            {content}
+        </button>
+    );
+};
 
 const SideBarDropdown = ({ title, icon: Icon, defaultOpen = false, isSidebarHovered, children }: { 
     title: string; 
@@ -50,7 +66,15 @@ const SideBarDropdown = ({ title, icon: Icon, defaultOpen = false, isSidebarHove
     );
 };
 
-export function SideBarLayout({ children, hideLogout = false, }: { children?: React.ReactNode; hideLogout?: boolean }) {
+export function SideBarLayout({
+    children,
+    hideLogout = false,
+    hideLoginRegister = false,
+}: {
+    children?: React.ReactNode;
+    hideLogout?: boolean;
+    hideLoginRegister?: boolean;
+}) {
 
     const [isHovered, setIsHovered] = useState(false);
 
@@ -78,14 +102,14 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
                         <SideBarDropdown title="Admin Portal" icon={ShieldAlert} isSidebarHovered={isHovered}>
                             <NavLink icon={LayoutDashboard} label="Admin Dashboard" />
                             <NavLink icon={TrendingUp} label="Analytics" />
-                            <NavLink icon={Map} label="Live Map" />
-                            <NavLink icon={ShieldAlert} label="Role Approvals" />
+                            <NavLink icon={Map} label="Live Map" href="/guests" />
+                            <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvalPage" />
                             <NavLink icon={Flame} label="Reported Fires" />
                         </SideBarDropdown >
 
                         {/* Firefighter Dropdown */}
                         <SideBarDropdown  title="Firefighter Tools" icon={Flame} defaultOpen={true} isSidebarHovered={isHovered}>
-                            <NavLink icon={LayoutDashboard} label="Firefigther Dashboard" />
+                            <NavLink icon={LayoutDashboard} label="Firefigther Dashboard" href="/firefighterDashboard" />
                             <NavLink icon={BookAlert} label="Reported Fires" />
                             <NavLink icon={Map} label="Fire Simulation AI" />
                         </SideBarDropdown >
@@ -93,13 +117,13 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
                         {/* Registered User Dropdown */}
                         <SideBarDropdown  title="Registered User" icon={User} isSidebarHovered={isHovered}>
                             <NavLink icon={Map} label="Live Map (User View)" />
-                            <NavLink icon={PlusCircle} label="Report a Fire" />
+                            <NavLink icon={PlusCircle} label="Report a Fire" href="/reportfire" />
                         </SideBarDropdown >
 
                         {/* Guest Dropdown */}
                         <SideBarDropdown  title="Guest Access" icon={UserCircle} isSidebarHovered={isHovered}>
-                            <NavLink icon={Map} label="Public Fire Map" />
-                            <NavLink icon={PlusCircle} label="Submit Report" />
+                            <NavLink icon={Map} label="Public Fire Map" href="/guests" />
+                            <NavLink icon={PlusCircle} label="Submit Report" href="/reportfire" />
                         </SideBarDropdown >
                     </ul>
 
@@ -118,34 +142,23 @@ export function SideBarLayout({ children, hideLogout = false, }: { children?: Re
   </button>
 )}
 
-{!hideLogout && (
-  <button className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-    <UserCircle className="size-6 shrink-0 text-ignite" />
-    <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
-  </button>
-)}
-
-{!hideLogout && (
-  <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-    <LogOut className="size-6 shrink-0" />
-    <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
-  </button>
-)}
                 </div>
 
                  {/* Footer Action */}
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-2 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
-                    <button className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-                        <UserCircle className="size-6 shrink-0 text-ignite" />
-                        <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
-                    </button>
+                    {!hideLoginRegister && (
+                        <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                            <UserCircle className="size-6 shrink-0 text-ignite" />
+                            <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
+                        </Link>
+                    )}
                     
                     {!hideLogout && (
-  <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-    <LogOut className="size-6 shrink-0" />
-    <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
-  </button>
-)}
+                    <Link href="/"className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        <LogOut className="size-6 shrink-0" />
+                        <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
+                    </Link>
+                    )}
                 </div>
             </aside>
 
