@@ -108,7 +108,7 @@ docker compose logs -f
 docker compose logs -f frontend
 ```
 
-## Commands for yarn
+# Yarn commands
 
 - Run the commands from the root of the repository to execute them in the correct context:
 
@@ -116,18 +116,14 @@ docker compose logs -f frontend
 yarn dev
 yarn build
 yarn lint
-yarn test:e2e
-yarn test:e2e:backend
-yarn pwa:start
 ```
 
 - To run from app/backend/src:
 
 ```bash
-pytest testing_config/e2e
+yarn test # runs all test files in the tests folder
 yarn start
 yarn dev
-yarn api
 ```
 
 - To run from app/frontend/src:
@@ -137,8 +133,16 @@ yarn dev
 yarn build
 yarn start
 yarn lint
-yarn test:e2e
-yarn test:e2e:headed
-yarn test:e2e:report
-yarn test:e2e:install
+yarn test # runs all test files in the testing folder
 ```
+
+# Just some notes for testing
+
+## Backend testing
+- The backend uses pytest for testing. Test files should be placed in the `app/backend/src/tests` directory and follow the naming convention `test_*.py`.
+- To run the tests, navigate to the `app/backend/src` directory and execute `yarn test`. This will run all the test files in the `tests` folder.
+
+## Frontend testing
+- The frontend uses playwright for testing. Test files should be placed in the `app/frontend/src/testing` directory and follow the naming convention `*.spec.ts`.
+- To run the tests, navigate to the `app/frontend/src` directory and execute `yarn test`. This will run all the test files in the `testing` folder.
+- To run a specific test file, use the command `yarn test path/to/testfile.spec.ts`. For example, to run the `home.spec.ts` test file, execute `yarn test testing/home.spec.ts`.te
