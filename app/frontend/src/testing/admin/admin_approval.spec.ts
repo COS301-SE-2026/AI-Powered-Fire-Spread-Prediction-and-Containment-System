@@ -22,7 +22,7 @@ test.describe('Admin approve role change.', ()=> {
         //note-to-self tells framework to scan DOM tree to find element that matches what is in the parentheses
         const userCard = page.locator('[data-testid="requesting-user-details"]');
         await expect(userCard).toBeVisible();
-        await expect(userCard).containText('Piet Pompies (piet.pompies@mail.com)');
+        await expect(userCard).toContainText('Piet Pompies (piet.pompies@mail.com)');
 
         //select radiogroup firefighter button
         const firefighterRadio = page.locator('input[type="radio"][data-testid="role-option-firefighter"]');
@@ -33,7 +33,7 @@ test.describe('Admin approve role change.', ()=> {
         //network intercept
         await page.route('**/api/admin/role-approval', async (route) => {
             const request = route.request();
-            const payload = JSON.parse(request.postData());
+            const payload = JSON.parse(request.postData() ?? '{}');
 
             expect(payload.action).toBe('approve');
             expect(payload.target_role).toBe('Firefighter');
@@ -67,17 +67,17 @@ test.describe('Admin approve role change.', ()=> {
         await expect(page).toHaveURL(/\/admin\/dashboard|\/admin/);
     });
 
-    test('SUCCESS: Handles admin clicking on firefighter radio button and clicking "Approve".', async ({page}) => {
+    test('SUCCESS: Handles admin clicking on admin radio button and clicking "Approve".', async ({page}) => {
         //is the structure of the form correct
         //need to add check for form (sub-issue on project board)
 
         //note-to-self tells framework to scan DOM tree to find element that matches what is in the parentheses
         const userCard = page.locator('[data-testid="requesting-user-details"]');
         await expect(userCard).toBeVisible();
-        await expect(userCard).containText('Piet Pompies (piet.pompies@mail.com)');
+        await expect(userCard).toContainText('Piet Pompies (piet.pompies@mail.com)');
 
         //select radiogroup admin button
-        const adminRadio = page.locator('input[type="radio"][data-testid="role-option-firefighter"]');
+        const adminRadio = page.locator('input[type="radio"][data-testid="role-option-admin"]');
         await expect(adminRadio).toBeVisible();
         await adminRadio.check();
         await expect(adminRadio).toBeChecked();
@@ -85,7 +85,7 @@ test.describe('Admin approve role change.', ()=> {
         //network intercept
         await page.route('**/api/admin/role-approval', async (route) => {
             const request = route.request();
-            const payload = JSON.parse(request.postData());
+            const payload = JSON.parse(request.postData() ?? '{}');
 
             expect(payload.action).toBe('approve');
             expect(payload.target_role).toBe('Admin');
