@@ -2,7 +2,6 @@
 // Once proper db is setup, the proper endpoints will be subbed in
 
 import {test, expect, Page} from '@playwright/test';
-import { mock } from 'node:test';
 
 const MOCK_REQUESTS = [
     {
@@ -69,7 +68,9 @@ async function mockGetRequests(page: Page, requests = MOCK_REQUESTS){
 
 // Intercept a specific action endpoint (approve/reject/revoke) and return updated version of targeted request
 async function mockAction(page:Page, requestId: string, action: 'approve' | 'reject' | 'revoke', overrides: Partial<(typeof MOCK_REQUESTS)[0]> = {}) {
-    const original = MOCK_REQUESTS.find((r) => r.request_id === requestId)!;
+    const original = MOCK_REQUESTS.find((r) => r.request_id === requestId);
+    if (!original) throw new Error(`No request found with id: ${requestId}`);
+    
     const statusMap = {approve:'approved', reject: 'rejected', revoke: 'revoked'} as const;
     const updated = {...original, status: statusMap[action], ...overrides};
 
