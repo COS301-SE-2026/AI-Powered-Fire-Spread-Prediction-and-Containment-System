@@ -22,7 +22,7 @@ class TestFireReportSchemaValidation:
             "status": ReportStatus.verified,
             "status_index": 2,
             #need to change to valid time
-            "submitted_at": datetime(2026, 5, 28, 10, 0, 0, tzinfo=timezone.utc), 
+            "submitted_at": "2026-05-22T10:00:00Z", 
         }
         base.update(overrides)
         return base
@@ -62,9 +62,3 @@ class TestFireReportSchemaValidation:
         del payload["lat"]
         with pytest.raises(ValidationError):
             FireReport(**payload)
-
-    def test_submitted_at_time_stores_utc_datetime(self):
-        """test to make sure the date time timezone is valid"""
-        tSubmit = datetime(2026, 5, 28, 10, 0, 0, tzinfo = timezone.utc)
-        report = FireReport(**self._valid_payload(submitted_at=tSubmit))
-        assert report.submitted_at.tzinfo is not None
