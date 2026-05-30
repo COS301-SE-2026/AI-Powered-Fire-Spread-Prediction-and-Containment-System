@@ -2,6 +2,7 @@
 // Once proper db is setup, the proper endpoints will be subbed in
 
 import {test, expect, Page} from '@playwright/test';
+import { mock } from 'node:test';
 
 const MOCK_REQUESTS = [
     {
@@ -205,5 +206,76 @@ test.describe('Revoke', () => {
 
         await expect(page.getByTestId('approval-modal')).toBeVisible();
     
+    });
+});
+
+
+// Full admin journeys
+test.describe('Admin journeys', () => {
+    test('admin approves a pending firefighter request', async ({page}) => {
+        await mockGetRequests(page);
+        await mockAction(page, 'req_1', 'approve');
+        await page.goto('/admin/approvalPage');
+
+        // See request in table under Pending
+        await page.getByRole('button', {name: /pending/i}).click();
+        await expect(page.getByText('James Smith')).toBeVisible();
+
+        // Open the modal and verify details
+        await page.getByRole('row', {name: /james smith/i}).getByRole('button', {name: /view/i}).click();
+        await expect(page.getByTestId('approval-modal')).toBeVisible();
+
+        // Approve
+        await page.getByTestId('approve-btn').click();
+        await expect(page.getByTestId('approval-modal')).not.toBeVisible();
+
+        // Request now under Approved tab
+        await page.getByRole('button', {name: /approved/i}).click();
+        await expect(page.getByText('James Smith')).toBeVisible();
+    });
+
+    test('admin rejects then cannot re-process the same request', async ({page}) => {
+        await mockGetRequests(page);
+        await mockAction(page, 'req_2', 'reject');
+        await page.goto('/admin/approvalPage');
+
+        // Reject request
+        await page.getByRole('row', {name: /anna dlamini/i}).getByRole('button', {name: /view/i}).click();
+        await page.getByTestId('reject-btn').click();
+        await expect(page.getByTestId('approval-modal')).not.toBeVisible();
+
+        // Open now-rejected request - no action buttons should be present
+        await page.getByRole('row', {name: /anna dlamini/i}).getByRole('button', {name: /view/i}).click();
+        await expect(page.getByTestId('approve-btn')).not.toBeVisible();
+        await expect(page.getByTestId('reject-btn')).not.toBeVisible();
+    });
+
+    test('admin approves then revokes a request', async ({page}) => {
+        await mockGetRequests(page);
+        await mockAction(page, 'req_1', 'approve');
+        await page.goto('/admin/approvalPage');
+
+        // Approve first
+        await page.getByRole('row', {name: /james smith/i}).getByRole('button', {name: /view/i}).click();
+        await page.getByTestId('approve-btn').click();
+        await expect(page.getByTestId('approval-modal')).not.toBeVisible();
+
+        // Mock revoke endpoint for the newly approved request
+        await page.route('**/api/admin/roles/role-requests/req_1/revoke', (route) => 
+            route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({...MOCK_REQUESTS[0], status: 'revoked'}),
+            })
+        );
+
+        // Open approved request and revoke it
+        await page.getByRole('row', {name: /james smith/i}).getByRole('button', {name: /view/i}).click();
+        await page.getByTestId('revoke-btn').click();
+        await expect(page.getByTestId('approval-modal')).not.toBeVisible();
+
+        // Verify shows as revoked
+        const row = page.getByRole('row', {name: /james smith/i});
+        await expect(row.getByText(/revoked/i)).toBeVisible();
     });
 });
