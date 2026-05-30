@@ -31,6 +31,7 @@ export default function RoleApprovalPage() {
                 const data = await resp.json();
                 setRequest(data.data ?? []);
             }catch (error){
+                console.error('Failed to fetch role requests: ', error);
                 setError('Unable to connect to the server. Please try again.');
             }
         }
