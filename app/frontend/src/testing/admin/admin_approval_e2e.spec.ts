@@ -5,48 +5,48 @@ import {test, expect, Page} from '@playwright/test';
 
 const MOCK_REQUESTS = [
     {
-        request_id: 'req-1',
-        user_id: 'user-1',
+        request_id: 'req_1',
+        user_id: 'user_1',
         user_full_name: 'James Smith',
-        email: 'james@smith.com',
+        email: 'j.smith@email.com',
         role: 'firefighter',
         status: 'pending',
         created_at: '2026-05-20T09:12:00Z',
         firefighter_license_id: 'FF-1001',
     },
     {
-        request_id: 'req-2',
-        user_id: 'user-2',
-        user_full_name: 'John Doe',
-        email: 'john@doe.com',
+        request_id: 'req_2',
+        user_id: 'user_2',
+        user_full_name: 'Anna Dlamini',
+        email: 'a.dlamini@email.com',
         role: 'admin',
         status: 'pending',
         created_at: '2026-05-29T14:30:00Z',
     },
     {
-        request_id: 'req-3',
-        user_id: 'user31',
-        user_full_name: 'Anna Smit',
-        email: 'Anna@smit.com',
+        request_id: 'req_3',
+        user_id: 'user_3',
+        user_full_name: 'Peter Nkosi',
+        email: 'p.nkosi@email.com',
         role: 'firefighter',
         status: 'approved',
         created_at: '2026-05-18T11:00:00Z',
         firefighter_license_id: 'FF-1002',
     },
     {
-        request_id: 'req-4',
-        user_id: 'user-4',
+        request_id: 'req_4',
+        user_id: 'user_4',
         user_full_name: 'Lerato Botha',
-        email: 'lerato@Botha.com',
+        email: 'l.botha@email.com',
         role: 'admin',
         status: 'rejected',
         created_at: '2026-05-17T08:45:00Z',
     },
     {
-        request_id: 'req-5',
-        user_id: 'user-5',
-        user_full_name: 'Thabo Mokona',
-        email: 'thabo@Mokona.com',
+        request_id: 'req_5',
+        user_id: 'user_5',
+        user_full_name: 'Thabo Mokoena',
+        email: 't.mokoena@email.com',
         role: 'firefighter',
         status: 'revoked',
         created_at: '2026-05-16T10:20:00Z',
@@ -67,13 +67,13 @@ async function mockGetRequests(page: Page, requests = MOCK_REQUESTS){
 }
 
 // Intercept a specific action endpoint (approve/reject/revoke) and return updated version of targeted request
-async function movkAction(page:Page, requestId: string, action: 'approve' | 'reject' | 'revoke', overrides: Partial<(typeof MOCK_REQUESTS)[0]> = {}) {
+async function mockAction(page:Page, requestId: string, action: 'approve' | 'reject' | 'revoke', overrides: Partial<(typeof MOCK_REQUESTS)[0]> = {}) {
     const original = MOCK_REQUESTS.find((r) => r.request_id === requestId)!;
     const statusMap = {approve:'approved', reject: 'rejected', revoke: 'revoked'} as const;
     const updated = {...original, status: statusMap[action], ...overrides};
 
     await page.route(
-        '**/api/admin/roles/role-requests/${requestId}/${action}',
+        `**/api/admin/roles/role-requests/${requestId}/${action}`,
         (route) =>
             route.fulfill({
                 status: 200,
@@ -155,7 +155,7 @@ test.describe('Filter tabs', () => {
     test('"Approved" tab shows only approved requests', async ({page}) => {
         await page.getByRole('button', {name: /approved/i}).click();
 
-        await expect(page.getByText('Anna Smit')).toBeVisible();
+        await expect(page.getByText('Peter Nkosi')).toBeVisible();
         await expect(page.getByText('James Smith')).not.toBeVisible();
     });
 
@@ -169,7 +169,41 @@ test.describe('Filter tabs', () => {
     test('"Revoked" tab shows only revoked requests', async ({page}) => {
         await page.getByRole('button', {name: /revoked/i}).click();
 
-        await expect(page.getByText('Thabo Mokona')).toBeVisible();
+        await expect(page.getByText('Thabo Mokoena')).toBeVisible();
         await expect(page.getByText('James Smith')).not.toBeVisible();
+    });
+});
+
+
+// Revoke action
+test.describe('Revoke', () => {
+    test('revoking an approved request updates status in the table', async ({page}) => {
+        await mockGetRequests(page);
+        await mockAction(page, 'req_3', 'revoke');
+        await page.goto('/admin/approvalPage');
+
+        const row = page.getByRole('row', {name: /peter nkosi/i});
+        await row.getByRole('button', {name: /view/i}).click();
+        await page.getByTestId('revoke-btn').click();
+
+        await expect(page.getByTestId('approval-modal')).not.toBeVisible();
+        await expect(row.getByText(/revoked/i)).toBeVisible();
+       
+    });
+
+    test('A failed revoke API call keeps modal open', async ({page}) => {
+        await mockGetRequests(page);
+        await page.route('**/api/admin/roles/role-requests/req_3/revoke', (route) => 
+            route.fulfill({status: 400})
+        );
+
+        await page.goto('/admin/approvalPage');
+
+        const row = page.getByRole('row', {name: /peter nkosi/i});
+        await row.getByRole('button', {name: /view/i}).click();
+        await page.getByTestId('revoke-btn').click();
+
+        await expect(page.getByTestId('approval-modal')).toBeVisible();
+    
     });
 });

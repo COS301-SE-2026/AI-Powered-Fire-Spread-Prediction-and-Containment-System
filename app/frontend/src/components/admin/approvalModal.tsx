@@ -13,7 +13,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
     const isPending = request.status === 'pending';
 
     return (
-        <dialog open className="modal modal-open backdrop-blur-sm bg-black/40">
+        <dialog open data-testid="approval-modal" className="modal modal-open backdrop-blur-sm bg-black/40">
             <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md p-8">
 
                 {/* Header */}
@@ -69,16 +69,16 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 <div className="border-t border-ignite/30 pt-4 flex justify-end gap-2">
                     {request.status === 'pending' && (
                         <>
-                            <button onClick={() => onReject(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
+                            <button data-testid="reject-btn" onClick={() => onReject(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
                                 Reject
                             </button>
-                            <button onClick={() => onApprove(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors">
+                            <button data-testid="approve-btn" onClick={() => onApprove(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors">
                                 Approve
                             </button>
                         </>
                     )}
                     {request.status === 'approved' && (
-                        <button onClick={() => onRevoke(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
+                        <button data-testid="revoke-btn" onClick={() => onRevoke(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
                             Revoke
                         </button>
                     )}
