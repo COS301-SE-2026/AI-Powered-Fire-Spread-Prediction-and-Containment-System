@@ -120,3 +120,56 @@ test.describe('Page load', () => {
     });
 
 });
+
+
+// Filter tabs
+test.describe('Filter tabs', () => {
+    test.beforeEach(async ({page}) => {
+        await mockGetRequests(page);
+        await page.goto('/admin/approvalPage');
+    });
+
+    test('"ALL" tab shows every request', async ({page}) => {
+        await page.getByRole('button', {name: /all/i}).click();
+
+        for (const req of MOCK_REQUESTS){
+            await expect(page.getByText(req.user_full_name)).toBeVisible();
+        }
+    });
+
+    test('"Pending" tab shows only pending requests', async ({page}) => {
+        await page.getByRole('button', {name: /pending/i}).click();
+
+        const pending = MOCK_REQUESTS.filter((r) => r.status === 'pending');
+        const others = MOCK_REQUESTS.filter((r) => r.status !== 'pending');
+
+        for (const req of pending){
+            await expect(page.getByText(req.user_full_name)).toBeVisible();
+        }
+
+        for (const req of others){
+            await expect(page.getByText(req.user_full_name)).not.toBeVisible();
+        }
+    });
+
+    test('"Approved" tab shows only approved requests', async ({page}) => {
+        await page.getByRole('button', {name: /approved/i}).click();
+
+        await expect(page.getByText('Anna Smit')).toBeVisible();
+        await expect(page.getByText('James Smith')).not.toBeVisible();
+    });
+
+    test('"Rejected" tab shows only rejected requests', async ({page}) => {
+        await page.getByRole('button', {name: /rejected/i}).click();
+
+        await expect(page.getByText('Lerato Botha')).toBeVisible();
+        await expect(page.getByText('James Smith')).not.toBeVisible();
+    });
+
+    test('"Revoked" tab shows only revoked requests', async ({page}) => {
+        await page.getByRole('button', {name: /revoked/i}).click();
+
+        await expect(page.getByText('Thabo Mokona')).toBeVisible();
+        await expect(page.getByText('James Smith')).not.toBeVisible();
+    });
+});
