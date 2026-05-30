@@ -34,9 +34,9 @@ class TestFireReportSchemaValidation:
 
         assert report.reference_number == "FR-2026-001"
         assert report.user_id == "usr_01"
-        assert report.lng == -25.7480
-        assert report.lat == 28.2435
-        assert report.boundary_radius_km == 0.5
+        assert report.lng == pytest.approx(-25.7480)
+        assert report.lat == pytest.approx(28.2435)
+        assert report.boundary_radius_km == pytest.approx(0.5)
         assert report.status == ReportStatus.verified
         assert report.status_index == 2
 
