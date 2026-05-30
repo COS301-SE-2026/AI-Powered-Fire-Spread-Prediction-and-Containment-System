@@ -7,7 +7,7 @@ const MOCK_REQUESTS = [
     {
         request_id: 'req-1',
         user_id: 'user-1',
-        fullname: 'James Smith',
+        user_full_name: 'James Smith',
         email: 'james@smith.com',
         role: 'firefighter',
         status: 'pending',
@@ -17,7 +17,7 @@ const MOCK_REQUESTS = [
     {
         request_id: 'req-2',
         user_id: 'user-2',
-        fullname: 'John Doe',
+        user_full_name: 'John Doe',
         email: 'john@doe.com',
         role: 'admin',
         status: 'pending',
@@ -26,7 +26,7 @@ const MOCK_REQUESTS = [
     {
         request_id: 'req-3',
         user_id: 'user31',
-        fullname: 'Anna Smit',
+        user_full_name: 'Anna Smit',
         email: 'Anna@smit.com',
         role: 'firefighter',
         status: 'approved',
@@ -36,7 +36,7 @@ const MOCK_REQUESTS = [
     {
         request_id: 'req-4',
         user_id: 'user-4',
-        fullname: 'Lerato Botha',
+        user_full_name: 'Lerato Botha',
         email: 'lerato@Botha.com',
         role: 'admin',
         status: 'rejected',
@@ -45,7 +45,7 @@ const MOCK_REQUESTS = [
     {
         request_id: 'req-5',
         user_id: 'user-5',
-        fullname: 'Thabo Mokona',
+        user_full_name: 'Thabo Mokona',
         email: 'thabo@Mokona.com',
         role: 'firefighter',
         status: 'revoked',
@@ -82,3 +82,41 @@ async function movkAction(page:Page, requestId: string, action: 'approve' | 'rej
             })
     );
 }
+
+// Load page
+test.describe('Page load', () => {
+    test('renders page heading', async ({page}) => {
+        await mockGetRequests(page);
+        await page.goto('/admin/approvalPage');
+        await expect(page.getByRole('heading', {name: /role approvals/i})).toBeVisible();
+        await expect(page.getByText(/manage user role requests/i)).toBeVisible();
+    });
+
+    test('displays all requests returned by the API', async ({page}) => {
+        await mockGetRequests(page);
+        await page.goto('/admin/approvalPage');
+        
+        for(const req of MOCK_REQUESTS){
+            await expect(page.getByText(req.user_full_name)).toBeVisible();
+        }
+    });
+
+    test('shows an error message when the API returns a non-ok response', async ({page}) => {
+        await page.route('**/api/admin/roles/role-requests', (route) =>
+            route.fulfill({status: 500})
+        );
+
+        await page.goto('/admin/approvalPage');
+        await expect(page.getByTestId('error-message')).toBeVisible();
+        await expect(page.getByText(/failed to load role requests/i)).toBeVisible();
+    });
+
+    test('shows an error message when the API call throws a network error', async ({page}) => {
+        await page.route('**/api/admin/roles/role-requests', (route) => route.abort());
+        await page.goto('/admin/approvalPage');
+
+        await expect(page.getByTestId('error-message')).toBeVisible();
+        await expect(page.getByText(/unable to connect/i)).toBeVisible();
+    });
+
+});

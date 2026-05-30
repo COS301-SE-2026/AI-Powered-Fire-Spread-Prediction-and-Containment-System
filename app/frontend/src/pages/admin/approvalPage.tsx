@@ -18,21 +18,20 @@ export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<RoleRequest | null>(null);
     const [filter, setFilter] = useState<'All' | RoleStatus>('All');
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchRequest = async() => {
             try{
                 const resp = await fetch('/api/admin/roles/role-requests');
                 if (!resp.ok) {
-                    console.warn("API unavailable, using mock data");
-                    setRequest(mockRequests);
+                    setError('Failed to load role requests. Please try again.')
                     return;
                 }
                 const data = await resp.json();
                 setRequest(data.data ?? []);
             }catch (error){
-                console.error("Failed to load role requests", error);
-                setRequest(mockRequests);
+                setError('Unable to connect to the server. Please try again.');
             }
         }
         fetchRequest();
@@ -106,6 +105,11 @@ export default function RoleApprovalPage() {
                     <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">Role Approvals</h1>
                     <p className="text-sm text-neutral/50 font-medium">Manage user role requests</p>
                 </header>
+
+                {/* Error Message*/}
+                {error && (
+                    <div role="alert" data-testid= "error-message" className="text-red-500 mb-4">{error}</div>
+                )}
 
                 <RoleFilterTabs filter={filter} onChange={setFilter}/>
 
