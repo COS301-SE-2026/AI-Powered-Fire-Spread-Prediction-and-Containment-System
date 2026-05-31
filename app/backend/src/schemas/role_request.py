@@ -1,11 +1,13 @@
 from src.enums.user_role import UserRole
 from src.enums.role_request_status import RequestStatus
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from pydantic import BaseModel
 
 class RoleRequestCreate(BaseModel):
     current_role:UserRole
+
+
 
 class UserSummary(BaseModel):
     id:str
@@ -28,3 +30,7 @@ class RoleRequestResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class RoleRequestList(BaseModel):
+    data:List[RoleRequestResponse]
+    total:int
