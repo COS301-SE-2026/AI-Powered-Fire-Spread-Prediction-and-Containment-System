@@ -76,16 +76,16 @@ test.describe('Admin approve role change.', ()=> {
 
     test('The Approve and Reject buttons are visible for a pending request. The Revoke button is not visible for a pending request', async ({page}) => {
         await page.locator(`[data-testid="view-request-${ANNA.id}"]`).click();
-        await expect(page.locator(`[data-testid="modal-approve-button"]`)).toBeVisible();
-        await expect(page.locator(`[data-testid="modal-reject-button"]`)).toBeVisible();
-        await expect(page.locator(`[data-testid="modal-revoke-button"]`)).not.toBeVisible();
+        await expect(page.locator(`[data-testid="approve-btn"]`)).toBeVisible();
+        await expect(page.locator(`[data-testid="reject-btn"]`)).toBeVisible();
+        await expect(page.locator(`[data-testid="revoke-btn"]`)).not.toBeVisible();
     });
 
     test('The Approve and Reject buttons are not visible for an approved request. The Revoke button is visible for an approved request', async ({page}) => {
         await page.locator(`[data-testid="view-request-${PIET.id}"]`).click();
-        await expect(page.locator(`[data-testid="modal-approve-button"]`)).not.toBeVisible();
-        await expect(page.locator(`[data-testid="modal-reject-button"]`)).not.toBeVisible();
-        await expect(page.locator(`[data-testid="modal-revoke-button"]`)).toBeVisible();
+        await expect(page.locator(`[data-testid="approve-btn"]`)).not.toBeVisible();
+        await expect(page.locator(`[data-testid="reject-btn"]`)).not.toBeVisible();
+        await expect(page.locator(`[data-testid="revoke-btn"]`)).toBeVisible();
     });
 
 
@@ -101,8 +101,8 @@ test.describe('Admin approve role change.', ()=> {
         });
 
         await page.locator(`[data-testid="view-request-${ANNA.id}"]`).click();
-        await expect(page.locator(`[data-testid="modal-approve-button"]`)).toBeVisible();
-        await page.locator(`[data-testid="modal-approve-button"]`).click();
+        await expect(page.locator(`[data-testid="approve-btn"]`)).toBeVisible();
+        await page.locator(`[data-testid="approve-btn"]`).click();
 
         //close of modal
         await expect(page.locator('dialog')).not.toBeVisible();
@@ -120,7 +120,7 @@ test.describe('Admin approve role change.', ()=> {
         });
 
         await page.locator(`[data-testid="view-request-${ANNA.id}"]`).click();
-        await page.locator(`[data-testid="modal-reject-button"]`).click();
+        await page.locator(`[data-testid="reject-btn"]`).click();
 
         //close of modal
         await expect(page.locator('dialog')).not.toBeVisible();
@@ -138,7 +138,7 @@ test.describe('Admin approve role change.', ()=> {
         });
 
         await page.locator(`[data-testid="view-request-${PIET.id}"]`).click();
-        await page.locator(`[data-testid="modal-revoke-button"]`).click();
+        await page.locator(`[data-testid="revoke-btn"]`).click();
 
         //close of modal
         await expect(page.locator('dialog')).not.toBeVisible();
