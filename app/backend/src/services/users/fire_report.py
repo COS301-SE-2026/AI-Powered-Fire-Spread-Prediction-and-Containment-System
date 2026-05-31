@@ -37,6 +37,7 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
     point_wkt = f"SRID=4326;POINT({report.lng} {report.lat})"
 
     new_report = FireReports(
+        id=str(uuid.uuid4()),
         reference_number=reference_num,
         user_id=user_id,
         reporter_ip=client_ip,

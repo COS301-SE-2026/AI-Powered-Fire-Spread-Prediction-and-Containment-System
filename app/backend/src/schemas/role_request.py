@@ -7,8 +7,6 @@ from pydantic import BaseModel
 class RoleRequestCreate(BaseModel):
     current_role:UserRole
 
-
-
 class UserSummary(BaseModel):
     id:str
     name:str
@@ -27,6 +25,7 @@ class RoleRequestResponse(BaseModel):
     status:RequestStatus
     created_at:datetime
     reviewed_at: Optional[datetime] = None
+    reviewed_by: Optional[str] = None
 
     class Config:
         from_attributes = True

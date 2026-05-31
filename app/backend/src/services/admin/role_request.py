@@ -60,7 +60,7 @@ def revoke_role_request(request_id:str, admin_id: str, db:Session):
         return None
     
     if request.status != RequestStatus.approved:
-        return None
+        raise ValueError("Only approved reqeusts may be revoked!!")
     
     user = db.query(User).filter(User.id == request.user_id).first()
     if not user:
