@@ -1,8 +1,9 @@
 const config = {
   testDir: '../testing',
   testMatch: [
-    '**/reportFire/**/*.spec.@(js|ts|tsx)',
-    '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
+    '**/reportFire/**/*.spec.@(ts|tsx)',
+    '**/loginAndRegister/**/*.spec.@(ts|tsx)',
+    '**/admin/**/*.spec.@(ts|txs)',
   ],
   timeout: 30000,
   expect: {
