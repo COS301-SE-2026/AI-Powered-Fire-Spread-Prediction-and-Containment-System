@@ -18,7 +18,7 @@ class FireReportMapResponse(BaseModel):
     lng: float
     location_text:str
     status:ReportStatus
-    boundary_radius:float
+    boundary_radius:Optional[float] = None
     submitted_at:datetime
 
     class Config:
