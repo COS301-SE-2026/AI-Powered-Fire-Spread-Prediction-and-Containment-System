@@ -1,0 +1,30 @@
+from src.enums.user_role import UserRole
+from src.enums.role_request_status import RequestStatus
+from typing import Optional
+from datetime import datetime
+from pydantic import BaseModel
+
+class RoleRequestCreate(BaseModel):
+    current_role:UserRole
+
+class UserSummary(BaseModel):
+    id:str
+    name:str
+    surname:str
+    email:str
+    license_number:Optional[str] = None
+
+    class Config:
+        from_attributes = True
+    
+class RoleRequestResponse(BaseModel):
+    request_id:str
+    user:UserSummary
+    requested_role:UserRole
+    current_role:UserRole
+    status:RequestStatus
+    created_at:datetime
+    reviewed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

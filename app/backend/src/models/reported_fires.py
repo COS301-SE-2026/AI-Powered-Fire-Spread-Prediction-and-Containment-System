@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Enum, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+from src.enums.report_status import ReportStatus
 from geoalchemy2 import Geometry
 from src.db import Base
 
