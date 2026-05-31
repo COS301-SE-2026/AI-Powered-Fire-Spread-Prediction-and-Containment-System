@@ -19,7 +19,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
                     <h3 className="font-display font-bold text-xl tracking-wider text-neutral uppercase">Role request - {request.user_full_name}</h3>
-                    <button onClick={onClose} className="text-neutral/40 hover:text-neutral transition-colors">✕</button>
+                    <button onClick={onClose} data-testid="modal-close-button" className="text-neutral/40 hover:text-neutral transition-colors">✕</button>
                 </div>
 
                 {/* Info grid */}
