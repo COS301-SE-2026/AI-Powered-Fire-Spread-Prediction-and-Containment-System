@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from src.db import get_db
-from src.schemas.role_request import RoleRequestResponse, RoleRequestList
-from src.services.admin import role_request
+from db import get_db
+from schemas.role_request import RoleRequestResponse, RoleRequestList
+from services.admin import role_request
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -10,9 +10,9 @@ router = APIRouter(prefix="/api/admin", tags=["Admin"])
 def get_role_requests(db:Session = Depends(get_db)):
     return role_request.get_role_requests(db)
 
-@router.put("/role-request/{request_id}/approve", response_model=RoleRequestResponse)
+@router.put("/role-requests/{request_id}/approve", response_model=RoleRequestResponse)
 def approve_role_request(request_id:str, db:Session = Depends(get_db)):
-    admin_id = "mock-id"
+    admin_id = "usr_01"
     try:
         request = role_request.approve_role_request(request_id, admin_id, db)
 
@@ -23,9 +23,9 @@ def approve_role_request(request_id:str, db:Session = Depends(get_db)):
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     
-@router.put("/role-request/{request_id}/reject", response_model=RoleRequestResponse)
+@router.put("/role-requests/{request_id}/reject", response_model=RoleRequestResponse)
 def reject_role_request(request_id:str, db:Session = Depends(get_db)):
-    admin_id = "mock-id"
+    admin_id = "usr_01"
     try:
         request = role_request.reject_role_request(request_id, admin_id, db)
 
@@ -36,9 +36,9 @@ def reject_role_request(request_id:str, db:Session = Depends(get_db)):
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
     
-@router.put("/role-request/{request_id}/revoke", response_model=RoleRequestResponse)
+@router.put("/role-requests/{request_id}/revoke", response_model=RoleRequestResponse)
 def revoke_role_request(request_id:str, db:Session = Depends(get_db)):
-    admin_id = "mock-id"
+    admin_id = "usr_01"
     try:
         request = role_request.revoke_role_request(request_id, admin_id, db)
 

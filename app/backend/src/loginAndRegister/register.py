@@ -4,7 +4,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 from sqlalchemy.orm import Session
 from db import get_db
-from models import User
+from models.users import User
 from auth import hash_password
 
 router = APIRouter(prefix="/api", tags=["Auth"])

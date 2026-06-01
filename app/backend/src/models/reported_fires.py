@@ -1,17 +1,15 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Enum, Text, Sequence
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric, Enum, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from src.enums.report_status import ReportStatus
+from enums.report_status import ReportStatus
 from geoalchemy2 import Geometry
-from src.db import Base
-
-report_seq = Sequence("fire_report_seq", start=1, increment=1)
+from db import Base
 
 class FireReports(Base):
     __tablename__ = "fire_reports"
 
     id = Column(String, primary_key=True)
-    reference_number = Column(String(20), server_default=report_seq.next_value(), unique=True, nullable=False) # formatting is gonna happen in the services folder
+    reference_number = Column(String(20), unique=True, nullable=False)
     user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True) 
     reporter_ip = Column(String, nullable=True)
     description = Column(String, nullable=True)

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
-from src.enums.report_status import ReportStatus
+from enums.report_status import ReportStatus
 
 class FireReportCreate(BaseModel):
     lat: float
