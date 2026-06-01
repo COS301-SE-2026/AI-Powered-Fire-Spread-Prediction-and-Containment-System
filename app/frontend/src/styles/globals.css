@@ -1,9 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Exo+2:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import "tailwindcss";
 
 @plugin "daisyui" {
@@ -27,38 +23,119 @@
   --color-error-content: #FF6B2B;
 }
 
+/*Use for interactive states, severity levels*/
 @theme {
-  --color-char: #1A0500;
-  --color-deep: #5C1800;
-  --color-ember: #9C2D00;
-  --color-ignite: #E84500;
-  --color-flare: #FF6B2B;
-  --color-torch: #FFAA00;
-  --color-flash: #FFE566;
-  --color-neutral: #ffffff;
-  --color-neutral-content: #151A26;
+  --color-char: #1A0500; /*Darkest and used for deep backgrounds*/
+  --color-deep: #5C1800;  /*Dark and used for hover states, pressed states*/
+  --color-ember: #9C2D00; /*Mid secondary accents*/
+  --color-ignite: #E84500; /*Primary used for buttons, links and active states*/
+  --color-flare: #FF6B2B; /*light used for highlights , mono text*/
+  --color-torch: #FFAA00; /*accent used for warnings, pending*/
+  --color-flash: #FFE566; /*lightest high visibility alerts*/
 
-  --color-carbon-bg: #080B12;
-  --color-carbon-side: #0C0F1A;
-  --color-carbon-card: #101420;
-  --color-carbon-input: #151A26;
-  --color-carbon-elevated: #161B2A;
-  --color-carbon-stroke: #1E2436;
-  --color-smoke-hover: #1E2436;
+  --color-contained: #1D9E75; /* used for success or contained incidents*/
+
+  --color-text-primary:#EDEAE5; /* used for headings & body*/
+  --color-text-muted: #A0ACC0; /* used for secondary test and labels*/
+
+  --color-carbon-bg: #080B12; /*page canvas*/
+  --color-carbon-side: #0C0F1A; /*sidebar and nav*/
+  --color-carbon-card: #101420; /*cards panels*/
+  --color-carbon-input: #151A26; /*input fields*/
+  --color-carbon-elevated: #161B2A; /* elevated surfaces and models*/
+  --color-carbon-stroke: #1E2436; /* bodrers and dividers*/
+  --color-smoke-hover: #1E2436; /*hover*/
 
   --color-wind:     #378ADD;
   --color-humidity: #1D9E75;
-  --color-danger:   #E84500;  /* already --color-ignite, reuse that */
-  --color-temp:     #FFAA00;  /* already --color-torch, reuse that */
 
-  --font-display: 'Barlow Condensed', sans-serif;
-  --font-body: 'Exo 2', sans-serif;
-  --font-mono: 'Fira Code', monospace;
+  --font-display: 'Barlow Condensed', sans-serif; /*titles and headings*/
+  --font-body: 'Exo 2', sans-serif; /*body, labels form*/
+  --font-mono: 'Fira Code', monospace; /*labels, timestamps*/
 
+  --text-brand-name: 96px; /*brand name only*/
+  --text-page-title:    52px; /* h1 font-display, weight 800, uppercase */
+  --text-section-head:  32px; /* h2 font-display, weight 700, uppercase */
+  --text-card-title:    22px; /* h3 font-body, weight 600 */
+  --text-body:          18px; /* p font-body, weight 400 */
+  --text-label:         14px; /* label/caption font-body, weight 500 */
+  --text-data:          14px; /* time/tag font-mono, weight 400 */
+
+  /* Border radius — sm for inputs & tags, md for cards & panels*/
   --radius-sm: 2px;
   --radius-md: 4px;
 }
 
+/*--------------------------Base styles---------------------------------------*/
+/*apply globally please dont overwrite add here rather*/
+@layer base {
+  body {
+    @apply font-body bg-[var(--color-carbon-bg)] text-[var(--color-text-primary)];
+    font-size: var(--text-body);
+    line-height: 1.7;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: var(--text-page-title);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    color: var(--color-text-primary);
+  }
+
+  h2 {
+    font-family: var(--font-display);
+    font-size: var(--text-section-head);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    color: var(--color-text-primary);
+  }
+
+  h3 {
+    font-family: var(--font-body);
+    font-size: var(--text-card-title);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+  }
+
+  h4, h5, h6 {
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+
+  p {
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--color-text-primary);
+  }
+
+  /*Labels */
+  label, .label {
+    font-family: var(--font-body);
+    font-size: var(--text-label);
+    font-weight: 500;
+    color: var(--color-text-muted);
+  }
+
+  /*distances timestamps, tags */
+  code, pre, .data, time, .tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-data);
+    font-weight: 400;
+    color: var(--color-flare);
+  }
+}
+
+/*---------------------------Background-----------------------------------------*/
 .sidebar-surface {
   background: linear-gradient(180deg, #0C0F1A 0%, #0E1018 100%);
   border-right: 1px solid rgba(232, 69, 0, 0.08);
@@ -103,4 +180,118 @@
   background: radial-gradient(ellipse at 50% 80%, rgba(92, 24, 0, 0.12) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(140px);
+}
+
+/*-----------------------------------------------------Nav bar----------------------------------------------------------------------------------*/
+.nav-item {
+  width: 100%;
+  text-align: left;
+  padding: 12px 24px;
+  font-family: var(--font-body);
+  font-size: var(--text-label);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: block; 
+}
+
+.nav-item--active {
+  font-weight: 600;
+  color: var(--color-ignite);
+  background: color-mix(in srgb, var(--color-ignite) 8%, transparent);
+  border-left-color: var(--color-ignite);
+}
+
+.nav-item:hover:not(.nav-item--active) {
+  color: var(--color-text-primary);
+  background: var(--color-smoke-hover);
+}
+
+/*---------------------------Style guide page---------------------------------*/
+.sg-root {
+  display: flex;
+  position: relative;
+  min-height: 100dvh;
+  background-color: var(--color-carbon-bg);
+  color: var(--color-text-primary);
+}
+
+.sg-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  width: 200px;
+  flex-shrink: 0;
+  padding: 32px 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+}
+
+.sg-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 64px;
+  position: relative;
+  z-index: 1;
+}
+
+.sg-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.sg-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding-bottom: 56px;
+  margin-bottom: 56px;
+  border-bottom: 1px solid var(--color-carbon-stroke);
+}
+
+.sg-hero h1 {
+  margin-bottom: 12px;
+}
+
+.sg-hero-brand {
+  color: var(--color-ignite);
+}
+
+.sg-hero-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  color: var(--color-text-muted);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+  font-weight: 500;
+}
+
+.sg-hero-description {
+  color: var(--color-text-muted);
+  max-width: 640px;
+  font-weight: 300;
+}
+
+/*sections*/
+.sg-section {
+  margin-bottom: 96px;
+  scroll-margin-top: 32px;
+}
+
+.sg-section {
+  margin-bottom: 96px;
+  scroll-margin-top: 32px;
+}
+
+.sg-divider {
+  height: 1px;
+  background-color: var(--color-carbon-stroke);
+  margin-bottom: 32px;
 }
