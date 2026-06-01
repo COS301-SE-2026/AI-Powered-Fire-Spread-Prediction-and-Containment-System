@@ -1,21 +1,21 @@
 import Head from 'next/head';
 import { useState, useEffect } from 'react';
 
-import ColoursSection from '../components/brandStyle/ColoursSection';
-import TypographySection from '../components/brandStyle/TypographySection';
-import LogoSection from '../components/brandStyle/LogoSection';
-import ComponentsSection from '../components/brandStyle/ComponentsSection';
-import AccessibilitySection from '../components/brandStyle/AccessabilitySection';
-import DesignPrinciplesSection from '../components/brandStyle/DesignPrinciplesSection';
-import StyleGuideNav        from "../components/brandStyle/navStyle";
+import Colours from '../components/brandStyle/Colours';
+import Typography from '../components/brandStyle/Typography';
+import Logo from '../components/brandStyle/Logos';
+import Components from '../components/brandStyle/Components';
+import Accessibility from '../components/brandStyle/Accessability';
+import DesignPrinciples from '../components/brandStyle/DesignPrinciples';
+import StyleGuideNav from "../components/brandStyle/navStyle";
 
 const sections = [
-  { id: 'colours', label: 'Colour Palette', Component: ColoursSection },
-  { id: 'typography', label: 'Typography', Component: TypographySection },
-  { id: 'logo', label: 'Logo & Iconography', Component: LogoSection },
-  { id: 'components', label: 'UI Components', Component: ComponentsSection },
-  { id: 'accessibility', label: 'Accessibility', Component: AccessibilitySection },
-  { id: 'principles', label: 'Design Principles', Component: DesignPrinciplesSection },
+  { id: 'colours', label: 'Colour Palette', Component: Colours },
+  { id: 'typography', label: 'Typography', Component: Typography },
+  { id: 'logo', label: 'Logo & Iconography', Component: Logo },
+  { id: 'components', label: 'UI Components', Component: Components },
+  { id: 'accessibility', label: 'Accessibility', Component: Accessibility },
+  { id: 'principles', label: 'Design Principles', Component: DesignPrinciples },
 ];
 
 export default function StyleGuidePage() {
@@ -79,37 +79,37 @@ export default function StyleGuidePage() {
           <section id="colours" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
             <h2 style={{ marginBottom: "16px" }}>Colour Palette</h2>
             <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
-            <ColoursSection />
+            <Colours />
           </section>
 
           <section id="typography" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
             <h2 style={{ marginBottom: "16px" }}>Typography</h2>
             <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
-            <TypographySection />
+            <Typography />
           </section>
 
           <section id="logo" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
             <h2 style={{ marginBottom: "16px" }}>Logo & Iconography</h2>
             <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
-            <LogoSection />
+            <Logo />
           </section>
 
           <section id="components" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
             <h2 style={{ marginBottom: "16px" }}>UI Components</h2>
             <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
-            <ComponentsSection />
+            <Components />
           </section>
 
           <section id="accessibility" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
             <h2 style={{ marginBottom: "16px" }}>Accessibility</h2>
             <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
-            <AccessibilitySection />
+            <Accessibility />
           </section>
 
           <section id="principles" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
             <h2 style={{ marginBottom: "16px" }}>Design Principles</h2>
             <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
-            <DesignPrinciplesSection />
+            <DesignPrinciples />
           </section>
 
         </div>
