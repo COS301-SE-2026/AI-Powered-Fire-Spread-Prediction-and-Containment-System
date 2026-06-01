@@ -44,7 +44,7 @@ export default function ReportPage() {
   const [submitError, setSubmitError]   = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/users/reported-fires`)
+    fetch(`/api/users/reported-fires`)
       .then(res => res.json())
       .then(data => setFireReports(data))
       .catch(err => console.error('Failed to fetch reports', err));
@@ -70,7 +70,7 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/users/reported-fires`, {
+      const res = await fetch(`/api/users/reported-fires`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

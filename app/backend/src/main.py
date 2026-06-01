@@ -8,9 +8,9 @@ from routes.guests.fire_reports import router as guest_fire_router
 from routes.admin.role_requests import router as admin_roles_router
 from routes.users.fire_reports import router as user_fire_router
 
-from loginAndRegister.register import router as register_router
-from loginAndRegister.login import router as login_router
-from TwoFactorAuth.twoStepAuth import router as two_factor_router
+from routes.auth.register import router as register_router
+from routes.auth.login import router as login_router
+from routes.auth.two_factor import router as two_factor_router
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()

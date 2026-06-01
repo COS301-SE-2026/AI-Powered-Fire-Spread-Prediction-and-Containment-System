@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
-import { apiCall } from '../lib/api';
 
 interface RegisterForm {
   name: string;
@@ -109,7 +108,7 @@ export default function Register() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch('/api/register', {
+      const res = await fetch(`/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

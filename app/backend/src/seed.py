@@ -98,8 +98,11 @@ def seed_users(db):
             email=data["email"],
             id_number=data["id_number"],
             license_number=data["license_number"],
+            hashed_password=hash_password(data["password"]),
             role=data["role"],
             is_active=True,
+            is_2fa_enabled=False,
+            totp_secret=None,
         )
         db.add(user)
         inserted[data["email"]] = user

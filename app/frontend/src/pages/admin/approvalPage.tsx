@@ -13,10 +13,10 @@ export default function RoleApprovalPage() {
 
     useEffect(() => {
         const fetchRequest = async() => {
-            const url = `${API_BASE_URL}/api/admin/role-requests`;
+            const url = `/api/admin/role-requests`;
             console.log('Fetching from:', url);
             try{
-                const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests`);
+                const resp = await fetch(`/api/admin/role-requests`);
                 if (!resp.ok) {
                     console.warn("API unavailable");
                     setRequest([])
@@ -34,7 +34,7 @@ export default function RoleApprovalPage() {
 
     const handleApprove = async (requestId: string) => {
         try{
-            const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests/${requestId}/approve`, {
+            const resp = await fetch(`/api/admin/role-requests/${requestId}/approve`, {
                 method: 'PUT'
             });
 
@@ -56,7 +56,7 @@ export default function RoleApprovalPage() {
 
     const handleReject = async(requestId: string) => {
         try{
-            const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests/${requestId}/reject`, {
+            const resp = await fetch(`/api/admin/role-requests/${requestId}/reject`, {
                 method: 'PUT'
             });
 
@@ -75,7 +75,7 @@ export default function RoleApprovalPage() {
 
     const handleRevoke = async(requestId: string) => {
         try{
-            const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests/${requestId}/revoke`, {
+            const resp = await fetch(`/api/admin/role-requests/${requestId}/revoke`, {
                 method: 'PUT',
             });
 
