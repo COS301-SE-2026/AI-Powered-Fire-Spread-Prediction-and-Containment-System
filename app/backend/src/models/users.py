@@ -13,9 +13,13 @@ class User(Base):
     email = Column(String(100), nullable=False, unique=True, index=True)
     id_number = Column(String(13), nullable=False, unique=True)
     license_number = Column(String)
+    hashed_password = Column(String, nullable=False, default="")
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     is_active = Column(Boolean, default=True)
+    is_2fa_enabled = Column(Boolean, default=False)
+    totp_secret = Column(String, nullable=True)
+
     fire_reports = relationship("FireReports", back_populates="user")
     role_requests = relationship("RoleRequest", back_populates="user", foreign_keys="RoleRequest.user_id")
     
