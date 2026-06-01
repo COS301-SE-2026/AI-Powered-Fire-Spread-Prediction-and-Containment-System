@@ -7,26 +7,16 @@ import LogoSection from '../components/brandStyle/LogoSection';
 import ComponentsSection from '../components/brandStyle/ComponentsSection';
 import AccessibilitySection from '../components/brandStyle/AccessabilitySection';
 import DesignPrinciplesSection from '../components/brandStyle/DesignPrinciplesSection';
+import StyleGuideNav        from "../components/brandStyle/navStyle";
 
 const sections = [
-  { id: 'colours',       label: 'Colour Palette'    },
-  { id: 'typography',    label: 'Typography'         },
-  { id: 'logo',          label: 'Logo & Iconography' },
-  { id: 'components',    label: 'UI Components'      },
-  { id: 'accessibility', label: 'Accessibility'      },
-  { id: 'principles',    label: 'Design Principles'  },
+  { id: 'colours', label: 'Colour Palette', Component: ColoursSection },
+  { id: 'typography', label: 'Typography', Component: TypographySection },
+  { id: 'logo', label: 'Logo & Iconography', Component: LogoSection },
+  { id: 'components', label: 'UI Components', Component: ComponentsSection },
+  { id: 'accessibility', label: 'Accessibility', Component: AccessibilitySection },
+  { id: 'principles', label: 'Design Principles', Component: DesignPrinciplesSection },
 ];
-
-function SectionContent({ id, label }: { id: string; label: string }) {
-  switch (id) {
-    case 'colours':    return <ColoursSection />;
-    case 'typography': return <TypographySection />;
-    case 'logo':       return <LogoSection />;
-    case 'components': return <ComponentsSection />;
-    case 'accessibility': return <AccessibilitySection />;
-    case 'principles': return <DesignPrinciplesSection/>;
-  }
-}
 
 export default function StyleGuidePage() {
   const [active, setActive] = useState('colours');
@@ -34,10 +24,13 @@ export default function StyleGuidePage() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) setActive(e.target.id); });
+        entries.forEach((e) => { 
+          if (e.isIntersecting) setActive(e.target.id); 
+        });
       },
       { rootMargin: '-20% 0px -60% 0px' }
     );
+
     sections.forEach(({ id }) => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
@@ -49,142 +42,79 @@ export default function StyleGuidePage() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
 
   return (
-    <>
-      <Head>
-        <title>Fireaway - Brand Style Guide</title>
-      </Head>
-
-      <div style={{ backgroundColor: 'var(--color-carbon-bg)', color: '#EDEAE5', minHeight: '100vh', display: 'flex' }}>
-
-        {/* Sidebar */}
-        <aside
-          style={{
-            position: 'sticky',
-            top: 0,
-            height: '100vh',
-            width: '200px',
-            flexShrink: 0,
-            backgroundColor: 'var(--color-carbon-side)',
-            borderRight: '1px solid var(--color-carbon-stroke)',
-            padding: '32px 0',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <nav style={{ display: 'flex', flexDirection: 'column' }}>
-            {sections.map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => scrollTo(id)}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '9px 20px',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '16px',
-                  fontWeight: active === id ? 600 : 400,
-                  color: active === id ? 'var(--color-ignite)' : '#A0A8B8',
-                  backgroundColor: active === id ? 'rgba(232,69,0,0.08)' : 'transparent',
-                  border: 'none',
-                  borderLeft: `2px solid ${active === id ? 'var(--color-ignite)' : 'transparent'}`,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </nav>
-        </aside>
-
-        {/* Main */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: '64px 64px' }}>
-          <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-
-            {/* Hero */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              paddingBottom: '56px',
-              marginBottom: '56px',
-              borderBottom: '1px solid var(--color-carbon-stroke)',
-            }}>
-              <h1 style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '96px',
-                fontWeight: 800,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                lineHeight: 1,
-                marginBottom: '12px',
-              }}>
-                <span style={{ color: 'var(--color-ignite)' }}>FIRE</span>AWAY
-              </h1>
-
-              <p style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: '16px',
-                color: '#A0A8B8',
-                letterSpacing: '0.25em',
-                textTransform: 'uppercase',
-                marginBottom: '28px',
-                fontWeight: 500,
-              }}>
-                Brand Style Guide
-              </p>
-
-              <p style={{
-                fontFamily: 'var(--font-body)',
-                fontSize: '18px',
-                color: '#A0A8B8',
-                maxWidth: '640px',
-                lineHeight: '1.75',
-                fontWeight: 300,
-              }}>
-                Welcome to the Fireaway Brand Style Guide! This is where we bring our
-                colors, typography, and interface elements together into a single, cohesive
-                system. Because our platform is designed for emergency situations, every detail
-                here focuses on making things clean and easy to navigate for responders and
-                community members alike. This guide ensures that no matter who builds a piece of
-                the app, Fireaway always feels familiar, trusted, and reliable.
-              </p>
-            </div>
-
-            {/* Sections */}
-            {sections.map(({ id, label }) => (
-              <section
-                key={id}
-                id={id}
-                style={{ marginBottom: '96px', scrollMarginTop: '32px' }}
-              >
-                <h2 style={{
-                  fontFamily: 'var(--font-display)',
-                  fontSize: '32px',
-                  fontWeight: 800,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1,
-                  marginBottom: '16px',
-                }}>
-                  {label}
-                </h2>
-
-                <div style={{
-                  height: '1px',
-                  backgroundColor: 'var(--color-carbon-stroke)',
-                  marginBottom: '32px',
-                }} />
-
-                <SectionContent id={id} label={label} />
-              </section>
-            ))}
-
-          </div>
-        </main>
-
+    <div className="sg-root">
+    
+    {/* background */}
+      <div className="global-atmos">
+        <div className="ga-bloom-primary" />
+        <div className="ga-bloom-secondary" />
+        <div className="ga-bloom-tertiary" />
       </div>
-    </>
+
+      {/*navbar*/}
+      <aside className="sg-sidebar sidebar-surface">
+        <StyleGuideNav active={active} scrollTo={scrollTo} />
+      </aside> 
+     
+      {/* main */}
+      <main className="sg-main">
+        <div className="sg-content">
+
+          {/* hero */}
+          <div className="sg-hero">
+            <h1 style={{ fontSize: "var(--text-brand-name)" }}>
+              <span className="sg-hero-brand">FIRE</span>AWAY
+            </h1>
+            <p className="sg-hero-label">Brand Style Guide</p><p className="sg-hero-description">
+              Welcome to the Fireaway Brand Style Guide! This is where we bring our
+              colors, typography, and interface elements together into a single, cohesive
+              system. Because our platform is designed for emergency situations, every detail
+              here focuses on making things clean and easy to navigate for responders and
+              community members alike. This guide ensures that no matter who builds a piece of
+              the app, Fireaway always feels familiar, trusted, and reliable.
+            </p>
+          </div>
+
+          {/* sections */}
+          <section id="colours" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
+            <h2 style={{ marginBottom: "16px" }}>Colour Palette</h2>
+            <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
+            <ColoursSection />
+          </section>
+
+          <section id="typography" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
+            <h2 style={{ marginBottom: "16px" }}>Typography</h2>
+            <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
+            <TypographySection />
+          </section>
+
+          <section id="logo" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
+            <h2 style={{ marginBottom: "16px" }}>Logo & Iconography</h2>
+            <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
+            <LogoSection />
+          </section>
+
+          <section id="components" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
+            <h2 style={{ marginBottom: "16px" }}>UI Components</h2>
+            <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
+            <ComponentsSection />
+          </section>
+
+          <section id="accessibility" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
+            <h2 style={{ marginBottom: "16px" }}>Accessibility</h2>
+            <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
+            <AccessibilitySection />
+          </section>
+
+          <section id="principles" style={{ marginBottom: "96px", scrollMarginTop: "32px" }}>
+            <h2 style={{ marginBottom: "16px" }}>Design Principles</h2>
+            <div style={{ height: "1px", backgroundColor: "var(--color-carbon-stroke)", marginBottom: "32px" }} />
+            <DesignPrinciplesSection />
+          </section>
+
+        </div>
+      </main>
+
+    </div>
   );
 }
