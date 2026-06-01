@@ -2,10 +2,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from datetime import datetime
 from typing import Optional
-from src.models.reported_fires import FireReports
+from models.reported_fires import FireReports
 import uuid
-from src.enums.report_status import ReportStatus
-from src.schemas.fire_report import FireReportCreate
+from enums.report_status import ReportStatus
+from schemas.fire_report import FireReportCreate
 
 def get_fire_reports(db:Session):
     request = db.query(

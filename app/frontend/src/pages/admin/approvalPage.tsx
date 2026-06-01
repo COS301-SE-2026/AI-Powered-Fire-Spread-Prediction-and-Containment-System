@@ -4,15 +4,7 @@ import { RoleApprovalModal } from '../../components/admin/approvalModal';
 import { SideBarLayout } from '../../components/demoSidebar';
 import { RoleFilterTabs } from '../../components/admin/approvalFilter';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
-
-const mockRequests: RoleRequest[] = [
-    { request_id: 'req_1', user_id: 'user_1', user_full_name: 'James Smith', email: 'j.smith@email.com', role: 'firefighter', status: 'pending', created_at: '2026-05-20T09:12:00Z', firefighter_license_id: 'FF-1001' },
-    { request_id: 'req_2', user_id: 'user_2', user_full_name: 'Anna Dlamini', email: 'a.dlamini@email.com', role: 'admin', status: 'pending', created_at: '2026-05-19T14:30:00Z' },
-    { request_id: 'req_3', user_id: 'user_3', user_full_name: 'Peter Nkosi', email: 'p.nkosi@email.com', role: 'firefighter', status: 'approved', created_at: '2026-05-18T11:00:00Z', firefighter_license_id: 'FF-1002' },
-    { request_id: 'req_4', user_id: 'user_4', user_full_name: 'Lerato Botha', email: 'l.botha@email.com', role: 'admin', status: 'rejected', created_at: '2026-05-17T08:45:00Z' },
-    { request_id: 'req_5', user_id: 'user_5', user_full_name: 'Thabo Mokoena', email: 't.mokoena@email.com', role: 'firefighter', status: 'revoked', created_at: '2026-05-16T10:20:00Z', firefighter_license_id: 'FF-2001' },
-];
-
+import { API_BASE_URL } from '../../config/api';
 
 export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
@@ -21,18 +13,20 @@ export default function RoleApprovalPage() {
 
     useEffect(() => {
         const fetchRequest = async() => {
+            const url = `${API_BASE_URL}/api/admin/role-requests`;
+            console.log('Fetching from:', url);
             try{
-                const resp = await fetch('/api/admin/roles/role-requests');
+                const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests`);
                 if (!resp.ok) {
-                    console.warn("API unavailable, using mock data");
-                    setRequest(mockRequests);
+                    console.warn("API unavailable");
+                    setRequest([])
                     return;
                 }
                 const data = await resp.json();
                 setRequest(data.data ?? []);
             }catch (error){
                 console.error("Failed to load role requests", error);
-                setRequest(mockRequests);
+                setRequest([])
             }
         }
         fetchRequest();
@@ -40,15 +34,15 @@ export default function RoleApprovalPage() {
 
     const handleApprove = async (requestId: string) => {
         try{
-            const resp = await fetch(`/api/admin/roles/role-requests/${requestId}/approve`, {
-                method: 'POST'
+            const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests/${requestId}/approve`, {
+                method: 'PUT'
             });
 
             if(resp.ok){
                 const updateRequest = await resp.json();
 
                 setRequest(prev => prev.map(req => 
-                    req.request_id === requestId ? {...req, ...updateRequest} : req
+                    req.request_id === requestId ? updateRequest : req
                 ));
 
                 setSelectedRequest(null); // close modal
@@ -62,8 +56,8 @@ export default function RoleApprovalPage() {
 
     const handleReject = async(requestId: string) => {
         try{
-            const resp = await fetch(`/api/admin/roles/role-requests/${requestId}/reject`, {
-                method: 'POST'
+            const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests/${requestId}/reject`, {
+                method: 'PUT'
             });
 
             if(resp.ok){
@@ -81,8 +75,8 @@ export default function RoleApprovalPage() {
 
     const handleRevoke = async(requestId: string) => {
         try{
-            const resp = await fetch(`/api/admin/roles/role-requests/${requestId}/revoke`, {
-                method: 'POST',
+            const resp = await fetch(`${API_BASE_URL}/api/admin/role-requests/${requestId}/revoke`, {
+                method: 'PUT',
             });
 
             if(resp.ok){

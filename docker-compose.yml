@@ -37,7 +37,7 @@ services:
 
   backend:
     build:
-      context: ./app/backend/src
+      context: ./app/backend
       dockerfile: Dockerfile
     container_name: python-backend
     restart: unless-stopped

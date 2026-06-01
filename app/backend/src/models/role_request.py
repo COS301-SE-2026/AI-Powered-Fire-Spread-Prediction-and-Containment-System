@@ -1,9 +1,9 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
-from src.enums.role_request_status import RequestStatus
-from src.enums.user_role import UserRole
+from enums.role_request_status import RequestStatus
+from enums.user_role import UserRole
 from datetime import datetime, timezone
-from src.db import Base
+from db import Base
 
 class RoleRequest(Base):
     __tablename__ = "role_requests"

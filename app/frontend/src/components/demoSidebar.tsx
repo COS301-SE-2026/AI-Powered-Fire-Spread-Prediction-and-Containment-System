@@ -117,7 +117,7 @@ export function SideBarLayout({
                         {/* Registered User Dropdown */}
                         <SideBarDropdown  title="Registered User" icon={User} isSidebarHovered={isHovered}>
                             <NavLink icon={Map} label="Live Map (User View)" />
-                            <NavLink icon={PlusCircle} label="Report a Fire" href="/reportfire" />
+                            <NavLink icon={PlusCircle} label="Report a Fire" href="/user/report" />
                         </SideBarDropdown >
 
                         {/* Guest Dropdown */}
