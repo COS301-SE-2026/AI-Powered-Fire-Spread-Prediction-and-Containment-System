@@ -37,6 +37,32 @@ def get_fire_reports(db: Session = Depends(get_db)):
         
     return formatted_reports
 
+@router.get("/public")
+def get_public_fire_reports(db: Session = Depends(get_db)):
+    """Fetch verified fire reports and extract Lat/Lng for the frontend map. Strip user_id"""
+    
+    results = db.query(
+        FireReportModel,
+        func.ST_Y(FireReportModel.location_geom).label('lat'),
+        func.ST_X(FireReportModel.location_geom).label('lng') 
+    ).filter(FireReportModel.status == ReportStatus.verified).all()
+
+    formatted_reports = []
+    for report, lat, lng in results:
+        formatted_reports.append({
+            "reference_number": report.reference_number,
+            "location": report.location_text,
+            "description": report.description,
+            "lat": lat,
+            "lng": lng,
+            "boundary_radius_km": report.boundary_radius_km,
+            "status": report.status.value,
+            "status_index": report.status_index,
+            "submitted_at": report.submitted_at.isoformat()
+        })
+        
+    return formatted_reports
+
 
 @router.post("", response_model=FireReport)
 def create_fire_report(report: FireReportCreate, db: Session = Depends(get_db)):
