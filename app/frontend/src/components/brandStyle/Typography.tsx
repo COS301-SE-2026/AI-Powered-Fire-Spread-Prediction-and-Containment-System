@@ -1,122 +1,107 @@
-export default function TypographySection() {
+type CardProps = {
+  family: string;
+  token: string;
+  weights: string;
+  usage: string;
+};
+
+type ScaleProps = {
+  label: string;
+  size: string;
+};
+
+const font_samples: Record<string, React.ReactNode> = {
+  "--font-display": (
+    <p className = "font-display text -[40px] font-extrabold uppercase tracking wide leading-tight">
+      FIREFIGHTER DASHBOARD
+    </p>
+  ),
+  "--font-body": <p>Tshwane Distinct - Real-time Monitoring</p>,
+  "--font-mono": ( <p className="font-mono text-[18px] text-[var(--color-flare)]">
+    18 km/h - WInd NW - 38°C - 1.2 km away
+  </p>
+  ), 
+};
+
+const scale_samples: Record<string, React.ReactNode> = {
+  "Page title": <h1 className="whitespace-nowrap">REPORT A FIRE</h1>,
+  "Section head": <h2 className="whitespace-nowrap">OPERATIONAL PARAMETERS</h2>,
+  "Card title": <h3 className="whitespace-nowrap">Report details</h3>,
+  "Body": <p className="whitespace-nowrap">Click the map to drop a pin</p>,
+  "Label": <label className="whitespace-nowrap">Location  Description</label>,
+  "Data": <code className="whitespace-nowrap">1.2 km  8 min ago</code>,
+}
+
+function Card({ family, token, weights, usage }: CardProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-
-      {/* Three font families */}
-      {[
-        {
-          token: '--font-display',
-          family: 'Barlow Condensed',
-          weights: '700 : 800',
-          usage: 'Page titles, section headings, buttons',
-          sample: 'FIREFIGHTER DASHBOARD',
-          sampleStyle: {
-            fontFamily: 'var(--font-display)',
-            fontSize: '40px',
-            fontWeight: 800,
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.04em',
-            color: '#EDEAE5',
-            lineHeight: 1.1,
-          },
-        },
-        {
-          token: '--font-body',
-          family: 'Exo 2',
-          weights: '400 : 500 : 600',
-          usage: 'Body text, labels, form fields, descriptions',
-          sample: 'Tshwane District - Real-time Monitoring',
-          sampleStyle: {
-            fontFamily: 'var(--font-body)',
-            fontSize: '18px',
-            fontWeight: 400,
-            color: '#EDEAE5',
-            lineHeight: 1.7,
-          },
-        },
-        {
-          token: '--font-mono',
-          family: 'Fira Code',
-          weights: '400 · 500',
-          usage: 'Sensor data, distances, timestamps, tags',
-          sample: '18 km/h - Wind NW - 38°C - 1.2 km away',
-          sampleStyle: {
-            fontFamily: 'var(--font-mono)',
-            fontSize: '15px',
-            fontWeight: 400,
-            color: 'var(--color-flare)',
-            lineHeight: 1.7,
-          },
-        },
-      ].map(({ token, family, weights, usage, sample, sampleStyle }) => (
-        <div key={token} style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
-            <p style={sampleStyle}>{sample}</p>
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-            gap: '16px',
-            padding: '16px 20px',
-            backgroundColor: 'var(--color-carbon-input)',
-            borderTop: '1px solid var(--color-carbon-stroke)',
-          }}>
-            {[
-              { label: 'Family',  value: family  },
-              { label: 'Token',   value: token   },
-              { label: 'Weights', value: weights },
-              { label: 'Usage',   value: usage   },
-            ].map(({ label, value }) => (
-              <div key={label}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '6px' }}>{label}</p>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '18px', color: '#EDEAE5', fontWeight: 400 }}>{value}</p>
-              </div>
-            ))}
-          </div>
+    <div className="border border-[var(--color-carbon-stroke)] rounded-md overflow-hidden">
+      <div className="p-7 bg-[var(--color-cardon-card)]">
+        {font_samples[token]}
+      </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 p-4 px-5 bg-[var(--color-carbon-input)] border-t border-[var(--color-carbon-stroke)]">
+        <div>
+          <p className="font-mono text-[18px] text-[var(--color-text-muted)] font-semibold tracking-wide uppercase mb-1.5">Family</p>
+          <p className="font-body text-[16px] text-[var(--color-text-primary)]">{family}</p>
         </div>
-      ))}
-
-      {/* Type scale */}
-      <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderBottom: '1px solid var(--color-carbon-stroke)' }}>
-          <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0', letterSpacing: '0.15em', fontWeight: 600, textTransform: 'uppercase' }}>
-            Type Scale
-          </p>
+        <div>
+          <p className="font-mono text-[18px] text-[var(--color-text-muted)] font-semibold tracking-wide uppercase mb-1.5">Weights</p>
+          <p className="font-body text-[16px] text-[var(--color-text-primary)]">{weights}</p>
         </div>
-        {[
-          { label: 'Page title',   size: '52px', weight: '800', font: 'var(--font-display)', sample: 'REPORT A FIRE',               upper: true  },
-          { label: 'Section head', size: '32px', weight: '700', font: 'var(--font-display)', sample: 'OPERATIONAL PARAMETERS',      upper: true  },
-          { label: 'Card title',   size: '22px', weight: '600', font: 'var(--font-body)',    sample: 'Report details',              upper: false },
-          { label: 'Body',         size: '18px', weight: '400', font: 'var(--font-body)',    sample: 'Click the map to drop a pin', upper: false },
-          { label: 'Label',        size: '14px', weight: '500', font: 'var(--font-body)',    sample: 'Location  Description',      upper: false },
-          { label: 'Data',         size: '14px', weight: '400', font: 'var(--font-mono)',    sample: '1.2 km  8 min ago',          upper: false },
-        ].map(({ label, size, weight, font, sample, upper }, i, arr) => (
-          <div
-            key={label}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '110px 80px 1fr',
-              alignItems: 'center',
-              gap: '16px',
-              padding: '14px 16px',
-              backgroundColor: i % 2 === 0 ? 'var(--color-carbon-card)' : 'var(--color-carbon-input)',
-              borderBottom: i < arr.length - 1 ? '1px solid var(--color-carbon-stroke)' : 'none',
-            }}
-          >
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>{label}</p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0, fontWeight: 600,' }}>{size} / {weight}</p>
-            <p style={{
-              fontFamily: font,
-              fontSize: size,
-              fontWeight: weight,
-              textTransform: upper ? 'uppercase' : 'none',
-              lineHeight: 1.2,
-              color: '#EDEAE5',
-            }}>
-              {sample}
+        <div>
+          <p className="font-mono text-[18px] text-[var(--color-text-muted)] font-semibold tracking-wide uppercase mb-1.5">Usage</p>
+          <p className="font-body text-[16px] text-[var(--color-text-primary)]">{usage}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Scale({ label, size }: ScaleProps ) {
+  return (
+    <div className="grid grid-cols-[140px_100px_1fr] items-start gap-4 px-4 py-3.5 border-b border-[var(--color-carbon-stroke)] bg-[var(--color-carbon-card)]">
+      <p className="font-mono text-[15px] text-[var(--color-text-muted)] font-semibold tracking-wide uppercase">{label}</p>
+      <p className="font-mono text-[15px] text-[var(--color-text-muted)] font-semibold tracking-wide uppercase">{size}</p>
+      {scale_samples[label]}
+    </div>
+  );
+}
+
+export default function Typography() {
+  return (
+    <div className="flex flex-col gap-8">
+
+      <Card
+        family="Barlow Condensed"
+        token="--font-display"
+        weights="700 : 800"
+        usage="Page titles, section headings, buttons"
+      />
+      <Card
+        family="Exo 2"
+        token="--font-body"
+        weights="400 : 500 : 600"
+        usage="Body text, labels, form fields, descriptions"
+      />
+      <Card
+        family="Fira Code"
+        token="--font-mono"
+        weights="400 : 500"
+        usage="Sensor data, distances, timestamps, tags"
+      />
+      <div className="overflow-x-auto">
+        <div className="border border-[var(--color-carbon-stroke)] rounded-md overflow-hidden">
+          <div className="px-4 py-3 bg-[var(--color-carbon-input)] border-b border-[var(--color-carbon-stroke)]">
+            <p className="font-mono text-[18px] text-[var(--color-text-muted)] tracking-[0.15em] font-semibold uppercase">
+              Type Scale
             </p>
           </div>
-        ))}
+          <Scale label="Page title" size="52px / 800" />
+          <Scale label="Section head" size="32px / 700" /> 
+          <Scale label="Card title" size="22px / 600" />  
+          <Scale label="Body" size="18px / 400" />  
+          <Scale label="Label" size="14px / 500" />  
+          <Scale label="Data" size="14px / 400" />              
+        </div>
       </div>
 
     </div>
