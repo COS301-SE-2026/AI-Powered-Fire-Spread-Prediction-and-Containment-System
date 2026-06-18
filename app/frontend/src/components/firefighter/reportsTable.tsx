@@ -35,13 +35,13 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                     ) : (
                         filtered.map((req) => {
                             return(
-                                <tr key={req.Ref} className="hover:bg-[var(--color-surface-hover)] bg-carbon-card"> {/* row 1 */}
-                                    <td className="">{req.Ref}</td>
-                                    <td>{req.Location}</td>
-                                    <td>{req.Status}</td>
-                                    <td>{req.Size} ha</td>
-                                    <td>{req.Reported}</td>
-                                    <td>{req.Reporter}</td>
+                                <tr key={req.Ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Ref}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Location}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Status}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Size} ha</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Reported}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Reporter}</td>
                                 </tr>
                             )
                         })
