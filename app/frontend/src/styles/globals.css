@@ -21,7 +21,7 @@
   --color-accent-content: #1A0500;
 
   --color-neutral: #ffffff;
-  --color-neutral-content: #ffffff;
+  --color-neutral-content: #151A26;
 
   --color-base-100: #080B12;
   --color-base-200: #0C0F1A;
@@ -53,9 +53,6 @@
   --color-flare: #FF6B2B;
   --color-torch: #FFAA00;
   --color-flash: #FFE566;
-
-/*  --color-neutral: #ffffff;
-  --color-neutral-content: #151A26; */
 
   --color-carbon-bg: #080B12;
   --color-carbon-side: #0C0F1A;
