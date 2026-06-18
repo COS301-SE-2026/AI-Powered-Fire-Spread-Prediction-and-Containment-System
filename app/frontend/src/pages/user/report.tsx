@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { SideBarLayout } from '../components/demoSidebar';
-import StepIndicator from "../components/reportfire/Stepindicator";
-import MapKey from "../components/reportfire/Mapkey";
-import ReportDetailsForm, { type ReportFormData } from "../components/reportfire/Reportdetailsform";
-import ReportStatus from "../components/reportfire/Reportstatus";
+import { SideBarLayout } from '../../components/demoSidebar';
+import StepIndicator from "../../components/reportfire/Stepindicator";
+import MapKey from "../../components/reportfire/Mapkey";
+import ReportDetailsForm, { type ReportFormData } from "../../components/reportfire/Reportdetailsform";
+import ReportStatus from "../../components/reportfire/Reportstatus";
+import { API_BASE_URL } from "../../config/api";
 
 const FireMap = dynamic(
-  () => import("../components/reportfire/Firemap").then((mod) => mod.FireMap),
+  () => import("../../components/reportfire/Firemap").then((mod) => mod.FireMap),
   {
     ssr: false,
     loading: () => (
@@ -43,7 +44,7 @@ export default function ReportPage() {
   const [submitError, setSubmitError]   = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/reports')
+    fetch(`/api/users/reported-fires`)
       .then(res => res.json())
       .then(data => setFireReports(data))
       .catch(err => console.error('Failed to fetch reports', err));
@@ -69,16 +70,16 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
     try {
-      const res = await fetch('/api/reports', {
+      const res = await fetch(`/api/users/reported-fires`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          location: data.location,
+          location_text: data.location,
           description: data.description,
+          image_url: "pending-url",
           lat: externalPin?.lat ?? 0,
           lng: externalPin?.lng ?? 0,
-          boundary_radius_km: boundarySize,
-          user_id: null,
+          boundary_radius: boundarySize,
         }),
       });
       const report = await res.json();
