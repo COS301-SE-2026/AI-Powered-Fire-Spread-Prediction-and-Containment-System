@@ -38,9 +38,9 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                             const badge: BadgeStyle = statusBadge[req.status] ?? statusBadge.none;
                             return (
                                 <tr key={req.request_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
-                                    <td className="px-4 py-3 text-sm text-neutral font-medium">{req.user_full_name}</td>
-                                    <td className="px-4 py-3 text-sm text-neutral/70">{req.email ?? '-'}</td>
-                                    <td className="px-4 py-3 text-sm text-neutral/70 capatilize">{req.role}</td>
+                                    <td className="px-4 py-3 text-sm text-neutral font-medium">{req.user.name} {req.user.surname}</td>
+                                    <td className="px-4 py-3 text-sm text-neutral/70">{req.user.email ?? '-'}</td>
+                                    <td className="px-4 py-3 text-sm text-neutral/70 capatilize">{req.requested_role}</td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">
                                         {req.created_at ? new Date(req.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                                     </td>
