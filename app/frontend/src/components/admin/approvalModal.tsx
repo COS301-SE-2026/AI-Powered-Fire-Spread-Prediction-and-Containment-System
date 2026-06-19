@@ -1,5 +1,6 @@
-import { RoleRequest } from "../../types/admin";
+import { RoleRequest, UserSummary } from "../../types/admin";
 import { statusBadge } from './statusBadge';
+import { API_BASE_URL } from "../../config/api";
 
 interface RoleApprovalModalProps {
     request: RoleRequest;
@@ -18,7 +19,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
-                    <h3 className="font-display font-bold text-xl tracking-wider text-neutral uppercase">Role request - {request.user_full_name}</h3>
+                    <h3 className="font-display font-bold text-xl tracking-wider text-neutral uppercase">Role request - {request.user.name } {request.user.surname}</h3>
                     <button onClick={onClose} className="text-neutral/40 hover:text-neutral transition-colors">✕</button>
                 </div>
 
@@ -26,7 +27,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Full Name</p>
-                        <p className="text-sm font-semibold text-neutral">{request.user_full_name}</p>
+                        <p className="text-sm font-semibold text-neutral">{request.user.name } {request.user.surname}</p>
                     </div>
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Account Created</p>
@@ -34,7 +35,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                     </div>
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Email</p>
-                        <p className="text-sm font-semibold text-neutral">{request.email ?? '—'}</p>
+                        <p className="text-sm font-semibold text-neutral">{request.user.email ?? '—'}</p>
                     </div>
                     <div>
                     <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Status</p>
@@ -55,12 +56,12 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
                     <div>
                         <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Current Role</p>
-                        <p className="text-sm font-semibold text-neutral">{request.role}</p>
+                        <p className="text-sm font-semibold text-neutral">{request.current_role}</p>
                     </div>
                         <div>
                             <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Requested Role</p>
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
-                                {request.role}
+                                {request.requested_role}
                             </span>
                         </div>
                 </div>
