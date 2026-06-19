@@ -14,7 +14,9 @@ os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
 from db import Base, get_db
-from models import User, RoleRequestDB
+from models.users import User
+from models.role_request import RoleRequest
+from models.reported_fires import FireReports
 from main import app
 
 engine = create_engine(
@@ -27,9 +29,9 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="session", autouse=True)
 def create_tables():
-    Base.metadata.create_all(bind=engine, tables=[User.__table__, RoleRequestDB.__table__])
+    Base.metadata.create_all(bind=engine, tables=[User.__table__, RoleRequest.__table__, FireReports.__table__])
     yield
-    Base.metadata.drop_all(bind=engine, tables=[User.__table__, RoleRequestDB.__table__])
+    Base.metadata.drop_all(bind=engine, tables=[User.__table__, RoleRequest.__table__, FireReports.__table__])
 
 
 @pytest.fixture
