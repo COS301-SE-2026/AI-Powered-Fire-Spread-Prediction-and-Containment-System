@@ -1,0 +1,28 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional
+
+class RegisterRequest(BaseModel):
+    email:EmailStr
+    password:str
+    name:str
+    surname:str
+    id_number:str
+    license_number:Optional[str] = None
+
+class LoginRequest(BaseModel):
+    email:str
+    password:str
+
+class TokenResp(BaseModel):
+    access_token:str
+    token_type:str
+
+class Two_FA_Create_Response(BaseModel):
+    otpauth_url:str
+
+class Two_FA_Verify_Request(BaseModel):
+    username:str
+    code:str
+
+class MsgResponse(BaseModel):
+    message:str
