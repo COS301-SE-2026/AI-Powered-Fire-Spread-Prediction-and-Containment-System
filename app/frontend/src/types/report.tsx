@@ -5,7 +5,7 @@ export type FireReport = {
     location: string;
     status: ReportStatus;
     size: string;
-    reported_at: string;
+    reported_at: Date;
     reporter: string;
     description?: string;
     lat?: number;
