@@ -205,11 +205,26 @@ const MOCK_NEW_REPORT_RESPONSE = {
   reference_number: 'FR-2026-999',
   message: 'Report submitted successfully',
 };
+const MOCK_GEOCODE_FORWARD = {
+  features: [
+    {
+      place_name: 'Pretoria, Gauteng, South Africa',
+      center: [28.0473, -25.7461],
+    },
+  ],
+};
+const MOCK_GEOCODE_REVERSE = {
+  features: [
+    {
+      place_name: '3 Akademia, Pretoria, Gauteng 0083, South Africa',
+    },
+  ],
+};
 
-test.describe('Report a Fire; Frontend (mocked API)',()=>{
+test.describe('Report a Fire, Frontend (mocked API)',()=>{
     test.beforeEach(async({page})=>{
         //mock GET /api/reports
-        await page.route('**/api/reports', async (route)=>{
+        await page.route('**/api/users/reported-fires', async (route)=>{
             if(route.request().method()=='GET'){
                 await route.fulfill({
                     status: 200,
@@ -221,20 +236,42 @@ test.describe('Report a Fire; Frontend (mocked API)',()=>{
             }
         });
         //mock POST /api/reports
-        await page.route('**/api/reports',async (route)=>{
+        await page.route('**/api/users/reported-fires',async (route)=>{
             if(route.request().method()=='POST'){
                 const payload=JSON.parse(route.request().postData()||'{}');
             
             await route.fulfill({
-                status: 200,
+                status: 200,  
                 contentType: 'application/json', 
-                body: JSON.stringify(MOCK_REPORTS),
+                body: JSON.stringify(MOCK_NEW_REPORT_RESPONSE),
             });
         }else {
             await route.continue();
         }
         });
-        await page.goto('/reportfire')
+        await page.route('https://api.mapbox.com/geocoding/v5/mapbox.places/*', async (route) => {
+            const url = new URL(route.request().url());
+            if (url.pathname.includes('mapbox.places') && !url.pathname.includes('reverse')) {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(MOCK_GEOCODE_FORWARD),
+              });
+            } else {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify(MOCK_GEOCODE_REVERSE),
+              });
+            }
+          });
+        await page.goto('/user/report')
     });
-    
+    test('Map loads and displays',async ({ page }) => {
+
+    await page.waitForSelector('.mapboxgl-canvas');
+    await expect(page.locator('text=Failed to load')).toBeHidden();
+    await expect(page.locator('input[placeholder*="Drop a pin or type your address"]')).toBeVisible();
+  });
+
 })

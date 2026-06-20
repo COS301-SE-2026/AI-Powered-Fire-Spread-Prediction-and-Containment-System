@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
-import { apiCall } from '../lib/api';
 
 function validateEmail(email: string){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -41,7 +40,7 @@ export default function Login() {
     }
     setIsLoading(true);
     try {
-      const data = await fetch('/api/login', {
+      const data = await fetch(`/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
