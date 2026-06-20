@@ -273,5 +273,43 @@ test.describe('Report a Fire, Frontend (mocked API)',()=>{
     await expect(page.locator('text=Failed to load')).toBeHidden();
     await expect(page.locator('input[placeholder*="Drop a pin or type your address"]')).toBeVisible();
   });
+    test('updates location field on search and change  in map', async ({page})=>{
+      const searchInput=page.locator('input[placeholder*="Drop a pin or type your address"]');
+      await searchInput.fill('Pretoria');
+      await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
+      await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+      await expect(searchInput).toHaveValue('Pretoria, Gauteng, South Africa');
+      await page.waitForTimeout(1000);
+      const pinMarkerSelector = '.mapboxgl-marker.mapboxgl-marker-anchor-bottom[aria-label="Map marker"]';
+      await page.waitForSelector(pinMarkerSelector, { state: 'visible', timeout: 10000 });
 
+    });
+    
+    test('submits a report and shows ref#',async({page}) =>{
+      //location input
+      const searchInput=page.locator('input[placeholder*="Drop a pin or type your address"]');
+      await searchInput.fill('Pretoria');
+      await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
+      await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+      //description input
+      const descriptionField = page.locator('textarea');
+      await descriptionField.fill('Test fire from E2E');
+
+      const fileInput = page.locator('input[type="file"]');
+      await fileInput.setInputFiles({
+      name: 'test.jpg',
+      mimeType: 'image/jpeg',
+      buffer: Buffer.from('fake'),
+      }); 
+      const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
+      await submitButton.click();
+      await expect(
+        page.locator(`text=${MOCK_NEW_REPORT_RESPONSE.reference_number}`)
+      ).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('text=Report submitted')).toBeVisible();
+
+      await page.waitForTimeout(1500);
+      await page.screenshot({ path: 'after-search.png' });
+      await expect(page.locator('input[placeholder*="Drop a pin or type your address"]')).toBeVisible();
+    });
 })
