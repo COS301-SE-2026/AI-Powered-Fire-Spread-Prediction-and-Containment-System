@@ -13,7 +13,7 @@ export const DashboardMetrics:  React.FC = () => {
                 </div>
             </div>
 
-            <div className="bg-slate-950 border border slate-800 p-5 rounded-xl">
+            <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
                     Pending Approvals
                 </span>
