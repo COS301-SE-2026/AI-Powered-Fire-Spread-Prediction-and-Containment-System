@@ -5,7 +5,7 @@ interface IconProps {
 }
 
 //used for prediction completed
-export const MicrochipIcon: React.FC<IconProps> = ({className = "w-4 h-4 text-slate-700"}) => (
+export const MicrochipIcon: React.FC<IconProps> = ({className = "w-4 h-4"}) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox=" 0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
         //https://fontawesome.com/icons/classic/solid/microchip
@@ -16,7 +16,7 @@ export const MicrochipIcon: React.FC<IconProps> = ({className = "w-4 h-4 text-sl
 );
 
 //used for model health
-export const HeartWithPulseIcon: React.FC<IconProps> = ({className = "w-4 h-4 text-slate-700"}) => (
+export const HeartWithPulseIcon: React.FC<IconProps> = ({className = "w-4 h-4"}) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox=" 0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
         //https://fontawesome.com/icons/classic/solid/heart
@@ -26,7 +26,7 @@ export const HeartWithPulseIcon: React.FC<IconProps> = ({className = "w-4 h-4 te
 );
 
 //used for avg. prediction confidence
-export const ChartLineIcon: React.FC<IconProps> = ({className = "w-4 h-4 text-slate-700"}) => (
+export const ChartLineIcon: React.FC<IconProps> = ({className = "w-4 h-4"}) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox=" 0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
         //https://fontawesome.com/icons/classic/solid/chart-line
@@ -36,7 +36,7 @@ export const ChartLineIcon: React.FC<IconProps> = ({className = "w-4 h-4 text-sl
 );
 
 //used for data source sync
-export const DownloadIcon: React.FC<IconProps> = ({className = "w-4 h-4 text-slate-700"}) => (
+export const DownloadIcon: React.FC<IconProps> = ({className = "w-4 h-4"}) => (
     <svg className={className} fill="none" stroke="currentColor" viewBox=" 0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
         //https://fontawesome.com/icons/classic/solid/download
