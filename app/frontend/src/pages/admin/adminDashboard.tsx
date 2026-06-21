@@ -1,14 +1,11 @@
 //need to add sidebar still
-import React, { useState, useEffect } from 'react';
 import {DashboardMetrics} from '../../components/admin/adminDashboardMetrics';
 import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics';
-import { LineChartIcon } from 'lucide-react';
-import { MicrochipIcon } from 'lucide-react';
-import { HeartIcon } from 'lucide-react';
-import { DownloadCloudIcon } from 'lucide-react';
+import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
 import { SideBarLayout } from '../../components/demoSidebar';
 
 interface ActivityItem {
+    id: string;
     message: string;
     timeAgo: string;
 }
@@ -25,13 +22,13 @@ interface WeeklyData {
 
 export const AdminDashBoardDetailed: React.FC = () => {
     const activityLog: ActivityItem[] = [
-        {message: 'New fire reported - Pretoria West', timeAgo: '2 min ago'},
-        {message: 'New fire reported - Pretoria West', timeAgo: '34 min ago'},
-        {message: 'Fire contained - Centurion', timeAgo: '52 min ago'},
-        {message: 'Role request submitted - T.Mokiena (Firefighter)', timeAgo: '1 hr ago'},
-        {message: 'Role approved - A.Dlamini (Analyst)', timeAgo: '2 hr ago'},
-        {message: 'AI spread simulation completed - Mamelodi', timeAgo: '2 hr ago'},
-        {message: 'Containment line logged - Hatfield', timeAgo: '3 hr ago'},
+        {id: 'log-1', message: 'New fire reported - Pretoria West', timeAgo: '2 min ago'},
+        {id: 'log-2', message: 'New fire reported - Pretoria West', timeAgo: '34 min ago'},
+        {id: 'log-3', message: 'Fire contained - Centurion', timeAgo: '52 min ago'},
+        {id: 'log-4', message: 'Role request submitted - T.Mokiena (Firefighter)', timeAgo: '1 hr ago'},
+        {id: 'log-5', message: 'Role approved - A.Dlamini (Analyst)', timeAgo: '2 hr ago'},
+        {id: 'log-6', message: 'AI spread simulation completed - Mamelodi', timeAgo: '2 hr ago'},
+        {id: 'log-7', message: 'Containment line logged - Hatfield', timeAgo: '3 hr ago'},
     ];
 
     const weeklyIncidents: WeeklyData[] = [
@@ -94,8 +91,8 @@ export const AdminDashBoardDetailed: React.FC = () => {
                                 Recent Activity
                             </h2>
                             <div className="divide-y divide-base-300 border-b border-base-300">
-                                {activityLog.map((log, index) => (
-                                    <div key={index} className="py-3 px-2 flex justify-between items-start space-x-4 my-0.5 hover:bg-base-300 transition-colors">
+                                {activityLog.map((log) => (
+                                    <div key={log.id} className="py-3 px-2 flex justify-between items-start space-x-4 my-0.5 hover:bg-base-300 transition-colors">
                                         <span className="text-xs font-medium text-base-content leading-snug">
                                             {log.message}
                                         </span>
@@ -115,10 +112,10 @@ export const AdminDashBoardDetailed: React.FC = () => {
                             </h2>
 
                             <div className="flex justify-between items-end h-48 pt-4 px-4 bg-base-300/30 rounded border border-base-300">
-                            {weeklyIncidents.map((data, index) => {
+                            {weeklyIncidents.map((data) => {
                                 const percentageHeight = (data.count /maxCount) * 100;
                                 return (
-                                    <div key={index} className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end">
+                                    <div key={data.day} className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end">
                                         <div className="text-[10px] font-mono text-primary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             {data.count}
                                          </div>   
