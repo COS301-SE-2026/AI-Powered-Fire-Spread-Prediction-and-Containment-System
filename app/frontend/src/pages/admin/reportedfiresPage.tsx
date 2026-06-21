@@ -107,7 +107,7 @@ export default function ReportedFiresPage() {
                 </div>
 
                 {/* table */}
-                <FireReportsTable report={filteredReports} filter={filter} onView={setSelectedReport} />
+                <FireReportsTable report={filteredReports} filter={filter} />
             </div>
         </SideBarLayout>
     );
