@@ -1,4 +1,9 @@
+//need to add sidebar still
 import React, { useState, useEffect } from 'react';
+import {DashboardMetrics} from '../../components/admin/adminDashboardMetrics';
+import { MicrochipIcon, HeartWithPulseIcon, ChartLineIcon, DownloadIcon } from '../../components/admin/dashboardIcons';
+import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics';
+import { LineChartIcon } from 'lucide-react';
 
 interface ActivityItem {
     message: string;
@@ -38,83 +43,60 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
     const maxCount = Math.max(...weeklyIncidents.map(d => d.count));
 
-    const metrics: MiniMetric[] = [
+    const bottomMetrics: MiniMetric[] = [
         {
             title: 'Predictions completed',
             value: '142',
             subtext: 'Last 24 hours',
-            icon: (
-                <
-            )
-        }
-    ]
+            icon: <MicrochipIcon/>
+        },
+        {
+            title: 'Model health',
+            value: '142',
+            subtext: 'Operational',
+            icon: <HeartWithPulseIcon/>
+        },
+        {
+            title: 'Avg. prediction confidence',
+            value: '142',
+            subtext: 'High confidence',
+            statusText: 'High confidence',
+            icon: <LineChartIcon/>
+        },
+        {
+            title: 'Data source sync',
+            value: '142',
+            subtext: 'Updated 3 min ago',
+            icon: <DownloadIcon/>
+        },
+    ];
 
     return (
-        <div className="min-h-screen bg-slate-900 text-slate-100 p-6 font-sans">
+        <div className="min-h-screen bg-base-100 text-base-content p-6 font-sans">
             <div className="max-w-7xl mx-auto space-y-6">
 
-                <div className="flex justify-between items-center mb-2">
-                    <h1 className="text-xl font-bold tracking-tight text-white">
+                <div className="border-b border-base-300 pb-3 mb-6">
+                    <h1 className="text-4xl font-bold tracking-tight text-base-content font-display">
                         FireAway System Dashboard
                     </h1>
-                    <span className="text-xs text-slate-400 font-mono">
-
-                    </span>
                 </div>
 
-                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-                    <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider blocl mb-1">
-                            Active Fires
-                        </span>
-                        <div className="text-3xl font-extrabold text-red-500">
-                            12
-                        </div>
-                    </div>
-
-                    <div className="bg-slate-950 border border slate-800 p-5 rounded-xl">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                            Pending Approvals
-                        </span>
-                        <div className="text-3xl font-extrabold text-amber-500">
-                            5
-                        </div>
-                    </div>
-
-                    <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-                        <span className="text-xs font-semibold text-slate-500 ppercase tracking-wider block mb-1">
-                            Total Users
-                        </span>
-                        <div className="text-3xl font-extrabold text-white">
-                            284
-                        </div>
-                    </div>
-
-                    <div className="bg-slate-950 border border border-slate-800 p-5 rounded-xl">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
-                            System Status
-                        </span>
-                        <div className="text-3xl font-extrabold text-emarald-500 uppercase tracking-wide">
-                            Okay
-                        </div>
-                    </div>
-                </section>
+                <DashboardMetrics/>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                    <section className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                    <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between">
                         <div>
-                            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-4 font-display">
                                 Revent Activity
                             </h2>
-                            <div className="divide-y divide-slate-800/60">
+                            <div className="divide-y divide-base-300 border-b border-base-300">
                                 {activityLog.map((log, index) => (
-                                    <div key={index} className="py-3 first:pt-0 last:pb-0 flex justify-between items-start space-x-4">
-                                        <span className="text-sm font-medium text-slate-200 leading-snug">
+                                    <div key={index} className="py-3 px-2 flex justify-between items-start space-x-4 my-0.5 hover:bg-base-300 transition-colors">
+                                        <span className="text-xs font-medium text-base-content leading-snug">
                                             {log.message}
                                         </span>
-                                        <span className="text-xs font-mono text-slate-500 whitespace-nowrap pt-0.5">
+                                        <span className="text-[11px] font-mono text-base-content/60 whitespace-nowrap pt-0.5">
                                             {log.timeAgo}
                                         </span>
                                     </div>
@@ -123,24 +105,24 @@ export const AdminDashBoardDetailed: React.FC = () => {
                         </div>
                     </section>
 
-                    <section className="bg-slate-950 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                    <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px]">
                         <div>
-                            <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">
+                            <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
                                 Incidents this week
                             </h2>
 
-                            <div className="flex justify-between items-end h-56 pt-4 px-2 bg-slate-900/40 rounded-lg border border-slate-900/80">
+                            <div className="flex justify-between items-end h-48 pt-4 px-4 bg-base-300/30 rounded border border-base-300">
                             {weeklyIncidents.map((data, index) => {
                                 const percentageHeight = (data.count /maxCount) * 100;
                                 return (
-                                    <div key={index} className="flex flex-col items-center flex-1 group mx-1">
-                                        <div className="text-[10px] font-mon text-slate-400 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div key={index} className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end">
+                                        <div className="text-[10px] font-mono text-primary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             {data.count}
                                          </div>   
-                                         <div className="w-full bg-red-600/80 rounded-t-sm group-hover:bg-red-500 transition-colors"
+                                         <div className="w-full bg-primary/80 rounded-t-sm border-t border-x border-primary group-hover:bg-primary transition-colors"
                                          style={{height: `${percentageHeight}%`, minHeight: '4px'}}>
                                     </div>
-                                    <span className="text-xs font-mono text-slate-500 mt-2 block">
+                                    <span className="text-[10px] font-medium text-base-content/60 mt-2 block font-mono">
                                         {data.day}
                                     </span>
                                     </div>
@@ -149,12 +131,15 @@ export const AdminDashBoardDetailed: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-slate-900 text-[11px] text-slate-500 font-mono flex justify-between">
+                        <div className="mt-4 pt-4 border-t border-base-300 text-[11px] text-base-content/50 font-mono flex justify-between">
                             <span>Y-Axis Max: {maxCount} Alerts</span>
                             <span> Spatial Log Distribution Context</span>
                         </div>
                     </section>
+
                 </div>
+
+                <SystemMetrics metrics={bottomMetrics} />
 
             </div>
         </div>
