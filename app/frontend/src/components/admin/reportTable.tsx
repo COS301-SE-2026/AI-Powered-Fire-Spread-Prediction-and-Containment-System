@@ -4,8 +4,8 @@ import { statusBadge, BadgeStyle } from "./statusBadge";
 import { useRouter } from 'next/router';
 
 interface FireReportsTableProps {
-    report: FireReport[];
-    filter: 'All' | ReportStatus;
+    readonly report: FireReport[];
+    readonly filter: 'All' | ReportStatus;
 }
 
 export function FireReportsTable({ report, filter }: FireReportsTableProps) {

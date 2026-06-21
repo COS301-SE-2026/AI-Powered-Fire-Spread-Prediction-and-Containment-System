@@ -4,8 +4,8 @@ import { ReportStatus } from "../../types/report";
 type FilterOption = 'All' | ReportStatus;
 
 interface RoleFilterTabsProps {
-    filter: FilterOption;
-    onChange: (filter: FilterOption) => void;
+    readonly filter: FilterOption;
+    readonly onChange: (filter: FilterOption) => void;
 }
 
 const filters: FilterOption[] = ['All', 'pending', 'verified', 'rejected'];

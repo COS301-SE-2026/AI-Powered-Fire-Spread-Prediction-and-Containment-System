@@ -55,7 +55,7 @@ const mockFireReports: FireReport[] = [
         reported_at: new Date('2026-06-18T08:14:10'),
         reporter: 'Ruan Venter',
         lat: -26.0865,
-        lng: 27.7700,
+        lng: 27.77,
     },
     {
         report_id: 'FW-2026-0076',
@@ -74,13 +74,12 @@ const mockFireReports: FireReport[] = [
         size: '1.5 km',
         reported_at: new Date('2026-06-18T08:09:20'),
         reporter: 'Anonymous',
-        lat: -26.1050,
+        lat: -26.105,
         lng: 28.0922,
     },
 ];
 
 export default function ReportedFiresPage() {
-    const [selectedReport, setSelectedReport] = useState<FireReport | null>(null);
     const [filter, setFilter] = useState<'All' | ReportStatus>('All');
     const [search, setSearch] = useState('');
     
