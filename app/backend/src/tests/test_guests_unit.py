@@ -3,7 +3,9 @@ import pytest
 from pydantic import ValidationError #for explicit type checking, considering python doesn't do it for some reason
 from datetime import datetime, timezone
 
-from models import FireReport, FireReportCreate, FireReportModel, ReportStatus
+from models.reported_fires import FireReports
+from schemas.fire_report import FireReportCreate
+from enums.report_status import ReportStatus 
 
 #testing so that the correct data is sent to mapbox to display the fires
 #the guest page map needs to get fire report data that is correctly structured.
@@ -30,7 +32,7 @@ class TestFireReportSchemaValidation:
     def test_valid_fire_report_schema(self):
         """tests if the fire report follows the valid data schema"""
 
-        report = FireReport(**self._valid_payload())
+        report = FireReports(**self._valid_payload())
 
         assert report.reference_number == "FR-2026-001"
         assert report.user_id == "usr_01"
@@ -43,17 +45,17 @@ class TestFireReportSchemaValidation:
     def test_ref_nr_is_string(self):
         """test to check that the reference number is a string"""
         with pytest.raises((ValidationError, TypeError)):
-            FireReport(**self._valid_payload(reference_number=20260001))
+            FireReports(**self._valid_payload(reference_number=20260001))
 
     def test_status_valid_enum(self):
         """test to check that the test status is a valid enum from the enum possibilities"""
         with pytest.raises(ValidationError):
-            FireReport(**self._valid_payload(status="wrong_string_enum"))
+            FireReports(**self._valid_payload(status="wrong_string_enum"))
 
     def test_all_statuses_accepted(self):
         """test to check that all the valid report statuses are accepted"""
         for status in ReportStatus:
-            report = FireReport(**self._valid_payload(status=status))
+            report = FireReports(**self._valid_payload(status=status))
             assert report.status == status
 
     def test_missing_required_field_causes_validation_error(self):
@@ -61,4 +63,4 @@ class TestFireReportSchemaValidation:
         payload = self._valid_payload()
         del payload["lat"]
         with pytest.raises(ValidationError):
-            FireReport(**payload)
+            FireReports(**payload)
