@@ -2,9 +2,9 @@ import React from "react";
 import { Report, ReportStatus } from "../../types/firefighter";
 
 interface ReportsTableProp{
-    requests: Report[];
-    filter: 'all' | ReportStatus;
-    onView: (request: Report) => void;
+    readonly requests: Report[];
+    readonly filter: 'all' | ReportStatus;
+    readonly onView: (request: Report) => void;
 }
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
