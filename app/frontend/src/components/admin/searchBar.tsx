@@ -1,9 +1,9 @@
 import React from "react";
 
 interface SearchBarProps {
-    value: string;
-    onChange: (value: string) => void;
-    placeholder?: string;
+    readonly value: string;
+    readonly onChange: (value: string) => void;
+    readonly placeholder?: string;
 }
 
 export function SearchBar({value, onChange, placeholder ="Search..."}: SearchBarProps){
