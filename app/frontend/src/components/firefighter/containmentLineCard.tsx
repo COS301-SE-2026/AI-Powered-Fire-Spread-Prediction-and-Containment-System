@@ -20,14 +20,15 @@ export function LoggedContainmentLine ({card_data = mock_data}: cardListProp) {
     return(
         <div className="flex flex-col gap-1 p-1">
             {card_data.map((items) =>(
-                <div key={items.line} className="flex items-center gap-1 p-1 border border-carbon-stroke rounded-xl">
-                    <div>
+                <div key={items.line} className="flex items-center justify-between gap-1 p-1 border border-carbon-stroke rounded-xl">
+                    <div className="flex items-center gap-2">
                         <Pencil size={16}/>
+                        <div className="flex flex-col items-start gap-0.5">
+                            <span className="text-xs text-text-primary">{items.line} - {items.direction}</span>
+                            <span className="text-xs text-text-muted">{items.info}</span>
+                        </div>
                     </div>
-                    <div className="flex flex-col items-start gap-0.5">
-                        <span className="text-xs text-text-primary">{items.line} - {items.direction}</span>
-                        <span className="text-xs text-text-muted">{items.info}</span>
-                    </div>
+
                     <div>
                         <CircleCheck size={16}/>
                     </div>
