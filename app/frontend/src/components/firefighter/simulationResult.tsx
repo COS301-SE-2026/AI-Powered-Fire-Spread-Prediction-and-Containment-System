@@ -2,7 +2,7 @@ import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { LoggedContainmentLine } from './containmentLineCard';
 
 
-export function Simulation_Results () {
+export function SimulationResults () {
     const mockSpreadData = [
         {label: "1h", hectares: 6.2},
         {label: "3h", hectares: 11.4},

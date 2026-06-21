@@ -6,8 +6,8 @@ interface LoggedLine {
     info: string;
 }
 
-interface cardListProp {
-    card_data?: LoggedLine[];
+interface CardListProp {
+    readonly card_data?: LoggedLine[];
 }
 
 const mock_data: LoggedLine[] = [
@@ -16,7 +16,7 @@ const mock_data: LoggedLine[] = [
     { line: "Line C", direction: "South Perimeter", info: "Logged 1 hr ago · 210m" },
 ];
 
-export function LoggedContainmentLine ({card_data = mock_data}: cardListProp) {
+export function LoggedContainmentLine ({card_data = mock_data}: CardListProp) {
     return(
         <div className="flex flex-col gap-1 p-1">
             {card_data.map((items) =>(
