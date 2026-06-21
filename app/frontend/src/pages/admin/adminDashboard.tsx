@@ -10,6 +10,11 @@ interface WeeklyData {
     count: number;
 }
 
+interface WeeklyData {
+    day: string;
+    count: number;
+}
+
 export const AdminDashBoardDetailed: React.FC = () => {
     const activityLog: ActivityItem[] = [
         {message: 'New fire reported - Pretoria West', timeAgo: '2 min ago'},
@@ -32,6 +37,17 @@ export const AdminDashBoardDetailed: React.FC = () => {
     ];
 
     const maxCount = Math.max(...weeklyIncidents.map(d => d.count));
+
+    const metrics: MiniMetric[] = [
+        {
+            title: 'Predictions completed',
+            value: '142',
+            subtext: 'Last 24 hours',
+            icon: (
+                <
+            )
+        }
+    ]
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 p-6 font-sans">
