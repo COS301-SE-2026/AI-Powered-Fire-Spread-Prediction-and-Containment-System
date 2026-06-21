@@ -1,7 +1,7 @@
 export function TableSearchBar (){
     return(
         <label className="input border border-torch/30 rounded-xl focus-within:outline-ignite focus-within:border-none">
-            <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
                 <g
                     strokeLinejoin="round"
                     strokeLinecap="round"
@@ -13,7 +13,7 @@ export function TableSearchBar (){
                     <path d="m21 21-4.3-4.3"></path>
                 </g>
             </svg>
-            <input type="search" required placeholder="Search" />
+            <input type="search" required placeholder="Search reported fires" aria-label="Search reported fires" />
         </label>
     );
 }

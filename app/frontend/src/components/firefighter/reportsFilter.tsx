@@ -4,8 +4,8 @@ import { ReportStatus } from "../../types/firefighter";
 type tableStatusFilter = 'all' | ReportStatus;
 
 interface StatusTableFilterProps {
-    filter: tableStatusFilter;
-    onChange: (filter: tableStatusFilter) => void;
+    readonly filter: tableStatusFilter;
+    readonly onChange: (filter: tableStatusFilter) => void;
 }
 
 const filters: tableStatusFilter[] = ['all', 'pending', 'verified', 'rejected'];
