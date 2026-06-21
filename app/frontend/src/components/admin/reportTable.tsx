@@ -1,17 +1,20 @@
 import React from "react";
 import { FireReport, ReportStatus } from "../../types/report";
 import { statusBadge, BadgeStyle } from "./statusBadge";
+import { useRouter } from 'next/router';
 
 interface FireReportsTableProps {
     report: FireReport[];
     filter: 'All' | ReportStatus;
-    onView: (reports: FireReport) => void;
 }
 
-export function FireReportsTable({ report, filter, onView }: FireReportsTableProps) {
+export function FireReportsTable({ report, filter }: FireReportsTableProps) {
     const filtered = report.filter(r =>
         filter === 'All' || r.status === filter
     );
+
+    const router = useRouter();
+
     return (
         <div className="rounded-2xl border border-carbon-card overflow-hidden bg-carbon-side/60 shadow-xl shadow-black/30 max-h-[600px] overflow-y-auto">
             <table className="w-full">
@@ -53,7 +56,7 @@ export function FireReportsTable({ report, filter, onView }: FireReportsTablePro
                                     </td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{report.reporter}</td>
                                     <td className="px-4 py-3">
-                                        <button onClick={() => onView(report)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
+                                        <button onClick={() => router.push(`/admin/${report.report_id}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
                                             View
                                         </button>
                                     </td>
