@@ -15,6 +15,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
 
     const router = useRouter();
 
+
     return (
         <div className="rounded-2xl border border-carbon-card overflow-hidden bg-carbon-side/60 shadow-xl shadow-black/30 max-h-[600px] overflow-y-auto">
             <table className="w-full">
@@ -47,7 +48,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                                     <td className="px-4 py-3 font-mono text-xs text-flare">{report.report_id}</td>
                                     <td className="px-4 py-3 text-sm text-neutral font-medium">{report.location}</td>
                                     <td className="px-4 py-3">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ? `${badge.bg} ${badge.text} ${badge.border}` : 'bg-carbon-card text-neutral/50'}`}>
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badgeClass}`}>
                                             {report.status}
                                         </span>
                                     </td>
