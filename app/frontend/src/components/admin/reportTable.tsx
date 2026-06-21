@@ -39,6 +39,9 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                     ) : (
                         filtered.map((report) => {
                             const badge: BadgeStyle = statusBadge[report.status] ?? statusBadge.none;
+                            const badgeClass = badge.bg
+                                ? `${badge.bg} ${badge.text} ${badge.border}`
+                                : 'bg-carbon-card text-neutral/50';
                             return (
                                 <tr key={report.report_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
                                     <td className="px-4 py-3 font-mono text-xs text-flare">{report.report_id}</td>
