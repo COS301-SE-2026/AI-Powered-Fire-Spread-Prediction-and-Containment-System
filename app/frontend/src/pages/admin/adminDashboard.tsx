@@ -1,9 +1,12 @@
 //need to add sidebar still
 import React, { useState, useEffect } from 'react';
 import {DashboardMetrics} from '../../components/admin/adminDashboardMetrics';
-import { MicrochipIcon, HeartWithPulseIcon, ChartLineIcon, DownloadIcon } from '../../components/admin/dashboardIcons';
 import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics';
 import { LineChartIcon } from 'lucide-react';
+import { MicrochipIcon } from 'lucide-react';
+import { HeartIcon } from 'lucide-react';
+import { DownloadCloudIcon } from 'lucide-react';
+import { SideBarLayout } from '../../components/demoSidebar';
 
 interface ActivityItem {
     message: string;
@@ -54,7 +57,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
             title: 'Model health',
             value: '142',
             subtext: 'Operational',
-            icon: <HeartWithPulseIcon/>
+            icon: <HeartIcon/>
         },
         {
             title: 'Avg. prediction confidence',
@@ -67,12 +70,12 @@ export const AdminDashBoardDetailed: React.FC = () => {
             title: 'Data source sync',
             value: '142',
             subtext: 'Updated 3 min ago',
-            icon: <DownloadIcon/>
+            icon: <DownloadCloudIcon/>
         },
     ];
 
     return (
-        <div className="min-h-screen bg-base-100 text-base-content p-6 font-sans">
+        <SideBarLayout hideLoginRegister={true}>
             <div className="max-w-7xl mx-auto space-y-6">
 
                 <div className="border-b border-base-300 pb-3 mb-6">
@@ -142,7 +145,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                 <SystemMetrics metrics={bottomMetrics} />
 
             </div>
-        </div>
+        </SideBarLayout>
     );
 };
 
