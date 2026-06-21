@@ -3,6 +3,7 @@ import { Report, ReportStatus } from "../../types/firefighter";
 import { SideBarLayout } from '../../components/demoSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
+import { TableSearchBar } from '../../components/firefighter/searchbar';
 
 const mockRequests: Report[] = [
   { Ref: "FIR-001", Location: "Johannesburg", Status: "pending", Size: 120, Reported: "2026-06-18", Reporter: "John Doe" },
@@ -44,15 +45,18 @@ export default function ReportTable() {
 
     return (
         <SideBarLayout>
-            <div className="p-6 flex flex-col h-full w-full">
-                            {/* Header + filter */}
+            <div className="p-4 flex flex-col h-full w-full gap-y-3">
                             <header className="mb-6">
                                 <h1 className="text-page-title font-display font-bold tracking-wider text-neutral uppercase">Reported Fires</h1>
                                 <p className="font-body text-body text-neutral/50">View the reported fires</p>
                             </header>
+                            {/* Header + filter + search */}
+                            <div className="flex justify-between items-center">
+                                    <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>  
+                                
+                                    <TableSearchBar/>
+                            </div>
 
-                            <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>  
-            
                             {/* table */}
                             <ReportsTable requests={mockRequests} filter={statusFilter} onView={(req) => console.log(req)}/>       
                         </div>
