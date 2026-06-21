@@ -15,8 +15,8 @@ interface SystemMetricsProps {
 export const SystemMetrics: React.FC<SystemMetricsProps> = ({metrics}) => {
     return (
         <section className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {metrics.map((metric, index) => (
-                <div key={index} className="w-full h-full min-h-[120px] bg-base-200 border border-base-300 p-4 rounded shadow-sm flex flex-col justify-between h-28">
+            {metrics.map((metric) => (
+                <div key={metric.title} className="w-full h-full min-h-[120px] bg-base-200 border border-base-300 p-4 rounded shadow-sm flex flex-col justify-between h-28">
                     <div className="flex items-center space-x-2 mb-2">
                         <div className="tex-primary flex-shrink-0">
                             {metric.icon}
