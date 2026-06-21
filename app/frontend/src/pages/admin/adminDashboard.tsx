@@ -88,7 +88,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                     <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between">
                         <div>
                             <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-4 font-display">
-                                Revent Activity
+                                Recent Activity
                             </h2>
                             <div className="divide-y divide-base-300 border-b border-base-300">
                                 {activityLog.map((log, index) => (
