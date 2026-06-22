@@ -17,15 +17,14 @@ test.describe('Guest Public Dashboard',()=> {
         const reportsContainer =page.locator('.rounded-2xl.bg-carbon-side\\/40');
         await expect(reportsContainer).toBeVisible();
     });
-    test('async map load', async({page})=>{
-        //loading text testing is commented out for now, since the page loads map almost instantly
-        //this causes the test for loading text to fail
-        //const loadingText= page.locator('text=Initializing Public Map Canvas...');
-        //await expect(loadingText).toBeVisible();
+    test('async map load', async ({ page}) => {
+        await Promise.all([
+            page.goto('/guests'), // uses default 'load', but we don't await it alone
+            expect(page.getByText('Initializing Public Map Canvas...')).toBeVisible(),
+        ]);
 
         const mapCanvas =page.locator('.relative.flex.items-center.justify-center.size-6');
         await expect(mapCanvas).toBeVisible({timeout:10000});
-        //await expect(loadingText).not.toBeVisible();
     });
 
 });
