@@ -222,123 +222,123 @@ const MOCK_GEOCODE_REVERSE = {
 };
 
 test.describe('Report a Fire, Frontend (mocked API)',()=>{
-    test.beforeEach(async({page})=>{
-        //mock GET /api/reports
-        await page.route('**/api/users/reported-fires', async (route)=>{
-            if(route.request().method()=='GET'){
-                await route.fulfill({
-                    status: 200,
-                    contentType: 'application/json',
-                    body: JSON.stringify(MOCK_REPORTS),
-                });
-            }else {
-                await route.continue();
-            }
-        });
-        //mock POST /api/reports
-        await page.route('**/api/users/reported-fires',async (route)=>{
-            if(route.request().method()=='POST'){
-            await route.fulfill({
-                status: 200,  
-                contentType: 'application/json', 
-                body: JSON.stringify(MOCK_NEW_REPORT_RESPONSE),
-            });
-        }else {
-            await route.continue();
-        }
-        });
-        await page.route('https://api.mapbox.com/geocoding/v5/mapbox.places/*', async (route) => {
-            const url = new URL(route.request().url());
-            if (url.pathname.includes('mapbox.places') && !url.pathname.includes('reverse')) {
+  test.beforeEach(async({page})=>{
+      //mock GET /api/reports
+      await page.route('**/api/users/reported-fires', async (route)=>{
+          if(route.request().method()=='GET'){
               await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(MOCK_GEOCODE_FORWARD),
+                  status: 200,
+                  contentType: 'application/json',
+                  body: JSON.stringify(MOCK_REPORTS),
               });
-            } else {
-              await route.fulfill({
-                status: 200,
-                contentType: 'application/json',
-                body: JSON.stringify(MOCK_GEOCODE_REVERSE),
-              });
-            }
+          }else {
+              await route.continue();
+          }
+      });
+      //mock POST /api/reports
+      await page.route('**/api/users/reported-fires',async (route)=>{
+          if(route.request().method()=='POST'){
+          await route.fulfill({
+              status: 200,  
+              contentType: 'application/json', 
+              body: JSON.stringify(MOCK_NEW_REPORT_RESPONSE),
           });
-        await page.goto('/user/report')
-    });
-    test('Map loads and displays',async ({ page }) => {
+      }else {
+          await route.continue();
+      }
+      });
+      await page.route('https://api.mapbox.com/geocoding/v5/mapbox.places/*', async (route) => {
+          const url = new URL(route.request().url());
+          if (url.pathname.includes('mapbox.places') && !url.pathname.includes('reverse')) {
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify(MOCK_GEOCODE_FORWARD),
+            });
+          } else {
+            await route.fulfill({
+              status: 200,
+              contentType: 'application/json',
+              body: JSON.stringify(MOCK_GEOCODE_REVERSE),
+            });
+          }
+        });
+      await page.goto('/user/report')
+  });
+  test('Map loads and displays',async ({ page }) => {
 
-    await page.waitForSelector('.mapboxgl-canvas');
-    await expect(page.locator('text=Failed to load')).toBeHidden();
+  await page.waitForSelector('.mapboxgl-canvas');
+  await expect(page.locator('text=Failed to load')).toBeHidden();
+  await expect(page.locator('input[placeholder*="Drop a pin or type your address"]')).toBeVisible();
+});
+  test('updates location field on search and change  in map', async ({page})=>{
+    const searchInput=page.locator('input[placeholder*="Drop a pin or type your address"]');
+    await searchInput.fill('Pretoria');
+    await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+    await expect(searchInput).toHaveValue('Pretoria, Gauteng, South Africa');
+    await page.waitForTimeout(1000);
+    const pinMarkerSelector = '.mapboxgl-marker.mapboxgl-marker-anchor-bottom[aria-label="Map marker"]';
+    await page.waitForSelector(pinMarkerSelector, { state: 'visible', timeout: 10000 });
+
+  });
+  
+  test('submits a report and shows ref#',async({page}) =>{
+    //location input
+    const searchInput=page.locator('input[placeholder*="Drop a pin or type your address"]');
+    await searchInput.fill('Pretoria');
+    await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+    //description input
+    const descriptionField = page.locator('textarea');
+    await descriptionField.fill('Test fire from E2E');
+
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles({
+    name: 'test.jpg',
+    mimeType: 'image/jpeg',
+    buffer: Buffer.from('fake'),
+    }); 
+    const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
+    await submitButton.click();
+    await expect(
+      page.locator(`text=${MOCK_NEW_REPORT_RESPONSE.reference_number}`)
+    ).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Report submitted')).toBeVisible();
+
+    await page.waitForTimeout(1500);
     await expect(page.locator('input[placeholder*="Drop a pin or type your address"]')).toBeVisible();
   });
-    test('updates location field on search and change  in map', async ({page})=>{
-      const searchInput=page.locator('input[placeholder*="Drop a pin or type your address"]');
-      await searchInput.fill('Pretoria');
-      await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
-      await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
-      await expect(searchInput).toHaveValue('Pretoria, Gauteng, South Africa');
-      await page.waitForTimeout(1000);
-      const pinMarkerSelector = '.mapboxgl-marker.mapboxgl-marker-anchor-bottom[aria-label="Map marker"]';
-      await page.waitForSelector(pinMarkerSelector, { state: 'visible', timeout: 10000 });
-
-    });
-    
-    test('submits a report and shows ref#',async({page}) =>{
-      //location input
-      const searchInput=page.locator('input[placeholder*="Drop a pin or type your address"]');
-      await searchInput.fill('Pretoria');
-      await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
-      await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
-      //description input
-      const descriptionField = page.locator('textarea');
-      await descriptionField.fill('Test fire from E2E');
-
-      const fileInput = page.locator('input[type="file"]');
-      await fileInput.setInputFiles({
+  test('shows error when no location selected', async ({ page }) => {
+    const descriptionField = page.locator('textarea');
+    await descriptionField.fill('Test fire');
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.setInputFiles({
       name: 'test.jpg',
       mimeType: 'image/jpeg',
       buffer: Buffer.from('fake'),
-      }); 
-      const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
-      await submitButton.click();
-      await expect(
-        page.locator(`text=${MOCK_NEW_REPORT_RESPONSE.reference_number}`)
-      ).toBeVisible({ timeout: 10000 });
-      await expect(page.locator('text=Report submitted')).toBeVisible();
-
-      await page.waitForTimeout(1500);
-      await expect(page.locator('input[placeholder*="Drop a pin or type your address"]')).toBeVisible();
     });
-    test('shows error when no location selected', async ({ page }) => {
-      const descriptionField = page.locator('textarea');
-      await descriptionField.fill('Test fire');
-      const fileInput = page.locator('input[type="file"]');
-      await fileInput.setInputFiles({
-        name: 'test.jpg',
-        mimeType: 'image/jpeg',
-        buffer: Buffer.from('fake'),
-      });
 
-      const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
-      await submitButton.click();
+    const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
+    await submitButton.click();
 
-      await expect(page.locator('text=/Please select a valid location/i')).toBeVisible();
-    });
-    test('shows error when photo is missing on desktop', async ({ page }) => {
-      const searchInput = page.locator('input[placeholder*="Drop a pin"]');
-      await searchInput.fill('Pretoria');
-      await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
-      await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
-      await page.waitForTimeout(500);
+    await expect(page.locator('text=/Please select a valid location/i')).toBeVisible();
+  });
+  test('shows error when photo is missing on desktop', async ({ page }) => {
+    const searchInput = page.locator('input[placeholder*="Drop a pin"]');
+    await searchInput.fill('Pretoria');
+    await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.waitForTimeout(500);
 
-      const descriptionField = page.locator('textarea');
-      await descriptionField.fill('Test fire');
+    const descriptionField = page.locator('textarea');
+    await descriptionField.fill('Test fire');
 
-      const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
-      await submitButton.click();
+    const submitButton = page.locator('button[type="submit"]:has-text("Submit Fire Report")');
+    await submitButton.click();
 
-      await expect(page.locator('text=/Field evidence attachment is mandatory on desktop/i')).toBeVisible();
-    });
+    await expect(page.locator('text=/Field evidence attachment is mandatory on desktop/i')).toBeVisible();
+  });
   test('should show error message on API failure', async ({ page }) => {
     await page.route('**/api/users/reported-fires', async (route) => {
       if (route.request().method() === 'POST') {
