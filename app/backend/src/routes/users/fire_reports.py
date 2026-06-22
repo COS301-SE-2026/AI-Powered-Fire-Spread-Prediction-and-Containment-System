@@ -1,0 +1,18 @@
+from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+from typing import List,Optional
+from db import get_db
+from schemas.fire_report import FireReportCreate, FireReportDetailResponse, FireReportMapResponse
+from services.users import fire_report
+
+router = APIRouter(prefix="/api/users", tags=["Users"])
+
+@router.get("/reported-fires", response_model=List[FireReportMapResponse])
+def get_reported_fires(db:Session = Depends(get_db)):
+    return fire_report.get_fire_reports(db)
+
+@router.post("/reported-fires", response_model=FireReportDetailResponse)
+def create_fire_report(report:FireReportCreate, request:Request, db:Session = Depends(get_db), user_id:Optional[str] = None):
+    client_ip = request.client.host # gets users IP used mainly for guests to be able to see in a way who reported it and to be used to protect against spam
+    return fire_report.create_fire_report(report, db, client_ip, user_id)
+
