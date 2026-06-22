@@ -53,7 +53,7 @@ export default function AnalyticsPage() {
         {/* Metrics Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {metrics.map((metric, idx) => (
-            <Card key={idx} title={metric.label}>
+            <Card key={metric.label} title={metric.label}>
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-neutral">{metric.value}</span>
                 <span className={`text-xs ${metric.trend === 'up' ? 'text-success' : 'text-error'}`}>
