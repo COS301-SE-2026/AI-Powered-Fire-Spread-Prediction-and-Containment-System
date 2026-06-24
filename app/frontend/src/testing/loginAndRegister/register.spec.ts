@@ -12,7 +12,7 @@ test.describe("Registration Flow", () => {
     await page.selectOption('select[name="role"]', "User");
     await expect(page.locator('input[name="licenceNumber"]')).toBeHidden();
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/login\?registered=true/);
+    await expect(page).toHaveURL("/register");
   });
 
   test("register as Firefighter shows licence field", async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe("Registration Flow", () => {
     await page.fill('input[name="licenceNumber"]', "FF-12345");
     await page.fill('input[name="password"]', "Fire123");
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/login\?registered=true/);
+    await expect(page).toHaveURL('/register');
   });
 
   test("show error on duplicate email", async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe("Registration Flow", () => {
     await page.fill('input[name="idNumber"]', "1234");
     await page.fill('input[name="password"]', "pass");
     await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/login\?registered=true/);
+    await expect(page).toHaveURL('/register');
     // Second attempt with same email
     await page.goto("/register");
     await page.fill('input[name="name"]', "Test");
