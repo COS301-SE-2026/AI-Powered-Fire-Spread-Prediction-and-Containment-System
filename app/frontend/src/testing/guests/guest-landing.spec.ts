@@ -14,7 +14,7 @@ test.describe('Guest Public Dashboard',()=> {
         await expect(mapContainer).toBeVisible();
         //nearby reports container
         await expect(page.locator('h2:has-text("Nearby Reports")')).toBeVisible();
-        const reportsContainer =page.locator('.rounded-2xl.bg-carbon-side\\/40');
+        const reportsContainer =page.locator(String.raw`.rounded-2xl.bg-carbon-side\/40`);
         await expect(reportsContainer).toBeVisible();
     });
     test('async map load', async ({ page}) => {
