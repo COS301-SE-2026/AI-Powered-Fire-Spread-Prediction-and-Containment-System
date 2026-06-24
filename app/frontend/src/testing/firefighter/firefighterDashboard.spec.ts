@@ -26,10 +26,10 @@ test.describe('Firefighter Dashboard - live fire map', () => {
     })
 
     test('All quick action buttons are rendered', async ({page}) => {
-        await page.getByRole('button', { name: 'Unit position View team on map' }).click();
-        await page.getByRole('button', { name: 'Report a fire New fire' }).click();
-        await page.getByRole('button', { name: 'Spread Simulation View AI' }).click();
-        await page.getByRole('button', { name: 'Log containment line Draw' }).click();
+        await expect(page.getByRole('button', { name: 'Unit position View team on map' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Report a fire New fire' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Log containment line Draw' })).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Spread Simulation View AI' })).toBeVisible();
     })
 
     test('All environment variables are rendered', async ({page}) => {
