@@ -3,6 +3,7 @@ const config = {
   testMatch: [
     '**/reportFire/**/*.spec.@(js|ts|tsx)',
     '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
+    '**/firefighter/**/*.spec.@(js|ts|tsx)',
   ],
   timeout: 30000,
   expect: {
