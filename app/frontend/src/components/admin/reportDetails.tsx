@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "./Card";
 import type { FireReport } from "../../types/report";
+import { StatusBadge } from "./reportStatusBadge";
 
 interface ReportDetailsProps {
     readonly report: FireReport;
@@ -13,6 +14,10 @@ export function ReportDetails({ report }: ReportDetailsProps) {
                 <div className="flex justify-between">
                     <label>Reference</label>
                     <code>{report.report_id}</code>
+                </div>
+                <div className="flex justify-between items-center">
+                    <label>Status</label>
+                    <StatusBadge status={report.status} />
                 </div>
                 <div className="flex justify-between">
                     <label>Reporter</label>
