@@ -1,6 +1,6 @@
 import React from "react";
 import { FireReport, ReportStatus } from "../../types/report";
-import { statusBadge, BadgeStyle } from "./statusBadge";
+import { StatusBadge } from "./reportStatusBadge";
 import { useRouter } from 'next/router';
 
 interface FireReportsTableProps {
@@ -39,19 +39,11 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                         </tr>
                     ) : (
                         filtered.map((report) => {
-                            const badge: BadgeStyle = statusBadge[report.status] ?? statusBadge.none;
-                            const badgeClass = badge.bg
-                                ? `${badge.bg} ${badge.text} ${badge.border}`
-                                : 'bg-carbon-card text-neutral/50';
                             return (
                                 <tr key={report.report_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
                                     <td className="px-4 py-3 font-mono text-xs text-flare">{report.report_id}</td>
                                     <td className="px-4 py-3 text-sm text-neutral font-medium">{report.location}</td>
-                                    <td className="px-4 py-3">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badgeClass}`}>
-                                            {report.status}
-                                        </span>
-                                    </td>
+                                    <td className="px-4 py-3"><StatusBadge status={report.status} /></td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{report.size}</td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">
                                         {report.reported_at.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
