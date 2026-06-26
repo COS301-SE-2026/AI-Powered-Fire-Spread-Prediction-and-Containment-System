@@ -35,7 +35,7 @@ export function ReportDetails({ report }: ReportDetailsProps) {
                     <label>Reported at</label>
                     <time>
                         {report.reported_at.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short'})}
-                        {' - '}
+                        {' | '}
                         {report.reported_at.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit'})}
                     </time>
                 </div>
