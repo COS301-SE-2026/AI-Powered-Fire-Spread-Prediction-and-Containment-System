@@ -1,32 +1,31 @@
 from enums.firefighter_status import FirefighterReportStatus
 from typing import List
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, ConfigDict
 
 # response structure for the reported fires table
 class FirefighterReportTable(BaseModel):
-    ref: str
-    location: str
+    ref: str = Field(validation_alias="reference_number")
+    location: str = Field(validation_alias="location_text")
     status: FirefighterReportStatus
-    size: float
+    size: float = Field(validation_alias="boundary_radius")
     reported: datetime
     reporter: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
 
 class FirefighterReportModal(BaseModel):
-    ref: str
-    location: str
+    ref: str = Field(validation_alias="reference_number")
+    location: str = Field(validation_alias="location_text")
     status: FirefighterReportStatus
     reported: datetime
     description: str
-    img_url: str
-    size: float
+    image_url: str
+    size: float = Field(validation_alias="boundary_radius")
 
-    class Config:
-        from_attributes = True
+    
+    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
 
 class ReportList(BaseModel):
-    data: List[BaseModel]
+    data: List[FirefighterReportTable]
     total: int

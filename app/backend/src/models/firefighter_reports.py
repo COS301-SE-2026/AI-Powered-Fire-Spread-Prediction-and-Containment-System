@@ -18,6 +18,11 @@ class Firefighter_FireReports(Base):
     location_geom = Column(Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=False)
     boundary_radius = Column(Numeric(5,2), nullable=True)
     status = Column(Enum(FirefighterReportStatus), default=FirefighterReportStatus.pending, nullable=False)
-    status_index = Column(Integer, default=0, nullable=False)
     reported = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc).date())
     user = relationship("User", back_populates='firefighter_fire_reports')
+
+    @property
+    def reporter(self) -> str:
+        if self.user is None:
+            return "Anonymous"
+        return f"{self.user.name} {self.user.surname}"

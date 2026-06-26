@@ -15,33 +15,12 @@ def get_fire_reports(db:Session = Depends(get_db)):
         return request
     except ValueError as error:
         raise HTTPException(status_code=404, detail=str(error))
-    
-# Search for the reference number of the report in the table
-@router.get("/reported-fires/search/reference", response_model=ReportList)
-def search_ref_table(ref:str, db:Session = Depends(get_db)):
+
+# Search for table
+@router.get("/reported-fires/search", response_model=ReportList)
+def search_location_table(key:str, db:Session = Depends(get_db)):
     try:
-        request = firefighter_reports.search_ref_table(db, ref)
-
-        return request
-    except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
-    
-
-# Search for the person who reported the fires name in table
-@router.get("/reported-fires/search/reporter", response_model=ReportList)
-def search_reporter_table(reporter:str, db:Session = Depends(get_db)):
-    try:
-        request = firefighter_reports.search_reporter_table(db, reporter)
-
-        return request
-    except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
-
-# Search for the locations of reported fires
-@router.get("/reported-fires/search/location", response_model=ReportList)
-def search_location_table(location:str, db:Session = Depends(get_db)):
-    try:
-        request = firefighter_reports.search_location_table(db, location)
+        request = firefighter_reports.search_report_table(db, key)
 
         return request
     except ValueError as error:
