@@ -1,14 +1,18 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from db import engine, SessionLocal, Base
 #from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from models.users import User
+from models.firefighter_reports import Firefighter_FireReports
 from models.role_request import RoleRequest
 from models.reported_fires import FireReports
+
 from enums.report_status import ReportStatus
+from enums.firefighter_status import FirefighterReportStatus
 from enums.user_role import UserRole
 from enums.role_request_status import RequestStatus
+
 from auth import hash_password
 
 # 20 Users: 3 Admins, 5 Firefighters, 12 Users
@@ -82,6 +86,19 @@ SEED_FIRE_REPORTS = [
     {"id": str(uuid.uuid4()), "reference_number": "FR-2026-018", "user_id": "usr_20", "location_text": "Voortrekker Monument hillside", "description": "Flames visible on the southern slope from the highway.", "location_geom": "SRID=4326;POINT(28.1700 -25.7700)", "boundary_radius": 3.0, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": ReportStatus.verified, "status_index": 2}
 ]
 
+SEED_FIREFIGHTER_FIRE_REPORTS = [
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-001", "user_id": "usr_09", "location_text": "Sandton CBD, Johannesburg", "description": "Smoke rising behind the Sandton Gautrain station, possible electrical fire.", "location_geom": "SRID=4326;POINT(28.056702 -26.107567)", "boundary_radius": 0.4, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.verified, "reported": datetime.now(timezone.utc) - timedelta(days=1, hours=3)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-002", "user_id": None, "location_text": "Johannesburg CBD, near Carlton Centre", "description": "Anonymous tip: fire visible from an upper floor of an old office block.", "location_geom": "SRID=4326;POINT(28.034088 -26.195246)", "boundary_radius": 0.6, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.pending, "reported": datetime.now(timezone.utc) - timedelta(hours=6)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-003", "user_id": "usr_10", "location_text": "Pretoria CBD, Church Square area", "description": "Small fire in a storm drain, possibly started by discarded waste.", "location_geom": "SRID=4326;POINT(28.218370 -25.731340)", "boundary_radius": 0.1, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.rejected, "reported": datetime.now(timezone.utc) - timedelta(days=5, hours=2)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-004", "user_id": "usr_11", "location_text": "Centurion, near SuperSport Park", "description": "Veld fire spreading along the field bordering the stadium parking lot.", "location_geom": "SRID=4326;POINT(28.159325 -25.878363)", "boundary_radius": 2.2, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.verified, "reported": datetime.now(timezone.utc) - timedelta(days=2, hours=8)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-005", "user_id": None, "location_text": "Midrand, near the highway interchange", "description": "Grass fire causing smoke to drift over the N1.", "location_geom": "SRID=4326;POINT(28.118 -25.976)", "boundary_radius": 1.5, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.pending, "reported": datetime.now(timezone.utc) - timedelta(hours=1)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-006", "user_id": "usr_12", "location_text": "Sandton, Nelson Mandela Square area", "description": "Reported burning smell near a parking garage, no visible flames yet.", "location_geom": "SRID=4326;POINT(28.057 -26.1065)", "boundary_radius": 0.2, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.rejected, "reported": datetime.now(timezone.utc) - timedelta(days=7, hours=4)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-007", "user_id": "usr_13", "location_text": "Johannesburg, Newtown precinct", "description": "Fire in an abandoned building, smoke visible from the street.", "location_geom": "SRID=4326;POINT(28.0420 -26.2010)", "boundary_radius": 0.3, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.verified, "reported": datetime.now(timezone.utc) - timedelta(days=3, hours=11)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-008", "user_id": None, "location_text": "Pretoria, near Loftus Versfeld Stadium", "description": "Anonymous report of smoke near the stadium parking area before an event.", "location_geom": "SRID=4326;POINT(28.2210 -25.7530)", "boundary_radius": 0.5, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.pending, "reported": datetime.now(timezone.utc) - timedelta(days=4, hours=6)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-009", "user_id": "usr_14", "location_text": "Centurion, residential estate boundary", "description": "Open field fire approaching the back wall of an estate.", "location_geom": "SRID=4326;POINT(28.1620 -25.8810)", "boundary_radius": 1.0, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.verified, "reported": datetime.now(timezone.utc) - timedelta(days=9, hours=5)},
+    {"id": str(uuid.uuid4()), "reference_number": "FFR-2026-010", "user_id": "usr_15", "location_text": "Midrand, industrial park near the railway", "description": "Chemical-smelling smoke near a warehouse loading bay.", "location_geom": "SRID=4326;POINT(28.1250 -25.9820)", "boundary_radius": 0.7, "image_url": DEFAULT_IMG, "reporter_ip": DEFAULT_IP, "status": FirefighterReportStatus.pending, "reported": datetime.now(timezone.utc) - timedelta(days=12, hours=2)},
+]
+
 def seed_users(db):
     inserted = {}
     for data in SEED_USERS:
@@ -129,7 +146,7 @@ def seed_role_requests(db):
             reviewed_at=datetime.now(timezone.utc) if data["reviewed_by"] else None
         )
         db.add(role_request)
-        print(f"  ADD   role request → {data['requested_role']} for {data['user_id']}")
+        print(f"  ADD   role request -> {data['requested_role']} for {data['user_id']}")
 
 def seed_fire_reports(db):
     for data in SEED_FIRE_REPORTS:
@@ -153,7 +170,31 @@ def seed_fire_reports(db):
             status_index=data["status_index"]
         )
         db.add(report)
-        print(f"  ADD   fire report → {data['reference_number']} at {data['location_text']}")
+        print(f"  ADD   fire report -> {data['reference_number']} at {data['location_text']}")
+
+def seed_firefighter_reports(db):
+    for data in SEED_FIREFIGHTER_FIRE_REPORTS:
+        existing  = db.query(Firefighter_FireReports).filter(Firefighter_FireReports.reference_number == data["reference_number"]).first()
+
+        if existing:
+            print(f" SKIP firefighter report table {data['refernce_number']} (already exists)")
+            continue
+
+        report = Firefighter_FireReports(
+            id=data["id"],
+            reference_number=data["reference_number"],
+            user_id=data["user_id"],
+            reporter_ip=data.get("reporter_ip"),
+            description=data["description"],
+            image_url=data["image_url"],
+            location_text=data["location_text"],
+            location_geom=data["location_geom"],
+            boundary_radius=data["boundary_radius"],
+            status=data["status"],
+            reported=data["reported"]
+        )
+        db.add(report)
+        print(f"ADD fire report ->  {data['reference_number']} at {data['location_text']}")
 
 def seed():
     print("Dropping old tables if they exist...")
@@ -172,6 +213,9 @@ def seed():
 
         print("\nSeeding fire reports...")
         seed_fire_reports(db)
+
+        print("\nSeeding firefighter reports...")
+        seed_firefighter_reports(db)
 
         db.commit()
         print("\nSeed complete!")

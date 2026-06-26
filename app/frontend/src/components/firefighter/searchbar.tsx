@@ -1,4 +1,9 @@
-export function TableSearchBar (){
+interface TableSearchBarProps {
+    value: string;
+    onChange: (key: string) => void;
+}
+
+export function TableSearchBar ({ value, onChange }: TableSearchBarProps){
     return(
         <label className="input border border-torch/30 rounded-xl focus-within:outline-ignite focus-within:border-none">
             <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -13,7 +18,7 @@ export function TableSearchBar (){
                     <path d="m21 21-4.3-4.3"></path>
                 </g>
             </svg>
-            <input type="search" required placeholder="Search reported fires" aria-label="Search reported fires" />
+            <input type="search" required placeholder="Search reported fires" aria-label="Search reported fires" value={value} onChange={(e) => onChange(e.target.value)}/>
         </label>
     );
 }

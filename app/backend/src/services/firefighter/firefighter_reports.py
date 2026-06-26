@@ -13,28 +13,12 @@ def get_fire_reports(db:Session):
 
     return { "data": request, "total":len(request)}
 
-def search_ref_table(db:Session, ref:str):
-    request = db.query(Firefighter_FireReports).filter(Firefighter_FireReports.reference_number.ilike(f"%{ref}%")).all()
+def search_report_table(db:Session, key:str):
+    request = db.query(Firefighter_FireReports).outerjoin(Firefighter_FireReports.user).filter(or_(Firefighter_FireReports.reference_number.ilike(f"%{key}%"), Firefighter_FireReports.location_text.ilike(f"%{key}%"), User.name.ilike(f"%{key}%"), User.surname.ilike(f"%{key}%"))).all()
 
     if not request:
-        raise ValueError("Reference number not found")
-
-    return request
-
-def search_reporter_table(db:Session, reporter:str):
-    request = db.query(Firefighter_FireReports).join(Firefighter_FireReports.user).filter(or_(User.name.ilike(f"%{reporter}%"), User.surname.ilike(f"%{reporter}%"))).all()
-
-    if not request:
-        raise ValueError("Reporter not found")
-
-    return request
-
-def search_location_table(db:Session, location:str):
-    request = db.query(Firefighter_FireReports).filter(Firefighter_FireReports.location_text.ilike(f"%{location}%")).all()
-
-    if not request:
-        raise ValueError("Location of report not found")
-
+        raise ValueError(f"{key} not found")
+    
     return request
 
 def get_single_fire_report(db:Session, ref:str):
