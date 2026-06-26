@@ -1,8 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Card } from './Card';
-const { default: Map, Marker } = require('react-map-gl/mapbox');
+const { default: FireMap } = require('react-map-gl/mapbox');
 
 interface ReportMapProps {
     readonly lat: number;
@@ -14,7 +13,7 @@ export function ReportMap({ lat, lng }: ReportMapProps) {
         <div className="flex flex-col gap-2">   
             <h2>Fire Report Location</h2>  
             <div className="relative rounded-xl overflow-hidden h-64"> 
-                <Map
+                <FireMap
                     mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
                     initialViewState={{ longitude: lng, latitude: lat, zoom: 13 }}
                     style={{ width: '100%', height: '100%' }}

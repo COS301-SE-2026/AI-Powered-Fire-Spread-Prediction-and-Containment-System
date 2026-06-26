@@ -5,7 +5,7 @@ import { ReportDetails } from '../../components/admin/reportDetails';
 import { ReportDescription } from '../../components/admin/reportDescription';
 import { ReportActions } from '../../components/admin/reportActions';
 import { ReportPhoto } from '../../components/admin/reportPhoto';
-import type { FireReport, ReportStatus } from '../../types/report';
+import type { FireReport } from '../../types/report';
 
 import dynamic from 'next/dynamic';
 
