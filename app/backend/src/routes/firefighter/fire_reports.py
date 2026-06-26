@@ -1,23 +1,58 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db import get_db
-from schemas.firefighter_reports import FirefighterReportTable, ReportList
+from schemas.firefighter_reports import FirefighterReportTable, ReportList, FirefighterReportModal
 from services.firefighter import firefighter_reports
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
-@router.get("/reported-fires", response_model=FirefighterReportTable)
-def get_fire_reports(db:Session = Depends(get_db)):
-    return firefighter_reports.get_fire_reports(db)
+# Gets all reported fires to populate the table
+@router.get("/reported-fires", response_model=ReportList)
+def get_fire_reports(db:Session = Depends(get_db)): 
+    try:
+        request = firefighter_reports.get_fire_reports(db)
 
-@router.get("/reported-fires/search/reference", response_model=FirefighterReportTable)
+        return request
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+    
+# Search for the reference number of the report in the table
+@router.get("/reported-fires/search/reference", response_model=ReportList)
 def search_ref_table(ref:str, db:Session = Depends(get_db)):
-    return firefighter_reports.get_fire_reports(db, ref)
+    try:
+        request = firefighter_reports.search_ref_table(db, ref)
 
-@router.get("/reported-fires/search/reporter", response_model=FirefighterReportTable)
+        return request
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+    
+
+# Search for the person who reported the fires name in table
+@router.get("/reported-fires/search/reporter", response_model=ReportList)
 def search_reporter_table(reporter:str, db:Session = Depends(get_db)):
-    return firefighter_reports.get_fire_reports(db, reporter)
+    try:
+        request = firefighter_reports.search_reporter_table(db, reporter)
 
-@router.get("/reported-fires/search/location", response_model=FirefighterReportTable)
+        return request
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+
+# Search for the locations of reported fires
+@router.get("/reported-fires/search/location", response_model=ReportList)
 def search_location_table(location:str, db:Session = Depends(get_db)):
-    return firefighter_reports.get_fire_reports(db, location)
+    try:
+        request = firefighter_reports.search_location_table(db, location)
+
+        return request
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+
+# Gets the data for the single fire view modal
+@router.get("/reported-fires/{ref}", response_model=FirefighterReportModal)
+def get_single_fire_report(ref:str, db:Session = Depends(get_db)):
+    try:
+        request = firefighter_reports.get_single_fire_report(db, ref)
+
+        return request
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
