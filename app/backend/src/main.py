@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from db import init_db
 from seed import seed
@@ -25,6 +25,10 @@ app = FastAPI(
     version="1.0.0",
     redirect_slashes=False,
 )
+
+@app.exception_handler(ValueError)
+async def value_error_handler(request: Request, exc: ValueError):
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
 
 app.add_middleware(
     CORSMiddleware,
