@@ -41,7 +41,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                         filtered.map((report) => {
                             return (
                                 <tr key={report.id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
-                                    <td className="px-4 py-3 font-mono text-xs text-flare">{report.id}</td>
+                                    <td className="px-4 py-3 font-mono text-xs text-flare">{report.reference_number}</td>
                                     <td className="px-4 py-3 text-sm text-neutral font-medium">{report.location_text}</td>
                                     <td className="px-4 py-3"><StatusBadge status={report.status} /></td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{report.size}</td>
