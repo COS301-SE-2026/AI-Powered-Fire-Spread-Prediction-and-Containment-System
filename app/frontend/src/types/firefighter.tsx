@@ -1,4 +1,4 @@
-export type ReportStatus = 'pending' | 'verified' | 'rejected';
+export type ReportStatus = 'pending' | 'verified' | 'received';
 
 export interface Report{ // come back and tweak to make sure it matches the API response when backend made
     ref: string;
