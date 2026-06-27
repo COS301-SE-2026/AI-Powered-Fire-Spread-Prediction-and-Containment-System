@@ -137,8 +137,8 @@ yarn dev
 yarn build
 yarn start
 yarn lint
-yarn test:e2e
-yarn test:e2e:headed
-yarn test:e2e:report
-yarn test:e2e:install
+yarn test
+yarn test:headed
+yarn test:report
+yarn test:install
 ```
