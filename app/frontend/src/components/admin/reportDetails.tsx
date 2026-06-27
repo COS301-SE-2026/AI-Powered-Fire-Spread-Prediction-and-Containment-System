@@ -29,7 +29,7 @@ export function ReportDetails({ report }: ReportDetailsProps) {
                 </div>
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Size</span>
-                    <span className="text-text-primary">{report.size}</span>
+                    <span className="text-text-primary">{report.size} ha</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Reported at</span>

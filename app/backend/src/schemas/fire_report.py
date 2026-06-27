@@ -19,6 +19,7 @@ class FireReportMapResponse(BaseModel):
     location_text:str
     status:ReportStatus
     boundary_radius: float
+    size: float
     submitted_at:datetime
     reporter_name: Optional[str] = None
 

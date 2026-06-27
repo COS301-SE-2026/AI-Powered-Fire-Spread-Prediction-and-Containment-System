@@ -5,13 +5,13 @@ from typing import Optional
 from models.reported_fires import FireReports
 import uuid
 import math
-from enums.report_status import ReportStatus
 from schemas.fire_report import FireReportCreate
 from enums.report_status import ReportStatus, status_level
 
-# this is for hectares
+# this is for hectares takes radius in km
 def calc_size(radius: float) -> float:
-    return round((math.pi * radius **2) / 10_000, 1)
+    radius_m = radius * 1000
+    return round((math.pi * radius_m **2) / 10_000, 1)
 
 def get_fire_reports(db:Session):
     request = db.query(
@@ -83,8 +83,8 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
         image_url=report.image_url,
         location_geom=point_wkt,
         boundary_radius=report.boundary_radius,
-        status=ReportStatus.received,
-        status_index=0
+        status=ReportStatus.pending,
+        status_index=1
     )
 
     db.add(new_report)
