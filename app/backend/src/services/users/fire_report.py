@@ -7,6 +7,7 @@ import uuid
 import math
 from enums.report_status import ReportStatus
 from schemas.fire_report import FireReportCreate
+from enums.report_status import ReportStatus, status_level
 
 # this is for hectares
 def calc_size(radius: float) -> float:
@@ -90,3 +91,16 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
     db.commit()
 
     return get_fire_report_by_id(new_report.id, db)
+
+def status_change(report_id: str, status: ReportStatus, db:Session):
+    report = db.query(FireReports).filter(FireReports.id == report_id).first()
+
+    if not report:
+        raise ValueError(f"Report with id {report_id} does not exist")
+    
+    report.status = status
+    report.status_level = status_level.get(status, 0)
+    report.updated_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return get_fire_report_by_id(report_id, db)
