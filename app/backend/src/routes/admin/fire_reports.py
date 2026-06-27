@@ -4,6 +4,7 @@ from typing import List
 from db import get_db
 from schemas.fire_report import FireReportDetailResponse, FireReportMapResponse
 from services.users import fire_report
+from enums.report_status import ReportStatus 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -21,4 +22,10 @@ def get_fire_report_id(report_id: str, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
+@router.patch("/reported-fires/{report_id}/status", response_model=FireReportDetailResponse)
+def status_change(report_id: str, status: ReportStatus, db:Session = Depends(get_db)):
+    try:
+        return fire_report.status_change(report_id, status, db)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
