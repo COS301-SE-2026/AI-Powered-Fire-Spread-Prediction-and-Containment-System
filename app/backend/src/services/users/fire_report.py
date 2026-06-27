@@ -1,33 +1,69 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from models.reported_fires import FireReports
 import uuid
+import math
 from enums.report_status import ReportStatus
 from schemas.fire_report import FireReportCreate
+
+# this is for hectares
+def calc_size(radius: float) -> float:
+    return round((math.pi * radius **2) / 10_000, 1)
 
 def get_fire_reports(db:Session):
     request = db.query(
         FireReports, 
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
-        ).all()
+    ).outerjoin(FireReports.user).all()
     
+    if not request:
+        raise ValueError("No fire reports found")
+
     formatted_reports = []
     for report, lat, lng in request:
         formatted_reports.append({
+            "id": report.id,
             "reference_number": report.reference_number,
-            "user_id": report.user_id,
-            "location": report.location_text,
-            "description": report.description,
+            "location_text": report.location_text,
             "lat": lat,
             "lng": lng,
-            "status": report.status.value,
-            "status_index": report.status_index,
-            "submitted_at": report.submitted_at.isoformat()
+            "status": report.status,
+            "submitted_at": report.submitted_at,
+            "boundary_radius": float(report.boundary_radius),
+            "size": calc_size(float(report.boundary_radius)),
+            "reporter_name": f"{report.user.name} {report.user.surname}" if report.user else "Anonymous",
         })
     return formatted_reports
+
+def get_fire_report_by_id(report_id: str, db: Session):
+    request = db.query(
+        FireReports,
+        func.ST_Y(FireReports.location_geom).label('lat'),
+        func.ST_X(FireReports.location_geom).label('lng')
+    ).outerjoin(FireReports.user).filter(FireReports.id == report_id).first()
+
+    if not request:
+        raise ValueError(f"Report with id {report_id} does not exist")
+    
+    report, lat, lng = request
+    return {
+        "id": report.id,
+        "reference_number": report.reference_number,
+        "location_text": report.location_text,
+        "lat": lat,
+        "lng": lng,
+        "description": report.description,
+        "image_url": report.image_url,
+        "status": report.status,
+        "status_index": report.status_index,
+        "boundary_radius": float(report.boundary_radius),
+        "size": calc_size(float(report.boundary_radius)),
+        "submitted_at": report.submitted_at,
+        "reporter_name": f"{report.user.name} {report.user.surname}" if report.user else "Anonymous",
+    }
 
 def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, user_id:Optional[str] = None):
     year = datetime.now().year
@@ -52,9 +88,5 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
 
     db.add(new_report)
     db.commit()
-    db.refresh(new_report)
 
-    new_report.lat=report.lat
-    new_report.lng=report.lng
-
-    return new_report
+    return get_fire_report_by_id(new_report.id, db)
