@@ -66,7 +66,7 @@ export function ReportActions({ report_id, status, onStatusChange }: ReportActio
                 </div>
             )}
 
-            {status === "pending" && (
+            {(status === "pending" || status === "received") && (
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">Review the fire report. Reject or verify manually.</p>
                     <div className="flex gap-2">

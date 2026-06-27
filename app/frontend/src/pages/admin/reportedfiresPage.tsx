@@ -4,7 +4,7 @@ import { SideBarLayout } from '../../components/demoSidebar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
 import { SearchBar } from '../../components/admin/searchBar';
-import { apiCall } from '../../lib/api';
+
 
 export default function ReportedFiresPage() {
     const [reports, setReports] = useState<FireReport[]>([]);
