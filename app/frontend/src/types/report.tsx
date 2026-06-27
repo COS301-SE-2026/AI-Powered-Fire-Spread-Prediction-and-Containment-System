@@ -10,4 +10,5 @@ export type FireReport = {
     description?: string;
     lat?: number;
     lng?:number;
+    image_url?: string;
 }
