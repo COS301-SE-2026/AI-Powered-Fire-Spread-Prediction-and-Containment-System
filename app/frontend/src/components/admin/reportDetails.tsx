@@ -13,7 +13,7 @@ export function ReportDetails({ report }: ReportDetailsProps) {
             <div className="flex flex-col gap-3">
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Reference</span>
-                    <code>{report.id}</code>
+                    <code>{report.reference_number}</code>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-text-muted text-sm">Status</span>
