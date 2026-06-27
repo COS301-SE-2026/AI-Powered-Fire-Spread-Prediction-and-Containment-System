@@ -1,44 +1,43 @@
 import React, { useState } from "react";
 import { Card } from "./Card";
-import type { ReportStatus } from "../../types/report";
+import type { FireReport, ReportStatus } from "../../types/report";
 import Button from "../Button";
 
 interface ReportActionsProps {
     readonly report_id: string;
     readonly status: ReportStatus;
+    readonly onStatusChange: (report: FireReport) => void;
 }
 
-export function ReportActions({ report_id, status }: ReportActionsProps) {
+export function ReportActions({ report_id, status, onStatusChange }: ReportActionsProps) {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const handleVerify = () => {
-        //api call
-        setSuccess('Report successfully verified.');
+    async function statusChange(newStatus: ReportStatus) {
+        setLoading(true);
         setError(null);
-        setTimeout(() => setSuccess(null), 3000);
-    };
-
-    const handleReject = () => {
-        //api call
-        setSuccess('Report successfully rejected.');
-        setError(null);
-        setTimeout(() => setSuccess(null), 3000);
-    };
-
-    const handleRevoke = () => {
-        //api call
-        setSuccess('Verification revoked successfully.');
-        setError(null);
-        setTimeout(() => setSuccess(null), 3000);
-    };
-
-    const handleReVerify = () => {
-        //api call
-        setSuccess('Report sent for re-verification.');
-        setError(null);
-        setTimeout(() => setSuccess(null), 3000);
+        setSuccess(null);
+        try{
+            const res = await fetch(`/api/admin/reported-fires/${report_id}/status?status=${newStatus}`, {
+                method: 'PATCH',
+            });
+            if (!res.ok) throw new Error("Failed to update status");
+            const updated: FireReport = await res.json();
+            onStatusChange(updated);
+            setSuccess(`Report successfully updated to ${newStatus}.`);
+            setTimeout(() => setSuccess(null), 3000);
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     }
+
+    const handleVerify = () => statusChange('verified');
+    const handleReject = () => statusChange('rejected');
+    const handleRevoke = () => statusChange('pending');
+    const handleReVerify = () => statusChange('pending');
 
     return (
         <Card title="Action">
@@ -56,14 +55,14 @@ export function ReportActions({ report_id, status }: ReportActionsProps) {
             {status === "verified" && (
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">This report has already been verified. Revoke if report is falsely verified.</p>
-                    <Button variant="red" onClick={handleRevoke}>Revoke</Button>
+                    <Button variant="red" onClick={handleRevoke} disabled={loading}>{loading ? 'Updating...' : 'Revoke'}</Button>
                 </div>           
             )}
             
             {status === "rejected" && (
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">This report was rejected. Send to be re-verified.</p>
-                    <Button variant="fire" onClick={handleReVerify}>Re-verify</Button>
+                    <Button variant="fire" onClick={handleReVerify} disabled={loading}>{loading ? 'Updating...' : 'Re-verify'}</Button>
                 </div>
             )}
 
@@ -71,8 +70,8 @@ export function ReportActions({ report_id, status }: ReportActionsProps) {
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">Review the fire report. Reject or verify manually.</p>
                     <div className="flex gap-2">
-                        <Button variant="fire" className="flex-1" onClick={handleVerify}>Verify</Button>
-                        <Button variant="red" className="flex-1" onClick={handleReject}>Reject</Button>
+                        <Button variant="fire" className="flex-1" onClick={handleVerify} disabled={loading}>{loading ? 'Updating...' : 'Verify'}</Button>
+                        <Button variant="red" className="flex-1" onClick={handleReject} disabled={loading}>{loading ? 'Updating...' : 'Reject'}</Button>
                     </div>
                 </div>
             )}
