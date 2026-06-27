@@ -9,9 +9,8 @@ interface FireReportsTableProps {
 }
 
 export function FireReportsTable({ report, filter }: FireReportsTableProps) {
-    const filtered = report.filter(r =>
-        filter === 'All' || r.status === filter
-    );
+    const filtered = report.filter(r => filter === 'All' || r.status === filter)
+        .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
 
     const router = useRouter();
 
@@ -44,10 +43,10 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                                     <td className="px-4 py-3 font-mono text-xs text-flare">{report.reference_number}</td>
                                     <td className="px-4 py-3 text-sm text-neutral font-medium">{report.location_text}</td>
                                     <td className="px-4 py-3"><StatusBadge status={report.status} /></td>
-                                    <td className="px-4 py-3 text-sm text-neutral/70">{report.size}</td>
+                                    <td className="px-4 py-3 text-sm text-neutral/70">{report.size} ha</td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">
                                         {new Date(report.submitted_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
-                                        {' · '}
+                                        {' | '}
                                         {new Date(report.submitted_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                                     </td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{report.reporter_name}</td>
