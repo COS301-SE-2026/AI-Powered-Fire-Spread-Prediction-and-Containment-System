@@ -40,19 +40,19 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                     ) : (
                         filtered.map((report) => {
                             return (
-                                <tr key={report.report_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
-                                    <td className="px-4 py-3 font-mono text-xs text-flare">{report.report_id}</td>
-                                    <td className="px-4 py-3 text-sm text-neutral font-medium">{report.location}</td>
+                                <tr key={report.id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
+                                    <td className="px-4 py-3 font-mono text-xs text-flare">{report.id}</td>
+                                    <td className="px-4 py-3 text-sm text-neutral font-medium">{report.location_text}</td>
                                     <td className="px-4 py-3"><StatusBadge status={report.status} /></td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{report.size}</td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">
-                                        {report.reported_at.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+                                        {new Date(report.submitted_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
                                         {' · '}
-                                        {report.reported_at.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
+                                        {new Date(report.submitted_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                                     </td>
-                                    <td className="px-4 py-3 text-sm text-neutral/70">{report.reporter}</td>
+                                    <td className="px-4 py-3 text-sm text-neutral/70">{report.reporter_name}</td>
                                     <td className="px-4 py-3">
-                                        <button onClick={() => router.push(`/admin/${report.report_id}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
+                                        <button onClick={() => router.push(`/admin/${report.id}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
                                             View
                                         </button>
                                     </td>

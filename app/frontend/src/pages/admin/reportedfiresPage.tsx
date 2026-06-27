@@ -11,15 +11,15 @@ export default function ReportedFiresPage() {
     const [search, setSearch] = useState('');
     
     const filteredReports = mockFireReports.filter(report =>
-        report.location.toLowerCase().includes(search.toLowerCase()) ||
-        report.report_id.toLowerCase().includes(search.toLowerCase()) ||
-        report.reporter.toLowerCase().includes(search.toLowerCase())
+        report.location_text.toLowerCase().includes(search.toLowerCase()) ||
+        report.id.toLowerCase().includes(search.toLowerCase()) ||
+        report.reporter_name.toLowerCase().includes(search.toLowerCase())
     );
 
     return(
         <SideBarLayout>
             <div className="p-6 flex flex-col h-full w-full">
-                {/* Header + filter */}
+                
                 <header className="mb-6">
                     <h1 className="uppercase">Reported Fires</h1>
                     <p className="text-text-muted">Manage and review fire reports</p>
@@ -32,7 +32,6 @@ export default function ReportedFiresPage() {
                     </div> 
                 </div>
 
-                {/* table */}
                 <FireReportsTable report={filteredReports} filter={filter} />
             </div>
         </SideBarLayout>

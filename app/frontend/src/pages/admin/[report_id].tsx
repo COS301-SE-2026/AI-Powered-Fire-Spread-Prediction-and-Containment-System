@@ -19,7 +19,7 @@ export default function ViewPage() {
     const router = useRouter();
     const { report_id } = router.query;
 
-    const report = mockFireReports.find(report => report.report_id === report_id);
+    const report = mockFireReports.find(report => report.id === report_id);
 
     if (!report) {
         return (
@@ -44,18 +44,18 @@ export default function ViewPage() {
                 </header>
                 {/* 2 cols*/}
                 <div className='grid grid-cols-1 lg:grid-cols-12 gap-4 h-full'>
-                    {/*Left*/}
+                    {/*left*/}
                     <div className='lg:col-span-6 flex flex-col gap-4'>
                         <div className="relative overflow-hidden h-75 w-full">
                             <ReportMap lat={report.lat ?? -26.2041} lng={report.lng ?? 28.0473} />
                         </div>
                         <ReportDetails report={report} />
                     </div>
-                    {/*Right*/}
+                    {/*right*/}
                     <div className='lg:col-span-6 flex flex-col gap-4 h-full'>
                         <ReportPhoto report={report} />
                         <ReportDescription report={report} />
-                        <ReportActions report_id={report.report_id} status={report.status} />
+                        <ReportActions report_id={report.id} status={report.status} />
                     </div>
                 </div>
 
