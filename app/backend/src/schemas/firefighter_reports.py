@@ -1,4 +1,4 @@
-from enums.firefighter_status import FirefighterReportStatus
+from enums.report_status import ReportStatus
 from typing import List
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
@@ -7,9 +7,9 @@ from pydantic import BaseModel, Field, ConfigDict
 class FirefighterReportTable(BaseModel):
     ref: str = Field(validation_alias="reference_number")
     location: str = Field(validation_alias="location_text")
-    status: FirefighterReportStatus
+    status: ReportStatus
     size: float = Field(validation_alias="boundary_radius")
-    reported: datetime
+    reported: datetime = Field(validation_alias="submitted_at")
     reporter: str
 
     model_config = ConfigDict(from_attributes = True, populate_by_name=True)
@@ -17,8 +17,8 @@ class FirefighterReportTable(BaseModel):
 class FirefighterReportModal(BaseModel):
     ref: str = Field(validation_alias="reference_number")
     location: str = Field(validation_alias="location_text")
-    status: FirefighterReportStatus
-    reported: datetime
+    status: ReportStatus
+    reported: datetime = Field(validation_alias="submitted_at")
     description: str
     image_url: str
     size: float = Field(validation_alias="boundary_radius")

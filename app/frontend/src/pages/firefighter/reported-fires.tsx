@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Report, ReportStatus, ReportModal } from "../../types/firefighter";
+import { Report, ReportStatus } from "../../types/firefighter";
 import { SideBarLayout } from '../../components/demoSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
@@ -24,7 +24,7 @@ export default function ReportTable() {
     const [statusFilter, setStatusFilter] = useState<'all' | ReportStatus>('all');
     const [searchKey, setSearchKey] = useState("");
 
-    const debouncedSearch = useDebounce(searchKey, 300); // this ensures that search only happens when the user stops typing for 300 ms this prevents multiple requests for each letter typed
+    const debouncedSearch = useDebounce(searchKey, 600); // this ensures that search only happens when the user stops typing for 300 ms this prevents multiple requests for each letter typed
 
     // call for search in the table
     useEffect(() => {
@@ -47,7 +47,7 @@ export default function ReportTable() {
                 setRequest(data.data ?? []);
                 
             } catch(error){
-                    console.error("failed to find value requested")
+                    console.error("failed to find value requested", error)
                     setRequest([]);
             }
         };

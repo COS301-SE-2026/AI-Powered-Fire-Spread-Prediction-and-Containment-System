@@ -1,6 +1,6 @@
 interface TableSearchBarProps {
-    value: string;
-    onChange: (key: string) => void;
+    readonly value: string;
+    readonly onChange: (key: string) => void;
 }
 
 export function TableSearchBar ({ value, onChange }: TableSearchBarProps){
