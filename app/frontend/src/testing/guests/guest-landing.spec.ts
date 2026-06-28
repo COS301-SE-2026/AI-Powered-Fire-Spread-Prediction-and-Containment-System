@@ -3,7 +3,7 @@ import {test, expect} from "@playwright/test"
 test.describe('Guest Public Dashboard',()=> {
     //navigates to dashboard page before each test
     test.beforeEach(async ({page})=>{
-        await page.goto('/guests');
+        await page.goto('/guests/guestsLanding');
     });
     test('all major components render', async({page})=>{
         //header
@@ -18,14 +18,12 @@ test.describe('Guest Public Dashboard',()=> {
         await expect(reportsContainer).toBeVisible();
     });
     test('async map load', async({page})=>{
-        //loading text testing is commented out for now, since the page loads map almost instantly
-        //this causes the test for loading text to fail
-        //const loadingText= page.locator('text=Initializing Public Map Canvas...');
-        //await expect(loadingText).toBeVisible();
-
+        await Promise.all([
+            page.goto('/guests/guestsLanding'),
+            expect(page.getByText('Initializing Public Map Canvas...')).toBeVisible(),
+        ]);
         const mapCanvas =page.locator('.relative.flex.items-center.justify-center.size-6');
         await expect(mapCanvas).toBeVisible({timeout:10000});
-        //await expect(loadingText).not.toBeVisible();
     });
 
 });
