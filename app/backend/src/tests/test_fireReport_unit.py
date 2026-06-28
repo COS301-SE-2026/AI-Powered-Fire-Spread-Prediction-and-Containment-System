@@ -12,7 +12,7 @@ valid_payload = {
     "lng": 18.4241,
     "location_text": "5th Ave and Pine St",
     "description": "Bush fire near treeline",
-    "image_url": "http://example.com/fire.jpg",
+    "image_url": "https://example.com/fire.jpg",
     "boundary_radius": 5.0
 }
 
