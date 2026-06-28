@@ -87,7 +87,7 @@ def sample_user():
         "name": "Test",
         "surname": "User",
         "id_number": "12345678",
-        "licence_number": None,
+        "licence_number": "LIC-001",
         "role": "user",
     }
 
@@ -128,7 +128,8 @@ def make_role_request(db, user, role="firefighter", status="pending"):
         user_id=user.id,
         requested_role=role,
         current_role=user.role,
-        status=status
+        status=status,
+        firefighter_license_id="LIC-001",
     )
     db.add(request)
     db.commit()
