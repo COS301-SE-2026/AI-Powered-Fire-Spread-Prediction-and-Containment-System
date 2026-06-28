@@ -17,7 +17,7 @@ class FireReportMapResponse(BaseModel):
     lat: float
     lng: float
     location_text:str
-    status:ReportStatus
+    status: ReportStatus
     boundary_radius:Optional[float] = None
     submitted_at:datetime
 
@@ -33,6 +33,7 @@ class FireReportDetailResponse(BaseModel):
     description:Optional[str] = None
     image_url:str
     status:ReportStatus
+    status_index: int
     boundary_radius: Optional[float] = None
     submitted_at:datetime
 
