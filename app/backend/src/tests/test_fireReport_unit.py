@@ -48,13 +48,13 @@ def mock_report():
 #mock_db.query().all() returns [] 
 def test_empty_reports(client, mock_db):
     mock_db.query.return_value.all.return_value = []
-    response = client.get("/api/reports")
+    response = client.get("/api/guests/reported-fires")
     assert response.status_code == 200 #success response 
     assert response.json() == []
 
 def test_return_report(client, mock_db, mock_report):
     mock_db.query.return_value.all.return_value = [ (mock_report, valid_payload["lat"], valid_payload["lng"]) ]
-    response = client.get("/api/reports")
+    response = client.get("/api/guests/reported-fires")
     assert response.status_code == 200 
     report = response.json()[0]
     assert report["reference_number"] == mock_report.reference_number
@@ -65,7 +65,7 @@ def test_return_report(client, mock_db, mock_report):
 
 def test_get_lat_lng(client, mock_db, mock_report):
     mock_db.query.return_value.all.return_value = [(mock_report, -33.9249, 18.4241)]
-    response = client.get("/api/reports")
+    response = client.get("/api/guests/reported-fires")
     report = response.json()[0]
     assert report["lat"] == pytest.approx(-33.9249)
     assert report["lng"] == pytest.approx(18.4241)
@@ -80,9 +80,11 @@ def test_multiple_returns(client, mock_db, mock_report):
     mock_report_2.status.value = "received"
     mock_report_2.status_index = 0
     mock_report_2.submitted_at = datetime(2025, 1, 2, 12, 0, 0)
+    mock_report_2.id = "mock_id_123"
+    mock_report_2.location_text= "5th Ave and Pine St"
     
     mock_db.query.return_value.all.return_value = [ (mock_report, valid_payload["lat"], valid_payload["lng"]), (mock_report_2, -33.9249, 18.4241) ]
-    response = client.get("/api/reports")
+    response = client.get("/api/guests/reported-fires")
     assert response.status_code == 200
     assert len(response.json()) == 2
     assert response.json()[0]["reference_number"] == mock_report.reference_number
@@ -91,16 +93,16 @@ def test_multiple_returns(client, mock_db, mock_report):
 ###create_fire_report endpoint
 # returns 200
 def test_create_report(client, mock_db, mock_report):
-    with patch("report.fireReports.FireReportModel") as MockModel:
+    with patch("services.users.fire_report.FireReports") as MockModel:
         MockModel.return_value = mock_report 
-        response = client.post("/api/reports", json=valid_payload)
+        response = client.post("/api/guests/reported-fires", json=valid_payload)
     assert response.status_code == 200
 
 #test reference number format
 def test_ref_format(client, mock_db, mock_report):
-    with patch("report.fireReports.FireReportModel") as MockModel:
+    with patch("services.users.fire_report.FireReports") as MockModel:
         MockModel.return_value = mock_report
-        response = client.post("/api/reports", json=valid_payload)
+        response = client.post("/api/guests/reported-fires", json=valid_payload)
 
     ref = response.json()["reference_number"]
     year = datetime.now().year
@@ -108,18 +110,18 @@ def test_ref_format(client, mock_db, mock_report):
 
 #test status 
 def test_status(client, mock_db, mock_report):
-    with patch("report.fireReports.FireReportModel") as MockModel:
+    with patch("services.users.fire_report.FireReports") as MockModel:
         MockModel.return_value = mock_report
-        response = client.post("/api/reports", json=valid_payload)
+        response = client.post("/api/guests/reported-fires", json=valid_payload)
     
     assert response.json()["status"] == "received"
     assert response.json()["status_index"] == 0
 
 #test lat lng return 
 def test_post_lat_lng(client, mock_db, mock_report):
-    with patch("report.fireReports.FireReportModel") as MockModel:
+    with patch("services.users.fire_report.FireReports") as MockModel:
         MockModel.return_value = mock_report
-        response = client.post("/api/reports", json=valid_payload)
+        response = client.post("/api/guests/reported-fires", json=valid_payload)
     
     assert response.json()["lat"] == pytest.approx(valid_payload["lat"])
     assert response.json()["lng"] == pytest.approx(valid_payload["lng"])

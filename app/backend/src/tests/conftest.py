@@ -18,15 +18,9 @@ from models.users import User
 from models.role_request import RoleRequest
 from models.reported_fires import FireReports
 
-engine = create_engine(
-    "sqlite+pysqlite:///:memory:",
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL",
-    "postgresql://postgres:postgres@localhost:5432/test_fire_db"
+    "postgresql://postgres:postgres@localhost:5433/test_fire_db"
 )
 
 engine =create_engine(TEST_DB_URL)
@@ -94,7 +88,7 @@ def sample_user():
         "surname": "User",
         "id_number": "12345678",
         "licence_number": None,
-        "role": "User",
+        "role": "user",
     }
 
 
@@ -107,7 +101,7 @@ def _split_full_name(full_name):
     return parts[0], parts[1]
 
 
-def make_user(db, full_name="Test User", email=None, role="User"):
+def make_user(db, full_name="Test User", email=None, role="user"):
     user_email = email or f"user_{uuid.uuid4()}@example.com"
     name, surname = _split_full_name(full_name)
     user = User(
@@ -119,7 +113,7 @@ def make_user(db, full_name="Test User", email=None, role="User"):
         id_number=str(uuid.uuid4().int)[:13],
         license_number=None,
         role=role,
-        top_secret=None,
+        totp_secret=None,
         is_2fa_enabled=False,
     )
     db.add(user)
