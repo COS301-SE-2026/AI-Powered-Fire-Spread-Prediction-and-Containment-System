@@ -9,7 +9,7 @@ interface ReportsTableProp{
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
     const filtered = requests.filter(req => 
-        filter === 'all' || req.Status === filter
+        filter === 'all' || req.status === filter
     );
 
     return (
@@ -35,13 +35,13 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                     ) : (
                         filtered.map((req) => {
                             return(
-                                <tr key={req.Ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Ref}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Location}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Status}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Size} ha</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Reported}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Reporter}</td>
+                                <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.ref}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.location}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.status}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{new Date(req.reported).toLocaleDateString("en-ZA", {day: "2-digit", month: "2-digit", year: "numeric"})}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
                                 </tr>
                             )
                         })
