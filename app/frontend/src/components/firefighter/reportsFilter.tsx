@@ -8,7 +8,7 @@ interface StatusTableFilterProps {
     readonly onChange: (filter: tableStatusFilter) => void;
 }
 
-const filters: tableStatusFilter[] = ['all', 'pending', 'verified', 'rejected'];
+const filters: tableStatusFilter[] = ['all', 'pending', 'verified', 'received'];
 
 export function StatusTableFilter({ filter, onChange }: StatusTableFilterProps) {
     return(
