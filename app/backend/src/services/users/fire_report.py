@@ -17,13 +17,17 @@ def get_fire_reports(db:Session):
     formatted_reports = []
     for report, lat, lng in request:
         formatted_reports.append({
+            "id": report.id,
             "reference_number": report.reference_number,
             "user_id": report.user_id,
             "location": report.location_text,
+            "location_text": report.location_text,
             "description": report.description,
             "lat": lat,
             "lng": lng,
-            "status": report.status.value,
+            "status": report.status.value 
+                if hasattr(report.status, 'value') 
+                else report.status,
             "status_index": report.status_index,
             "submitted_at": report.submitted_at.isoformat()
         })
