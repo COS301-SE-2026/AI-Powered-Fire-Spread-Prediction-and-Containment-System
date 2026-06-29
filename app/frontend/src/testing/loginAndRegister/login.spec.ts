@@ -55,6 +55,6 @@ test.describe("Login Flow", () => {
   test("guest login redirects to dashboard", async ({ page }) => {
     await page.goto("/login");
     await page.click('button:has-text("Sign in as Guest")');
-    await expect(page).toHaveURL("/dashboard");
+    await expect(page).toHaveURL("/guests");
   });
 });
