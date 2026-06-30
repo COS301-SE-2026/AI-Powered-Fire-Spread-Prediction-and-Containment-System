@@ -13,7 +13,7 @@ export function ReportDetails({ report }: ReportDetailsProps) {
             <div className="flex flex-col gap-3">
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Reference</span>
-                    <code>{report.report_id}</code>
+                    <code>{report.reference_number}</code>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-text-muted text-sm">Status</span>
@@ -21,22 +21,22 @@ export function ReportDetails({ report }: ReportDetailsProps) {
                 </div>
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Reporter</span>
-                    <span className="text-text-primary">{report.reporter}</span>
+                    <span className="text-text-primary">{report.reporter_name}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Location</span>
-                    <span className="text-text-primary">{report.location}</span>
+                    <span className="text-text-primary">{report.location_text}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Size</span>
-                    <span className="text-text-primary">{report.size}</span>
+                    <span className="text-text-primary">{report.size} ha</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Reported at</span>
                     <time>
-                        {report.reported_at.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short'})}
+                        {new Date(report.submitted_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short'})}
                         {' | '}
-                        {report.reported_at.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit'})}
+                        {new Date(report.submitted_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit'})}
                     </time>
                 </div>
             </div>
