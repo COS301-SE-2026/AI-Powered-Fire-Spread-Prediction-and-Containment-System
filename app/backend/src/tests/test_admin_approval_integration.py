@@ -16,7 +16,7 @@ from tests.conftest import make_user, make_role_request
 # ---------------------------------------------------------------------------
 class TestListRoleRequests:
     def test_empty_returns_empty_list(self, client):
-        res = client.get("/api/admin/roles/role-requests")
+        res = client.get("/api/admin/role-requests")
         assert res.status_code == 200
         body = res.json()
         assert body["data"] == []
@@ -27,7 +27,7 @@ class TestListRoleRequests:
         make_role_request(db, user, status="pending")
         make_role_request(db, user, status="approved")
 
-        res = client.get("/api/admin/roles/role-requests")
+        res = client.get("/api/admin/role-requests")
         assert res.status_code == 200
         body = res.json()
         assert body["total"] == 2
@@ -35,29 +35,31 @@ class TestListRoleRequests:
 
     def test_response_shape(self, client, db):
         user = make_user(db, full_name="Alice Smith", email="alice@test.com")
-        make_role_request(db, user, role="firefighter", license_id="LIC-001")
+        make_role_request(db, user, role="firefighter")
 
-        res = client.get("/api/admin/roles/role-requests")
+        res = client.get("/api/admin/role-requests")
         item = res.json()["data"][0]
 
         assert "request_id" in item
-        assert "user_id" in item
-        assert item["user_full_name"] == "Alice Smith"
-        assert item["email"] == "alice@test.com"
-        assert item["role"] == "firefighter"
+        assert "requested_role" in item
+        assert item["requested_role"] == "firefighter"
         assert item["status"] == "pending"
         assert item["firefighter_license_id"] == "LIC-001"
 
 
 # ---------------------------------------------------------------------------
-# POST /api/admin/roles/role-requests/{id}/approve
+# PUT /api/admin/roles/role-requests/{id}/approve
 # ---------------------------------------------------------------------------
 class TestApproveRoleRequest:
     def test_approve_pending_request(self, client, db):
         user = make_user(db)
         req = make_role_request(db, user, status="pending")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/approve")
+        admin = make_user(db)
+        admin.id = "usr_01"
+        db.commit()
+
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/approve")
         assert res.status_code == 200
         body = res.json()
         assert body["status"] == "approved"
@@ -67,32 +69,37 @@ class TestApproveRoleRequest:
         user = make_user(db)
         req = make_role_request(db, user, status="approved")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/approve")
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/approve")
         assert res.status_code == 400
         assert "approved" in res.json()["detail"]
 
     def test_approve_nonexistent_returns_404(self, client):
         fake_id = uuid.uuid4()
-        res = client.post(f"/api/admin/roles/role-requests/{fake_id}/approve")
+        res = client.put(f"/api/admin/role-requests/{fake_id}/approve")
         assert res.status_code == 404
 
     def test_approve_rejected_request_returns_400(self, client, db):
         user = make_user(db)
         req = make_role_request(db, user, status="rejected")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/approve")
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/approve")
         assert res.status_code == 400
 
 
 # ---------------------------------------------------------------------------
-# POST /api/admin/roles/role-requests/{id}/reject
+# POST /api/admin/role-requests/{id}/reject
 # ---------------------------------------------------------------------------
 class TestRejectRoleRequest:
     def test_reject_pending_request(self, client, db):
         user = make_user(db)
         req = make_role_request(db, user, status="pending")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/reject")
+        #user with id=usr_01 needs to exist
+        admin = make_user(db, role="admin")
+        admin.id = "usr_01"
+        db.commit()
+
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/reject")
         assert res.status_code == 200
         assert res.json()["status"] == "rejected"
 
@@ -100,30 +107,35 @@ class TestRejectRoleRequest:
         user = make_user(db)
         req = make_role_request(db, user, status="rejected")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/reject")
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/reject")
         assert res.status_code == 400
 
     def test_reject_approved_request_returns_400(self, client, db):
         user = make_user(db)
         req = make_role_request(db, user, status="approved")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/reject")
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/reject")
         assert res.status_code == 400
 
     def test_reject_nonexistent_returns_404(self, client):
-        res = client.post(f"/api/admin/roles/role-requests/{uuid.uuid4()}/reject")
+        res = client.put(f"/api/admin/role-requests/{uuid.uuid4()}/reject")
         assert res.status_code == 404
 
 
 # ---------------------------------------------------------------------------
-# POST /api/admin/roles/role-requests/{id}/revoke
+# POST /api/admin/role-requests/{id}/revoke
 # ---------------------------------------------------------------------------
 class TestRevokeRoleRequest:
     def test_revoke_approved_request(self, client, db):
         user = make_user(db)
         req = make_role_request(db, user, status="approved")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/revoke")
+        #user with id=usr_01 needs to exist
+        admin = make_user(db, role="admin")
+        admin.id = "usr_01"
+        db.commit()
+
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/revoke")
         assert res.status_code == 200
         assert res.json()["status"] == "revoked"
 
@@ -131,18 +143,18 @@ class TestRevokeRoleRequest:
         user = make_user(db)
         req = make_role_request(db, user, status="pending")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/revoke")
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/revoke")
         assert res.status_code == 400
 
     def test_revoke_already_revoked_returns_400(self, client, db):
         user = make_user(db)
         req = make_role_request(db, user, status="revoked")
 
-        res = client.post(f"/api/admin/roles/role-requests/{req.request_id}/revoke")
+        res = client.put(f"/api/admin/role-requests/{req.request_id}/revoke")
         assert res.status_code == 400
 
     def test_revoke_nonexistent_returns_404(self, client):
-        res = client.post(f"/api/admin/roles/role-requests/{uuid.uuid4()}/revoke")
+        res = client.put(f"/api/admin/role-requests/{uuid.uuid4()}/revoke")
         assert res.status_code == 404
 
 
