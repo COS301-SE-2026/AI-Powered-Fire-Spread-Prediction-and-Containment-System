@@ -23,6 +23,7 @@ class RoleRequestResponse(BaseModel):
     requested_role:UserRole
     current_role:UserRole
     status:RequestStatus
+    firefighter_license_id: Optional[str] = None
     created_at:datetime
     reviewed_at: Optional[datetime] = None
     reviewed_by: Optional[str] = None
