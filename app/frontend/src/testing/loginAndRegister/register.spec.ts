@@ -30,25 +30,25 @@ test.describe("Registration Flow", () => {
     await expect(page).toHaveURL('/register');
   });
 
-  test("show error on duplicate email", async ({ page }) => {
-    const email = `dup-${Date.now()}@example.com`;
-    // First registration
-    await page.goto("/register");
-    await page.fill('input[name="name"]', "Test");
-    await page.fill('input[name="surname"]', "User");
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="idNumber"]', "1234");
-    await page.fill('input[name="password"]', "pass");
+  test('shows "Email already registered" error on duplicate email', async ({ page }) => {
+    await page.route('**/api/register', async (route) => {
+      await route.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ detail: 'Email already registered' }),
+      });
+    });
+    await page.goto('/register');
+    await page.fill('input[name="name"]', 'Test');
+    await page.fill('input[name="surname"]', 'User');
+    await page.fill('input[name="email"]', 'duplicate@example.com');
+    await page.fill('input[name="idNumber"]', '0123456789123'); 
+    await page.fill('input[name="password"]', 'ValidPass123');  
+    await page.fill('input[name="confirmPassword"]', 'ValidPass123');
     await page.click('button[type="submit"]');
+    const errorDiv = page.locator('.bg-flare\\/10');
+    await expect(errorDiv).toBeVisible();
+    await expect(errorDiv).toContainText('Email already registered');
     await expect(page).toHaveURL('/register');
-    // Second attempt with same email
-    await page.goto("/register");
-    await page.fill('input[name="name"]', "Test");
-    await page.fill('input[name="surname"]', "User");
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="idNumber"]', "1234");
-    await page.fill('input[name="password"]', "pass");
-    await page.click('button[type="submit"]');
-    await expect(page.locator(".bg-red-500\\/10")).toContainText("Email already registered");
   });
 });
