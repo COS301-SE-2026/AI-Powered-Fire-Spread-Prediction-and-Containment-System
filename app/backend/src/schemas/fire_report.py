@@ -9,7 +9,7 @@ class FireReportCreate(BaseModel):
     location_text:str
     description:Optional[str] = None
     image_url:str
-    boundary_radius: Optional[float] = None
+    boundary_radius: float
 
 class FireReportMapResponse(BaseModel):
     id:str
@@ -17,9 +17,11 @@ class FireReportMapResponse(BaseModel):
     lat: float
     lng: float
     location_text:str
-    status: ReportStatus
-    boundary_radius:Optional[float] = None
+    status:ReportStatus
+    boundary_radius: float
+    size: float
     submitted_at:datetime
+    reporter_name: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -31,11 +33,12 @@ class FireReportDetailResponse(BaseModel):
     lng: float
     location_text:str
     description:Optional[str] = None
-    image_url:str
+    image_url: str
     status:ReportStatus
-    status_index: int
-    boundary_radius: Optional[float] = None
-    submitted_at:datetime
+    boundary_radius: float
+    size: float
+    submitted_at: datetime
+    reporter_name: Optional[str] = None
 
     class Config:
         from_attributes = True
