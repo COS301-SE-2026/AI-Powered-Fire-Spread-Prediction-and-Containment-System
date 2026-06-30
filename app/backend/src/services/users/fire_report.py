@@ -21,12 +21,12 @@ def get_fire_reports(db:Session):
     ).outerjoin(FireReports.user).all()
     
     if not request:
-        raise ValueError("No fire reports found")
+        return []
 
     formatted_reports = []
     for report, lat, lng in request:
-        formatted_reports.append({
-            "id": report.id",
+        formatted_reports.append ({
+            "id": report.id,
             "reference_number": report.reference_number,
             "user_id": report.user_id,
             "location_text": report.location_text,
@@ -101,7 +101,7 @@ def status_change(report_id: str, status: ReportStatus, db:Session):
         raise ValueError(f"Report with id {report_id} does not exist")
     
     report.status = status
-    report.status_level = status_level.get(status, 0)
+    report.status_index = status_level.get(status, 0)
     report.updated_at = datetime.now(timezone.utc)
     db.commit()
 
