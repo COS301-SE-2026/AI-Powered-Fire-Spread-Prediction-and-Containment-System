@@ -13,6 +13,7 @@ class RoleRequest(Base):
     requested_role = Column(Enum(UserRole), default=UserRole.admin, nullable=False)
     current_role = Column(Enum(UserRole), nullable=False)
     status = Column(Enum(RequestStatus), default=RequestStatus.pending, nullable=False)
+    firefighter_license_id = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     reviewed_by = Column(String, ForeignKey("users.id"), nullable=True)
     reviewed_at = Column(DateTime, nullable=True)

@@ -26,13 +26,15 @@ def get_fire_reports(db:Session):
     formatted_reports = []
     for report, lat, lng in request:
         formatted_reports.append({
-            "id": report.id,
+            "id": report.id",
             "reference_number": report.reference_number,
+            "user_id": report.user_id,
             "location_text": report.location_text,
+            "description": report.description,
             "lat": lat,
             "lng": lng,
-            "status": report.status,
-            "submitted_at": report.submitted_at,
+            "status": report.status.value,
+            "submitted_at": report.submitted_at.isoformat(),
             "boundary_radius": float(report.boundary_radius),
             "size": calc_size(float(report.boundary_radius)),
             "reporter_name": f"{report.user.name} {report.user.surname}" if report.user else "Anonymous",
