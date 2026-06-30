@@ -6,6 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from models.reported_fires import FireReports
+from enums.report_status import ReportStatus
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -135,3 +137,22 @@ def make_role_request(db, user, role="firefighter", status="pending"):
     db.commit()
     db.refresh(request)
     return request
+
+def make_fire_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.pending, status_index=1, refernce_number=None,):
+    point_wkt = f"SRID=4326;POINT({lng} {lat})"
+    report = FireReports(
+        id=str(uuid.uuid4()),
+        reference_number=f"FR-2026-{uuid.uuid4().hex[:6].upper()}",
+        user_id=user.id if user else None,
+        reporter_ip="127.0.0.1",
+        location_text="Test location",
+        image_url="https://example.com/fire.jpg",
+        location_geom=point_wkt,
+        boundary_radius=0.2,
+        status=status,
+        status_index=status_index,
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report
