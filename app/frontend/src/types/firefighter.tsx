@@ -1,6 +1,6 @@
 export type ReportStatus = 'pending' | 'verified' | 'received';
 
-export interface Report{ // come back and tweak to make sure it matches the API response when backend made
+export interface Report{
     ref: string;
     location: string; // have the api calculate the area using the data from POSTGIS
     status: ReportStatus;

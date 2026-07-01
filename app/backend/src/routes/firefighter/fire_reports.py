@@ -7,8 +7,6 @@ from services.firefighter import firefighter_reports
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
-DBSession = Annotated[Session, Depends(get_db)]
-
 # Gets all reported fires to populate the table
 @router.get("/reported-fires", response_model=ReportList, responses={404: {"description": "No fire reports found"}})
 def get_fire_reports(db:Session = Depends(get_db)): 
