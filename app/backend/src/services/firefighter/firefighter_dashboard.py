@@ -69,6 +69,9 @@ def get_current_environment_vars(lat:float, lng: float): # pings the open-meteo 
     response.raise_for_status()
     data = response.json()["current"]
 
+    if not data:
+        raise ValueError("Failed to get environment variables")
+
     return {
         "temperature": data["apparent_temperature"],
         "humidity": data["relative_humidity_2m"],
