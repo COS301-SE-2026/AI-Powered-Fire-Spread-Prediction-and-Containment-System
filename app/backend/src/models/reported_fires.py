@@ -24,3 +24,10 @@ class FireReports(Base):
 
     user = relationship("User", back_populates='fire_reports')
     containment_lines = relationship("ContainmentLines", back_populates="fire_reports")
+    user = relationship("User", back_populates='fire_reports')
+
+    @property
+    def reporter(self) -> str:
+        if self.user is None:
+            return "Anonymous"
+        return f"{self.user.name} {self.user.surname}"
