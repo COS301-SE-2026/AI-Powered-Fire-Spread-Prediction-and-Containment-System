@@ -2,13 +2,15 @@ from enums.report_status import ReportStatus
 from enums.fire_danger import FireDanger
 from typing import List
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 class NearbyFire(BaseModel):
     location_text: str
     distance: float
     time_ago: str
     status: ReportStatus
+
+    model_config = ConfigDict(from_attributes=True)
 
 class EnvironmentVariables(BaseModel):
     wind: float
