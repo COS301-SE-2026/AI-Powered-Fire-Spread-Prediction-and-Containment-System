@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
@@ -21,6 +21,30 @@ const FireMap = dynamic(
 );
 
 export default function FirefighterDashboard() {
+    const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
+    const [drawMode, setDrawMode] = useState(false);
+    const [userLocation, setUserLocation] = useState(default_location);
+    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
+    const [isDrawMode, setIsDrawMode] = useState(false);
+
+    useEffect (() => {
+        if(!navigator.geolocation){ // if user does not allow location return default location on map
+            return;
+        }
+
+        {/* if users location permissions accepted set lat and lng to users location */}
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                });
+                setIsDefaultLocation(false);
+            },
+            () => {} // keeps default if there is failure retreiving users location
+        )
+    }, [])
+
     return(
         <SideBarLayout hideLoginRegister>
             <div className="flex flex-col p-6">
@@ -41,7 +65,7 @@ export default function FirefighterDashboard() {
                                 <span className="font-bold text-m tracking-wide text-neutral/80">LIVE FIRE MAP</span>
                             </div>
                             <div className="flex-1 w-full h-full pt-[53px]"> 
-                                <FireMap />
+                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={(line) => {setDrawMode(false)}} />
                             </div>
                             <MapStatsOverlay/>
                         </div>

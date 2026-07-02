@@ -1,4 +1,5 @@
 from geoalchemy2.functions import ST_DWithin, ST_Distance
+from geoalchemy2.shape import to_shape
 from geoalchemy2.elements import WKTElement
 from sqlalchemy.orm import Session
 from models.reported_fires import FireReports
@@ -44,11 +45,14 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
     
     formatted_result = []
     for fire, distance_m in request: # distance in meters again
+        shape = to_shape(fire.location_geom)
         formatted_result.append({
             "location_text": fire.location_text,
             "distance": round(distance_m / 1000, 1), # meters to km
             "time_ago": calculate_time_ago(fire.submitted_at),
-            "status": fire.status
+            "status": fire.status,
+            "latitude": shape.y,
+            "longitude": shape.x,
         })
 
     return {"data": formatted_result, "total": len(formatted_result)}
