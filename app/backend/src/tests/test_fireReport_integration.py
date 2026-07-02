@@ -3,42 +3,23 @@ from models.reported_fires import FireReports
 from datetime import datetime, timezone
 from geoalchemy2.elements import WKTElement
 from enums.report_status import ReportStatus
+from conftest import make_report, make_user
 
-#helper function that loads the mock data into test db
-def mock_fireReport(db):
-    mock_report = FireReports(
-        id="fr_test_01",
-        reference_number="FR-2026-AABBCC",
-        user_id=None,
-        location_text="Hatfield, Pretoria",
-        description="Test fire near campus",
-        image_url="https://example.com/fire.jpg",
-        location_geom=WKTElement("POINT(28.2293 -25.7479)", srid=4326),
-        boundary_radius=2.0,
-        status=ReportStatus.received,
-        status_index=0,
-        submitted_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
-    )
-    db.add(mock_report)
-    db.commit()
-    return mock_report
+### GET /api/users/reported-fires ###
 
 #test if nothing in db then endpoint returns HTTP 200 OK
+#smoke test and empty-case test
 def test_get_report_empty(client):
     response = client.get("/api/users/reported-fires")
     
-    assert response.status_code == 200, (
-        f"Expect 200 OK when DB is empty, returned {response.status_code}"
-    )
+    assert response.status_code == 200, f"Expect 200 OK when DB is empty, returned {response.status_code}"
 
-    assert response.json() == [], (
-        "Expect empty list when DB is empty, returned something in the list"
-    )
+    assert response.json() == [], "Expect empty list when DB is empty, returned something in the list"
 
+# endpoint exsistance test 
 #test if the report is in db then must appear in GET response
 def test_get_reports(client, db):
-    mock_fireReport(db)
+    report = make_report(db)
     response = client.get("/api/users/reported-fires")
 
     assert response.status_code == 200
@@ -49,5 +30,99 @@ def test_get_reports(client, db):
     refnums = []
     for r in response.json():
         refnums.append(r["reference_number"])
-    assert "FR-2026-AABBCC" in refnums, " report not found in get response"
+    assert report.reference_number in refnums, " report not found in get response"
 
+#test if the shape of the get is correct
+def test_get_report_shape(client, db):
+    make_report(db)
+    response = client.get("/api/users/reported-fires")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert len(data) >= 1
+
+    item = data[0]
+    expected_keys = {"id", "reference_number", "lat", "lng", "location_text", "status", "boundary_radius", "size", "submitted_at", "reporter_name", }
+    assert set(item.keys()) == expected_keys, f"wrong shape: {set(item.keys())} should be: {expected_keys}"
+
+#happy path tests 
+#test if one anonymous report exsists and if all the values is correct
+def test_get_anonymous(client, db):
+    report = make_report(db, lat=-25.7479, lng=28.2293, status=ReportStatus.pending, status_index=1,)
+    response = client.get("/api/users/reported-fires")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+
+    item = None 
+    for r in data:
+        if r["reference_number"] == report.reference_number:
+            item = r
+            break
+    assert item is not None, "report not found in respons"
+
+    assert item["id"] == report.id, f"Expected {report.id}, got {item['id']}"
+    assert item["location_text"] == report.location_text, f"Expected {report.location_text}, got {item['location_text']}"
+    assert item["status"] == ReportStatus.pending.value, f"Expected {report.status}, got {item['status']}"
+    assert item["boundary_radius"] == pytest.approx(float(report.boundary_radius)), f"Expected {report.boundary_radius}, got {item['boundary_radius']}"
+    assert item["lat"] == pytest.approx(-25.7479, abs=1e-4), f"Expected lat possible swapped with lng"
+    assert item["lng"] == pytest.approx(28.2293, abs=1e-4), f"Expected lng possible swapped with lat"
+    assert item["reporter_name"] == "Anonymous", f"Expected {report.reporter_name}, got {item['reporter_name']}"
+
+#test if the reporter name comes back as the actual full name
+def test_get_reporter(client, db):
+    user = make_user(db, full_name="Piet Pompies", role="user")
+    report = make_report(db, user=user)
+    response = client.get("/api/users/reported-fires")
+    
+    assert response.status_code == 200
+    data = response.json()
+
+    item = None 
+    for r in data:
+        if r["reference_number"] == report.reference_number:
+            item = r
+            break
+    assert item is not None, "report not found in respons"
+
+    assert item["reporter_name"] == "Piet Pompies", f"Expected Piet Pompies, got {item['reporter_name']}"
+
+#test if 3 reports exist then 3 needs to come back exactly as they are 
+def test_get_multiple_reports(client, db):
+    reports = []
+    for i in range(3):
+        reports.append(make_report(db))
+    
+    response = client.get("/api/users/reported-fires")
+    
+    assert response.status_code == 200
+
+    refnums = []
+    for r in response.json():
+        refnums.append(r["reference_number"])
+    
+    for report in reports:
+        sum = refnums.count(report.reference_number)
+        assert sum == 1, f"Expected {report.reference_number} to appear 1, got {sum}"
+
+### POST /api/users/reported-fires ###
+
+#test if post endpoint exist and returns a valid response
+def test_post_exist(client):
+    payload = {
+        "lat": -25.7479,
+        "lng": 28.2293,
+        "location_text": "Hatfield, Pretoria",
+        "image_url": "https://example.com/fire.jpg",
+        "boundary_radius": 0.2,
+    }
+    response = client.post("/api/users/reported-fires", json=payload)
+
+    assert response.status_code == 200, (
+        f"Expect success status, returned {response.status_code}: {response.text}"
+    )
+    body = response.json()
+    assert "id" in body, "shoulf contain id in body"
+    assert "reference_number" in body, "should contain reference number in body"
