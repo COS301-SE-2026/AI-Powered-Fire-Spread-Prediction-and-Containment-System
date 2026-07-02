@@ -22,3 +22,7 @@ class EnvironmentVariables(BaseModel):
 class NearbyFiresList(BaseModel):
     data: List[NearbyFire]
     total: int
+
+class DashboardData(BaseModel):
+    nearby_fires: NearbyFiresList
+    environment_variables: EnvironmentVariables
