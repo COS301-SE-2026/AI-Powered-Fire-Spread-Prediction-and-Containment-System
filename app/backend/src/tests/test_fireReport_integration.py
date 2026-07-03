@@ -190,3 +190,9 @@ def test_post_invalid_type(client):
 def test_not_allowed(client):
     response = client.delete("/api/users/reported-fires")
     assert response.status_code == 405, f"Expected 405 method NOt ALlowed, got {response.status_code}"
+
+def test_post_boundary_radius_zero(client):
+    newpayload = {**PAYLOAD, "boundary_radius": 0}
+    response = client.post("/api/users/reported-fires", json=newpayload)
+    assert response.status_code == 422, f"Expected 422 for boundary_radius of 0, got {response.status_code}"
+    
