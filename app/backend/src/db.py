@@ -26,5 +26,8 @@ def get_db():
 
 def init_db():
     """Create all tables on startup."""
-    from models import User, RoleRequestDB  
+    from models.users import User
+    from models.role_request import RoleRequest
+    from models.reported_fires import FireReports
+
     Base.metadata.create_all(bind=engine)
