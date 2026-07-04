@@ -1,6 +1,8 @@
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2AuthorizationCodeBearer
 import os
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+from jose import jwt, JWTError
 import bcrypt
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-super-secret-key-change-this")
@@ -22,3 +24,26 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+oauth2_scheme = OAuth2AuthorizationCodeBearer(tokenUrl="/api/login")
+
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    """Extract JWT from header, decode JWT, returns payload"""
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate":"Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
+        user_email: str = payload.get("sub")
+        if user_email is None:
+            raise credentials_exception
+        
+    except JWTError:
+        raise credentials_exception
+    
+    return payload
+
+#moet miskien nog een add vir admin spesifiek, maar nou te moeg om te dink
