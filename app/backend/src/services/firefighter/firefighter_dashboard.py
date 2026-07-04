@@ -58,7 +58,7 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
     return {"data": formatted_result, "total": len(formatted_result)}
 
 
-def calculate_fire_danger(temp: float, humidity: float, wind: float): # need to find a calculation to determine fire risk will happen when model for AI is more researched
+def calculate_fire_danger(temp: float, humidity: float, wind: float): # need to find a calculation to determine fire risk will happen when model for AI is more researched will use XGboost for now acording to meetings
     return "high"
 
 def get_current_environment_vars(lat:float, lng: float): # pings the open-meteo api every time this func is called will look at making it real-time later in project
