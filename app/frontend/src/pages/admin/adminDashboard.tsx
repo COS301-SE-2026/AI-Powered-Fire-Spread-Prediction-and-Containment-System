@@ -11,11 +11,6 @@ interface ActivityItem {
 }
 
 interface WeeklyData {
-    day:string;
-    count: number;
-}
-
-interface WeeklyData {
     day: string;
     count: number;
 }
