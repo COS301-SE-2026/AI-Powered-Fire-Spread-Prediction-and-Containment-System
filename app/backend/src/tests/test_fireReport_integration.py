@@ -12,7 +12,7 @@ from conftest import make_report, make_user
 def test_get_report_empty(client):
     response = client.get("/api/users/reported-fires")
     
-    assert response.status_code == 200, f"Expect 200 OK when DB is empty, returned {response.status_code}"
+    assert response.status_code == 200, "Expect 200 OK when DB is empty, returned {response.status_code}"
 
     assert response.json() == [], "Expect empty list when DB is empty, returned something in the list"
 
@@ -44,7 +44,7 @@ def test_get_report_shape(client, db):
 
     item = data[0]
     expected_keys = {"id", "reference_number", "lat", "lng", "location_text", "status", "boundary_radius", "size", "submitted_at", "reporter_name", }
-    assert set(item.keys()) == expected_keys, f"wrong shape: {set(item.keys())} should be: {expected_keys}"
+    assert set(item.keys()) == expected_keys, "wrong shape: {set(item.keys())} should be: {expected_keys}"
 
 #happy path tests 
 #test if one anonymous report exsists and if all the values is correct
@@ -63,13 +63,13 @@ def test_get_anonymous(client, db):
             break
     assert item is not None, "report not found in respons"
 
-    assert item["id"] == report.id, f"Expected {report.id}, got {item['id']}"
-    assert item["location_text"] == report.location_text, f"Expected {report.location_text}, got {item['location_text']}"
-    assert item["status"] == ReportStatus.pending.value, f"Expected {report.status}, got {item['status']}"
-    assert item["boundary_radius"] == pytest.approx(float(report.boundary_radius)), f"Expected {report.boundary_radius}, got {item['boundary_radius']}"
-    assert item["lat"] == pytest.approx(-25.7479, abs=1e-4), f"Expected lat possible swapped with lng"
-    assert item["lng"] == pytest.approx(28.2293, abs=1e-4), f"Expected lng possible swapped with lat"
-    assert item["reporter_name"] == "Anonymous", f"Expected {report.reporter_name}, got {item['reporter_name']}"
+    assert item["id"] == report.id, "Expected {report.id}, got {item['id']}"
+    assert item["location_text"] == report.location_text, "Expected {report.location_text}, got {item['location_text']}"
+    assert item["status"] == ReportStatus.pending.value, "Expected {report.status}, got {item['status']}"
+    assert item["boundary_radius"] == pytest.approx(float(report.boundary_radius)), "Expected {report.boundary_radius}, got {item['boundary_radius']}"
+    assert item["lat"] == pytest.approx(-25.7479, abs=1e-4), "Expected lat possible swapped with lng"
+    assert item["lng"] == pytest.approx(28.2293, abs=1e-4), "Expected lng possible swapped with lat"
+    assert item["reporter_name"] == "Anonymous", "Expected {report.reporter_name}, got {item['reporter_name']}"
 
 #test if the reporter name comes back as the actual full name
 def test_get_reporter(client, db):
@@ -87,12 +87,12 @@ def test_get_reporter(client, db):
             break
     assert item is not None, "report not found in respons"
 
-    assert item["reporter_name"] == "Piet Pompies", f"Expected Piet Pompies, got {item['reporter_name']}"
+    assert item["reporter_name"] == "Piet Pompies", "Expected Piet Pompies, got {item['reporter_name']}"
 
 #test if 3 reports exist then 3 needs to come back exactly as they are 
 def test_get_multiple_reports(client, db):
     reports = []
-    for i in range(3):
+    for _ in range(3):
         reports.append(make_report(db))
     
     response = client.get("/api/users/reported-fires")
@@ -105,7 +105,7 @@ def test_get_multiple_reports(client, db):
     
     for report in reports:
         count = refnums.count(report.reference_number)
-        assert count == 1, f"Expected {report.reference_number} to appear 1, got {count}"
+        assert count == 1, "Expected {report.reference_number} to appear 1, got {count}"
 
 ### POST /api/users/reported-fires ###
 
@@ -122,7 +122,7 @@ def test_post_exist(client):
     response = client.post("/api/users/reported-fires", json=PAYLOAD)
 
     assert response.status_code == 200, (
-        f"Expect success status, returned {response.status_code}: {response.text}"
+        "Expect success status, returned {response.status_code}: {response.text}"
     )
     body = response.json()
     assert "id" in body, "shoulf contain id in body"
@@ -141,7 +141,7 @@ def test_post_shape(client):
         "submitted_at", "reporter_name",
     }
 
-    assert set(item.keys()) == expected_keys, f"wrong shape: {set(item.keys())} should be: {expected_keys}"
+    assert set(item.keys()) == expected_keys, "wrong shape: {set(item.keys())} should be: {expected_keys}"
 
 #test that payload is valid and response values are correct
 def test_post_happy_path(client, db):
@@ -150,11 +150,11 @@ def test_post_happy_path(client, db):
     assert response.status_code == 200
     body = response.json()
 
-    assert body["location_text"] == PAYLOAD["location_text"], f"Expected {PAYLOAD['location_text']}, got {body['location_text']}"
-    assert body["status"] == ReportStatus.pending.value, f"Expected pending, got {body['status']}"
-    assert body["lat"] == pytest.approx(PAYLOAD["lat"], abs=1e-4), f"lat possibly swapped with lng, got {body['lat']}"
-    assert body["lng"] == pytest.approx(PAYLOAD["lng"], abs=1e-4), f"lat possibly swapped with lat, got {body['lng']}"
-    assert body["reporter_name"] == "Anonymous", f"Expected Anonymous, got {body['reporter_name']}"
+    assert body["location_text"] == PAYLOAD["location_text"], "Expected {PAYLOAD['location_text']}, got {body['location_text']}"
+    assert body["status"] == ReportStatus.pending.value, "Expected pending, got {body['status']}"
+    assert body["lat"] == pytest.approx(PAYLOAD["lat"], abs=1e-4), "lat possibly swapped with lng, got {body['lat']}"
+    assert body["lng"] == pytest.approx(PAYLOAD["lng"], abs=1e-4), "lat possibly swapped with lat, got {body['lng']}"
+    assert body["reporter_name"] == "Anonymous", "Expected Anonymous, got {body['reporter_name']}"
     
     row = db.query(FireReports).filter(FireReports.id == body["id"]).first()
     assert row is not None, "Report not found in db after POST"
@@ -169,7 +169,7 @@ def test_post_user(client, db):
     assert response.status_code == 200
     body = response.json()
 
-    assert body["reporter_name"] == "Piet Pompies", f"Expected Piet Pompies, got {body['reporter_name']}"
+    assert body["reporter_name"] == "Piet Pompies", "Expected Piet Pompies, got {body['reporter_name']}"
 
 
 #test if post has missing field it has to send 422 back 
@@ -178,21 +178,21 @@ def test_post_missing_lat(client):
     del newpayload["lat"]
 
     response = client.post("/api/users/reported-fires", json=newpayload)
-    assert response.status_code == 422, f"Expected 422, got {response.status_code}"
+    assert response.status_code == 422, "Expected 422, got {response.status_code}"
 
 #test if payload type is valid
 def test_post_invalid_type(client):
     newpayload = {**PAYLOAD, "lat": "string"}
 
     response = client.post("/api/users/reported-fires", json=newpayload)
-    assert response.status_code == 422, f"Expected 422, got {response.status_code}"
+    assert response.status_code == 422, "Expected 422, got {response.status_code}"
 
 def test_not_allowed(client):
     response = client.delete("/api/users/reported-fires")
-    assert response.status_code == 405, f"Expected 405 method NOt ALlowed, got {response.status_code}"
+    assert response.status_code == 405, "Expected 405 method NOt ALlowed, got {response.status_code}"
 
 def test_post_boundary_radius_zero(client):
     newpayload = {**PAYLOAD, "boundary_radius": 0}
     response = client.post("/api/users/reported-fires", json=newpayload)
-    assert response.status_code == 422, f"Expected 422 for boundary_radius of 0, got {response.status_code}"
+    assert response.status_code == 422, "Expected 422 for boundary_radius of 0, got {response.status_code}"
     
