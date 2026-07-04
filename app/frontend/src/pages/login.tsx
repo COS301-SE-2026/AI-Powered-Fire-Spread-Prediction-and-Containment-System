@@ -40,14 +40,18 @@ export default function Login() {
     }
     setIsLoading(true);
     try {
-      const data = await fetch(`/api/auth/login`, {
+        const res = await fetch(`/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-      }).then(res => res.json());
-      if (data.access_token) {
+      });
+
+      const data = await res.json();
+      if (data.requires_2fa) {
+        router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
+      } else if (data.access_token){
         localStorage.setItem('token', data.access_token);
-        router.push('/guests');
+        router.push('/guests')  // need to change this to registered users at some stage
       } else {
         setApiError('Unexpected response');
       }
