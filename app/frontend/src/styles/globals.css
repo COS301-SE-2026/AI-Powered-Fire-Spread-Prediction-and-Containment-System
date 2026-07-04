@@ -55,13 +55,13 @@
   --color-torch: #FFAA00;
   --color-flash: #FFE566;
 
-  --color-carbon-bg: #080B12;
-  --color-carbon-side: #0C0F1A;
-  --color-carbon-card: #101420;
-  --color-carbon-input: #151A26;
-  --color-carbon-elevated: #161B2A;
-  --color-carbon-stroke: #1E2436;
-  --color-smoke-hover: #1E2436;
+  --color-carbon-bg: #080B12; /*page canvas*/
+  --color-carbon-side: #0C0F1A; /*sidebar and nav*/
+  --color-carbon-card: #101420; /*cards panels*/
+  --color-carbon-input: #151A26; /*input fields*/
+  --color-carbon-elevated: #161B2A; /* elevated surfaces and models*/
+  --color-carbon-stroke: #1E2436; /* bodrers and dividers*/
+  --color-smoke-hover: #1E2436; /*hover*/
 
 /*fire fighter page*/
   --color-wind:     #378ADD;
