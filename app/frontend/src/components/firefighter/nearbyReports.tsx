@@ -18,24 +18,42 @@ const mockReports = [
     { id: 15, location: 'Olivenhoutsdrift', distance: '26.4 km', status: 'Pending',   time: '7 hrs ago'  },
 ];
 
+interface NearbyFire{
+    readonly location_text: string;
+    readonly distance: number;
+    readonly time_ago: string;
+    readonly status: string;
+}
+
+interface NearbyFireReports{
+    readonly nearby_fires: NearbyFire[];
+}
+
 const statusColor = (s: string) => ({
-    Active: 'bg-ignite/20 text-flare border border-ignite/40',
-    Pending: 'bg-torch/20 text-torch border border-torch/35',
-    Contained: 'bg-humidity/20 text-humidity border border-humidity/35',
+    verified: 'bg-ignite/20 text-flare border border-ignite/40',
+    pending: 'bg-torch/20 text-torch border border-torch/35',
+    received: 'bg-humidity/20 text-humidity border border-humidity/35',
 }[s] ?? 'bg-carbon-card text-neutral/50');
-export function NearbyReports() {
+export function NearbyReports({nearby_fires}: NearbyFireReports) {
+    if(nearby_fires.length === 0){
+        return(
+            <div className="h-full flex items-center justify-center p-4">
+                <p className="text-xs opacity-50">No nearby fires</p>
+            </div>
+        )
+    }
     return(
         <div className="h-full overflow-y-auto flex flex-col p-2">
-        {mockReports.map((report) => (
-            <div key={report.id} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
+        {nearby_fires.map((fire, i) => (
+            <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
                 <div>
-                    <p className="font-semibold text-sm">{report.location}</p>
-                    <p className="text-xs opacity-50">{report.distance} · {report.time}</p>
+                    <p className="font-semibold text-sm">{fire.location_text}</p>
+                    <p className="text-xs opacity-50">{fire.distance} km · {fire.time_ago}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <span className={`badge px-3 py-1 rounded-full ${statusColor(report.status)}`}>
-                        {report.status}
+                    <span className={`badge px-3 py-1 rounded-full ${statusColor(fire.status)}`}>
+                        {fire.status}
                     </span>
                     <ChevronRight className="size-4 opacity-30" />
                 </div>

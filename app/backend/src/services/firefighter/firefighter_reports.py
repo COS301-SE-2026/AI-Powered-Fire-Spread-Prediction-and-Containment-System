@@ -20,11 +20,11 @@ def get_fire_reports(db:Session):
             "boundary_radius": float(fire.boundary_radius),
             "submitted_at": fire.submitted_at,
             "reporter": fire.reporter,
-            "latitude": shape.y,
-            "longitude": shape.x
+            "lat": shape.y,
+            "lng": shape.x
         })
 
-    return { "data": request, "total":len(request)}
+    return { "data": formatted, "total":len(formatted)}
 
 def search_report_table(db:Session, key:str):
     request = db.query(FireReports).outerjoin(FireReports.user).filter(or_(FireReports.reference_number.ilike(f"%{key}%"), FireReports.location_text.ilike(f"%{key}%"), User.name.ilike(f"%{key}%"), User.surname.ilike(f"%{key}%"))).all()
