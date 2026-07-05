@@ -6,10 +6,12 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
     async rewrites() {
+        const backend_url = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000'
+        console.log('[next.config.js] Proxying /api/* to:', backend_url)
         return[
             {
                 source: '/api/:path*',
-                destination: 'http://backend:8000/api/:path*',
+                destination: `${backend_url}/api/:path*`,
             }
         ]
     }
