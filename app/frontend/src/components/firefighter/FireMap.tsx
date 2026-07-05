@@ -1,14 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-const { default: Map, Marker } = require('react-map-gl/mapbox');
+import React, { useEffect, useState, useRef } from 'react';
+import { Map, Marker } from 'react-map-gl/mapbox';
+import mapboxgl from 'mapbox-gl'
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
 
 interface FireReport{
     reference_number: string;
     location_text: string;
     status: string
-    latitude: number;
-    longitude: number;
+    lat: number;
+    lng: number;
 }
 
 interface MapProps{
@@ -16,9 +18,14 @@ interface MapProps{
     lng: number;
     drawMode: boolean;
     onDrawComplete: (line: string) => void;
+    clearDrawings: number;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: MapProps) {
+
+    const mapRef = useRef<any>(null);
+    const drawRef = useRef<any>(null);
+
     const [fires, setFires] = useState<FireReport[]>([]);
 
     useEffect(() => {
@@ -41,8 +48,46 @@ export function FireMap({lat, lng, drawMode, onDrawComplete}: MapProps) {
         fetchRequest();
     }, [])
 
+    const handleDrawCreate = (e: any) => {
+        const line = e.features[0];
+        const coords = line.geometry.coordinates;
+        const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+        onDrawComplete(wkt);
+    }
+
+    useEffect(() => {
+        if(!mapRef.current){
+            return;
+        }
+        const map = mapRef.current.getMap();
+
+        if(drawMode){
+            if(!drawRef.current){
+                drawRef.current = new MapboxDraw({
+                    displayControlsDefault: false,
+                    modes: {...MapboxDraw.modes},
+                });
+                map.addControl(drawRef.current);
+            }
+            drawRef.current.changeMode('draw_line_string')
+
+            map.off('draw.create', handleDrawCreate);
+            map.on('draw.create', handleDrawCreate);
+        }else{
+            if(drawRef.current){
+                drawRef.current.changeMode('simple_select');
+            }
+        }
+    }, [drawMode]);
+
+    useEffect(() => {
+        if(!drawRef.current) return;
+        drawRef.current.deleteAll();
+    }, [clearDrawings])
+
     return (
         <Map
+            ref={mapRef}
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
             initialViewState={{
                 longitude: lng,
@@ -53,7 +98,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete}: MapProps) {
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
             {fires.map((fire) => (
-                <Marker key={fire.reference_number} longitude={fire.longitude} latitude={fire.latitude} anchor="center">
+                <Marker key={fire.reference_number} longitude={fire.lng} latitude={fire.lat} anchor="center">
                     <div className="relative flex items-center justify-center size-6">
                         {/* The radar ping animation effect */}
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />

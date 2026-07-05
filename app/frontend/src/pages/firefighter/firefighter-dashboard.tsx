@@ -24,8 +24,10 @@ export default function FirefighterDashboard() {
     const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
     const [drawMode, setDrawMode] = useState(false);
     const [userLocation, setUserLocation] = useState(default_location);
+    const [clearDrawings, setClearDrawings] = useState(0);
     const [isDefaultLocation, setIsDefaultLocation] = useState(true);
-    const [isDrawMode, setIsDrawMode] = useState(false);
+    const [nearbyFires, setNearbyFires] = useState<any[]>([]);
+    const [environmentVariables, setEnvironmentVariables] = useState<any | null>(null);
 
     useEffect (() => {
         if(!navigator.geolocation){ // if user does not allow location return default location on map
@@ -45,6 +47,28 @@ export default function FirefighterDashboard() {
         )
     }, [])
 
+    useEffect(() => {
+        const fetchRequest = async () => {
+            const url = `/api/firefighter/firefighter-dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+            try{
+                const resp = await fetch(url);
+                if (!resp.ok){
+                    setNearbyFires([]);
+                    setEnvironmentVariables(null);
+                    return;
+                }
+                const data = await resp.json();
+                setNearbyFires(data.nearby_fires?.data ?? []);
+                setEnvironmentVariables(data.environment_variables ?? null);
+            } catch(error){
+                console.error("Was unable to find/retrieve dashboard data", error);
+                setNearbyFires([]);
+                setEnvironmentVariables(null);
+            }
+        };
+        fetchRequest();
+    }, [userLocation]);
+
     return(
         <SideBarLayout hideLoginRegister>
             <div className="flex flex-col p-6">
@@ -63,9 +87,10 @@ export default function FirefighterDashboard() {
                         <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
                             <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                                 <span className="font-bold text-m tracking-wide text-neutral/80">LIVE FIRE MAP</span>
+                                <button onClick={() => setClearDrawings(c => c + 1)} className="text-xs font-medium text-neutral/60 hover:text-ignite transition-colors">Clear Lines</button>
                             </div>
                             <div className="flex-1 w-full h-full pt-[53px]"> 
-                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={(line) => {setDrawMode(false)}} />
+                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={(line) => {setDrawMode(false)}} clearDrawings={clearDrawings}/>
                             </div>
                             <MapStatsOverlay/>
                         </div>
@@ -74,13 +99,13 @@ export default function FirefighterDashboard() {
                                 <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
                                     Environment Variables
                                 </h2>
-                                <EnvironmentWidgets />
+                                <EnvironmentWidgets variables={environmentVariables}/>
                             </div>
                             <div className="flex flex-col">
                                 <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
                                     Quick Actions
                                 </h2>
-                                <QuickActions />
+                                <QuickActions onStartDraw={() => setDrawMode(true)}/>
                             </div>
                         </div>                  
                     </div>
@@ -91,7 +116,7 @@ export default function FirefighterDashboard() {
                             Nearby Reports
                         </h2>
                         <div className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto" style={{ maxHeight: 'calc(480px + 2rem + 220px)' }}>
-                            <NearbyReports />
+                            <NearbyReports nearby_fires={nearbyFires}/>
                         </div>
                     </div>
                 </div>

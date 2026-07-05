@@ -2,9 +2,10 @@ from geoalchemy2.functions import ST_DWithin, ST_Distance
 from geoalchemy2.shape import to_shape
 from geoalchemy2.elements import WKTElement
 from sqlalchemy.orm import Session
+from sqlalchemy import cast
+import requests
 from models.reported_fires import FireReports
 from geoalchemy2.types import Geography
-import requests
 from datetime import datetime, timezone
 
 def calculate_time_ago(reported_at: datetime) -> str: # return a string for how long ago fire has been reported
@@ -38,7 +39,10 @@ def calculate_time_ago(reported_at: datetime) -> str: # return a string for how 
 def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20):
     point = WKTElement(f"POINT({lng} {lat})", srid=4326)
 
-    request = db.query(FireReports).filter(ST_DWithin(FireReports.location_geom.cast(Geography), point.cast(Geography), radius_km * 1000)).add_columns(ST_Distance(FireReports.location_geom.cast(Geography), point.cast(Geography))).order_by(ST_Distance(FireReports.location_geom.cast(Geography), point.cast(Geography))).all() # * 1000 because ST_DWithin uses meters not km
+    geom_geog = cast(FireReports.location_geom, Geography)
+    point_geog = cast(point, Geography)
+
+    request = db.query(FireReports).filter(ST_DWithin(geom_geog, point_geog, radius_km * 1000)).add_columns(ST_Distance(FireReports.location_geom, point_geog)).order_by(ST_Distance(geom_geog, point_geog)).all() # * 1000 because ST_DWithin uses meters not km
 
     if not request:
         raise ValueError("No fires nearby")
