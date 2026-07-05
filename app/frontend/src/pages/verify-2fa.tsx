@@ -8,10 +8,13 @@ export default function Verify2FA() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { email } = router.query;
+  const { email, otpauth_url } = router.query;
 
-  // Remove the automatic redirect – instead show a message
-  // Optionally, you can still redirect after a few seconds, but let the user see the page.
+  const isValidEmail = email && typeof email === 'string';
+  const hasQrSetup = isValidEmail && otpauth_url && typeof otpauth_url === 'string';
+
+  const qrCodeSrc = hasQrSetup ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauth_url as string)}` : ''; 
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,13 +29,14 @@ export default function Verify2FA() {
     setIsLoading(true);
     setError('');
     try {
-      const data = await apiCall('/auth/verify-2fa', 'POST', {
+      const data = await apiCall('/api/auth/verify-2fa', 'POST', {
         username: email,
         code,
       });
+
       if (data.access_token) {
         localStorage.setItem('token', data.access_token);
-        router.push('/dashboard');
+        router.push('/guests');
       } else {
         setError('Verification failed');
       }
@@ -43,7 +47,6 @@ export default function Verify2FA() {
     }
   };
 
-  const isValidEmail = email && typeof email === 'string';
 
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -80,9 +83,23 @@ export default function Verify2FA() {
             </>
           ) : (
             <>
-              <p className="text-white/60 text-sm mb-4">
+              {hasQrSetup && (
+                <>
+                  <p className="text-white/60 text-sm mb-4">
+                    Scann this QR code with your authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code below.
+                  </p>
+                  <div className="flex justify-center mb-4">
+                    <img src={qrCodeSrc} alt="2FA QR Code" width={220} height={220} className="rounded-md border border-carbon-stroke"/>
+                  </div>
+                </>
+              )}
+
+              {!hasQrSetup && (
+                <p className="text-white/60 text-sm mb-4">
                 Enter the 6‑digit code from your authenticator app
-              </p>
+                </p>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <input
                   type="text"
@@ -93,11 +110,13 @@ export default function Verify2FA() {
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                   required
                 />
+
                 {error && (
                   <div className="bg-error/10 border border-error/50 text-error text-sm p-2 rounded">
                     {error}
                   </div>
                 )}
+                
                 <button
                   type="submit"
                   disabled={isLoading}
