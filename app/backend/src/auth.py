@@ -46,4 +46,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     
     return payload
 
-#moet miskien nog een add vir admin spesifiek, maar nou te moeg om te dink
+#authorisation
+async def get_current_admin_user(current_user: dict = Depends(get_current_user)):
+    """Dependency ensures the current user has an Admin privilage"""
+    if current_user.get("role") != "Admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail = "Access denied: Admin privileges needed"
+        )
+    return current_user
