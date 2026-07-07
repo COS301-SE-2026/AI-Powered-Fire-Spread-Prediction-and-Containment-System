@@ -109,7 +109,7 @@
   --radius-md: 4px;
 }
 
-@layer base {
+@layer components {
   body {
     margin: 0;
     font-family: var(--font-body);
@@ -164,9 +164,7 @@
     font-size: var(--text-sm);
     color: var(--color-flare);
   }
-}
 
-@layer components {
   .sidebar-surface {
     background: linear-gradient(180deg, #0C0F1A 0%, #0E1018 100%);
     border-right: 1px solid rgba(232, 69, 0, 0.08);
