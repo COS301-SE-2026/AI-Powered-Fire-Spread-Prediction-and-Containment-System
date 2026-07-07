@@ -1,29 +1,14 @@
-const nav_items = [
-  {id: "colours", label: "Colour Pallette"},
-  {id: "typography", label: "Typography"},
-  {id: "logo", label: "Logo & Iconography"},
-  {id: "components", label: "UI Components"},
-  {id: "accessibility", label: "Accessibility"},
-  {id: "principles", label: "Design Principles"},
-];
+const className =  "py-2.5 px-4 rounded-lg flex items-center text-sm font-medium tracking-wide text-neutral/80 hover:text-neutral hover:bg-smoke-hover active:scale-[0.98] transition-all";
 
-interface StyleGuideNavProps {
-  active: string;
-  scrollTo: (id: string) => void;
-}
-
-export default function StyleGuideNav({ active, scrollTo }: StyleGuideNavProps) {
+export default function StyleGuideNav() {
   return (
-    <nav className="flex flex-col">
-      {nav_items.map(({ id, label }) => (
-        <button
-          key={id}
-          onClick={() => scrollTo(id)}
-          className={`nav-item ${active === id ? "nav-item--active" : ""}`}
-        >
-          {label}
-          </button>
-      ))}
+    <nav className="flex flex-col gap-1 w-56 shrink-0 h-screen sticky top-0 px-4 py-8 border-r border-carbon-stroke bg-carbon-side">
+      <a href="#colours" className={className}>Colours</a>
+      <a href="#typography" className={className}>Typography</a>
+      <a href="#logo" className={className}>Logo & Iconography</a>
+      <a href="#componennts" className={className}>UI Components</a>
+      <a href="#accessibility" className={className}>Accessibility</a>
+      <a href="#principles" className={className}>Design Principles</a>
     </nav>
   );
 }
