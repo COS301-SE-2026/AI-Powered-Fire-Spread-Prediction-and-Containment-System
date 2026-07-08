@@ -16,3 +16,6 @@ const FireMap = dynamic(
     }
 );
 
+export default function RegisteredUserDashboard (){
+
+}
