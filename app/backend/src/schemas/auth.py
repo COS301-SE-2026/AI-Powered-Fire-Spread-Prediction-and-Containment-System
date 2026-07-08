@@ -26,3 +26,8 @@ class Two_FA_Verify_Request(BaseModel):
 
 class MsgResponse(BaseModel):
     message:str
+    
+class Two_FA_Required_Response(BaseModel):
+    requires_2fa: bool = True
+    email: str
+    otpauth_url: Optional[str] = None #present at register for new secret but not for login because already set up

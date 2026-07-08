@@ -1,0 +1,22 @@
+services:
+  test-db:
+
+    image: postgis/postgis:15-3.3
+
+    container_name: fireaway_test_db
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: test_fire_db
+
+    ports: 
+      - "5433:5432"
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg-isready -U postgres -d test_fire_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    
+    restart: unless-stopped
