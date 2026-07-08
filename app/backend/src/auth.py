@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2AuthorizationCodeBearer
+from fastapi.security import OAuth2PasswordBearer
 import os
 from datetime import datetime, timedelta, timezone
 from jose import jwt, JWTError
@@ -25,7 +25,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-oauth2_scheme = OAuth2AuthorizationCodeBearer(tokenUrl="/api/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """Extract JWT from header, decode JWT, returns payload"""

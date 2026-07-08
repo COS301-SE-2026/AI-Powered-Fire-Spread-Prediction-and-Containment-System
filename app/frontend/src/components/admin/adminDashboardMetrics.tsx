@@ -1,6 +1,15 @@
 import React from 'react';
 
-export const DashboardMetrics:  React.FC = () => {
+interface DashboardMetricsProps {
+    metrics: {
+        active_fires: number;
+        pending_approval: number;
+        total_users: number;
+        system_status: string;
+    }
+}
+
+export const DashboardMetrics:  React.FC<DashboardMetricsProps> = ({metrics}) => {
     return (
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
@@ -9,7 +18,7 @@ export const DashboardMetrics:  React.FC = () => {
                     Active Fires
                 </span>
                 <div className="text-3xl font-extrabold text-red-500">
-                    12
+                    {metrics.active_fires}
                 </div>
             </div>
 
@@ -18,7 +27,7 @@ export const DashboardMetrics:  React.FC = () => {
                     Pending Approvals
                 </span>
                 <div className="text-3xl font-extrabold text-amber-500">
-                    5
+                    {metrics.pending_approval}
                 </div>
             </div>
 
@@ -27,7 +36,7 @@ export const DashboardMetrics:  React.FC = () => {
                     Total Users
                 </span>
                 <div className="text-3xl font-extrabold text-white">
-                    284
+                    {metrics.total_users}
                 </div>
             </div>
 
@@ -36,7 +45,7 @@ export const DashboardMetrics:  React.FC = () => {
                     System Status
                 </span>
                 <div className="text-3xl font-extrabold text-emarald-500 uppercase tracking-wide">
-                    Okay
+                    {metrics.system_status}
                 </div>
             </div>
         </section>
