@@ -11,6 +11,7 @@ from routes.users.fire_reports import router as user_fire_router
 from routes.auth.register import router as register_router
 from routes.auth.login import router as login_router
 from routes.auth.two_factor import router as two_factor_router
+from routes.admin import admin_dashboard
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
@@ -39,6 +40,7 @@ app.include_router(guest_fire_router)
 app.include_router(register_router)
 app.include_router(login_router)
 app.include_router(two_factor_router)
+app.include_router(admin_dashboard.router)
 
 @app.get("/")
 def read_root():
