@@ -1,13 +1,16 @@
-export type ReportStatus = 'pending' | 'verified' | 'rejected';
+export type ReportStatus = 'received' | 'pending' | 'verified' | 'rejected';
 
 export type FireReport = {
-    report_id: string;
-    location: string;
+    id: string;
+    reference_number: string;
+    location_text: string;
     status: ReportStatus;
-    size: string;
-    reported_at: Date;
-    reporter: string;
+    size: number;
+    submitted_at: string;
+    reporter_name: string;
     description?: string;
-    lat?: number;
-    lng?:number;
+    image_url: string;
+    lat: number;
+    lng:number;
+    status_index?: number;
 }
