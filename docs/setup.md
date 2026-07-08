@@ -133,16 +133,8 @@ yarn dev
 yarn build
 yarn start
 yarn lint
-yarn test # runs all test files in the testing folder
+yarn test
+yarn test:headed
+yarn test:report
+yarn test:install
 ```
-
-# Just some notes for testing
-
-## Backend testing
-- The backend uses pytest for testing. Test files should be placed in the `app/backend/src/tests` directory and follow the naming convention `test_*.py`.
-- To run the tests, navigate to the `app/backend/src` directory and execute `yarn test`. This will run all the test files in the `tests` folder.
-
-## Frontend testing
-- The frontend uses playwright for testing. Test files should be placed in the `app/frontend/src/testing` directory and follow the naming convention `*.spec.ts`.
-- To run the tests, navigate to the `app/frontend/src` directory and execute `yarn test`. This will run all the test files in the `testing` folder.
-- To run a specific test file, use the command `yarn test path/to/testfile.spec.ts`. For example, to run the `home.spec.ts` test file, execute `yarn test testing/home.spec.ts`.te

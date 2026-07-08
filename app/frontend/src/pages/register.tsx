@@ -108,22 +108,28 @@ export default function Register() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-        email: form.email,
-        password: form.password,
-        name: form.name,
-        surname: form.surname,
-        id_number: form.idNumber,
-        licence_number: form.role === 'Firefighter' ? form.licenceNumber : null,
-        role: form.role,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || 'Something went wrong');
-      router.push('/guests');
+        const res = await fetch(`/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+          email: form.email,
+          password: form.password,
+          name: form.name,
+          surname: form.surname,
+          id_number: form.idNumber,
+          licence_number: form.role === 'Firefighter' ? form.licenceNumber : null,
+          role: form.role,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+
+      if (data.requires_2fa && data.otpauth_url){
+        router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}&otpauth_url=${encodeURIComponent(data.otpauth_url)}`);
+      } else {
+        setApiError('Unexpected response from server');
+      }
     } catch (err: any) {
       setApiError(err.message);
     } finally {
