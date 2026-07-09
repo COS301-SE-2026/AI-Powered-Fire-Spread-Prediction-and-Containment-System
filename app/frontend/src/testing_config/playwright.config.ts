@@ -4,6 +4,7 @@ const config = {
     '**/reportFire/**/*.spec.@(js|ts|tsx)',
     '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
     '**/guests/**/*.spec.@(js|ts|tsx)',
+    '**/firefighter/**/*.spec.@(js|ts|tsx)',
   ],
   timeout: 30000,
   expect: {
