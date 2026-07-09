@@ -1,7 +1,7 @@
 import React from 'react';
 import { Flame, Map, House, Settings, MessageCircleWarning, MessagesSquare, LogOut } from 'lucide-react';
 
-export function SidebarLayout({ children }: { children?: React.ReactNode }) {
+export function SidebarLayout({ children }: { children?: Readonly<React.ReactNode> }) {
     return (
         <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialiased relative z-0">
             {/* Atmospheric Background Blooms */}
