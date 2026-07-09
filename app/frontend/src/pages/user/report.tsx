@@ -34,7 +34,7 @@ type SubmitState = "idle" | "loading" | "error";
 export default function ReportPage() {
   const [activeStep, setActiveStep]     = useState(0);
   const [location, setLocation]         = useState("Click the map to drop a pin");
-  const [boundarySize, setBoundarySize] = useState(2);
+  const [boundarySize, setBoundarySize] = useState(200);
   const [statusIndex, setStatusIndex]   = useState(-1);
   const [mapKey, setMapKey]             = useState(0);
   const [activeRefNum, setActiveRefNum] = useState("");
@@ -57,6 +57,7 @@ export default function ReportPage() {
 
   function handleLocationSelect(loc: { lat: number; lng: number; address: string }) {
     setLocation(loc.address);
+    setExternalPin({ lng: loc.lng, lat: loc.lat });
     setActiveStep((prev) => Math.max(prev, 1));
   }
 
