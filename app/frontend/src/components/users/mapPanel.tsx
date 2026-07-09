@@ -10,7 +10,7 @@ const COL_SPAN_CLASSES: Record<number, string> = {
 const HEIGHT_CLASSES: Record<string, string> = {
     sm: 'h-[30rem]',
     md: 'h-[40rem]',
-    lg: 'h-[50rem]',
+    lg: 'h-[46rem]',
 };
 
 interface MapPanelProps{
