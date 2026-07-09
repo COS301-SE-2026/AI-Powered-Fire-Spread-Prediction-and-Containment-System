@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import { NearbyReports } from '../../components/firefighter/nearbyReports';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { SidebarLayout } from '../../components/users/sidebar';
 import { PageHeader } from '../../components/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
 import { SidePanelRight } from '../../components/users/sidePanelRight';
@@ -21,7 +21,7 @@ const FireMap = dynamic(
 
 export default function RegisteredUserDashboard (){
     return(
-        <SideBarLayout>
+        <SidebarLayout>
             <div className="flex flex-col p-6">
 
                 <PageHeader
@@ -39,7 +39,7 @@ export default function RegisteredUserDashboard (){
                     </SidePanelRight>
                 </div>
             </div>
-        </SideBarLayout>
+        </SidebarLayout>
         
     );
    
