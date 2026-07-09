@@ -8,10 +8,10 @@ const COL_SPAN_CLASSES: Record<number, string> = {
 }
 
 interface SidePanelRightProps{
-    title: string;
-    children: React.ReactNode;
-    maxHeight?: string;
-    colSpan?: number;
+    title: string;  // Required
+    children: React.ReactNode;  // Required
+    maxHeight?: string; // Optional: max heigh for scroll panel body
+    colSpan?: number; // Optional: Grid col span set at xl breakpoint. Defaults to 4 (pairs with an 8-col mapPanel)
 }
 
 export function SidePanelRight({title, children, maxHeight, colSpan=4}: SidePanelRightProps){
