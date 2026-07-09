@@ -6,7 +6,7 @@ interface PageHeaderProps {
     actions?: React.ReactNode;
 }
 
-export function PageHeader({title, subtitle, actions}: PageHeaderProps){
+export function PageHeader({title, subtitle, actions}: Readonly<PageHeaderProps>){
     return(
         <header className="mb-4 flex items-center justify-between">
             <div>
