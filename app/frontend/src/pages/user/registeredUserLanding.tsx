@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { NearbyReports } from '../../components/firefighter/nearbyReports';
 import { SideBarLayout } from '../../components/demoSidebar';

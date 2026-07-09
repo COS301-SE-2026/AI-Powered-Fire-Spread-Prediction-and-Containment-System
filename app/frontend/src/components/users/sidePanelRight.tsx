@@ -14,7 +14,7 @@ interface SidePanelRightProps{
     colSpan?: number; // Optional: Grid col span set at xl breakpoint. Defaults to 4 (pairs with an 8-col mapPanel)
 }
 
-export function SidePanelRight({title, children, maxHeight, colSpan=4}: SidePanelRightProps){
+export function SidePanelRight({title, children, maxHeight, colSpan=4}: Readonly<SidePanelRightProps>){
     const colSpanClass = COL_SPAN_CLASSES[colSpan] ?? COL_SPAN_CLASSES[4];
 
     return(
