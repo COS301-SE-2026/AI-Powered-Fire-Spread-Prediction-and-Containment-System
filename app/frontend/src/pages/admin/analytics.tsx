@@ -1,33 +1,107 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
-import Button from '../../components/Button';
 import { SideBarLayout } from '../../components/demoSidebar';
+interface KPIs {
+  total_users: number;
+  pending_role_requests: number;
+  total_firefighters: number;
+  total_admins: number;
+}
 
-// --------------------- DUMMY DATA ---------------------
-const kpiData = [
-  { label: 'Total Users', value: '1,284', change: '+12%', trend: 'up' },
-  { label: 'Pending Role Requests', value: '23', change: '-3%', trend: 'down' },
-  { label: 'Role Changes (30d)', value: '47', change: '+5%', trend: 'up' },
-  { label: 'Suspended / Revoked', value: '12', change: '-2%', trend: 'down' },
-];
+interface UserSummary {
+  id: string;
+  name: string;
+  surname: string;
+  email: string;
+  license_number: string | null;
+}
 
-const pendingRequests = [
-  { email: 'jane.doe@example.com', requestedRole: 'Firefighter', timestamp: '2 hours ago' },
-  { email: 'mike.smith@example.com', requestedRole: 'Admin', timestamp: '1 day ago' },
-  { email: 'sara.connor@example.com', requestedRole: 'Firefighter', timestamp: '3 days ago' },
-];
+interface PendingRequest {
+  request_id: string;
+  user: UserSummary;
+  requested_role: string;
+  current_role: string;
+  status: string;
+  created_at: string;
+  reviewed_at: string | null;
+  reviewed_by: string | null;
+}
 
-const recentAuditLog = [
-  { timestamp: '10:32 AM', user: 'admin@epiuse.com', action: 'Role Change', details: 'jane.doe → Firefighter' },
-  { timestamp: '09:15 AM', user: 'fire.chief@epiuse.com', action: 'Login', details: 'Success' },
-  { timestamp: '08:45 AM', user: 'admin@epiuse.com', action: 'Revocation', details: 'sara.connor (suspended)' },
-  { timestamp: '07:20 AM', user: 'system', action: 'Password Reset', details: 'mike.smith' },
-  { timestamp: 'Yesterday, 23:10', user: 'admin@epiuse.com', action: 'Role Approval', details: 'alice.wong → Admin' },
-];
+interface AnalyticsData {
+  kpis: KPIs;
+  pending_requests: PendingRequest[];
+}
 
 export default function AdminAnalyticsPage() {
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/admin/analytics/overview')
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data: AnalyticsData) => {
+        setData(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching analytics:', err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <SideBarLayout>
+        <div className="p-6 flex justify-center items-center min-h-[60vh]">
+          <div className="text-neutral/60">Loading analytics data...</div>
+        </div>
+      </SideBarLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <SideBarLayout>
+        <div className="p-6">
+          <div className="bg-error/10 border border-error/30 rounded-lg p-4 text-error">
+            <p className="font-semibold">Unable to load analytics</p>
+            <p className="text-sm">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </SideBarLayout>
+    );
+  }
+
+  if (!data) {
+    return (
+      <SideBarLayout>
+        <div className="p-6">No data available</div>
+      </SideBarLayout>
+    );
+  }
+
+  const kpiCards = [
+    { label: 'Total Users', value: data.kpis.total_users.toString() },
+    { label: 'Pending Role Requests', value: data.kpis.pending_role_requests.toString() },
+    { label: 'Total Firefighters', value: data.kpis.total_firefighters.toString() },
+    { label: 'Total Admins', value: data.kpis.total_admins.toString() },
+  ];
+
   return (
     <SideBarLayout>
       <div className="p-6 space-y-6 w-full">
@@ -39,29 +113,21 @@ export default function AdminAnalyticsPage() {
               Admin Analytics
             </h1>
             <p className="text-sm text-neutral/50">
-              Governance, security, and system performance insights
+              User governance and role management overview
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="dark" className="flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export Audit Log
-            </Button>
-            <span className="text-sm text-neutral/40">Last 30 days</span>
-          </div>
+          <span className="text-sm text-neutral/40">
+            Updated: {new Date().toLocaleString()}
+          </span>
         </div>
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpiData.map((kpi) => (
+          {kpiCards.map((kpi) => (
             <Card key={kpi.label} title={kpi.label}>
               <div className="flex flex-col">
                 <span className="text-2xl font-bold text-neutral">{kpi.value}</span>
-                <span className={`text-xs ${kpi.trend === 'up' ? 'text-success' : 'text-error'}`}>
-                  {kpi.change}
-                </span>
+                {/* No change indicator for now */}
               </div>
             </Card>
           ))}
@@ -76,66 +142,38 @@ export default function AdminAnalyticsPage() {
             </Link>
           }
         >
-          {pendingRequests.length === 0 ? (
+          {data.pending_requests.length === 0 ? (
             <p className="text-white/40 text-sm">No pending requests</p>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-carbon-stroke">
-                  <th className="text-left py-2 text-white/40 font-medium">Email</th>
-                  <th className="text-left py-2 text-white/40 font-medium">Requested Role</th>
-                  <th className="text-left py-2 text-white/40 font-medium">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingRequests.map((req, idx) => (
-                  <tr key={idx} className="border-b border-carbon-stroke/50 last:border-0">
-                    <td className="py-2 text-neutral">{req.email}</td>
-                    <td className="py-2">
-                      <Badge label={req.requestedRole} state="pending" />
-                    </td>
-                    <td className="py-2 text-white/60">{req.timestamp}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-carbon-stroke">
+                    <th className="text-left py-2 text-white/40 font-medium">Name</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Email</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Requested Role</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Time</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.pending_requests.map((req) => (
+                    <tr key={req.request_id} className="border-b border-carbon-stroke/50 last:border-0">
+                      <td className="py-2 text-neutral">
+                        {req.user.name} {req.user.surname}
+                      </td>
+                      <td className="py-2 text-white/80">{req.user.email}</td>
+                      <td className="py-2">
+                        <Badge label={req.requested_role} state="pending" />
+                      </td>
+                      <td className="py-2 text-white/60">
+                        {new Date(req.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </Card>
-
-        {/* Recent Audit Log */}
-        <Card
-          title="Recent Audit Log"
-          actions={
-            <Link href="/admin/audit-log" className="text-sm text-primary hover:underline">
-              View full log
-            </Link>
-          }
-        >
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-carbon-stroke">
-                <th className="text-left py-2 text-white/40 font-medium">Timestamp</th>
-                <th className="text-left py-2 text-white/40 font-medium">User</th>
-                <th className="text-left py-2 text-white/40 font-medium">Action</th>
-                <th className="text-left py-2 text-white/40 font-medium">Details</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentAuditLog.map((entry, idx) => (
-                <tr key={idx} className="border-b border-carbon-stroke/50 last:border-0">
-                  <td className="py-2 text-white/60">{entry.timestamp}</td>
-                  <td className="py-2 text-neutral">{entry.user}</td>
-                  <td className="py-2">
-                    <Badge
-                      label={entry.action}
-                      state="pending"
-                    />
-                  </td>
-                  <td className="py-2 text-white/60">{entry.details}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </Card>
 
       </div>
