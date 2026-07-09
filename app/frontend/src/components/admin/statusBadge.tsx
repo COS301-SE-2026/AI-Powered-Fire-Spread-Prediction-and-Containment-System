@@ -9,5 +9,6 @@ export const statusBadge: Record<string, BadgeStyle> = {
     approved: { bg: 'bg-humidity/10', text: 'text-humidity', border: 'border-humidity/25' },
     rejected: { bg: 'bg-flare/10', text: 'text-flare', border: 'border-flare/25' },
     revoked: { bg: 'bg-ignite/20', text: 'text-ignite', border: 'border-ignite/50' },
+    verified: { bg: 'bg-humidity/10', text: 'text-humidity', border: 'border-humidity/25' },
     none: {},
 }
