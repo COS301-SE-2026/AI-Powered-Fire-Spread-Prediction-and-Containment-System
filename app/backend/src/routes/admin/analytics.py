@@ -10,14 +10,16 @@ from schemas.role_request import UserSummary
 from schemas.role_request import RoleRequestResponse, RoleRequestList
 from pydantic import BaseModel
 from schemas.admin_analytics import KPIs, AnalyticsOverviewResponse
+from enums.user_role import UserRole
+from enums.role_request_status import RequestStatus
 
-router =APIRouter(prefix="/admin/analytics", tags=["Admin Analytics"])
+router =APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
 @router.get("/overview", response_model=AnalyticsOverviewResponse)
 def get_analytics_overview(db: Session = Depends(get_db)):
     total_users= db.query(User).filter(User.is_active== True).count()
-    pending_count =db.query(RoleRequest).filter( RoleRequest.status == "pending").count()
-    total_firefighters=db.query(User).filter(User.role == "firefighter", User.is_active == True).count()
-    total_admins=db.query(User).filter(User.role == "admin", User.is_active==True).count()
+    pending_count =db.query(RoleRequest).filter( RoleRequest.status == RequestStatus.pending).count()
+    total_firefighters=db.query(User).filter(User.role == UserRole.firefighter, User.is_active == True).count()
+    total_admins=db.query(User).filter(User.role == UserRole.admin, User.is_active==True).count()
     kpis = KPIs(
         total_users=total_users,
         pending_role_requests=pending_count,
@@ -25,7 +27,7 @@ def get_analytics_overview(db: Session = Depends(get_db)):
         total_admins=total_admins,
     )
     
-    pending_requests=db.query(RoleRequest).filter(RoleRequest.status=="pending").order_by(RoleRequest.created_at.dec()).limit(20).all()
+    pending_requests=db.query(RoleRequest).filter(RoleRequest.status==RequestStatus.pending).order_by(RoleRequest.created_at.desc()).limit(20).all()
     
     pending_responses = []
     for req in pending_requests:
@@ -33,7 +35,7 @@ def get_analytics_overview(db: Session = Depends(get_db)):
         if user:
             pending_responses.append(
                 RoleRequestResponse(
-                    request_id=req.id,
+                    request_id=req.request_id,
                     user=UserSummary(
                         id=user.id,
                         name=user.name,

@@ -40,7 +40,7 @@ export default function AdminAnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/admin/analytics/overview')
+    fetch('/api/admin/analytics/overview')
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Failed to fetch: ${res.status}`);
@@ -137,7 +137,7 @@ export default function AdminAnalyticsPage() {
         <Card
           title="Pending Role Requests"
           actions={
-            <Link href="/admin/role-requests" className="text-sm text-primary hover:underline">
+            <Link href="/admin/approvalPage" className="text-sm text-primary hover:underline">
               Manage all
             </Link>
           }

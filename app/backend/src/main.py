@@ -46,7 +46,7 @@ app.include_router(guest_fire_router)
 app.include_router(register_router)
 app.include_router(login_router)
 app.include_router(two_factor_router)
-
+app.include_router(admin_analytics_router)
 @app.get("/")
 def read_root():
     return {"status": "online", "message": "FireAway API is running and connected to PostgreSQL."}
