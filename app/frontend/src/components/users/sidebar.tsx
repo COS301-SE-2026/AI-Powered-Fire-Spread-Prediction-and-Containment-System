@@ -6,13 +6,13 @@ import { Flame, Map, House, Settings, MessageCircleWarning, MessagesSquare, LogO
 const mainMenuItems = [
     { label: 'Home', href: '/user/registeredUserLanding', icon: House },
     { label: 'Report a Fire', href: '/user/report', icon: Flame },
-    { label: 'Fire Simulation', href: '/underConstruction', icon: Map },
-    { label: 'Notifications', href: '/underConstruction', icon: MessageCircleWarning },
-    { label: 'Community', href: '/underCunstruction', icon:MessagesSquare },
+    { label: 'Fire Simulation', href: '/user/registeredUnderConstruction', icon: Map },
+    { label: 'Notifications', href: '/user/registeredUnderConstruction', icon: MessageCircleWarning },
+    { label: 'Community', href: '/user/registeredUnderConstruction', icon: MessagesSquare },
 ];
 
 const settingsMenuItem = [
-    { label: 'Settings', href: '/underCunstruction', icon: Settings },
+    { label: 'Settings', href: '/user/registeredUnderConstruction', icon: Settings },
 ];
 
 export function SidebarLayout({ children }: { children?: Readonly<React.ReactNode> }) {
