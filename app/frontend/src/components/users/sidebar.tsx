@@ -1,7 +1,23 @@
 import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { Flame, Map, House, Settings, MessageCircleWarning, MessagesSquare, LogOut } from 'lucide-react';
 
+const mainMenuItems = [
+    { label: 'Home', href: '/user/registeredUserLanding', icon: House },
+    { label: 'Report a Fire', href: '/user/report', icon: Flame },
+    { label: 'Fire Simulation', href: '/underConstruction', icon: Map },
+    { label: 'Notifications', href: '/underConstruction', icon: MessageCircleWarning },
+    { label: 'Community', href: '/underCunstruction', icon:MessagesSquare },
+];
+
+const settingsMenuItem = [
+    { label: 'Settings', href: '/underCunstruction', icon: Settings },
+];
+
 export function SidebarLayout({ children }: { children?: Readonly<React.ReactNode> }) {
+    const router = useRouter();
+
     return (
         <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialiased relative z-0">
             {/* Atmospheric Background Blooms */}
@@ -27,54 +43,50 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
 
                 <div className="w-full grow overflow-y-auto overflow-x-hidden">
                     <ul className="menu w-full px-3 space-y-3 flex flex-col items-center group-hover:items-start">
-                        <li className="w-full">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                                <House className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Home</span>
-                            </button>
-                        </li>
-                        <li className="w-full">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                                <Flame className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Report a Fire</span>
-                            </button>
-                        </li>
-                        <li className="w-full">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                                <Map className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Fire Simulation</span>
-                            </button>
-                        </li>
-                         <li className="w-full">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                                <MessageCircleWarning className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Notifications</span>
-                            </button>
-                        </li>
-                        <li className="w-full">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                                <MessagesSquare className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Community </span>
-                            </button>
-                        </li>
+                        {mainMenuItems.map(({label, href, icon: Icon}) => {
+                            const isActive = router.pathname === href;
+                            return (
+                                <li className="w-full" key={href}>
+                                    <Link href={href} className={`py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left ${isActive ? 'bg-smoke-hover' : ''}`}>
+                                        <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-neutral/70 group-hover:text-ignite'}`}/>
+                                        <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                            {label}
+                                        </span>
+                                    </Link>
+                                </li>
+                            );
+                        })}
 
                         <div className="w-full text-center mt-4 mb-1 px-2 border-t border-carbon-card pt-4 shrink-0">
                             <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block group-hover:hidden whitespace-nowrap">SETTINGS</span>
                             <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase hidden group-hover:block text-left px-4 whitespace-nowrap">APP SETTINGS</span>
                         </div>
 
-                        <li className="w-full mt-auto">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                                <Settings className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
-                                <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Settings</span>
-                            </button>
-                        </li>
+                        {settingsMenuItem.map(({label, href, icon: Icon}) => {
+                            const isActive = router.pathname === href;
+
+                            return(
+                                <li className="w-full mt-auto" key={href}>
+                                    <Link href={href} className={`py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left ${isActive ? 'bg-smoke-hover' : ''}`}>
+                                        <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-neutral/70 group-hover:text-ignite'}`}/>
+                                        <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                            {label}
+                                        </span>
+                                    </Link>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
 
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-4 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side">
-                    <button className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
-                        <LogOut className="size-6 shrink-0" />
+                    <button 
+                        onClick={() => {
+                            // TODO: clear session/cookies then redirect
+                            router.push('/login');
+                        }}
+                        className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                            <LogOut className="size-6 shrink-0" />
                         <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
                     </button>
                 </div>
