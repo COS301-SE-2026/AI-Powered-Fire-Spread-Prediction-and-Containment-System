@@ -2,15 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { SideBarLayout } from '../../components/demoSidebar';
-import StepIndicator from "../../components/reportfire/Stepindicator";
-import MapKey from "../../components/reportfire/Mapkey";
-import ReportDetailsForm, { type ReportFormData } from "../../components/reportfire/Reportdetailsform";
-import ReportStatus from "../../components/reportfire/Reportstatus";
+import StepIndicator from "./Stepindicator";
+import MapKey from "./Mapkey";
+import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
+import ReportStatus from "./Reportstatus";
 import { API_BASE_URL } from "../../config/api";
 
 const FireMap = dynamic(
-  () => import("../../components/reportfire/Firemap").then((mod) => mod.FireMap),
+  () => import("./Firemap").then((mod) => mod.FireMap),
   {
     ssr: false,
     loading: () => (
@@ -103,7 +102,6 @@ export default function ReportPage() {
   }
 
   return (
-    <SideBarLayout>
       <div className="flex flex-col p-6">
         <header className="mb-4 flex items-center justify-between">
           <div>
@@ -166,6 +164,5 @@ export default function ReportPage() {
 
         </div>
       </div>
-    </SideBarLayout>
   );
 }
