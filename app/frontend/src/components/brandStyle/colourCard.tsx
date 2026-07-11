@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-interface ColourToken {
+export interface ColourToken {
   name: string;
   hex: string;
   usage: string;
