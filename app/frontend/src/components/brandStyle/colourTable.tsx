@@ -19,7 +19,7 @@ function Rating(ratio: number): string {
     }
 }
 
-export function ColourPairRow({ pair }: { pair: ColourPair}){
+export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>){
     const rating = Rating(pair.ratio);
     return(
         <tr>
@@ -33,7 +33,7 @@ export function ColourPairRow({ pair }: { pair: ColourPair}){
     );
 }
 
-export function ColourPairTable({ children }: { children: ReactNode }) {
+export function ColourPairTable({ children }: Readonly<{ children: ReactNode }>) {
     return (
         <div className="overflow-x-auto border border-carbon-stroke">
             <table className="table">
