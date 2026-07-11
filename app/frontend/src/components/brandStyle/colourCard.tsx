@@ -44,7 +44,7 @@ function HSL(hex: string): string{
     return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
 }
 
-export function ColourCard({ colour }: { colour: ColourToken }) {
+export function ColourCard({ colour }: Readonly<{ colour: ColourToken }>) {
     return(
         <div className="card bg-cabon-card border border-carbon-stroke overflow-hidden">
             <div className="relative h-28 flex" style={{ backgroundColor: colour.hex }}>
