@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Flame, Map, BookAlert, ShieldAlert, Settings,
   Wind, Thermometer, Droplets, UserCircle, LogOut, PlusCircle,
-  AlertTriangle, Radio, Navigation,
+  AlertTriangle, Radio, Navigation, MessagesSquare,
 } from 'lucide-react';
 
 export default function LogoSection() {
@@ -92,6 +92,7 @@ export default function LogoSection() {
               { Icon: AlertTriangle,   name: 'AlertTriangle',   usage: 'Danger / hazard'  },
               { Icon: Radio,           name: 'Radio',           usage: 'Comms / dispatch' },
               { Icon: Navigation,      name: 'Navigation',      usage: 'Location / route' },
+              { Icon: MessagesSquare,  name: 'Message',         usage: 'User message' },
             ].map(({ Icon, name, usage }) => (
               <div
                 key={name}
