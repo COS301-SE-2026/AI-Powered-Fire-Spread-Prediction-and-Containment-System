@@ -5,6 +5,34 @@ import Components from '../components/brandStyle/Components';
 import Accessibility from '../components/brandStyle/Accessability';
 import DesignPrinciples from '../components/brandStyle/DesignPrinciples';
 import StyleGuideNav from "../components/brandStyle/navStyle";
+import { ColourGroup } from '../components/brandStyle/colourGroup';
+import { ColourCard, ColourToken } from '../components/brandStyle/colourCard';
+
+// brand colours
+const primary: ColourToken = { name: "Primary - Ignite", hex: "#FD5D19", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
+const secondary: ColourToken = { name: "Secondary - Glow", hex: "#FE8024", usage: "Secondary actions, deep accents", reason: "We chose this colour by staying in the same warm-orange family as Primary rather than introducing a new hue. We call it Glow (the softer light a fire casts outward). Secondary actions doesn't compete for attention.", textColour: "#ffffff"  };
+const accent: ColourToken = { name: "Accent - Torch", hex: "#FCBA3E", usage: "Highlights, callouts", reason: "We chose this colour because it needed to be different enough from Primary to draw attention on its own. We call it Torch (the brightest part of a flame). It is used to guide attention the way an actual torch would.", textColour: "#ffffff"  };
+
+// semantic colours
+const info: ColourToken = { name: "Info", hex: "#378ADD", usage: "Informational messages, wind data", reason: "We chose this cool blue for informational content. Blue feels calm and doesn't feel alarming.", textColour: "#000000" };
+const success: ColourToken = { name: "Success", hex: "#1D9E75", usage: "Confirmations, humidity data", reason: "We chose green as the one colour with no relationship to fire. It is universally understood as go or good or success across cultures.", textColour: "#000000"  };
+const warning: ColourToken = { name: "Warning", hex: "#FFAA00", usage: "Caution, pending states", reason: "We chose this gold-yellow, visually the step where a flame is smouldering and could still go either way. Warning is less urgent than an error. A user can tell at a glance whether something needs immediate action or some caution.", textColour: "#000000"  };
+const error: ColourToken = { name: "Error", hex: "#E84500", usage: "Errors, destructive actions", reason: "We chose a dedicated red to represent fire turning dangerous (past urgent into stop). Red is also the most universally understood danger colour, which menase it's a real fire risk.", textColour: "#000000" };
+
+// surface colors
+const page: ColourToken = { name: "Page - Char", hex: "#080B12", usage: "Page canvas background", reason: "We chose a near-black rather than true black so the background has a very slight warmth, simmilar to the night sky. We called it Char (what's left in the dark once the fire's glow has faded). It is in contrast with the fire colours, the way embers stand out against a dark night.", textColour: "#ffffff" };
+const sidebar: ColourToken = { name: "Sidebar", hex: "#0C0F1A", usage: "Sidebar and nav surfaces", reason: "We chose a step lighter than Char so it is visually separated from content.", textColour: "#ffffff"  };
+const card: ColourToken = { name: "Card", hex: "#101420", usage: "Cards and panels", reason: "We continued the same lightening pattern one step further so grouped content reads as sitting above the page, giving depth without using shadows.", textColour: "#ffffff"  };
+const input: ColourToken = { name: "Input", hex: "#151A26", usage: "Input fields", reason: "We chose to make input fields lighter again than cards specifically so they're immediately recognisable as something you interact with, not just something you read.", textColour: "#ffffff"  };
+const elevated: ColourToken = { name: "Elevated", hex: "#161B2A", usage: "Elevated surfaces, modals", reason: "We chose the lightest surface tone for modals and overlays since these should feel closest to the user, sitting on top.", textColour: "#ffffff"  };
+const stroke: ColourToken = { name: "Stroke", hex: "#1E2436", usage: "Borders and dividers", reason: "We chose a tone just bright enough to separate sections and draw a border.", textColour: "#ffffff" };
+
+// text colors
+const textPrimary: ColourToken = { name: "Text Primary", hex: "#ffffff", usage: "Default body and heading text", reason:  "We chose pure white for maximum contrast against our Char-dark backgrounds, since readability matters most for an emergency-response tool.", textColour: "#000000"  };
+const textMuted: ColourToken = { name: "Text Muted", hex: "#A0ACC0", usage: "Secondary text, labels", reason: "We chose a cool, desaturated tone, so secondary text recedes behind primary text.", textColour: "#000000" };
+const textDisabled: ColourToken = { name: "Text Disabled", hex: "#667085", usage: "Disabled text and controls", reason: "We chose a lower-contrast tone on purpose here, showing disabled elements shouldn't be interactive.", textColour: "#ffffff" };
+const textInverse: ColourToken = { name: "Text Inverse", hex: "#1A0500", usage: "Text on light/bright fills", reason: "We chose a near-black with a warm undertone (the same Char tone as our page background) so that text placed on bright fills like Torch still feels part of the same fire-toned system.", textColour: "#ffffff" };
+
 
 export default function StyleGuidePage() {
   return (
@@ -38,7 +66,35 @@ export default function StyleGuidePage() {
 
           <section id="colours" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Colours</h2>
-            <Colours />
+              <ColourGroup title="Brand Colours" columns={3}>
+                <ColourCard colour={primary} />
+                <ColourCard colour={secondary} />
+                <ColourCard colour={accent} />
+              </ColourGroup>
+
+              <ColourGroup title="Semantic Colours" columns={4}>
+                <ColourCard colour={info} />
+                <ColourCard colour={success} />
+                <ColourCard colour={warning} />
+                <ColourCard colour={error} />
+              </ColourGroup>
+
+              <ColourGroup title="Surface Colours" columns={3}>
+                <ColourCard colour={page} />
+                <ColourCard colour={sidebar} />
+                <ColourCard colour={card} />
+                <ColourCard colour={input} />
+                <ColourCard colour={elevated} />
+                <ColourCard colour={stroke} />
+              </ColourGroup>
+
+              <ColourGroup title="Text Colours" columns={4}>
+                <ColourCard colour={textPrimary} />
+                <ColourCard colour={textMuted} />
+                <ColourCard colour={textDisabled} />
+                <ColourCard colour={textInverse} />
+              </ColourGroup>
+
           </section>
 
           <section id="typography" className="mb-10 scroll-mt-8">
