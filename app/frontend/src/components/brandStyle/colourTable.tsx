@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 
 export interface ColourPair {
-    label: string;
-    fg: string;
-    bg: string;
-    ratio: number;
+    readonly label: string;
+    readonly fg: string;
+    readonly bg: string;
+    readonly ratio: number;
 }
 
 function Rating(ratio: number): string {

@@ -1,13 +1,13 @@
 type CardProps = {
-  family: string;
-  token: string;
-  weights: string;
-  usage: string;
+  readonly family: string;
+  readonly token: string;
+  readonly weights: string;
+  readonly usage: string;
 };
 
 type ScaleProps = {
-  label: string;
-  size: string;
+  readonly label: string;
+  readonly size: string;
 };
 
 const font_samples: Record<string, React.ReactNode> = {
@@ -28,7 +28,7 @@ const scale_samples: Record<string, React.ReactNode> = {
   "Section head": <h2 className="whitespace-nowrap">OPERATIONAL PARAMETERS</h2>,
   "Card title": <h3 className="whitespace-nowrap">Report details</h3>,
   "Body": <p className="whitespace-nowrap">Click the map to drop a pin</p>,
-  "Label": <label className="whitespace-nowrap">Location  Description</label>,
+  "Label": <span className="whitespace-nowrap">Location  Description</span>,
   "Data": <code className="whitespace-nowrap">1.2 km  8 min ago</code>,
 }
 
