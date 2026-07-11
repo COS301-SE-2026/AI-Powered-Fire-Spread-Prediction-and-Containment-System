@@ -1,9 +1,9 @@
 import { ReactNode } from 'react';
 
 interface ColourGroupProps {
-    title: string;
-    children: ReactNode;
-    columns: 3 | 4;
+    readonly title: string;
+    readonly children: ReactNode;
+    readonly columns: 3 | 4;
 }
 
 export function ColourGroup({ title, children, columns }: ColourGroupProps) {

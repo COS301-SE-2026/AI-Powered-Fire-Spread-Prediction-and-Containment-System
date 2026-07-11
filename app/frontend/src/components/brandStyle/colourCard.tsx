@@ -1,24 +1,22 @@
-import { ReactNode } from 'react';
-
 export interface ColourToken {
-  name: string;
-  hex: string;
-  usage: string;
-  reason: string;
-  textColour: string;
+  readonly name: string;
+  readonly hex: string;
+  readonly usage: string;
+  readonly reason: string;
+  readonly textColour: string;
 }
 
 function RGB(hex: string): string {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
     return `rgb(${r}, ${g}, ${b})`;
 }
 
 function HSL(hex: string): string{
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
+    const r = Number.parseInt(hex.slice(1, 3), 16) / 255;
+    const g = Number.parseInt(hex.slice(3, 5), 16) / 255;
+    const b = Number.parseInt(hex.slice(5, 7), 16) / 255;
 
     const max = Math.max(r, g, b);
     const min = Math.min(r, g, b);
