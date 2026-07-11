@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
 import { NearbyReports } from '../../components/firefighter/nearbyReports';
-import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import Button from '../../components/Button';
+import { SystemAlertsPanel} from '../../components/SystemAlertsPanel';
 
 const PublicFireMap = dynamic(
     () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -20,20 +20,11 @@ const PublicFireMap = dynamic(
 );
 
 export default function GuestPublicDashboard() {
-    const [alertEmail, setAlertEmail] = useState<string>('');
-    const [registrationSuccess, setRegistrationSuccess] = useState<boolean>(false);
-
-    const handlePublicRegistration = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (alertEmail.trim()) {
-            setRegistrationSuccess(true);
-            setAlertEmail('');
-        }
-    };
+    const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
 
     return (
         <SideBarLayout hideLogout>
-            <div className="flex flex-col p-6">
+            <div className="flex flex-col p-6 relative h-full overflow-hidden">
                 
                 {/*Public View Header*/}
                 <header className="mb-4 flex items-center justify-between">
@@ -45,11 +36,15 @@ export default function GuestPublicDashboard() {
                             Public Fire Map View
                         </p>
                     </div>
+
+                    <Button onClick={() => setIsAlertsOpen(true)}>
+                        View Alerts
+                    </Button>
                 </header>                
 
                 {/*Grid*/}
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-                    <div className="xl:col-span-8 flex flex-col gap-6">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start h-full pb-10">
+                    <div className="xl:col-span-8 flex flex-col gap-6 h-full">
                         
                         {/*Map*/}
                         <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
@@ -73,6 +68,7 @@ export default function GuestPublicDashboard() {
                     </div>
                 </div>
 
+                <SystemAlertsPanel isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} />
             </div> 
         </SideBarLayout>
     );

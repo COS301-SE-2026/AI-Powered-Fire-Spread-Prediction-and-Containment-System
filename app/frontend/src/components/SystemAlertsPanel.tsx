@@ -29,16 +29,16 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
                 <div className='p-6 overflow-y-auto flex-1 flex flex-col gap-4'>
                     {/*place for notifications*/}
                     <div className='bg-carbon-card p-4 rounded-xl border border-red-500/30'>
-                        <h3 className='text-red-500 font-bold mb-1'>
+                        <h3 className='text-red-500 font-bold mb-5'>
                             Verified Fire Alert
                         </h3>
-                        <p className='text-sm text-neutrak/70 mb-2'>
+                        <p className='text text-neutral/70 mb-3'>
                             Location: ...
                         </p>
-                        <p className='text-sm text-neutrak/70 mb-2'>
+                        <p className='text text-neutral/70 mb-3'>
                             Distance: ...
                         </p>
-                        <p className='text-sm text-neutrak/70 mb-2'>
+                        <p className='text text-neutral/70 mb-5'>
                             Severity: ...
                         </p>
                         <Button className='w-full text-xs'>
