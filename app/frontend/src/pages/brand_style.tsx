@@ -1,4 +1,3 @@
-import Colours from '../components/brandStyle/Colours';
 import Typography from '../components/brandStyle/Typography';
 import Logo from '../components/brandStyle/Logos';
 import Components from '../components/brandStyle/Components';
