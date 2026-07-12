@@ -15,7 +15,7 @@ from enums.role_request_status import RequestStatus
 
 router =APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
 @router.get("/overview", response_model=AnalyticsOverviewResponse)
-def get_analytics_overview(db: Session = Depends(get_db)):
+def get_analytics_overview(db: Annotated[Session, Depends(get_db)]):
     total_users= db.query(User).filter(User.is_active== True).count()
     pending_count =db.query(RoleRequest).filter( RoleRequest.status == RequestStatus.pending).count()
     total_firefighters=db.query(User).filter(User.role == UserRole.firefighter, User.is_active == True).count()
