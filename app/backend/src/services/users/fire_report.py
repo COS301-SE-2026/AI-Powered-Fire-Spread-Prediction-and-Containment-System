@@ -13,9 +13,9 @@ def calc_size(radius: float) -> float:
     radius_m = radius * 1000
     return round((math.pi * radius_m **2) / 10_000, 1)
 
-def get_fire_reports(db:Session):
-    request = db.query(
-        FireReports, 
+def get_fire_reports(db: Session):
+    query = db.query(
+        FireReports,
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
     ).outerjoin(FireReports.user).all()
@@ -28,6 +28,8 @@ def get_fire_reports(db:Session):
         formatted_reports.append ({
             "id": report.id,
             "reference_number": report.reference_number,
+            "location_text": report.location_text,
+            "boundary_radius": report.boundary_radius,
             "user_id": report.user_id,
             "location_text": report.location_text,
             "description": report.description,
