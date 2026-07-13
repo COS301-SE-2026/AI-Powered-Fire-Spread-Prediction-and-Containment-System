@@ -3,7 +3,7 @@ import {test, expect} from "@playwright/test"
 test.describe('Guest Public Dashboard',()=> {
     //navigates to dashboard page before each test
     test.beforeEach(async ({page})=>{
-        await page.goto('/guests');
+        await page.goto('/guests/guestsLanding');
     });
     test('all major components render', async({page})=>{
         //header
@@ -17,12 +17,11 @@ test.describe('Guest Public Dashboard',()=> {
         const reportsContainer =page.locator(String.raw`.rounded-2xl.bg-carbon-side\/40`);
         await expect(reportsContainer).toBeVisible();
     });
-    test('async map load', async ({ page}) => {
+    test('async map load', async({page})=>{
         await Promise.all([
-            page.goto('/guests'), // uses default 'load', but we don't await it alone
+            page.goto('/guests/guestsLanding'),
             expect(page.getByText('Initializing Public Map Canvas...')).toBeVisible(),
         ]);
-
         const mapCanvas =page.locator('.relative.flex.items-center.justify-center.size-6');
         await expect(mapCanvas).toBeVisible({timeout:10000});
     });
