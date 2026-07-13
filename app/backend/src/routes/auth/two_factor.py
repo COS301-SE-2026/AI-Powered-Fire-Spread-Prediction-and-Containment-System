@@ -14,10 +14,10 @@ def setup_2fa_route(username:str, db:Session = Depends(get_db)):
     except ValueError as err:
         raise HTTPException(status_code=404, detail=str(err))
     
-@router.post("/verify-2fa", response_model="LoginResponse")
+@router.post("/verify-2fa", response_model=LoginResponse)
 def verify_2fa_route(request:Two_FA_Verify_Request, response: Response, db:Session = Depends(get_db)):
     try:
-        return verify_2fa(db, request)
+        result = verify_2fa(db, request)
     except ValueError as err:
         raise HTTPException(status_code=401, detail=str(err))
     

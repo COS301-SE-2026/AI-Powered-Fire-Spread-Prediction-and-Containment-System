@@ -35,3 +35,5 @@ class Two_FA_Required_Response(BaseModel):
     
 class LoginResponse(BaseModel):
     role: UserRole
+    
+LoginResponse.model_rebuild()
