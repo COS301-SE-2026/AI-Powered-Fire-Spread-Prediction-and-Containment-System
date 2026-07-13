@@ -1,6 +1,5 @@
 // Before protected pages load, checks cookie and user's role and redirects to login if user does not have access to page
-import { NextResponse } from "next/server";
-import { NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = process.env.JWT_SECRET_KEY;
@@ -26,14 +25,9 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
-    console.log('[middleware] path:', pathname);
-    console.log('[middleware] JWT_SECRET present:', !!JWT_SECRET);
-
     const token = req.cookies.get('access_token')?.value;
-    console.log('[middleware] cookie present:', !!token);
 
     if (!token || !JWT_SECRET){
-          console.log('[middleware] redirecting to /login — missing token or secret');
         return noStore(NextResponse.redirect(new URL('/login', req.url)));
     }
 
@@ -42,14 +36,11 @@ export async function middleware(req: NextRequest) {
         const {payload} = await jwtVerify(token, secret);
         const role = payload.role as string;
 
-        console.log('[middleware] verified role:', role);
 
         if (!matched.roles.includes(role)){
-              console.log('[middleware] role not allowed for this route, redirecting');
             return noStore(NextResponse.redirect(new URL('/login', req.url)));
         }
     } catch(err) {
-        console.log('[middleware] jwtVerify failed:', err);
         return noStore(NextResponse.redirect(new URL('/login', req.url)));   // if token missing/expired/signiture invalid
     }
 
