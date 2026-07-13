@@ -7,6 +7,7 @@ import { ColourGroup } from '../components/brandStyle/colourGroup';
 import { ColourCard, ColourToken } from '../components/brandStyle/colourCard';
 import { ColourPairTable, ColourPairRow } from '../components/brandStyle/colourTable';
 import { TypoCard, TypoFamily } from '../components/brandStyle/typoCard';
+import { TypoTable, TypoScale } from '../components/brandStyle/typoTable';
 
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FD5D19 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
@@ -34,9 +35,9 @@ const textDisabled: ColourToken = { name: "Text Disabled", hex: "#7A87A2", usage
 const textInverse: ColourToken = { name: "Text Inverse", hex: "#1A0500", usage: "Text on light/bright fills", reason: "We chose a near-black with a warm undertone (the same Char tone as our page background) so that text placed on bright fills like Torch still feels part of the same fire-toned system.", textColour: "#ffffff" };
 
 // typo family
-const displayFont: TypoFamily = { font: "font-display", weight: "font-extrabold", name: "Barlow Condensed", sample: "Fireaway" };
-const bodyFont: TypoFamily = { font: "font-body", weight: "font-normal", name: "Exo 2", sample: "Aa Bb Cc"  }
-const monoFont: TypoFamily = { font: "font-mono", weight: "font-normal", name: "Fira Code", sample: "01:23:45"  }
+const displayFont: TypoFamily = { font: "font-display", weight: "font-extrabold", name: "Barlow Condensed", sample: "Fireaway", fallback: "sans-serif", source: "Google Fonts", license: "SIL OFL 1.1" };
+const bodyFont: TypoFamily = { font: "font-body", weight: "font-normal", name: "Exo 2", sample: "Colours", fallback: "sans-serif", source: "Google Fonts", license: "SIL OFL 1.1" };
+const monoFont: TypoFamily = { font: "font-mono", weight: "font-normal", name: "Fira Code", sample: "20km/h", fallback: "monospace", source: "Google Fonts", license: "SIL OFL 1.1" }
 
 export default function StyleGuidePage() {
   return (
@@ -139,6 +140,7 @@ export default function StyleGuidePage() {
                 <TypoCard data={bodyFont}/>
                 <TypoCard data={monoFont}/>
               </div>
+              <TypoTable/>
             </div>
           </section>
 
