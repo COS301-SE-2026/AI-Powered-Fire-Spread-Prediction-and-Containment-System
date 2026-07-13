@@ -40,7 +40,7 @@ export async function middleware(req: NextRequest) {
         if (!matched.roles.includes(role)){
             return noStore(NextResponse.redirect(new URL('/login', req.url)));
         }
-    } catch(err) {
+    } catch {
         return noStore(NextResponse.redirect(new URL('/login', req.url)));   // if token missing/expired/signiture invalid
     }
 
