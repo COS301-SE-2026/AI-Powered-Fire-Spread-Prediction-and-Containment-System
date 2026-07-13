@@ -18,7 +18,7 @@ def login_route(request: LoginRequest, response: Response, db:Session = Depends(
     if result.get("requires_2fa"):
         return result
     
-    response.set.cookie(
+    response.set_cookie(
         key="access_token",
         value=result["access_token"],
         httponly=True,  

@@ -3,13 +3,20 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECURITY_KEY;
+const JWT_SECRET = process.env.JWT_SECRET_KEY;
 
 const protectedRoutes: {prefix: string; roles: string[]}[] = [
     {prefix: '/admin', roles: ['admin']},
-    {prefix: '/firefighter', roles: ['firefighter']},
+    {prefix: '/firefighterDashboard', roles: ['firefighter']},
     {prefix: '/registeredUser', roles: ['user']},
 ];
+
+function noStore(response: NextResponse): NextResponse{
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
+}
 
 export async function middleware(req: NextRequest) {
     const {pathname} = req.nextUrl;
@@ -19,10 +26,15 @@ export async function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
+    console.log('[middleware] path:', pathname);
+    console.log('[middleware] JWT_SECRET present:', !!JWT_SECRET);
+
     const token = req.cookies.get('access_token')?.value;
+    console.log('[middleware] cookie present:', !!token);
 
     if (!token || !JWT_SECRET){
-        return NextResponse.redirect(new URL('/login', req.url));
+          console.log('[middleware] redirecting to /login — missing token or secret');
+        return noStore(NextResponse.redirect(new URL('/login', req.url)));
     }
 
     try {
@@ -30,16 +42,21 @@ export async function middleware(req: NextRequest) {
         const {payload} = await jwtVerify(token, secret);
         const role = payload.role as string;
 
+        console.log('[middleware] verified role:', role);
+
         if (!matched.roles.includes(role)){
-            return NextResponse.redirect(new URL('/login', req.url));
+              console.log('[middleware] role not allowed for this route, redirecting');
+            return noStore(NextResponse.redirect(new URL('/login', req.url)));
         }
-    } catch {
-        return NextResponse.redirect(new URL('/login', req.url));   // if token missing/expired/signiture invalid
+    } catch(err) {
+        console.log('[middleware] jwtVerify failed:', err);
+        return noStore(NextResponse.redirect(new URL('/login', req.url)));   // if token missing/expired/signiture invalid
     }
 
-    return NextResponse.next();
+    return noStore(NextResponse.next());
 }
 
 export const config = {
     matcher: ['/admin/:path*', '/firefighter/:path*', '/registeredUser/:path*'],
 };
+
