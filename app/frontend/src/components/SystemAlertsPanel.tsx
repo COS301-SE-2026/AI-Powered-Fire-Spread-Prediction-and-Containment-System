@@ -8,31 +8,20 @@ interface SystemAlertsPanelProps {
 
 export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, onClose}) => {
 
-    const handleOverlayKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onClose();
-        }
-    }
-
     return (
         <>
             {/*for mobile when panel open*/}
             { isOpen && (
-                <div className='fixed inset-0 bg-black/50 z-40 md:hidden' onClick={onClose} />
+                <button type='button' className='fixed inset-0 bg-black/50 z-40 md:hidden w-full h-full cursor-default border-none outline-none' onClick={onClose} aria-lavel='Close alerts panel' />
             )}
 
-            {/*sliding alerts */}
-            {isOpen && (
-                <div className='fixed inset-0 bg-black/50 z-40 md:hidden' onClick={onClose} onKeyDown={handleOverlayKeyDown} role="button" tabIndex={0} aria-label='Close alerts panel' />
-            )}
             <div className={`fixed inset-y-0 right-0 z-50 bg-carbon-side shadow-2xl border-l border-carbon-card transform transition-transform duration-300 ease-in-out w-full md:w-1/3 flex-col
-            $ { isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            ${ isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className='p-6 flex items-center justify-between border-b border-carbon-card'>
                     <h2 className='text-xl font-bold tracking-widest text-neutral uppercase'>
                         System Alerts
                     </h2>
-                    <button onClick={onClose} className='text-neutral/50 hover:text-neutral transition-colors'>
+                    <button type="button" onClick={onClose} className='text-neutral/50 hover:text-neutral transition-colors'>
                         Close
                     </button>
                 </div>
