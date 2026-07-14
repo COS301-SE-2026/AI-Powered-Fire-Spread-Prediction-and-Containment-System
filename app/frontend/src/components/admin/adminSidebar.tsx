@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Map, LayoutDashboard, Settings, LogOut, ShieldAlert, Flame, UserCircle, TrendingUp } from 'lucide-react';
+import { Map, LayoutDashboard, Settings, LogOut, ShieldAlert, Flame, UserCircle, TrendingUp, PlusCircle } from 'lucide-react';
 
 const NavLink = ({ icon: Icon, label, href }: { icon: any; label: string; href?: string }) => {
     const content = (
@@ -58,7 +58,8 @@ export function AdminSideBarLayout({
                     <ul className="menu w-full px-3 space-y-2 flex flex-col items-center group-hover:items-start">
                         <NavLink icon={LayoutDashboard} label="Admin Dashboard" href="/admin/adminDashboard" />
                         <NavLink icon={TrendingUp} label="Analytics" href="/admin/analytics" />
-                        <NavLink icon={Map} label="Live Map" href="/guests/guestsLanding" />
+                        <NavLink icon={Map} label="Live Map" href="/admin/adminLiveMap" />
+                        <NavLink icon={PlusCircle} label="Report a Fire" href="/admin/adminReportFire" />
                         <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvalPage" />
                         <NavLink icon={Flame} label="Reported Fires" href="/admin/reportedfiresPage" />
                     </ul>
