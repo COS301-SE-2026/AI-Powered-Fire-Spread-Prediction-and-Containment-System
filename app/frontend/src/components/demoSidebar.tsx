@@ -5,7 +5,7 @@ import { BookAlert, Map, LayoutDashboard, Settings, LogOut,
     ChevronDown, TrendingUp, PlusCircle
 } from 'lucide-react';
 
-const NavLink = ({ icon: Icon, label, href }: { icon: any; label: string; href?: string }) => {
+export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label: string; href?: string }>) => {
     const content = (
         <>
             <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all" />

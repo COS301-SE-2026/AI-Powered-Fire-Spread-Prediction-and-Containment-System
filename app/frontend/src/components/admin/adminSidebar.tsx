@@ -1,29 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Map, LayoutDashboard, Settings, LogOut, ShieldAlert, Flame, UserCircle, TrendingUp, PlusCircle } from 'lucide-react';
-
-const NavLink = ({ icon: Icon, label, href }: { icon: any; label: string; href?: string }) => {
-    const content = (
-        <>
-            <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all" />
-            <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 tranistion-opacity duration-200 whitespace-nowrap">
-                {label}
-            </span>
-        </>
-    );
-
-    const style = "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral";
-
-    return href ? (
-        <Link href={href} className={style}>
-            {content}
-        </Link>
-    ) : (
-        <button className={style}>
-            {content}
-        </button>
-    );
-};
+import { NavLink } from '../demoSidebar';
 
 export function AdminSideBarLayout({
     children,
