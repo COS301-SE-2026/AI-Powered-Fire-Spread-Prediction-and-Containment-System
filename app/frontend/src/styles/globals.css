@@ -45,7 +45,6 @@
   --radius-box: 4px;
 }
 
-/*Use for interactive states, severity levels*/
 @theme {
   --color-char: #1A0500;
   --color-deep: #5C1800;
@@ -55,13 +54,13 @@
   --color-torch: #FFAA00;
   --color-flash: #FFE566;
 
-  --color-carbon-bg: #080B12; /*page canvas*/
-  --color-carbon-side: #0C0F1A; /*sidebar and nav*/
-  --color-carbon-card: #101420; /*cards panels*/
-  --color-carbon-input: #151A26; /*input fields*/
-  --color-carbon-elevated: #161B2A; /* elevated surfaces and models*/
-  --color-carbon-stroke: #1E2436; /* bodrers and dividers*/
-  --color-smoke-hover: #1E2436; /*hover*/
+  --color-carbon-bg: #080B12;
+  --color-carbon-side: #0C0F1A;
+  --color-carbon-card: #101420;
+  --color-carbon-input: #151A26;
+  --color-carbon-elevated: #161B2A;
+  --color-carbon-stroke: #1E2436;
+  --color-smoke-hover: #1E2436;
 
 /*fire fighter page*/
   --color-wind:     #378ADD;
@@ -111,7 +110,7 @@
   --radius-md: 4px;
 }
 
-@layer components {
+@layer base {
   body {
     margin: 0;
     font-family: var(--font-body);
@@ -170,7 +169,9 @@
     line-height: 1.5;
     color: var(--color-flare);
   }
+}
 
+@layer components {
   .sidebar-surface {
     background: linear-gradient(180deg, #0C0F1A 0%, #0E1018 100%);
     border-right: 1px solid rgba(232, 69, 0, 0.08);

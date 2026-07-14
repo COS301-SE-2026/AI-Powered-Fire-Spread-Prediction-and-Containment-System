@@ -67,7 +67,7 @@ test.describe('Admin approve role change.', ()=> {
         await expect(page).toHaveURL(/\/admin\/dashboard|\/admin/);
     });
 
-    test('SUCCESS: Handles admin clicking on admin radio button and clicking "Approve".', async ({page}) => {
+    test('SUCCESS: Handles admin clicking on firefighter radio button and clicking "Approve".', async ({page}) => {
         //is the structure of the form correct
         //need to add check for form (sub-issue on project board)
 

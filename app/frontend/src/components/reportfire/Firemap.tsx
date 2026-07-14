@@ -61,7 +61,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
   useEffect(() => { markerPosRef.current = markerPos; }, [markerPos]);
   useEffect(() => { radiusKmRef.current = radiusKm; }, [radiusKm]);
 
-  //pin from search
+  // ── EXTERNAL PIN (from form search) ──────────────────────────
   useEffect(() => {
     if (!externalPin) return;
     const { lng, lat } = externalPin;
@@ -72,6 +72,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
     mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
   }, [externalPin]);
 
+  // ── PIN MARKER ────────────────────────────────────────────────
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
     pinMarkerRef.current?.remove();
@@ -93,7 +94,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
     return () => { pinMarkerRef.current?.remove(); };
   }, [markerPos]);
 
-  //rim marker
+  // ── RIM HANDLE MARKER ─────────────────────────────────────────
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
     rimMarkerRef.current?.remove();
@@ -150,7 +151,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
     return () => { rimMarkerRef.current?.remove(); };
   }, [markerPos]);
 
-  //map click
+  // ── MAP CLICK ─────────────────────────────────────────────────
   const handleMapClick = useCallback(async (e: any) => {
     if (isDragging.current) return;
     if (Date.now() - dragEndTime.current < 300) return;
@@ -175,6 +176,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
     }
   }, [onLocationSelect, onBoundarySizeChange]);
 
+  // ── RENDER ────────────────────────────────────────────────────
   const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
 
   return (

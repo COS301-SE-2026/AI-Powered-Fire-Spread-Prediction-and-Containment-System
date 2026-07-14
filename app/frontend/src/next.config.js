@@ -6,7 +6,7 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
     async rewrites() {
-        const backend_url = process.env.BACKEND_INTERNAL_URL || 'http://python-backend:8000' //NOSONAR - internal Docker service
+        const backend_url = process.env.BACKEND_INTERNAL_URL || 'http://localhost:8000'
         console.log('[next.config.js] Proxying /api/* to:', backend_url)
         return[
             {
