@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { SideBarLayout } from '../demoSidebar';
-import { NearbyReports } from '../firefighter/nearbyReports';
-import Button from '../Button';
-import { SystemAlertsPanel} from '../SystemAlertsPanel';
+import { SideBarLayout } from '../../components/demoSidebar';
+import { NearbyReports } from '../../components/firefighter/nearbyReports';
+import Button from '../../components/Button';
+import { SystemAlertsPanel} from '../../components/SystemAlertsPanel';
 
 const PublicFireMap = dynamic(
-    () => import('../firefighter/FireMap').then((mod) => mod.FireMap),
+    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
     {
         ssr: false,
         loading: () => (
