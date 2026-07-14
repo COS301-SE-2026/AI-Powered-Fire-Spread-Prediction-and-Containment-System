@@ -100,11 +100,11 @@ export function SideBarLayout({
                         
                         {/* Admin Dropdown */}
                         <SideBarDropdown title="Admin Portal" icon={ShieldAlert} isSidebarHovered={isHovered}>
-                            <NavLink icon={LayoutDashboard} label="Admin Dashboard" />
-                            <NavLink icon={TrendingUp} label="Analytics" />
-                            <NavLink icon={Map} label="Live Map" href="/guests" />
+                            <NavLink icon={LayoutDashboard} label="Admin Dashboard" href="/admin/adminDashboard" />
+                            <NavLink icon={TrendingUp} label="Analytics" href="/admin/analytics" />
+                            <NavLink icon={Map} label="Live Map" href="/guests/guestsLanding" />
                             <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvalPage" />
-                            <NavLink icon={Flame} label="Reported Fires" />
+                            <NavLink icon={Flame} label="Reported Fires" href="/admin/reportedfiresPage" />
                         </SideBarDropdown >
 
                         {/* Firefighter Dropdown */}
@@ -116,14 +116,14 @@ export function SideBarLayout({
 
                         {/* Registered User Dropdown */}
                         <SideBarDropdown  title="Registered User" icon={User} isSidebarHovered={isHovered}>
-                            <NavLink icon={Map} label="Live Map (User View)" />
-                            <NavLink icon={PlusCircle} label="Report a Fire" href="/user/report" />
+                            <NavLink icon={Map} label="Live Map (User View)" href="/registeredUser/registeredUserLanding" />
+                            <NavLink icon={PlusCircle} label="Report a Fire" href="/registeredUser/ReportFire" />
                         </SideBarDropdown >
 
                         {/* Guest Dropdown */}
                         <SideBarDropdown  title="Guest Access" icon={UserCircle} isSidebarHovered={isHovered}>
-                            <NavLink icon={Map} label="Public Fire Map" href="/guests" />
-                            <NavLink icon={PlusCircle} label="Submit Report" href="/reportfire" />
+                            <NavLink icon={Map} label="Public Fire Map" href="/guests/guestsLanding" />
+                            <NavLink icon={PlusCircle} label="Submit Report" href="/registeredUser/ReportFire" />
                         </SideBarDropdown >
                     </ul>
 
