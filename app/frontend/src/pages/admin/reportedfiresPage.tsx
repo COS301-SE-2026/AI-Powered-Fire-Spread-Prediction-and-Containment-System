@@ -53,8 +53,8 @@ export default function ReportedFiresPage() {
                 )}
 
                 {loading ? (
-                    <div>
-                        Loading reports...
+                    <div className="flex justify-center items-center min-h-[40vh]">
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
                     </div>
                 ) : (
                     <FireReportsTable report={filteredReports} filter={filter} />
