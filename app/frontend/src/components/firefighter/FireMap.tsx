@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, Marker } from 'react-map-gl/mapbox';
 import mapboxgl from 'mapbox-gl'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 
 interface FireReport{
-    reference_number: string;
-    location_text: string;
+    ref: string;
+    location: string;
     status: string
     lat: number;
     lng: number;
@@ -99,8 +99,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
             style={{ width: '100%', height: '100%' }}
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
-            {fires.map((fire) => (
-                <Marker key={fire.reference_number} longitude={fire.lng} latitude={fire.lat} anchor="center">
+           {fires.map((fire) => (
+                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center">
                     <div className="relative flex items-center justify-center size-6">
                         {/* The radar ping animation effect */}
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />
