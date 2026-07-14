@@ -49,10 +49,10 @@ export default function GuestPublicDashboard() {
 
                 {/*Grid*/}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-                    <div className="xl:col-span-8 flex flex-col gap-6">
+                    <div className="xl:col-span-6 flex flex-col gap-6">
                         
                         {/*Map*/}
-                        <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
+                        <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[40rem] w-full shadow-md">
                             <PublicFireMap />
                         </div>            
                     </div>
