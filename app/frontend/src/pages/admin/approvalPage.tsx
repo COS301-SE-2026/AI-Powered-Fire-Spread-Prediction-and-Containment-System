@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import type { RoleRequest,RoleStatus } from '../../types/admin';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { AdminSideBarLayout } from '../../components/admin/adminSidebar';
 import { RoleFilterTabs } from '../../components/admin/approvalFilter';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
-import { API_BASE_URL } from '../../config/api';
 
 export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
@@ -97,15 +96,15 @@ export default function RoleApprovalPage() {
 
     if (loading) {
         return (
-            <SideBarLayout>
+            <AdminSideBarLayout>
                 <div className="p-6 flex justify-center items-center min-h-[60vh]">
                     <span className="loading loading-spinner loading-lg text-primary"></span>
                 </div>
-            </SideBarLayout>
+            </AdminSideBarLayout>
         );
     }
     return(
-        <SideBarLayout>
+        <AdminSideBarLayout>
             <div className="p-6 flex flex-col h-full w-full">
                 {/* Header + filter */}
                 <header className="mb-6">
@@ -123,6 +122,6 @@ export default function RoleApprovalPage() {
                     <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject} onRevoke={handleRevoke}/>
                 )}
             </div>
-        </SideBarLayout>
+        </AdminSideBarLayout>
     );
 }
