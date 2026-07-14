@@ -150,7 +150,7 @@ export default function StyleGuidePage() {
           </section>
 
           <section id="components" className="mb-10 scroll-mt-8">
-            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Comoponents</h2>
+            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Components</h2>
             <Components />
           </section>
 
