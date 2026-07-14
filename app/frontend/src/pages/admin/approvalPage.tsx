@@ -10,6 +10,7 @@ export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<RoleRequest | null>(null);
     const [filter, setFilter] = useState<'All' | RoleStatus>('All');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchRequest = async() => {
@@ -27,6 +28,8 @@ export default function RoleApprovalPage() {
             }catch (error){
                 console.error("Failed to load role requests", error);
                 setRequest([])
+            }finally{
+                setLoading(false);
             }
         }
         fetchRequest();
@@ -92,6 +95,15 @@ export default function RoleApprovalPage() {
         }
     };
 
+    if (loading) {
+        return (
+            <SideBarLayout>
+                <div className="p-6 flex justify-center items-center min-h-[60vh]">
+                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+            </SideBarLayout>
+        );
+    }
     return(
         <SideBarLayout>
             <div className="p-6 flex flex-col h-full w-full">
