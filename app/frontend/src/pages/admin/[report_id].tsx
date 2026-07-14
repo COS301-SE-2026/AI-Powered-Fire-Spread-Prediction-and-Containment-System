@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { AdminSideBarLayout } from '../../components/admin/adminSidebar';
 import { ReportDetails } from '../../components/admin/reportDetails';
 import { ReportDescription } from '../../components/admin/reportDescription';
 import { ReportActions } from '../../components/admin/reportActions';
@@ -37,24 +37,24 @@ export default function ViewPage() {
 
 
     if (loading) return (
-        <SideBarLayout>
+        <AdminSideBarLayout>
             <div className="p-6">
                 <p className="text-text-muted">Loading report...</p>
             </div>
-        </SideBarLayout>
+        </AdminSideBarLayout>
     );
 
     if (error || !report) return (
-        <SideBarLayout>
+        <AdminSideBarLayout>
             <div className="p-6">
                 <p className="text-error">{error ?? 'Report not found.'}</p>
             </div>
-        </SideBarLayout>
+        </AdminSideBarLayout>
     );
 
 
     return (
-        <SideBarLayout>
+        <AdminSideBarLayout>
             <div className="p-6 flex flex-col h-full w-full">
                 <header className="mb-6 flex items-start justify-between">
                     <div>
@@ -83,6 +83,6 @@ export default function ViewPage() {
 
             
             </div>
-        </SideBarLayout>
+        </AdminSideBarLayout>
     );
 }
