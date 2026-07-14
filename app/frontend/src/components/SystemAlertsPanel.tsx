@@ -12,7 +12,7 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
         <>
             {/*for mobile when panel open*/}
             { isOpen && (
-                <button type='button' className='fixed inset-0 bg-black/50 z-40 md:hidden w-full h-full cursor-default border-none outline-none' onClick={onClose} aria-label='Close alerts panel' />
+                <button type='button' className='fixed inset-0 bg-black/50 z-40 md:hidden w-full h-full cursor-default border-none outline-none' onClick={onClose} aria-lavel='Close alerts panel' />
             )}
 
             <div className={`fixed inset-y-0 right-0 z-50 bg-carbon-side shadow-2xl border-l border-carbon-card transform transition-transform duration-300 ease-in-out w-full md:w-1/3 flex-col
