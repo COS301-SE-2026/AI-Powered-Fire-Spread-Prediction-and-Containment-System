@@ -90,7 +90,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                                     }
                                 );
                             } catch (err) {
-                                console.error('Logout reququest failed', err);
+                                console.error('Logout request failed', err);
                             }
                             router.replace('/login');
                         }}
