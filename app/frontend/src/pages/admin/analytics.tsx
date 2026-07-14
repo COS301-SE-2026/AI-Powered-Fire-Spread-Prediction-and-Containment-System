@@ -62,7 +62,7 @@ export default function AdminAnalyticsPage() {
     return (
       <SideBarLayout>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
-          <div className="text-neutral/60">Loading analytics data...</div>
+          <div className="loading loading-spinner loading-lg text-primary">Loading analytics data...</div>
         </div>
       </SideBarLayout>
     );
