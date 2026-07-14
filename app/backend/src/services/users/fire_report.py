@@ -20,11 +20,11 @@ def get_fire_reports(db: Session):
         func.ST_X(FireReports.location_geom).label('lng')
     ).outerjoin(FireReports.user).all()
     
-    if not request:
+    if not query:
         return []
 
     formatted_reports = []
-    for report, lat, lng in request:
+    for report, lat, lng in query:
         formatted_reports.append ({
             "id": report.id,
             "reference_number": report.reference_number,
