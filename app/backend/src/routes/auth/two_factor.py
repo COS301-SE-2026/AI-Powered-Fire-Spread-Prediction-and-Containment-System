@@ -1,8 +1,10 @@
-from fastapi import HTTPException, APIRouter, Depends
+from fastapi import HTTPException, APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from db import get_db
-from schemas.auth import Two_FA_Create_Response, Two_FA_Verify_Request
+from schemas.auth import Two_FA_Create_Response, Two_FA_Verify_Request, LoginResponse
 from services.auth.two_factor import setup_2fa, verify_2fa
+from auth import ACCESS_TOKEN_EXPIRE_MINUTES
+from typing import Annotated
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -13,9 +15,21 @@ def setup_2fa_route(username:str, db:Session = Depends(get_db)):
     except ValueError as err:
         raise HTTPException(status_code=404, detail=str(err))
     
-@router.post("/verify-2fa")
-def verify_2fa_route(request:Two_FA_Verify_Request, db:Session = Depends(get_db)):
+@router.post("/verify-2fa", response_model=LoginResponse)
+def verify_2fa_route(request:Two_FA_Verify_Request, response: Response, db: Annotated[Session, Depends(get_db)]):
     try:
-        return verify_2fa(db, request)
+        result = verify_2fa(db, request)
     except ValueError as err:
         raise HTTPException(status_code=401, detail=str(err))
+    
+    response.set_cookie(
+        key="access_token",
+        value=result["access_token"],
+        httponly=True,
+        secure=False,   # CHANGE TO TRUE WHEN ON HTTPS
+        samesite="lax",
+        max_age=60*ACCESS_TOKEN_EXPIRE_MINUTES,
+        path="/",
+    )
+    
+    return{"role": result["role"]}

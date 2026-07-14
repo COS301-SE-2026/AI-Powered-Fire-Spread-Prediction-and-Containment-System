@@ -81,9 +81,18 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
 
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-4 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side">
                     <button 
-                        onClick={() => {
-                            // TODO: clear session/cookies then redirect
-                            router.push('/login');
+                        onClick={async () => {
+                            try {
+                                await fetch('/api/auth/logout',
+                                    {
+                                        method: 'POST',
+                                        credentials: 'include',
+                                    }
+                                );
+                            } catch (err) {
+                                console.error('Logout request failed', err);
+                            }
+                            router.replace('/login');
                         }}
                         className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                             <LogOut className="size-6 shrink-0" />

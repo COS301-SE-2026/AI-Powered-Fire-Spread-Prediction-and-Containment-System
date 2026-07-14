@@ -34,9 +34,14 @@ export default function Verify2FA() {
         code,
       });
 
-      if (data.access_token) {
-        localStorage.setItem('token', data.access_token);
-        router.push('/guests');
+      const roleRedirects: Record<string, string> = {
+        admin: '/admin/adminDashboard',
+        firefighter: '/firefighterDashboard',
+        user: '/registeredUser/registeredUserLanding',
+      };
+
+      if (data.role) {
+        router.push(roleRedirects[data.role] ?? '/login');
       } else {
         setError('Verification failed');
       }

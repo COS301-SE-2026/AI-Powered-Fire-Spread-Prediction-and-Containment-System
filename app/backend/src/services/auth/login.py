@@ -15,6 +15,6 @@ def login_user(db:Session, request:LoginRequest):
     if user.is_2fa_enabled:
         return {"requires_2fa": True, "email": user.email}
     
-    access_token = create_access_token(data={"sub": user.email, "user_id": user.id})
+    access_token = create_access_token(data={"sub": user.email, "user_id": user.id, "role": user.role.value,})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "role": user.role.value}
