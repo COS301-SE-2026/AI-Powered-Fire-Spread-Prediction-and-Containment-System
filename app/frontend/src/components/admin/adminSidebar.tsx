@@ -12,14 +12,14 @@ const NavLink = ({ icon: Icon, label, href }: { icon: any; label: string; href?:
         </>
     );
 
-    const className = "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral";
+    const style = "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral";
 
     return href ? (
-        <Link href={href} className={className}>
+        <Link href={href} className={style}>
             {content}
         </Link>
     ) : (
-        <button className={className}>
+        <button className={style}>
             {content}
         </button>
     );
@@ -29,14 +29,11 @@ export function AdminSideBarLayout({
     children,
     hideLogout = false,
     hideLoginRegister = false,
-}: {
+}: Readonly<{
     children?: React.ReactNode;
     hideLogout?: boolean;
     hideLoginRegister?: boolean;
-}) {
-
-    const [isHovered, setIsHovered] = useState(false);
-
+}>) {
     return(
         <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialised realtive z-0">
             {/* Atmospheric Background Blooms */}
@@ -45,7 +42,7 @@ export function AdminSideBarLayout({
                 <div className="ga-bloom-secondary"></div>
             </div>
 
-            <aside onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)} className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-23 hover:w-64 shrink-0 shadow-2xl shadow-black/50">
+            <aside className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-23 hover:w-64 shrink-0 shadow-2xl shadow-black/50">
 
             {/* Logo Area */}
             <div className="flex items-center justify-center group-hover:justify-start group-hover:px-6 mt-6 mb-4 px-2 shrink-0 transition-all duration-300 w-full">
