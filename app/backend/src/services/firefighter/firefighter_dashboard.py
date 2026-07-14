@@ -43,9 +43,6 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
     point_geog = cast(point, Geography)
 
     request = db.query(FireReports).filter(ST_DWithin(geom_geog, point_geog, radius_km * 1000)).add_columns(ST_Distance(FireReports.location_geom, point_geog)).order_by(ST_Distance(geom_geog, point_geog)).all() # * 1000 because ST_DWithin uses meters not km
-
-    if not request:
-        raise ValueError("No fires nearby")
     
     formatted_result = []
     for fire, distance_m in request: # distance in meters again
@@ -76,9 +73,6 @@ def get_current_environment_vars(lat:float, lng: float): # pings the open-meteo 
     response = requests.get(url, params=params, timeout=5)
     response.raise_for_status()
     data = response.json()["current"]
-
-    if not data:
-        raise ValueError("Failed to get environment variables")
 
     return {
         "temperature": data["apparent_temperature"],
