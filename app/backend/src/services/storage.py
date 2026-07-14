@@ -4,7 +4,6 @@ import uuid
 from datetime import timedelta
 from io import BytesIO
 from minio import Minio
-from minio.error import S3Error
 
 minio_client = Minio(
     os.environ["MINIO_ENDPOINT"],
@@ -27,11 +26,11 @@ def validate_image(content_type: str, size_bytes: int):
     if size_bytes > MAX_SIZE_MB*1024*1024:
         raise ValueError("File size too large")
     
-def upload_image(report_id: str, filename: str, content_type: str, contents: bytes) -> str:
-    """Uploads to MinIO, returns object_key to store in DB"""
+def upload_image(filename: str, content_type: str, contents: bytes) -> str:
+    """Uploads to MinIO, returns object_key to store in FireReports.image_url"""
     validate_image(content_type, len(contents))
     ext = filename.split(".")[-1]
-    object_key = f"{report_id}/{uuid.uuid4()}.{ext}"
+    object_key = f"reports/{uuid.uuid4()}.{ext}"
     
     minio_client.put_object(
         BUCKET,
