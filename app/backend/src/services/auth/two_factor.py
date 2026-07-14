@@ -32,6 +32,6 @@ def verify_2fa(db:Session, request:Two_FA_Verify_Request):
     if not totp.verify(request.code, valid_window=1):
         raise ValueError("Invalid code")
     
-    access_token = create_access_token(data={"sub": user.email, "user_id": user.id})
+    access_token = create_access_token(data={"sub": user.email, "user_id": user.id, "role": user.role.value,})
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "role": user.role.value}

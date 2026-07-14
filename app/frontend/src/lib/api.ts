@@ -8,6 +8,7 @@ export async function apiCall(
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,
     headers: { "Content-Type": "application/json" },
+    credentials: "include",
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
