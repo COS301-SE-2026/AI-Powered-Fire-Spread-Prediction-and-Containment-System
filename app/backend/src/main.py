@@ -9,6 +9,8 @@ from routes.guests.fire_reports import router as guest_fire_router
 from routes.admin.role_requests import router as admin_roles_router
 from routes.admin.fire_reports import router as admin_fire_router 
 from routes.users.fire_reports import router as user_fire_router
+from routes.admin.analytics import router as admin_analytics_router
+
 from routes.auth.register import router as register_router
 from routes.auth.login import router as login_router
 from routes.auth.two_factor import router as two_factor_router
@@ -47,6 +49,7 @@ app.include_router(guest_fire_router)
 app.include_router(register_router)
 app.include_router(login_router)
 app.include_router(two_factor_router)
+app.include_router(admin_analytics_router)
 app.include_router(admin_dashboard.router)
 app.include_router(logout_router)
 
