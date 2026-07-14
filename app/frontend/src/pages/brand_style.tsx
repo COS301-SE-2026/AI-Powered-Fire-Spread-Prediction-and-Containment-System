@@ -1,4 +1,3 @@
-import Typography from '../components/brandStyle/Typography';
 import Logo from '../components/brandStyle/Logos';
 import Components from '../components/brandStyle/Components';
 import Accessibility from '../components/brandStyle/Accessability';
@@ -7,6 +6,8 @@ import StyleGuideNav from "../components/brandStyle/navStyle";
 import { ColourGroup } from '../components/brandStyle/colourGroup';
 import { ColourCard, ColourToken } from '../components/brandStyle/colourCard';
 import { ColourPairTable, ColourPairRow } from '../components/brandStyle/colourTable';
+import { TypoCard, TypoFamily } from '../components/brandStyle/typoCard';
+import { TypoTable } from '../components/brandStyle/typoTable';
 
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FD5D19 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
@@ -33,6 +34,10 @@ const textMuted: ColourToken = { name: "Text Muted", hex: "#A0ACC0", usage: "Sec
 const textDisabled: ColourToken = { name: "Text Disabled", hex: "#7A87A2", usage: "Disabled text and controls", reason: "We chose a lower-contrast tone on purpose here, showing disabled elements shouldn't be interactive.", textColour: "#ffffff" };
 const textInverse: ColourToken = { name: "Text Inverse", hex: "#1A0500", usage: "Text on light/bright fills", reason: "We chose a near-black with a warm undertone (the same Char tone as our page background) so that text placed on bright fills like Torch still feels part of the same fire-toned system.", textColour: "#ffffff" };
 
+// typo family
+const displayFont: TypoFamily = { font: "font-display", weight: "font-extrabold", name: "Barlow Condensed", sample: "Fireaway", fallback: "sans-serif", source: "Google Fonts", license: "SIL OFL 1.1" };
+const bodyFont: TypoFamily = { font: "font-body", weight: "font-normal", name: "Exo 2", sample: "Colours", fallback: "sans-serif", source: "Google Fonts", license: "SIL OFL 1.1" };
+const monoFont: TypoFamily = { font: "font-mono", weight: "font-normal", name: "Fira Code", sample: "20km/h", fallback: "monospace", source: "Google Fonts", license: "SIL OFL 1.1" }
 
 export default function StyleGuidePage() {
   return (
@@ -128,7 +133,15 @@ export default function StyleGuidePage() {
 
           <section id="typography" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Typography</h2>
-            <Typography />
+            
+            <div className="flex flex-col gap-8">
+              <div className="grid grid-cols-3 gap-4">
+                <TypoCard data={displayFont}/>
+                <TypoCard data={bodyFont}/>
+                <TypoCard data={monoFont}/>
+              </div>
+              <TypoTable/>
+            </div>
           </section>
 
           <section id="logo" className="mb-10 scroll-mt-8">
@@ -137,7 +150,7 @@ export default function StyleGuidePage() {
           </section>
 
           <section id="components" className="mb-10 scroll-mt-8">
-            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Comoponents</h2>
+            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Components</h2>
             <Components />
           </section>
 

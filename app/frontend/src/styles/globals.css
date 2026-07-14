@@ -104,6 +104,8 @@
   --text-section-head: clamp(1.5rem, 2.5vw, 2rem);
   --text-card-title: clamp(1.2rem, 1.8vw, 1.375rem);
   --text-body: clamp(1rem, 1.4vw, 1.125rem);
+  --text-label: 0.8125rem;
+  --text-caption: 0.75rem;
 
   --radius-sm: 2px;
   --radius-md: 4px;
@@ -114,6 +116,7 @@
     margin: 0;
     font-family: var(--font-body);
     font-size: var(--text-body);
+    font-weight: 400;
     color: var(--color-text-primary);
   }
 
@@ -150,8 +153,10 @@
 
     label,
   .label {
-    font-size: var(--text-sm);
+    font-size: var(--text-label);
     font-weight: 500;
+    letter-spacing: 0.06em;
+    line-height: 1.4;
     color: var(--color-text-muted);
   }
 
@@ -161,7 +166,8 @@
   time,
   .tag {
     font-family: var(--font-mono);
-    font-size: var(--text-sm);
+    font-size: var(--text-caption);
+    line-height: 1.5;
     color: var(--color-flare);
   }
 
