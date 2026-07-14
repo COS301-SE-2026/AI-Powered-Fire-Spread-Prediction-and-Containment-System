@@ -27,6 +27,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
     const drawRef = useRef<any>(null);
 
     const [fires, setFires] = useState<FireReport[]>([]);
+    const [viewState, setViewState] = useState({longitude: lng, latitude: lat, zoom: 12});
 
     useEffect(() => {
         const fetchRequest = async() => {
@@ -85,15 +86,16 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
         drawRef.current.deleteAll();
     }, [clearDrawings])
 
+    useEffect(() => {
+        setViewState(v => ({...v, longitude: lng, latitude:lat}));
+    },[lat,lng]);
+
     return (
         <Map
             ref={mapRef}
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-            initialViewState={{
-                longitude: lng,
-                latitude: lat,
-                zoom: 12
-            }}
+            {...viewState}
+            onMove={evt => setViewState(evt.viewState)}
             style={{ width: '100%', height: '100%' }}
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
