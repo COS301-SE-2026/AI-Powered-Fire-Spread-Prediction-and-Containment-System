@@ -22,13 +22,13 @@ function Rating(ratio: number): string {
 export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>){
     const rating = Rating(pair.ratio);
     return(
-        <tr>
-            <td className="text-sm border-t border-carbon-stroke w-1/4">{pair.label}</td>
-            <td className="border-t border-carbon-stroke w-1/4">
+        <tr className="border-t border-carbon-stroke">
+            <td className="text-sm w-1/4">{pair.label}</td>
+            <td>
             <div className="px-3 py-1.5 text-xs inline-block" style={{ color:pair.fg, backgroundColor: pair.bg }}>Sample text</div>
             </td>
-            <td className="font-mono text-xs border-t border-carbon-stroke w-1/4">{pair.ratio.toFixed(2)}:1</td>
-            <td className="text-sm border-t border-carbon-stroke w-1/4">{rating}</td>
+            <td className="font-mono text-xs w-1/4">{pair.ratio.toFixed(2)}:1</td>
+            <td className="text-sm w-1/4">{rating}</td>
         </tr>
     );
 }
@@ -36,7 +36,7 @@ export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>){
 export function ColourPairTable({ children }: Readonly<{ children: ReactNode }>) {
     return (
         <div className="overflow-x-auto border border-carbon-stroke">
-            <table className="table">
+            <table className="table border-collapse">
                 <thead>
                     <tr className="text-text-muted text-xs uppercase tracking-wide">
                         <th>Pair</th>
