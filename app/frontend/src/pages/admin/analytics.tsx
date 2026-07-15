@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '../../components/Card';
 import Badge from '../../components/Badge';
-import { AdminSideBarLayout } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/adminSidebar';
 interface KPIs {
   total_users: number;
   pending_role_requests: number;
@@ -60,17 +60,17 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <AdminSideBarLayout>
+      <AdminSideBar>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
           <div className="loading loading-spinner loading-lg text-primary">Loading analytics data...</div>
         </div>
-      </AdminSideBarLayout>
+      </AdminSideBar>
     );
   }
 
   if (error) {
     return (
-      <AdminSideBarLayout>
+      <AdminSideBar>
         <div className="p-6">
           <div className="bg-error/10 border border-error/30 rounded-lg p-4 text-error">
             <p className="font-semibold">Unable to load analytics</p>
@@ -83,15 +83,15 @@ export default function AdminAnalyticsPage() {
             </button>
           </div>
         </div>
-      </AdminSideBarLayout>
+      </AdminSideBar>
     );
   }
 
   if (!data) {
     return (
-      <AdminSideBarLayout>
+      <AdminSideBar>
         <div className="p-6">No data available</div>
-      </AdminSideBarLayout>
+      </AdminSideBar>
     );
   }
 
@@ -103,7 +103,7 @@ export default function AdminAnalyticsPage() {
   ];
 
   return (
-    <AdminSideBarLayout>
+    <AdminSideBar>
       <div className="p-6 space-y-6 w-full">
 
         {/* Header */}
@@ -177,6 +177,6 @@ export default function AdminAnalyticsPage() {
         </Card>
 
       </div>
-    </AdminSideBarLayout>
+    </AdminSideBar>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { FireReport, ReportStatus } from '../../types/report';
-import { AdminSideBarLayout } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
 import { SearchBar } from '../../components/admin/searchBar';
@@ -31,7 +31,7 @@ export default function ReportedFiresPage() {
     );
 
     return(
-        <AdminSideBarLayout>
+        <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
                 
                 <header className="mb-6">
@@ -60,6 +60,6 @@ export default function ReportedFiresPage() {
                     <FireReportsTable report={filteredReports} filter={filter} />
                 )}
             </div>
-        </AdminSideBarLayout>
+        </AdminSideBar>
     );
 }
