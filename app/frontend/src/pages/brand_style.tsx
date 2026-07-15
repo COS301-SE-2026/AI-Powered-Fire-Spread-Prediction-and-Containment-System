@@ -118,6 +118,11 @@ export default function StyleGuidePage() {
                 <ColourPairRow pair={{ label: "Text Primary on Input", fg: textPrimary.hex, bg: input.hex, ratio: 17.3  }} />
                 <ColourPairRow pair={{ label: "Text Primary on Elevated", fg: textPrimary.hex, bg: elevated.hex, ratio: 17.1 }} />
 
+                <ColourPairRow pair={{ label: "Primary on Sidebar", fg: primary.hex, bg: sidebar.hex, ratio: 6.1 }} />
+                <ColourPairRow pair={{ label: "Primary on Card", fg: primary.hex, bg: card.hex, ratio: 5.9 }} />
+                <ColourPairRow pair={{ label: "Primary on Input", fg: primary.hex, bg: input.hex, ratio: 5.5 }} />
+                <ColourPairRow pair={{ label: "Primary on Elevated", fg: primary.hex, bg: elevated.hex, ratio: 5.5 }} />
+
                 <ColourPairRow pair={{ label: "Text Muted on Sidebar", fg: textMuted.hex, bg: sidebar.hex, ratio: 8.5 }} />
                 <ColourPairRow pair={{ label: "Text Muted on Card", fg: textMuted.hex, bg: card.hex, ratio: 8 }} />
                 <ColourPairRow pair={{ label: "Text Muted on Input", fg: textMuted.hex, bg: input.hex, ratio: 7.5 }} />
