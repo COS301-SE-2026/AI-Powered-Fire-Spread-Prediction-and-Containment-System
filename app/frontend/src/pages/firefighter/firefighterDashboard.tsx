@@ -1,13 +1,13 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { SideBarLayout } from '../components/demoSidebar';
-import { QuickActions } from '../components/firefighter/quickActions';
-import { NearbyReports } from '../components/firefighter/nearbyReports';
-import { EnvironmentWidgets } from '../components/firefighter/weatherStats';
-import { MapStatsOverlay } from '../components/firefighter/mapStat';
+import { SideBarLayout } from '../../components/demoSidebar';
+import { QuickActions } from '../../components/firefighter/quickActions';
+import { NearbyReports } from '../../components/firefighter/nearbyReports';
+import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
+import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 
 const FireMap = dynamic(
-    () => import('../components/firefighter/FireMap').then((mod) => mod.FireMap),
+    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
     {
         ssr: false,
         loading: () => (
