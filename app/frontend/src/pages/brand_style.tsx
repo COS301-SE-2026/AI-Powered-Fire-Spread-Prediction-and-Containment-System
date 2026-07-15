@@ -8,6 +8,8 @@ import { ColourCard, ColourToken } from '../components/brandStyle/colourCard';
 import { ColourPairTable, ColourPairRow } from '../components/brandStyle/colourTable';
 import { TypoCard, TypoFamily } from '../components/brandStyle/typoCard';
 import { TypoTable } from '../components/brandStyle/typoTable';
+import { LogoGrid } from '../components/brandStyle/logoGrid';
+import { IconGrid } from '../components/brandStyle/iconGrid';
 
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FD5D19 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
@@ -146,7 +148,8 @@ export default function StyleGuidePage() {
 
           <section id="logo" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Logo & Iconography</h2>
-            <Logo />
+            <LogoGrid />
+            <IconGrid />
           </section>
 
           <section id="components" className="mb-10 scroll-mt-8">
