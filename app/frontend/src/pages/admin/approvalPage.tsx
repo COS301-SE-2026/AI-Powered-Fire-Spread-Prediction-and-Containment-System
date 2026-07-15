@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import type { RoleRequest,RoleStatus } from '../../types/admin';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { RoleFilterTabs } from '../../components/admin/approvalFilter';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
-import { API_BASE_URL } from '../../config/api';
 
 export default function RoleApprovalPage() {
     const [request, setRequest] = useState<RoleRequest[]>([]);
     const [selectedRequest, setSelectedRequest] = useState<RoleRequest | null>(null);
     const [filter, setFilter] = useState<'All' | RoleStatus>('All');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchRequest = async() => {
@@ -27,6 +27,8 @@ export default function RoleApprovalPage() {
             }catch (error){
                 console.error("Failed to load role requests", error);
                 setRequest([])
+            }finally{
+                setLoading(false);
             }
         }
         fetchRequest();
@@ -92,8 +94,17 @@ export default function RoleApprovalPage() {
         }
     };
 
+    if (loading) {
+        return (
+            <AdminSideBar>
+                <div className="p-6 flex justify-center items-center min-h-[60vh]">
+                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                </div>
+            </AdminSideBar>
+        );
+    }
     return(
-        <SideBarLayout>
+        <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
                 {/* Header + filter */}
                 <header className="mb-6">
@@ -111,6 +122,6 @@ export default function RoleApprovalPage() {
                     <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject} onRevoke={handleRevoke}/>
                 )}
             </div>
-        </SideBarLayout>
+        </AdminSideBar>
     );
 }
