@@ -28,7 +28,7 @@ def get_nearby_fires(lat: float, lng: float, radius_km: float = 20, db: Session=
 # calculates fire risk still to be implemented
 
 # adds the drawn line to the containment lines table
-@router.post("/containment-line", response_model=ContainmentLines)
+@router.post("/containment-line", response_model=ContainmentLines, responses={400: {"description": "fire not near the line"}})
 def add_containment_line(line: CreateContainmentLine, db: Session = Depends(get_db)):
     try:
         return containment_lines.create_containment_line(db, line.wkt)
