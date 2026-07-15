@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { RoleRequest,RoleStatus } from '../../types/admin';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';
-import { AdminSideBarLayout } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { RoleFilterTabs } from '../../components/admin/approvalFilter';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
 
@@ -96,15 +96,15 @@ export default function RoleApprovalPage() {
 
     if (loading) {
         return (
-            <AdminSideBarLayout>
+            <AdminSideBar>
                 <div className="p-6 flex justify-center items-center min-h-[60vh]">
                     <span className="loading loading-spinner loading-lg text-primary"></span>
                 </div>
-            </AdminSideBarLayout>
+            </AdminSideBar>
         );
     }
     return(
-        <AdminSideBarLayout>
+        <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
                 {/* Header + filter */}
                 <header className="mb-6">
@@ -122,6 +122,6 @@ export default function RoleApprovalPage() {
                     <RoleApprovalModal request={selectedRequest} onClose={() => setSelectedRequest(null)} onApprove={handleApprove} onReject={handleReject} onRevoke={handleRevoke}/>
                 )}
             </div>
-        </AdminSideBarLayout>
+        </AdminSideBar>
     );
 }
