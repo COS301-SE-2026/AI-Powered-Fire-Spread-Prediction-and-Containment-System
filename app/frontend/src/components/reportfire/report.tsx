@@ -94,7 +94,7 @@ export default function ReportPage() {
         body: JSON.stringify({
           location_text: data.location,
           description: data.description,
-          image_url: "pending-url",
+          image_url: imageUrl,
           lat: externalPin?.lat ?? 0,
           lng: externalPin?.lng ?? 0,
           boundary_radius: boundarySize,
