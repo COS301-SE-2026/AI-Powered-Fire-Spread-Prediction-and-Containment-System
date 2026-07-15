@@ -70,6 +70,25 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
     try {
+      let imageUrl = "";
+
+      if (data.photo){  // upload image first if one was attatched
+        const formData = new FormData();
+        formData.append("file", data.photo);
+
+        const uploadRes = await fetch(`/api/uploads/photo`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok){
+          throw new Error("Image upload failed");
+        }
+
+        const uploadResult = await uploadRes.json();
+        imageUrl = uploadResult.object_key;
+      }
+
       const res = await fetch(`/api/users/reported-fires`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
