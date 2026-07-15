@@ -31,12 +31,12 @@ export function SideBar({
     children,
     hideLogout = false,
     hideLoginRegister = false,
-}: {
+}: Readonly<{
     items: React.ReactNode;
     children?: React.ReactNode;
     hideLogout?: boolean;
     hideLoginRegister?: boolean;
-}) {
+}>) {
     return(
         <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialised realtive z-0">
             {/* background*/}
