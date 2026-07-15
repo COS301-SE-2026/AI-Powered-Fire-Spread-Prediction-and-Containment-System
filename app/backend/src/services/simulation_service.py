@@ -1,0 +1,1 @@
+# Owns IgnitionScorer singleton
