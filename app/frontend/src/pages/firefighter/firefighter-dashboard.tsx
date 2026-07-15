@@ -73,6 +73,24 @@ export default function FirefighterDashboard() {
         return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
     }, [userLocation]);
 
+    const handleDrawComplete = async (wkt: string) => {
+        setDrawMode(false);
+        try{
+            const resp = await fetch('/api/firefighter/containment-line', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({wkt})
+            });
+            if(!resp.ok) {
+                const err = await resp.json();
+                console.error("Failed to save the containment line", err.detail);
+                return;
+            } 
+        }catch(error) {
+            console.error("was unable to submit containment line", error);
+        }
+    };
+
     return(
         <SideBarLayout hideLoginRegister>
             <div className="flex flex-col p-6">
@@ -94,7 +112,7 @@ export default function FirefighterDashboard() {
                                 <button onClick={() => setClearDrawings(c => c + 1)} className="text-xs font-medium text-neutral/60 hover:text-ignite transition-colors">Clear Lines</button>
                             </div>
                             <div className="flex-1 w-full h-full pt-[53px]"> 
-                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={(line) => {setDrawMode(false)}} clearDrawings={clearDrawings}/>
+                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={handleDrawComplete} clearDrawings={clearDrawings}/>
                             </div>
                             <MapStatsOverlay/>
                         </div>
