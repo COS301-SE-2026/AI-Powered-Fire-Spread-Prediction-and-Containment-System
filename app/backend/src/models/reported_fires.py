@@ -22,3 +22,9 @@ class FireReports(Base):
     submitted_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     user = relationship("User", back_populates='fire_reports')
+
+    @property
+    def reporter(self) -> str:
+        if self.user is None:
+            return "Anonymous"
+        return f"{self.user.name} {self.user.surname}"
