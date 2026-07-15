@@ -65,7 +65,7 @@ def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -
     
     return db.query(User).filter(User.id == user_id).first()
 
-async def get_current_admin_user(current_user: dict = Depends(get_current_user)):
+def get_current_admin_user(current_user: dict = Depends(get_current_user)):
     """Dependency ensures the current user has an Admin privilage"""
     if current_user.get("role") != "Admin":
         raise HTTPException(
