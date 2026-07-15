@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; 
 import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
 import { QuickActions } from '../../components/users/quickActions';
@@ -15,9 +15,9 @@ const FireMap = dynamic(
                     Initializing Map
                 </span>
             </div>
-        )
-    }
-);
+            )
+        }
+    );
 
 export default function FirefighterDashboard() {
     return(

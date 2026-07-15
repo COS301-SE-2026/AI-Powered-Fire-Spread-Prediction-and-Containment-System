@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActionCard } from './actionCard';
+import { ActionCard } from '../firefighter/actionCard';
 import {  FileWarning, PenLine, TrendingUp } from 'lucide-react'
 
 export function QuickActions(){
