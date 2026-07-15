@@ -29,5 +29,6 @@ def init_db():
     from models.users import User
     from models.role_request import RoleRequest
     from models.reported_fires import FireReports
+    from models.containment_lines import ContainmentLines
 
     Base.metadata.create_all(bind=engine)
