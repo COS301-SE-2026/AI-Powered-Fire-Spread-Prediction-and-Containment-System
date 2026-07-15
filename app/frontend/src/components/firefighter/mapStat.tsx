@@ -38,7 +38,7 @@ export function MapStatsOverlay({nearby_fires}: NearbyFireReports) {
     }
 
     const activeFires = nearby_fires.filter(fire => fire.status === 'verified').length;
-    const unverifiedFires = nearby_fires.filter(fire => fire.status === 'pending').length;
+    const unverifiedFires = nearby_fires.filter(fire => fire.status === 'pending' || fire.status === 'received').length;
     const nearestFire = nearby_fires[0].distance;
 
     return(
