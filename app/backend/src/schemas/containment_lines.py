@@ -14,3 +14,6 @@ class ContainmentLines(BaseModel):
 class ContainmentLinesList(BaseModel):
     data: List[ContainmentLines]
     total: int
+
+class CreateContainmentLine(BaseModel):
+    wkt: str

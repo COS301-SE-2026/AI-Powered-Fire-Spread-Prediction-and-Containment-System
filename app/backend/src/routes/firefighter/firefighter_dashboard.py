@@ -3,7 +3,8 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from db import get_db
 from schemas.firefighter_dashboard import DashboardData
-from services.firefighter import firefighter_dashboard
+from services.firefighter import firefighter_dashboard, containment_lines
+from schemas.containment_lines import ContainmentLines, CreateContainmentLine
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
@@ -25,3 +26,11 @@ def get_nearby_fires(lat: float, lng: float, radius_km: float = 20, db: Session=
     return {"nearby_fires": nearby_fires, "environment_variables": environment_variables}
     
 # calculates fire risk still to be implemented
+
+# adds the drawn line to the containment lines table
+@router.post("/containment-line", response_model=ContainmentLines)
+def add_containment_line(line: CreateContainmentLine, db: Session = Depends(get_db)):
+    try:
+        return containment_lines.create_containment_line(db, line.wkt)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=(error))
