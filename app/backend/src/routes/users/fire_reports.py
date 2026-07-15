@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
-from typing import List,Optional
+from typing import List, Optional
 from db import get_db
 from schemas.fire_report import FireReportCreate, FireReportDetailResponse, FireReportMapResponse
 from services.users import fire_report
+from dependencies.auth import get_current_user_optional
+from models.users import User
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -12,7 +14,8 @@ def get_reported_fires(db:Session = Depends(get_db)):
     return fire_report.get_fire_reports(db)
 
 @router.post("/reported-fires", response_model=FireReportDetailResponse)
-def create_fire_report(report:FireReportCreate, request:Request, db:Session = Depends(get_db), user_id:Optional[str] = None):
+def create_fire_report(report:FireReportCreate, request:Request, db:Session = Depends(get_db), current_user:Optional[User] = Depends(get_current_user_optional)):
     client_ip = request.client.host # gets users IP used mainly for guests to be able to see in a way who reported it and to be used to protect against spam
+    user_id = current_user.id if current_user else None # Derives from a verified JWT for registered users
     return fire_report.create_fire_report(report, db, client_ip, user_id)
 
