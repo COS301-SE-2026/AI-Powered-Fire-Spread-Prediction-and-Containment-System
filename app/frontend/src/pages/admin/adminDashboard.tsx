@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import {DashboardMetrics} from '../../components/admin/adminDashboardMetrics';
 import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics';
 import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { AdminSideBar } from '../../components/admin/adminSidebar';
 
 interface ActivityItem {
     id: string;
@@ -80,23 +80,23 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
     if (isLoading) {
         return (
-            <SideBarLayout hideLoginRegister={true}>
+            <AdminSideBar hideLoginRegister={true}>
                 <div className="w-full min-h-screen flex items-center justify-center">
-                    <span className="loading loading-spinner loading lg text-primary"></span>
+                    <span className="loading loading-spinner loading-lg text-primary"></span>
                 </div>
-            </SideBarLayout>
+            </AdminSideBar>
         );
     }
 
     if (error || !data) {
         return (
-            <SideBarLayout hideLoginRegister={true}>
+            <AdminSideBar hideLoginRegister={true}>
                 <div className="alert alert-error bg-red-900/20 border border-red-900 text-red-400">
-                    <svg xmlns="htpp://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     <span>{error}</span>
                 </div>
-            </SideBarLayout>
+            </AdminSideBar>
         )
     }
 
@@ -132,7 +132,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
     ];
 
     return (
-        <SideBarLayout hideLoginRegister={true}>
+        <AdminSideBar hideLoginRegister={true}>
             <div className="w-full space-y-6">
 
                 <div className="border-b border-base-300 pb-3 mb-6">
@@ -206,7 +206,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                 <SystemMetrics metrics={bottomMetrics} />
 
             </div>
-        </SideBarLayout>
+        </AdminSideBar>
     );
 };
 
