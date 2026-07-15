@@ -2,15 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { SideBarLayout } from '../../components/demoSidebar';
-import StepIndicator from "../../components/reportfire/Stepindicator";
-import MapKey from "../../components/reportfire/Mapkey";
-import ReportDetailsForm, { type ReportFormData } from "../../components/reportfire/Reportdetailsform";
-import ReportStatus from "../../components/reportfire/Reportstatus";
-import { API_BASE_URL } from "../../config/api";
+import StepIndicator from "./Stepindicator";
+import MapKey from "./Mapkey";
+import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
+import ReportStatus from "./Reportstatus";
 
 const FireMap = dynamic(
-  () => import("../../components/reportfire/Firemap").then((mod) => mod.FireMap),
+  () => import("./Firemap").then((mod) => mod.FireMap),
   {
     ssr: false,
     loading: () => (
@@ -34,7 +32,7 @@ type SubmitState = "idle" | "loading" | "error";
 export default function ReportPage() {
   const [activeStep, setActiveStep]     = useState(0);
   const [location, setLocation]         = useState("Click the map to drop a pin");
-  const [boundarySize, setBoundarySize] = useState(2);
+  const [boundarySize, setBoundarySize] = useState(200);
   const [statusIndex, setStatusIndex]   = useState(-1);
   const [mapKey, setMapKey]             = useState(0);
   const [activeRefNum, setActiveRefNum] = useState("");
@@ -57,6 +55,7 @@ export default function ReportPage() {
 
   function handleLocationSelect(loc: { lat: number; lng: number; address: string }) {
     setLocation(loc.address);
+    setExternalPin({ lng: loc.lng, lat: loc.lat });
     setActiveStep((prev) => Math.max(prev, 1));
   }
 
@@ -70,13 +69,32 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
     try {
+      let imageUrl = "";
+
+      if (data.photo){  // upload image first if one was attatched
+        const formData = new FormData();
+        formData.append("file", data.photo);
+
+        const uploadRes = await fetch(`/api/uploads/photo`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok){
+          throw new Error("Image upload failed");
+        }
+
+        const uploadResult = await uploadRes.json();
+        imageUrl = uploadResult.object_key;
+      }
+
       const res = await fetch(`/api/users/reported-fires`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           location_text: data.location,
           description: data.description,
-          image_url: "pending-url",
+          image_url: imageUrl,
           lat: externalPin?.lat ?? 0,
           lng: externalPin?.lng ?? 0,
           boundary_radius: boundarySize,
@@ -102,7 +120,6 @@ export default function ReportPage() {
   }
 
   return (
-    <SideBarLayout>
       <div className="flex flex-col p-6">
         <header className="mb-4 flex items-center justify-between">
           <div>
@@ -165,6 +182,5 @@ export default function ReportPage() {
 
         </div>
       </div>
-    </SideBarLayout>
   );
 }

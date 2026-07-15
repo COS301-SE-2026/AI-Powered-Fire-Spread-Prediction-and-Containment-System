@@ -10,10 +10,8 @@ const PublicFireMap = dynamic(
     {
         ssr: false,
         loading: () => (
-            <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-                    Initializing Public Map Canvas...
-                </span>
+            <div className="flex-1 flex items-center justify-center h-full w-full">
+                <span className="loading loading-spinner loading-lg text-primary"></span>
             </div>
         )
     }
@@ -52,7 +50,7 @@ export default function GuestPublicDashboard() {
                     <div className="xl:col-span-8 flex flex-col gap-6">
                         
                         {/*Map*/}
-                        <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
+                        <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[40rem] w-full shadow-md">
                             <PublicFireMap />
                         </div>            
                     </div>

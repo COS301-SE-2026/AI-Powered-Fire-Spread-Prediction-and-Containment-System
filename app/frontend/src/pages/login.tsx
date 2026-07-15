@@ -40,17 +40,33 @@ export default function Login() {
     }
     setIsLoading(true);
     try {
-      const data = await fetch(`/api/auth/login`, {
+        const res = await fetch(`/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',   // needed so browser stores httpOnly cookie
         body: JSON.stringify({ email, password }),
-      }).then(res => res.json());
-      if (data.access_token) {
-        localStorage.setItem('token', data.access_token);
-        router.push('/guests');
-      } else {
-        setApiError('Unexpected response');
+      });
+
+      if (!res.ok){
+        const errBody = await res.json().catch(() => null);
+        setApiError(errBody?.detail || 'Login failed. Email or password incorrect');
+        return;
       }
+
+      const data = await res.json();
+
+      if (data.requires_2fa) {
+        router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
+      } 
+
+      const roleRedirects: Record<string, string> = {
+        admin: '/admin/adminDashboard',
+        firefighter: '/firefighterDashboard',
+        user: '/registeredUser/registeredUserLanding',
+      };
+
+      router.push(roleRedirects[data.role] ?? '/login');
+
     } catch (err: any) {
         setApiError(err.message);
     } finally {
@@ -59,8 +75,7 @@ export default function Login() {
   };
 
   const handleGuest = () => {
-    localStorage.setItem('token', 'guest-token-' + Date.now());
-    router.push('/guests');
+    router.push('/guests/guestsLanding');
   };
 
   const fieldClass = (hasError?: string) =>

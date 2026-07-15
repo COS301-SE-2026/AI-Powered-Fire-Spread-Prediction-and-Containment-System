@@ -28,3 +28,9 @@ playwright-report/
 # Local env files
 .env.*app/frontend/src/.env.local
 **/.env.local
+
+#distribution
+dist/
+
+# minio local storage
+database/minio/
