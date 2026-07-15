@@ -148,8 +148,10 @@ export default function StyleGuidePage() {
 
           <section id="logo" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Logo & Iconography</h2>
-            <LogoGrid />
-            <IconGrid />
+            <div className="flex flex-col gap-8">
+              <LogoGrid />
+              <IconGrid />
+            </div>
           </section>
 
           <section id="components" className="mb-10 scroll-mt-8">
