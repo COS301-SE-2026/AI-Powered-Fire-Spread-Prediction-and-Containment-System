@@ -6,8 +6,9 @@ from models.containment_lines import ContainmentLines
 from models.reported_fires import FireReports
 import uuid
 from datetime import datetime, timezone
+from geoalchemy2.shape import to_shape
 
-MAX_RADIUS = 5 # max radius for containement auto-detection of nearby fire
+MAX_RADIUS = 2 # max radius for containement auto-detection of nearby fire
 
 # gets the containment lines
 def get_all_containment_lines(db: Session):
@@ -39,10 +40,11 @@ def create_containment_line(db:Session, wkt:str):
         id=str(uuid.uuid4()),
         fire_report_id = fire.id,
         line_geom=wkt,
-        draw_at=datetime.now(timezone.utc)
+        drawn_at=datetime.now(timezone.utc)
     )
 
     db.add(new_line)
     db.commit()
     db.refresh(new_line)
+    new_line.line_geom = to_shape(new_line.line_geom).wkt
     return new_line
