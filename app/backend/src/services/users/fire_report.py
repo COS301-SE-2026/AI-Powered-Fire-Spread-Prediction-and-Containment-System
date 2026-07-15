@@ -7,6 +7,7 @@ import uuid
 import math
 from schemas.fire_report import FireReportCreate
 from enums.report_status import ReportStatus, status_level
+from services.storage import get_presigned_url
 
 # this is for hectares takes radius in km
 def calc_size(radius: float) -> float:
@@ -14,17 +15,17 @@ def calc_size(radius: float) -> float:
     return round((math.pi * radius_m **2) / 10_000, 1)
 
 def get_fire_reports(db: Session):
-    query = db.query(
+    results = db.query(
         FireReports,
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
     ).outerjoin(FireReports.user).all()
     
-    if not request:
+    if not results:
         return []
 
     formatted_reports = []
-    for report, lat, lng in request:
+    for report, lat, lng in results:
         formatted_reports.append ({
             "id": report.id,
             "reference_number": report.reference_number,
