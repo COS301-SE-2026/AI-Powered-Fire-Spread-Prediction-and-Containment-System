@@ -17,6 +17,9 @@ from routes.auth.two_factor import router as two_factor_router
 from routes.admin import admin_dashboard
 from routes.auth.logout import router as logout_router
 
+from routes import image_uploads
+from services.storage import ensure_bucket
+
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
 
@@ -52,6 +55,7 @@ app.include_router(two_factor_router)
 app.include_router(admin_analytics_router)
 app.include_router(admin_dashboard.router)
 app.include_router(logout_router)
+app.include_router(image_uploads.router)
 
 @app.get("/")
 def read_root():
@@ -66,3 +70,7 @@ def ping():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+@app.on_event("startup")
+def startup():
+    ensure_bucket()
