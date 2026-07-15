@@ -1,4 +1,4 @@
-import React, { Children, useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Settings, LogOut, UserCircle } from 'lucide-react';
 
