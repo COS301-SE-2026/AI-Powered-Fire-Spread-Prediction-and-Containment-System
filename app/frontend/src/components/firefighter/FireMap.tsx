@@ -1,8 +1,7 @@
 "use client";
-
-import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Map, Marker } from 'react-map-gl/mapbox';
-import mapboxgl from 'mapbox-gl'
+import 'mapbox-gl/dist/mapbox-gl.css'
+import React, { useEffect, useState, useRef } from 'react';
+import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 
 interface FireReport{
@@ -11,6 +10,9 @@ interface FireReport{
     status: string
     lat: number;
     lng: number;
+    size?: number;
+    reported: string;
+    reporter?: string;
 }
 
 interface MapProps{
@@ -28,6 +30,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
 
     const [fires, setFires] = useState<FireReport[]>([]);
     const [viewState, setViewState] = useState({longitude: lng, latitude: lat, zoom: 12});
+    const [selectedFire, setSelectedFire] = useState<FireReport | null>(null);
 
     useEffect(() => {
         const fetchRequest = async() => {
@@ -90,6 +93,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
         setViewState(v => ({...v, longitude: lng, latitude:lat}));
     },[lat,lng]);
 
+    const circleFeatures = fires.filter(f => f.size != null && f.size > 0)
+    .map(f => ({
+        type: 'Feature' as const,
+        geometry: {type : 'Point' as const, coordinates: [f.lng, f.lat]},
+        properties: { radius: f.size*1000 }
+    }));
+
+    console.log(fires)
+
     return (
         <Map
             ref={mapRef}
@@ -100,7 +112,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
            {fires.map((fire) => (
-                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center">
+                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={() => setSelectedFire(fire)}>
                     <div className="relative flex items-center justify-center size-6">
                         {/* The radar ping animation effect */}
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />
@@ -109,7 +121,53 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
                     </div>
                 </Marker>
             ))}
-            
+
+            {/*Circles around markers*/}
+            {circleFeatures.length>0 &&(
+              <Source 
+                  id ="fire-circles"
+                  type="geojson"
+                  data={{
+                      type:'FeatureCollection',
+                      features:circleFeatures
+                  }}
+                  >
+                      <Layer 
+                          id="fire-radius"
+                          type="circle"
+                          paint={{
+                          'circle-color': '#ff4500',
+                          'circle-opacity': 0.25,
+                          'circle-stroke-color': '#ff4500',
+                          'circle-stroke-width': 1,
+                          'circle-radius': [
+                              'interpolate',
+                              ['linear'],
+                              ['zoom'],
+                              0, 0,
+                              8, ['*', ['get', 'radius'], 0.05],
+                              12, ['*', ['get', 'radius'], 0.1],
+                              16, ['*', ['get', 'radius'], 0.2],
+                              20, ['*', ['get', 'radius'], 0.5]
+                          ]
+                          }}
+                      />
+                  </Source>
+
+          )}
+
+            {selectedFire && (
+                <Popup longitude={selectedFire.lng} latitude={selectedFire.lat} onClose={() => setSelectedFire(null)}>
+                    <div>
+                        <h3>{selectedFire.location}</h3>
+                        <p>Status: {selectedFire.status}</p>
+                        <p>Submitted: {new Date(selectedFire.reported).toLocaleString()}</p>
+                        {selectedFire.size && (
+                            <p>Radius: {selectedFire.size} m</p>
+                        )}
+                    </div>
+                </Popup>
+            )}
         </Map>
     );
 }
