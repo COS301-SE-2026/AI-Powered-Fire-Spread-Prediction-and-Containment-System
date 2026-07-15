@@ -1,23 +1,5 @@
 import { ChevronRight } from "lucide-react";
 
-const mockReports = [
-    { id: 1,  location: 'Pretoria West',    distance: '1.2 km',  status: 'Active',    time: '8 min ago'  },
-    { id: 2,  location: 'Atteridgeville',   distance: '3.5 km',  status: 'Pending',   time: '15 min ago' },
-    { id: 3,  location: 'Laudium',          distance: '5.1 km',  status: 'Contained', time: '32 min ago' },
-    { id: 4,  location: 'Soshanguve',       distance: '8.7 km',  status: 'Active',    time: '41 min ago' },
-    { id: 5,  location: 'Centurion',        distance: '12.3 km', status: 'Pending',   time: '1 hr ago'   },
-    { id: 6,  location: 'Mamelodi',         distance: '14.6 km', status: 'Active',    time: '1 hr ago'   },
-    { id: 7,  location: 'Garsfontein',      distance: '17.2 km', status: 'Contained', time: '2 hrs ago'  },
-    { id: 8,  location: 'Hatfield',         distance: '6.4 km',  status: 'Pending',   time: '2 hrs ago'  },
-    { id: 9,  location: 'Silverton',        distance: '9.8 km',  status: 'Active',    time: '3 hrs ago'  },
-    { id: 10, location: 'Wonderboom',       distance: '11.0 km', status: 'Contained', time: '3 hrs ago'  },
-    { id: 11, location: 'Eersterust',       distance: '13.3 km', status: 'Pending',   time: '4 hrs ago'  },
-    { id: 12, location: 'Irene',            distance: '18.9 km', status: 'Active',    time: '4 hrs ago'  },
-    { id: 13, location: 'Lyttelton',        distance: '15.7 km', status: 'Contained', time: '5 hrs ago'  },
-    { id: 14, location: 'Mabopane',         distance: '22.1 km', status: 'Active',    time: '6 hrs ago'  },
-    { id: 15, location: 'Olivenhoutsdrift', distance: '26.4 km', status: 'Pending',   time: '7 hrs ago'  },
-];
-
 interface NearbyFire{
     readonly location_text: string;
     readonly distance: number;

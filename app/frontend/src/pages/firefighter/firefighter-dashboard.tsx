@@ -114,7 +114,7 @@ export default function FirefighterDashboard() {
                             <div className="flex-1 w-full h-full pt-[53px]"> 
                                 <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={handleDrawComplete} clearDrawings={clearDrawings}/>
                             </div>
-                            <MapStatsOverlay/>
+                            <MapStatsOverlay nearby_fires={nearbyFires}/>
                         </div>
                         <div className="grid grid-cols-2 gap-2 shrink-0">
                             <div className="flex flex-col">
