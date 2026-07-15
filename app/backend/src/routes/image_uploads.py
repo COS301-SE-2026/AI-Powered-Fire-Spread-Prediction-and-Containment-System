@@ -6,8 +6,8 @@ from services.storage import upload_image
 
 router = APIRouter(prefix="/api/uploads", tags=["Uploads"])
 
-@router.post("/image")
-async def upload_image(file: UploadFile, current_user: Optional[User] = Depends(get_current_user_optional),):
+@router.post("/photo")
+async def upload_image_endpoint(file: UploadFile, current_user: Optional[User] = Depends(get_current_user_optional),):
     """ Anonymous image upload. Returns object_key string
         Frontend passes this to FireReportCase.image_url  when calls POST /api/users/reported-fires
     """

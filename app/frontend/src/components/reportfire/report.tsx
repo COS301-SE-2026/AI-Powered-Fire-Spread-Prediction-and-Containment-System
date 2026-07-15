@@ -6,7 +6,6 @@ import StepIndicator from "./Stepindicator";
 import MapKey from "./Mapkey";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
-import { API_BASE_URL } from "../../config/api";
 
 const FireMap = dynamic(
   () => import("./Firemap").then((mod) => mod.FireMap),
