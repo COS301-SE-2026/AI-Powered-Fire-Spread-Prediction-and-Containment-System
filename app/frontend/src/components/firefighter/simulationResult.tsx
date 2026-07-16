@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { LoggedContainmentLine } from './containmentLineCard';
 
@@ -11,9 +12,55 @@ export function SimulationResults () {
         {label: "24h", hectares: 38.2},
     ];
 
+    const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
+    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
+    const [userLocation, setUserLocation] = useState(default_location);
+    const [environmentVariables, setEnvironmentVariables] = useState<any | null>(null);
+
+    useEffect (() => {
+            if(!navigator.geolocation){ // if user does not allow location return default location on map
+                return;
+            }
     
+            {/* if users location permissions accepted set lat and lng to users location */}
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    });
+                    setIsDefaultLocation(false);
+                },
+                () => {} // keeps default if there is failure retreiving users location
+            )
+        }, [])
 
     const maxHectar = Math.max(...mockSpreadData.map(mx => mx.hectares));
+    
+
+    useEffect(() => {
+    
+            const fetchController = new AbortController();
+            const fetchRequest = async () => {
+                const url = `/api/firefighter/firefighter-dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+                try{
+                    const resp = await fetch(url, {signal: fetchController.signal});
+                    if (!resp.ok){
+                        
+                        setEnvironmentVariables(null);
+                        return;
+                    }
+                    const data = await resp.json();
+                    setEnvironmentVariables(data.environment_variables ?? null);
+                } catch(error){
+                    if(error.name === 'AbortError') return; // this request is superseded by a newer request
+                    console.error("Was unable to find/retrieve dashboard data", error);
+                    setEnvironmentVariables(null);
+                }
+            };
+            fetchRequest();
+            return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
+        }, [userLocation]);
 
     return (
         <div className="w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto">
@@ -28,7 +75,7 @@ export function SimulationResults () {
             {/* Weather conditions */}
             <div>
                 <p className="text-sm uppercase py-2">weather inputs</p>
-                <EnvironmentWidgets/>
+                <EnvironmentWidgets variables={environmentVariables}/>
             </div>
 
             {/* simulation results */}

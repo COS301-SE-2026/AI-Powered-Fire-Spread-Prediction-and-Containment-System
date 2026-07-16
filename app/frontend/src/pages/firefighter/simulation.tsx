@@ -20,6 +20,32 @@ const FireMap = dynamic(
 
 export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
+    const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
+    const [drawMode, setDrawMode] = useState(false);
+    const [userLocation, setUserLocation] = useState(default_location);
+    const [clearDrawings, setClearDrawings] = useState(0);
+    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
+    const [nearbyFires, setNearbyFires] = useState<any[]>([]);
+    const [environmentVariables, setEnvironmentVariables] = useState<any | null>(null);
+    
+    const handleDrawComplete = async (wkt: string) => {
+        setDrawMode(false);
+        try{
+            const resp = await fetch('/api/firefighter/containment-line', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({wkt})
+            });
+            if(!resp.ok) {
+                const err = await resp.json();
+                console.error("Failed to save the containment line", err.detail);
+                return;
+            } 
+        }catch(error) {
+            console.error("was unable to submit containment line", error);
+        }
+    };
+
     return (
         <SideBarLayout>
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
@@ -40,7 +66,7 @@ export default function ReportTable() {
                                 <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">LIVE FIRE MAP</span>
                             </div>
                             <div className="w-full h-full"> 
-                                <FireMap />
+                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={handleDrawComplete} clearDrawings={clearDrawings}/>
                             </div>
                         </div>
 
