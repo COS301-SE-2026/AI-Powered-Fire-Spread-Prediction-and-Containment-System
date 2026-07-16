@@ -7,6 +7,8 @@ export interface Report{
     size: number;
     reported: string; // date and time that report was made
     reporter: string;
+    description: string;
+    img_url: string;
 }
 
 export interface ReportModal{
@@ -14,6 +16,7 @@ export interface ReportModal{
     location: string;
     status: ReportStatus;
     reported: Date
+    reporter: string;
     description: string;
     img_url: string;
     size: number;

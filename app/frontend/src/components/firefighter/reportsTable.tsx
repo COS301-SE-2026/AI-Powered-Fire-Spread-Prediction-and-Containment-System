@@ -1,5 +1,6 @@
 import React from "react";
 import { Report, ReportStatus } from "../../types/firefighter";
+import { ReportModalTable } from "./reportModal";
 
 interface ReportsTableProp{
     readonly requests: Report[];
@@ -23,6 +24,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase">Size</th>
                         <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase">Reported</th>
                         <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase">Reporter</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -42,6 +44,9 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{new Date(req.reported).toLocaleDateString("en-ZA", {day: "2-digit", month: "2-digit", year: "numeric"})}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">
+                                        <ReportModalTable report={req}/>
+                                    </td>
                                 </tr>
                             )
                         })
