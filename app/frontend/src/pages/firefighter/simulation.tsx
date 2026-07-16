@@ -87,68 +87,29 @@ export default function ReportTable() {
                             {/* input variables */}
                             <div className="border border-carbon-stroke w-full rounded-2xl bg-carbon-side">
                                 <div className="flex flex-col gap-3 p-2">
-                                    <p className="text-sm uppercase tracking-wide text-text-muted font-semibold">Simulation Variables</p>
-
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {/* Wind speed and direction */}
-                                        <label className="flex gap-1 p-2">
-                                            <span className="text-sm text-text-muted">Wind:</span>
-                                            <input type="text" placeholder="wind speed" className="input input-accent input-xs w-full" />
-                                            <select className="select select-xs select-accent w-full">
-                                                <option>N</option>
-                                                <option>W</option>
-                                                <option>E</option>
-                                                <option>S</option>
-                                                <option>NW</option>
-                                                <option>NE</option>
-                                                <option>SE</option>
-                                                <option>SW</option>
-                                            </select>
-                                        </label>
-                                        {/* temperature */}
-                                        <label className="flex gap-1 p-2">
-                                            <span className="text-sm text-text-muted">Temperature:</span>
-                                            <input type="text" placeholder="Temperature" className="input input-accent input-xs w-full" />
-                                        </label>
-
-                                        {/* humidity */}
-                                        <label className="flex gap-1 p-2">
-                                            <span className="text-sm text-text-muted">Humidity:</span>
-                                            <input type="text" placeholder="Humidity" className="input input-accent input-xs w-full" />
-                                        </label>
-
-                                        {/* dryness */}
-                                        <label className="flex gap-1 p-2">
-                                            <span className="text-sm text-text-muted">Dryness:</span>
-                                            <select className="select select-xs select-accent w-full">
-                                                <option>Very High</option>
-                                                <option>High</option>
-                                                <option>Medium</option>
-                                                <option>Low</option>
-                                            </select>
-                                        </label>
-                                        
-                                        {/* Auto Update Checkbox */}
-                                        <label className="flex gap-1 p-2">
-                                            <span className="text-sm text-text-muted">Auto Update:</span>
-                                            <input type="checkbox" defaultChecked className="checkbox checkbox-sm rounded-lg" />
-                                        </label>
+                                    <p className="text-sm uppercase tracking-wide text-text-muted font-semibold">Simulation Timeline</p>
 
                                         {/* Timeline slider */}
-                                        <label className="flex flex-col gap-1 p-2 col-span-3">
-                                            <span className="text-sm text-text-muted p-2">Timeline: {timeline} h</span>
-                                            <div className="w-full">
-                                                <input type="range" min={0} max="24" className="range range-xs w-full" step="0.5" value={timeline} onChange={(e) => setTimeline(Number(e.target.value))}/>
-                                                <div className="flex justify-between px-2.5 mt-2 text-sm">
-                                                    <span>0h</span>
-                                                    <span>6h</span>
-                                                    <span>12h</span>
-                                                    <span>18h</span>
-                                                    <span>24h</span>
-                                                </div>
+                                        <div className="flex flex-col gap-1 p-2">
+                                            <div className="flex flex-row items-center justify-between">
+                                                <span className="text-sm text-text-muted p-2">Timeline: {timeline} h</span>
+                                                {/* Auto Update Checkbox */}
+                                                <label className="flex gap-1 p-2">
+                                                    <span className="text-sm text-text-muted">Auto Update:</span>
+                                                    <input type="checkbox" defaultChecked className="checkbox checkbox-sm rounded-lg" />
+                                                </label>
                                             </div>
-                                        </label>
-
+                                        
+                                        <div className="w-full">
+                                            <input type="range" min={0} max="24" className="range range-xs w-full" step="0.5" value={timeline} onChange={(e) => setTimeline(Number(e.target.value))}/>
+                                            <div className="flex justify-between px-2.5 mt-2 text-sm">
+                                                <span>0h</span>
+                                                <span>6h</span>
+                                                <span>12h</span>
+                                                <span>18h</span>
+                                                <span>24h</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
