@@ -42,28 +42,28 @@ export default function FirefighterDashboard() {
                                 <FireMap />
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 shrink-0">
-                            <div className="flex flex-col">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                                    Environment Variables
+                        <div className="grid grid-cols-2 gap-3 shrink-0">
+                            <div className="flex flex-col gap-1">
+                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3 gap-1">
+                                    Environment Variables:
                                 </h2>
                                 <EnvironmentWidgets />
                             </div>
-                            <div className="flex flex-col">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                                    Quick Actions
+                            <div className="flex flex-col gap-1">
+                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3 gap-1   ">
+                                    Quick Actions:
                                 </h2>
                                 <QuickActions />
                             </div>
                         </div>                  
                     </div>
 
-                    {/* Right Column */}
-                    <div className="xl:col-span-4 flex flex-col gap-3" style={{ maxHeight: '100%' }}>
-                        <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase shrink-0">
-                            Nearby Reports
+                    {/* Right Column with Nearby Reports*/}
+                    <div className="xl:col-span-4 flex flex-col gap-3.1" style={{ maxHeight: "100%" }}>
+                        <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase shrink-0 gap-1">
+                            Nearby Reports:
                         </h2>
-                        <div className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto" style={{ maxHeight: 'calc(480px + 2rem + 220px)' }}>
+                        <div className="rounded-2xl bg-carbon-side/40 backdrop-blur-md gap-1 border border-carbon-card overflow-y-auto" style={{ maxHeight: 'calc(480px + 2rem + 220px)' }}>
                             <NearbyReports />
                         </div>
                     </div>
