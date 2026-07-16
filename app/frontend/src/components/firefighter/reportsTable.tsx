@@ -1,6 +1,7 @@
 import React from "react";
 import { Report, ReportModal, ReportStatus } from "../../types/firefighter";
 import { useRouter } from 'next/router';
+import { StatusBadge } from "../admin/reportStatusBadge";
 
 interface ReportsTableProp{
     readonly requests: Report[];
@@ -41,7 +42,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                                 <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.ref}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.location}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.status}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card"><StatusBadge status={req.status} /></td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{new Date(req.reported).toLocaleDateString("en-ZA", {day: "2-digit", month: "2-digit", year: "numeric"})}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
