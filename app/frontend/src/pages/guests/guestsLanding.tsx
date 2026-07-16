@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
-import { NearbyReports } from '../../components/firefighter/nearbyReports';
-import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
-import Button from '../../components/Button';
+import { NearbyReports } from '../../components/users/nearbyReports';
 
 const PublicFireMap = dynamic(
-    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
+    () => import('../../components/reportfire/Firemap').then((mod) => mod.FireMap),
     {
         ssr: false,
         loading: () => (
@@ -28,6 +26,51 @@ export default function GuestPublicDashboard() {
             setAlertEmail('');
         }
     };
+
+const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
+    const [userLocation, setUserLocation] = useState(default_location);
+    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
+    const [nearbyFires, setNearbyFires] = useState<any[]>([]);
+
+    useEffect (() => {
+        if(!navigator.geolocation){ // if user does not allow location return default location on map
+            return;
+        }
+    
+        {/* if users location permissions accepted set lat and lng to users location */}
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setUserLocation({
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                });
+                setIsDefaultLocation(false);
+            },
+        () => {} // keeps default if there is failure retreiving users location
+        )
+    }, [])
+
+    useEffect(() => {
+        const fetchController = new AbortController();
+        const fetchRequest = async () => {
+            const url = `/api/firefighter/firefighter-dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+            try{
+                const resp = await fetch(url, {signal: fetchController.signal});
+                if (!resp.ok){
+                    setNearbyFires([]);
+                    return;
+                }
+                const data = await resp.json();
+                setNearbyFires(data.nearby_fires?.data ?? []);
+            } catch(error){
+                if(error.name === 'AbortError') return; // this request is superseded by a newer request
+                console.error("Was unable to find/retrieve nearby fires", error);
+                setNearbyFires([]);
+            }
+        };
+        fetchRequest();
+        return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
+    }, []);
 
     return (
         <SideBarLayout hideLogout>
@@ -66,7 +109,7 @@ export default function GuestPublicDashboard() {
                             className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto" 
                             style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
                         >
-                            <NearbyReports />
+                            <NearbyReports nearby_fires={nearbyFires}/>
                         </div>
                     </div>
                 </div>
