@@ -79,6 +79,7 @@ Once the stack is running, the default ports are:
 - `http://localhost:19006` – PWA / Expo web interface
 - `http://localhost:8080` – pgAdmin
 - `localhost:5432` – PostgreSQL database
+- `http://localhost:8000/docs#` - Swagger Docs
 
 ## Stop the containers
 

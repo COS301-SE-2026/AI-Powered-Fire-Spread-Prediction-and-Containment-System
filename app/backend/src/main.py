@@ -15,6 +15,7 @@ from routes.admin.analytics import router as admin_analytics_router
 from routes.auth.register import router as register_router
 from routes.auth.login import router as login_router
 from routes.auth.two_factor import router as two_factor_router
+from routes.firefighter.firefighter_dashboard import router as firefighter_dashboard
 from routes.admin import admin_dashboard
 from routes.auth.logout import router as logout_router
 
@@ -56,6 +57,7 @@ app.include_router(two_factor_router)
 app.include_router(admin_analytics_router)
 app.include_router(admin_dashboard.router)
 app.include_router(firefighter_reports)
+app.include_router(firefighter_dashboard)
 app.include_router(logout_router)
 app.include_router(image_uploads.router)
 
