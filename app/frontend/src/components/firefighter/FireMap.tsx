@@ -1,56 +1,129 @@
 "use client";
 import 'mapbox-gl/dist/mapbox-gl.css'
-import React, { useState, useEffect } from 'react';
-import Map, { Marker, Popup, Source, Layer } from 'react-map-gl/mapbox';
+import React, { useEffect, useState, useRef } from 'react';
+import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
 
 interface FireReport{
-    id:string;
-    reference_number:string;
+    ref: string;
+    location: string;
+    status: string
     lat: number;
     lng: number;
-    location_text:string;
-    status:string;
-    boundary_radius?:number;
-    submitted_at:string;
-
+    size?: number;
+    reported: string;
+    reporter?: string;
 }
-export function FireMap() {
-  
-  const [reports, setReports]=useState<FireReport[]>([]);
-  const [selectedReport, setSelectedReport]= useState<FireReport | null>(null);
-  const [viewport, setViewport] = useState({
-  longitude: 28.0473,
-  latitude: -26.2041,
-  zoom: 12,
-});
-  useEffect(()=>{
-      fetch('/api/guests/reported-fires')
-      .then(res=>res.json())
-      .then(data => {setReports(data);})
-      .catch(console.error);
-  },[]);
-  //build circle features
-  const circleFeatures = reports
-  .filter(r => r.boundary_radius != null && r.boundary_radius > 0)
-  .map(r => ({
-    type: 'Feature' as const,
-    geometry: { type: 'Point' as const, coordinates: [r.lng, r.lat] },
-    properties: { radius: r.boundary_radius*1000 }
-  }));
-const [mapLoaded, setMapLoaded] = useState(false);
 
-  return (
-    
-      <Map
-        {...viewport}
-        onMove={evt => setViewport(evt.viewState)}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        mapStyle="mapbox://styles/mapbox/navigation-night-v1"
-        style={{ width: '100%', height: '100%' }}
-        onLoad={() => setMapLoaded(true)}
-      >
-          {/*Circles around markers*/}
-          {circleFeatures.length>0 &&(
+interface MapProps{
+    lat: number;
+    lng: number;
+    drawMode: boolean;
+    onDrawComplete: (line: string) => void;
+    clearDrawings: number;
+}
+
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: MapProps) {
+
+    const mapRef = useRef<any>(null);
+    const drawRef = useRef<any>(null);
+
+    const [fires, setFires] = useState<FireReport[]>([]);
+    const [viewState, setViewState] = useState({longitude: lng, latitude: lat, zoom: 12});
+    const [selectedFire, setSelectedFire] = useState<FireReport | null>(null);
+
+    useEffect(() => {
+        const fetchRequest = async() => {
+            const url = `/api/firefighter/reported-fires`
+
+            try{
+                const resp = await fetch(url);
+                if(!resp.ok){
+                    setFires([]);
+                    return;
+                }
+                const data = await resp.json();
+                setFires(data.data ?? []);
+            }catch(error){
+                console.error("failed to find fires", error)
+                setFires([]);
+            }
+        };
+        fetchRequest();
+    }, [])
+
+    const handleDrawCreate = (e: any) => {
+        const line = e.features[0];
+        const coords = line.geometry.coordinates;
+        const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+        onDrawComplete(wkt);
+    }
+
+    useEffect(() => {
+        if(!mapRef.current){
+            return;
+        }
+        const map = mapRef.current.getMap();
+
+        if(drawMode){
+            if(!drawRef.current){
+                drawRef.current = new MapboxDraw({
+                    displayControlsDefault: false,
+                    modes: {...MapboxDraw.modes},
+                });
+                map.addControl(drawRef.current);
+            }
+            drawRef.current.changeMode('draw_line_string')
+
+            map.off('draw.create', handleDrawCreate);
+            map.on('draw.create', handleDrawCreate);
+        }else{
+            if(drawRef.current){
+                drawRef.current.changeMode('simple_select');
+            }
+        }
+    }, [drawMode]);
+
+    useEffect(() => {
+        if(!drawRef.current) return;
+        drawRef.current.deleteAll();
+    }, [clearDrawings])
+
+    useEffect(() => {
+        setViewState(v => ({...v, longitude: lng, latitude:lat}));
+    },[lat,lng]);
+
+    const circleFeatures = fires.filter(f => f.size != null && f.size > 0)
+    .map(f => ({
+        type: 'Feature' as const,
+        geometry: {type : 'Point' as const, coordinates: [f.lng, f.lat]},
+        properties: { radius: f.size*1000 }
+    }));
+
+    console.log(fires)
+
+    return (
+        <Map
+            ref={mapRef}
+            mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+            {...viewState}
+            onMove={evt => setViewState(evt.viewState)}
+            style={{ width: '100%', height: '100%' }}
+            mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+        >
+           {fires.map((fire) => (
+                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={() => setSelectedFire(fire)}>
+                    <div className="relative flex items-center justify-center size-6">
+                        {/* The radar ping animation effect */}
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />
+                        {/* The solid core so the marker remains visible */}
+                        <span className="relative inline-flex rounded-full size-3 bg-ignite shadow-lg shadow-black" />
+                    </div>
+                </Marker>
+            ))}
+
+            {/*Circles around markers*/}
+            {circleFeatures.length>0 &&(
               <Source 
                   id ="fire-circles"
                   type="geojson"
@@ -83,39 +156,18 @@ const [mapLoaded, setMapLoaded] = useState(false);
 
           )}
 
-    {/* Markers */}
-    {mapLoaded&&reports.map(report => (
-      <Marker
-        key={report.id}
-        longitude={report.lng}
-        latitude={report.lat}
-        onClick={() => setSelectedReport(report)}
-      >
-        <div className="relative flex items-center justify-center size-6">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />
-          <span className="relative inline-flex rounded-full size-3 bg-ignite shadow-lg shadow-black" />
-        </div>
-      </Marker>
-      
-    ))}
-
-    {selectedReport && (
-      <Popup
-        longitude={selectedReport.lng}
-        latitude={selectedReport.lat}
-        onClose={() => setSelectedReport(null)}
-      >
-        <div>
-          <h3>{selectedReport.location_text}</h3>
-          <p>Status: {selectedReport.status}</p>
-          <p>Submitted: {new Date(selectedReport.submitted_at).toLocaleString()}</p>
-          {selectedReport.boundary_radius && (
-            <p>Radius: {selectedReport.boundary_radius} m</p>
-          )}
-        </div>
-      </Popup>
-    )}
-    
-  </Map>
-  );
+            {selectedFire && (
+                <Popup longitude={selectedFire.lng} latitude={selectedFire.lat} onClose={() => setSelectedFire(null)}>
+                    <div>
+                        <h3>{selectedFire.location}</h3>
+                        <p>Status: {selectedFire.status}</p>
+                        <p>Submitted: {new Date(selectedFire.reported).toLocaleString()}</p>
+                        {selectedFire.size && (
+                            <p>Radius: {selectedFire.size} m</p>
+                        )}
+                    </div>
+                </Popup>
+            )}
+        </Map>
+    );
 }
