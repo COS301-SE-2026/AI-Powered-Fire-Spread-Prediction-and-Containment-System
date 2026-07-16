@@ -11,6 +11,8 @@ class FirefighterReportTable(BaseModel):
     size: float = Field(validation_alias="boundary_radius")
     reported: datetime = Field(validation_alias="submitted_at")
     reporter: str
+    lat: float
+    lng: float
 
     model_config = ConfigDict(from_attributes = True, populate_by_name=True)
 

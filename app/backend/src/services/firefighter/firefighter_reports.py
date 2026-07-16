@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from models.reported_fires import FireReports
 from models.users import User
+from geoalchemy2.shape import to_shape
 
 def get_fire_reports(db:Session):
     request = db.query(FireReports).all()
@@ -9,7 +10,21 @@ def get_fire_reports(db:Session):
     if not request:
         raise ValueError("No reports have been found")
 
-    return { "data": request, "total":len(request)}
+    formatted = []
+    for fire in request:
+        shape = to_shape(fire.location_geom)
+        formatted.append({
+            "reference_number": fire.reference_number,
+            "location_text": fire.location_text,
+            "status": fire.status,
+            "boundary_radius": float(fire.boundary_radius),
+            "submitted_at": fire.submitted_at,
+            "reporter": fire.reporter,
+            "lat": shape.y,
+            "lng": shape.x
+        })
+
+    return { "data": formatted, "total":len(formatted)}
 
 def search_report_table(db:Session, key:str):
     request = db.query(FireReports).outerjoin(FireReports.user).filter(or_(FireReports.reference_number.ilike(f"%{key}%"), FireReports.location_text.ilike(f"%{key}%"), User.name.ilike(f"%{key}%"), User.surname.ilike(f"%{key}%"))).all()
