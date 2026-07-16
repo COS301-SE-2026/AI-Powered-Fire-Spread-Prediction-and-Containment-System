@@ -1,6 +1,6 @@
 import React from "react";
-import { Report, ReportStatus } from "../../types/firefighter";
-import { ReportModalTable } from "./reportModal";
+import { Report, ReportModal, ReportStatus } from "../../types/firefighter";
+import { useRouter } from 'next/router';
 
 interface ReportsTableProp{
     readonly requests: Report[];
@@ -13,6 +13,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
         filter === 'all' || req.status === filter
     );
 
+    const router = useRouter();
     return (
         <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-[600px] w-full">
             <table className="table table-pin-rows">
@@ -44,8 +45,10 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{new Date(req.reported).toLocaleDateString("en-ZA", {day: "2-digit", month: "2-digit", year: "numeric"})}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">
-                                        <ReportModalTable report={req}/>
+                                    <td className="px-4 py-3">
+                                        <button onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
+                                            View
+                                        </button>
                                     </td>
                                 </tr>
                             )
