@@ -12,6 +12,12 @@ interface NearbyFireReports{
     readonly nearby_fires: NearbyFire[];
 }
 
+const statusColor = (s: string) => ({
+    verified: 'bg-ignite/20 text-flare border border-ignite/40',
+    pending: 'bg-torch/20 text-torch border border-torch/35',
+    received: 'bg-humidity/20 text-humidity border border-humidity/35',
+}[s] ?? 'bg-carbon-card text-neutral/50');
+
 export function NearbyReports({nearby_fires}: NearbyFireReports) {
     const verified_fires = nearby_fires.filter((fire) => fire.status === 'verified');
     if(verified_fires.length === 0){
@@ -29,7 +35,14 @@ export function NearbyReports({nearby_fires}: NearbyFireReports) {
                     <p className="font-semibold text-sm">{fire.location_text}</p>
                     <p className="text-xs opacity-50">{fire.distance} km · {fire.time_ago}</p>
                 </div>
-        </div>
+
+                <div className="flex items-center gap-2">
+                    <span className={`badge px-3 py-1 rounded-full ${statusColor(fire.status)}`}>
+                        {fire.status}
+                    </span>
+                    <ChevronRight className="size-4 opacity-30" />
+                </div>
+            </div>
         ))}
         </div>
     );
