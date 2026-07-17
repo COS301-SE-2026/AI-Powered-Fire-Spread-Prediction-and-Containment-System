@@ -1,7 +1,7 @@
 # Neighbour_features, grid_to_features
 # Vectorized feature extraction: grid state to feature matrix
 
-from __feature__ import annotations
+from __future__ import annotations
 
 import numpy as np
 
@@ -23,7 +23,7 @@ NEIGHBOURHOOD_OFFSETS = [(-1, -1), (-1, 0), (-1, 1),
                          (0, -1),           (0, 1),
                          (1, -1), (1, 0), (1, 1)]
 
-def neighbour_features(burn_stats: np.ndarray, wind_u: np.ndarray, wind_v: np.ndarray, elevation: np.ndarray) -> dist[str, np.ndarray]:
+def neighbour_features(burn_state: np.ndarray, wind_u: np.ndarray, wind_v: np.ndarray, elevation: np.ndarray) -> dict[str, np.ndarray]:
     """ Compute neighbour feature planes for a whole grid, vectorized """
     
     burning = (burn_state == BURNING).astype(np.float32)
@@ -39,7 +39,7 @@ def neighbour_features(burn_stats: np.ndarray, wind_u: np.ndarray, wind_v: np.nd
     for dy, dx in NEIGHBOURHOOD_OFFSETS:
         mask = (sy == dy) & (sx == dx)
         if mask.any():
-            upwind[mask] = shift(burning, dy, dx)[mask]
+            upwind[mask] = shift(burning, -dy, -dx)[mask]
             
     # Downslope burning (burning neighbour at lower elevation)
     downslope = np.zeros_like(burning)
@@ -68,7 +68,7 @@ def neighbour_features(burn_stats: np.ndarray, wind_u: np.ndarray, wind_v: np.nd
 def grid_to_fmatrix(weather: dict[str, np.ndarray], static: dict[str, np.ndarray], burn_state: np.ndarray) -> np.ndarray:
     """ Assemble [H*W, len(FEATURES)] matrix for one tick. Column order exactly schema.FEATURES """
     
-    nbf = neighbour_features(burn_state, weather["wind_u"], weather["wind_v", static["elevation"]])
+    nbf = neighbour_features(burn_state, weather["wind_u"], weather["wind_v"], static["elevation"])
     
     planes = []
     

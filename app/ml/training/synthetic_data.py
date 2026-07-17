@@ -72,7 +72,7 @@ def generate_synthetic_dataset(cfg: SynthConfig = SynthConfig()) -> tuple[np.nda
     """ Returns X [N, n_features], y [N], fire_ids [N]
         Candidate rows = UNBURNED cells only (mirrors how DCA queries model at inference time)
     """
-    rng = np.normal.default_rng(cfg.seed)
+    rng = np.random.default_rng(cfg.seed)
     X_parts, y_parts, id_parts = [], [], []
     
     for fire_id in range(cfg.n_fires):

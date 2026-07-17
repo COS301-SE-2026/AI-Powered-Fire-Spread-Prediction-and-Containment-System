@@ -5,7 +5,7 @@ WEATHER_FEATURES = [
     "wind_u",   # east-west component
     "wind_v",   # north-south component
     "rel_humidity", # percentage
-    "temp", # deg celsius
+    "temperature", # deg celsius
 ]
 
 # Fuel raster layers
@@ -19,14 +19,14 @@ STATIC_FEATURES = [
 ]
 
 # Neighbour burn-state features - computed from DCA burn map each tick
-NEIGHBOR_FEATURES = [
+NEIGHBOUR_FEATURES = [
     "n_burning_neighbours",
     "upwind_burning",   # 0/1: cell the wind blows FROM is burning
     "downslope_burning",    # 0/1: a lower-elevation neighbour burning
     "dist_to_fire",     # cells to nearest burning cell capped
 ]
 
-FEATURES = WEATHER_FEATURES + STATIC_FEATURES + NEIGHBOR_FEATURES
+FEATURES = WEATHER_FEATURES + STATIC_FEATURES + NEIGHBOUR_FEATURES
 LABEL = "ignited_next_tick"
 
 UNBURNED, BURNING, BURNED = 0, 1, 2     # Burn-state codes on grid (also shared with DCA)
