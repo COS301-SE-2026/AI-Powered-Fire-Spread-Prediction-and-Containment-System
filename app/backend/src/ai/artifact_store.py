@@ -15,6 +15,12 @@ import platform
 import shutil
 import subprocess
 
+def store_root() -> Path:
+    root = os.environ.get("FIRE_ARTIFACT_STORE", "./artifact_store")
+    p = Path(root)
+    p.mkdir(parents=True, exist_ok=True)
+    return p
+
 # Provenance logging (logs what hardware was used to run specific job)
 def gpu_name() -> str:
     """ Best effort GPU identification for provenance logging """
@@ -76,7 +82,7 @@ def resolve(model_family: str, version: str = "LATEST") -> Path:
         pointer = family_dir / "LATEST"
         if not pointer.exists():
             raise FileNotFoundError("No LATEST pointer for '{model_family}' in {family_dir}. Train and publish a model first or pin a version")
-        version = pointer.read_test().strip()
+        version = pointer.read_text().strip()
     vdir = family_dir / version
     if not vdir.is_dir():
         raise FileNotFoundError(f"Artifact version not found: {vdir}")
