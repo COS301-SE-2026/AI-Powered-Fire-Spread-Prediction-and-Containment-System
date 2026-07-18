@@ -129,7 +129,25 @@ def test_dist_to_fire_no_fire_caps():
     nbf = neighbour_features(buen, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert (nbf["dist_to_fire"] == DIST_CAP).all()
     
+
+def test_grid_to_fmatrix_shape():
+    """ Output must be [H*W, len(FEATURES)] float32 """
+    weather, static, burn = small_grids()
+    X = grid_to_fmatrix(weather, static, burn)
+    assert X.shape == (25, len(FEATURES))
+    assert X.dtype == np.float32
     
+def test_grid_to_fmatrix_col_order_weather():
+    """ Temperature column must match value in weather dict """
+    weather, static, burn = small_grids()
+    X = grid_to_fmatrix(weather, static, burn)
+    assert (X[:, FEATURES.index("temperature")] == 25.0).all()
+    
+def test_grid_to_fmatrix_col_order_static():
+    """ fuel_load column must watch value in static dict """
+    weather, static, burn = small_grids()
+    X = grid_to_fmatrix(weather, static, burn)
+    assert (X[:, FEATURES.index("fuel_load")] == np.float32(0.8)).all()
     
     
 
