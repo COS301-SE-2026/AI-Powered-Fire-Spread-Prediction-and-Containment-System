@@ -32,17 +32,17 @@ def small_grids(H=5, W=5):
 def test_shift_down():
     a = np.zeros((3, 3), np.float32)
     a[1, 1] = 1.0
-    assert shift(a, 1, 0)[2, 1] == 1.0, "dy = +1 should shift content down"
+    assert shift(a, 1, 0)[2, 1] == pytest.approx(1.0), "dy = +1 should shift content down"
     
 def test_shift_down():
     a = np.zeros((3, 3), np.float32)
     a[1,1] = 1.0
-    assert shift(a, 0, 1)[1, 2] == 1.0, "dx = +1 should shift content right"
+    assert shift(a, 0, 1)[1, 2] == pytest.approx(1.0), "dx = +1 should shift content right"
     
 def test_shift_diag():
     a = np.zeros((3, 3), np.float32)
     a[1,1] = 1.0
-    assert shift(a, -1, -1)[0, 0] == 1.0, "dy = -1, dx = -1 should move content to top left"
+    assert shift(a, -1, -1)[0, 0] == pytest.approx(1.0), "dy = -1, dx = -1 should move content to top left"
     
 def test_shift_fill():
     a = np.ones((3, 3), np.float32) 
@@ -72,14 +72,14 @@ def test_upwind_burning_east():
     weather, static, burn = small_grids()
     burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
-    assert nbf["upwind_burning"][2, 3] == 1.0, "Cell east of fire should see it as upwind"
+    assert nbf["upwind_burning"][2, 3] == pytest.approx(1.0), "Cell east of fire should see it as upwind"
     
 def test_upwind_burning_west_is_zero():
     """ Cell west of fire is upwind of it; so it should not see fire as upwind """
     weather, static, burn = small_grids()
     burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
-    assert nbf["upwind_burning"][2, 1] == 0.0, "Cell west of fire is upwind of it"
+    assert nbf["upwind_burning"][2, 1] == pytest.approx(0.0), "Cell west of fire is upwind of it"
     
 def test_downslope_burning_lower_neighbour():
     """Cell uphill of burning cell should see downslope_burning = 1 """
@@ -87,7 +87,7 @@ def test_downslope_burning_lower_neighbour():
     static["elevation"][2, 2] = 400.0
     burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
-    assert nbf["downslope_burning"][2, 3] == 1.0
+    assert nbf["downslope_burning"][2, 3] == pytest.approx(1.0)
     
 def test_downslope_burning_highest_point_zero():
     """ If fire at highest point, no cell should see downslope_burning """
@@ -136,7 +136,7 @@ def test_grid_to_fmatrix_col_order_weather():
     """ Temperature column must match value in weather dict """
     weather, static, burn = small_grids()
     X = grid_to_fmatrix(weather, static, burn)
-    assert (X[:, FEATURES.index("temperature")] == 25.0).all()
+    assert (X[:, FEATURES.index("temperature")] == pytest.approx(25.0))
     
 def test_grid_to_fmatrix_col_order_static():
     """ fuel_load column must watch value in static dict """
