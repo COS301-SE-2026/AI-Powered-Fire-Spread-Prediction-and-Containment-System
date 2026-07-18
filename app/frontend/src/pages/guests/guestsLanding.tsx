@@ -1,74 +1,95 @@
-import React from 'react'; 
+'use client';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
-import { QuickActions } from '../../components/users/quickActions';
-import { NearbyReports } from '../../components/firefighter/nearbyReports';
-import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
+import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
+import { GuestReports } from '../../components/guest/GuestReports';
+import { GuestActions } from '../../components/guest/GuestActions';
 
-const FireMap = dynamic(
-    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
-    {
-        ssr: false,
-        loading: () => (
-            <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-                    Initializing Map
-                </span>
-            </div>
-            )
+const GuestMapDynamic = dynamic(
+  () => import('../../components/guest/GuestMap').then(mod => mod.GuestMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
+        <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
+          Initializing Map
+        </span>
+      </div>
+    )
+  }
+);
+export default function GuestPublicDashboard() {
+    const defaultLocation = { lat: -25.7479, lng: 28.2293 };
+    const [location, setLocation] = useState(defaultLocation);
+    const [envData, setEnvData] = useState(null);
+    const [reports, setReports] = useState([]);
+    //get user location
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                () => {}
+            );
         }
-    );
+    }, []);
+    useEffect(()=>{
+        const fetchData= async () =>{
+            try{
+                const resp = await fetch(`/api/guests/dashboard?lat=${location.lat}&lng=${location.lng}&radius_km=20`);
+                if(!resp.ok) throw new Error("Failed to fetch dashboard data");
+                const data= await resp.json();
+                setEnvData(data.environment_variables);
+                setReports(data.nearby_reports);
+            }catch(err){
+                console.error("Dashboard fetch error", err);
+            }  
+        };
+        fetchData();
+    },[location]);
+    
+  return (
+    <SideBarLayout hideLogout>
+      <div className="flex flex-col p-6">
+        {/* Header */}
+        <header className="mb-4 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
+              Incident Map
+            </h1>
+            <p className="text-sm text-neutral/50 font-medium">Public Fire Map View</p>
+          </div>
+        </header>
 
-export default function FirefighterDashboard() {
-    return(
-        <SideBarLayout hideLoginRegister>
-            <div className="flex flex-col p-6">
-                <header className="mb-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">Dashboard</h1>
-                    </div>
-                </header>                
+        {/* Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          {/* Left column */}
+          <div className="xl:col-span-7 flex flex-col gap-6">
+            <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[32rem] w-full shadow-md">
+              <GuestMapDynamic
+                reports={reports}
+                centerLat={location.lat}
+                centerLng={location.lng}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <GuestEnvironment data={envData} />
+              <GuestActions />
+            </div>
+          </div>
 
-                {/* Main Grid container */}
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
-
-                    <div className="xl:col-span-8 flex flex-col gap-4">
-                        {/* Map */}
-                        <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
-                            <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                                <span className="font-bold text-m tracking-wide text-neutral/80">LIVE FIRE MAP</span>
-                            </div>
-                            <div className="flex-1 w-full h-full pt-[53px]"> 
-                                <FireMap />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3 shrink-0">
-                            <div className="flex flex-col gap-1">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3 gap-1">
-                                    Environment Variables:
-                                </h2>
-                                <EnvironmentWidgets />
-                            </div>
-                            <div className="flex flex-col gap-1">
-                                <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3 gap-1   ">
-                                    Quick Actions:
-                                </h2>
-                                <QuickActions />
-                            </div>
-                        </div>                  
-                    </div>
-
-                    {/* Right Column with Nearby Reports*/}
-                    <div className="xl:col-span-4 flex flex-col gap-3.1" style={{ maxHeight: "100%" }}>
-                        <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase shrink-0 gap-1">
-                            Nearby Reports:
-                        </h2>
-                        <div className="rounded-2xl bg-carbon-side/40 backdrop-blur-md gap-1 border border-carbon-card overflow-y-auto" style={{ maxHeight: 'calc(480px + 2rem + 220px)' }}>
-                            <NearbyReports />
-                        </div>
-                    </div>
-                </div>
-            </div> 
-        </SideBarLayout>
-    );
+          {/* Right column – Nearby Reports */}
+          <div className="xl:col-span-4 flex flex-col gap-3">
+            <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase">Nearby Reports</h2>
+            <div
+              className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto"
+              style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
+            >
+              <GuestReports reports={reports} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </SideBarLayout>
+  );
 }
