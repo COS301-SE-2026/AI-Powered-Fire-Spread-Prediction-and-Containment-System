@@ -1,4 +1,5 @@
-import React,{useState, useEffect, useRef} from 'react';
+'use client'
+import React,{useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import MapboxDraw from '@mapbox/mapbox-gl-draw';   
@@ -11,26 +12,33 @@ interface Report{
     boundary_radius?:number;//will probably change later on
     //future fields
 }
-interface GuestMapProps{
+export interface GuestMapProps{
     reports:Report[];
     centerLat:number;
     centerLng:number;
     drawMode?:boolean;
     onDrawComplete?: (wkt:string) =>void ;
     clearDrawings?:number;
+    user_location?: {lat:number, lng:number};
+}
 
-
+export interface GuestMapHandle{
+    undoDraw:()=>void;
+    clearDraw:()=>void;
+    hasDrawings:()=>boolean;
+    recenter:(lat:number, lng:number)=>void;
 }
 
 
-export function GuestMap({
+const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     reports,
     centerLat,
     centerLng,
-    drawMode=false,
+    user_location,
+    drawMode,
     onDrawComplete,
-    clearDrawings=0,
-    }: GuestMapProps){
+    clearDrawings,
+    }, ref)=>{
     const [selected, setSelected]= useState<Report |null>(null);
     const [viewport,  setViewport]= useState({
         longitude: centerLng,
@@ -39,18 +47,19 @@ export function GuestMap({
     });
     const mapRef=useRef<any>(null);
     const drawRef=useRef<any>(null);
+    const [drawingCount, setDrawingCount]=useState(0)
 
     useEffect(()=>{
         setViewport(v =>({ ...v, longitude:centerLng, latitude:centerLat}));
     },[centerLat,centerLng]);
 
-//drawing logic from /firefighter/FireMap
-    const handleDrawCreate = (e: any) => {
-        const line = e.features[0];
-        const coords = line.geometry.coordinates;
-        const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
-        onDrawComplete(wkt);
-    }
+
+    useEffect(()=>{
+        if(drawRef.current){
+            drawRef.current.deleteAll();
+            setDrawingCount(0);
+        }
+    },[clearDrawings]);
 
     useEffect(() => {
         if(!mapRef.current){
@@ -66,21 +75,75 @@ export function GuestMap({
                 });
                 map.addControl(drawRef.current);
             }
+            const updateCount=()=>{
+                if(drawRef.current){
+                    const features =drawRef.current.getAll();
+                    setDrawingCount(features.features.length);
+                }
+            };
+            map.on('draw.create', updateCount);
+            map.on('draw.delete', updateCount);
+            map.on('draw.update', updateCount);
+            (drawRef.current as any)._listeners= {updateCount};
+
             drawRef.current.changeMode('draw_line_string')
 
-            map.off('draw.create', handleDrawCreate);
+
+            const handleDrawCreate = (e: any) => {
+                const line = e.features[0];
+                const coords = line.geometry.coordinates;
+                const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+                onDrawComplete(wkt);
+
+                if(drawRef.current){
+                    drawRef.current.changeMode('simple-select');
+                }
+            }
             map.on('draw.create', handleDrawCreate);
+            (drawRef.current as any)._handleDrawCreate = handleDrawCreate;
+
         }else{
             if(drawRef.current){
                 drawRef.current.changeMode('simple_select');
             }
         }
-    }, [drawMode]);
+        return () => {
+            if (map && drawRef.current) {
+                const listeners = (drawRef.current as any)._listeners;
+                if (listeners) {
+                map.off('draw.create', listeners.updateCount);
+                map.off('draw.delete', listeners.updateCount);
+                map.off('draw.update', listeners.updateCount);
+                }
+                if ((drawRef.current as any)._handleDrawCreate) {
+                map.off('draw.create', (drawRef.current as any)._handleDrawCreate);
+                }
+            }
+        };
+    }, [drawMode, onDrawComplete]);
 
-    useEffect(() => {
-        if(!drawRef.current) return;
-        drawRef.current.deleteAll();
-    }, [clearDrawings])
+useImperativeHandle(ref, () => ({
+    undoDraw: () => {
+      if (!drawRef.current) return;
+      const features = drawRef.current.getAll();
+      if (features.features.length === 0) return;
+      const lastFeature = features.features[features.features.length - 1];
+      drawRef.current.delete(lastFeature.id);
+      setDrawingCount(features.features.length - 1);
+    },
+    clearDraw: () => {
+      if (!drawRef.current) return;
+      drawRef.current.deleteAll();
+      setDrawingCount(0);
+    },
+    hasDrawings: () => drawingCount > 0,
+    recenter: (lat: number, lng: number) => {
+      if (mapRef.current) {
+        const map = mapRef.current.getMap();
+        map.flyTo({ center: [lng, lat], zoom: 14, essential: true });
+      }
+    },
+  }));
 
     const circleFeatures = reports
     .filter(r => r.boundary_radius && r.boundary_radius > 0)
@@ -160,4 +223,6 @@ export function GuestMap({
       )}
         </Map>
     );
-}
+});
+GuestMap.displayName = 'GuestMap';
+export default GuestMap;
