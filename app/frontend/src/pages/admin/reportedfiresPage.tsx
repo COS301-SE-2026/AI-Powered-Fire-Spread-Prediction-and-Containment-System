@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { FireReport, ReportStatus } from '../../types/report';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
 import { SearchBar } from '../../components/admin/searchBar';
@@ -31,7 +31,7 @@ export default function ReportedFiresPage() {
     );
 
     return(
-        <SideBarLayout>
+        <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
                 
                 <header className="mb-6">
@@ -53,13 +53,13 @@ export default function ReportedFiresPage() {
                 )}
 
                 {loading ? (
-                    <div>
-                        Loading reports...
+                    <div className="flex justify-center items-center min-h-[40vh]">
+                        <span className="loading loading-spinner loading-lg text-primary"></span>
                     </div>
                 ) : (
                     <FireReportsTable report={filteredReports} filter={filter} />
                 )}
             </div>
-        </SideBarLayout>
+        </AdminSideBar>
     );
 }
