@@ -34,3 +34,6 @@ dist/
 
 # minio local storage
 database/minio/
+
+# artifact_store
+artifact_store/ignition/
