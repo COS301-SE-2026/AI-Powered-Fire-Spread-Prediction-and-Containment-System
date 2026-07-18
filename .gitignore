@@ -31,3 +31,6 @@ playwright-report/
 
 #distribution
 dist/
+
+# minio local storage
+database/minio/
