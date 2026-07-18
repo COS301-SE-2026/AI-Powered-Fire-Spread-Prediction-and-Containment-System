@@ -10,6 +10,7 @@ import { TypoCard, TypoFamily } from '../components/brandStyle/typoCard';
 import { TypoTable } from '../components/brandStyle/typoTable';
 import { LogoGrid } from '../components/brandStyle/logoGrid';
 import { IconGrid } from '../components/brandStyle/iconGrid';
+import { RulesTable } from '../components/brandStyle/rulesTable';
 
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FD5D19 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
@@ -156,6 +157,39 @@ export default function StyleGuidePage() {
             <div className="flex flex-col gap-8">
               <LogoGrid />
               <IconGrid />
+              <RulesTable title="Sizing and placement rules" variant="default" 
+                rules={[
+                  'Place on dark backgrounds (carbon-side or darker)', 
+                  'Only show icons when sidebar is collapsed',
+                  'Full logo: minimum width 120px',
+                  'Monograp logo: minimum size 40x40px',
+                ]}
+                />
+              <RulesTable title="Clear-space rules" variant="default" 
+                rules={[
+                  "Logo: clear space on all sides equals the height of the logo's flame (1 unit)", 
+                  'Logo: clear space gets recalculated whenever it is resized.',
+                  'Icons: minimum 8px padding on all sides when placed inside buttons, cards, or nav items',
+                  'Icons: minimum 4px gap between an icon and adjacent text or another icon',
+                ]}
+                />
+                <RulesTable title="Icons sizing & stroke rules" variant="default" 
+                rules={[
+                  'Default icon size: 24x24px, stroke weight 2',
+                  'Small/inline icons: 14-16px, stroke weight 2',
+                  'Navigation icons (sidebar): 20-24px, stroke weight 2',
+                  'Never mix stroke weights within the same view',
+                ]}
+                />
+                <RulesTable title="Don'ts" variant="default" 
+                rules={[
+                  "Don't stretch or distort the logo's proportions",
+                  "Don't recolour the logo outside approved variants",
+                  "Don't apply drop shadows, glows, or other effects",
+                  "Don't rotate the logo",
+                ]}
+                />
+          
             </div>
           </section>
 
