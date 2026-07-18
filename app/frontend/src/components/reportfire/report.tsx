@@ -6,7 +6,6 @@ import StepIndicator from "./Stepindicator";
 import MapKey from "./Mapkey";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
-import { API_BASE_URL } from "../../config/api";
 
 const FireMap = dynamic(
   () => import("./Firemap").then((mod) => mod.FireMap),
@@ -70,13 +69,32 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
     try {
+      let imageUrl = "";
+
+      if (data.photo){  // upload image first if one was attatched
+        const formData = new FormData();
+        formData.append("file", data.photo);
+
+        const uploadRes = await fetch(`/api/uploads/photo`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!uploadRes.ok){
+          throw new Error("Image upload failed");
+        }
+
+        const uploadResult = await uploadRes.json();
+        imageUrl = uploadResult.object_key;
+      }
+
       const res = await fetch(`/api/users/reported-fires`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           location_text: data.location,
           description: data.description,
-          image_url: "pending-url",
+          image_url: imageUrl,
           lat: externalPin?.lat ?? 0,
           lng: externalPin?.lng ?? 0,
           boundary_radius: boundarySize,
