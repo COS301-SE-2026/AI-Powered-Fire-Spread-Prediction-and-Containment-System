@@ -33,3 +33,25 @@ def small_grids(H=5, W=5):
     burn = np.zeros((H,W), np.int8)
     return weather, static, burn
 
+def test_shift_down():
+    a = np.zeros((3, 3), np.float32)
+    a[1, 1] = 1.0
+    assert shift(a, 1, 0)[2, 1] == 1.0, "dy = +1 should shift content down"
+    
+def test_shift_down():
+    a = np.zeros((3, 3), np.float32)
+    a[1,1] = 1.0
+    assert shift(a, 0, 1)[1, 2] == 1.0, "dx = +1 should shift content right"
+    
+def test_shift_diag():
+    a = np.zeros((3, 3), np.float32)
+    a[1,1] = 1.0
+    assert shift(a, -1, -1)[0, 0] == 1.0, "dy = -1, dx = -1 should move content to top left"
+    
+def test_shift_fill():
+    a = np.ones((3, 3), np.float32) 
+    out = shift(a, 1, 0, fill=99)
+    assert out[0, 0] == 99, "shifted-in cells should retrieve the fill value"
+    
+    
+
