@@ -1,13 +1,8 @@
-import json
 import numpy as np
 import pytest 
 
 from ai.schema import (FEATURES, WEATHER_FEATURES, STATIC_FEATURES, NEIGHBOUR_FEATURES, UNBURNED, BURNED, BURNING, DIST_CAP)
 from ai.features import neighbour_features, grid_to_fmatrix, shift
-from ai import artifact_store
-from ai.ignition import IgnitionScorer
-from training.synthetic_data import (generate_synthetic_dataset, SynthConfig, make_static, make_weathe)
-from train.training_ignition import group_split, train
 
 def test_schema_consistancy():
     assert FEATURES == WEATHER_FEATURES + STATIC_FEATURES + NEIGHBOUR_FEATURES
@@ -18,7 +13,7 @@ def small_grids(H=5, W=5):
     """ Uniform weather blowing east, flat-ish terrain, no fire (example) """
     weather = {
         "wind_u": np.full((H, W), 3.0, np.float32),
-        "wind_v": np.zeros((H,W), np.loat32),
+        "wind_v": np.zeros((H,W), np.float32),
         "rel_humidity": np.full((H,W), 30.0, np.float32),
         "temperature": np.full((H,W), 25.0, np.float32),
     }
@@ -75,7 +70,7 @@ def test_neighbour_count_far_corner_zero():
 def test_upwind_burning_east():
     """ Wind blows east. Cell east of fire has fire upwind (+u)"""
     weather, static, burn = small_grids()
-    burn[2, 3] = BURNING
+    burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["upwind_burning"][2, 3] == 1.0, "Cell east of fire should see it as upwind"
     
@@ -126,7 +121,7 @@ def test_dist_to_fire_two_steps():
 def test_dist_to_fire_no_fire_caps():
     """ With no fire anywhere, all distances should equal DIST_CAP """
     weather, static, burn = small_grids(7, 7)
-    nbf = neighbour_features(buen, weather["wind_u"], weather["wind_v"], static["elevation"])
+    nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert (nbf["dist_to_fire"] == DIST_CAP).all()
     
 
