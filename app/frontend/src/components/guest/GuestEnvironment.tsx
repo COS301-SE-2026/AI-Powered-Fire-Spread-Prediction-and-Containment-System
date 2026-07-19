@@ -2,11 +2,11 @@ import React from 'react';
 import { Thermometer, Wind, Droplets, Flame } from 'lucide-react';
 
 interface EnvData {
-  temperature?: number;
-  humidity?: number;
-  wind?: number;
-  wind_dir?: number;
-  fire_danger?: string;
+readonly  temperature?: number;
+readonly  humidity?: number;
+readonly  wind?: number;
+readonly  wind_dir?: number;
+readonly  fire_danger?: string;
 }
 
 export function GuestEnvironment({ data }: { data: EnvData | null }) {

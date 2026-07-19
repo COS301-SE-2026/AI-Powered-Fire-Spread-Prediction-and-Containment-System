@@ -1,21 +1,19 @@
 'use client';
-import React, { useEffect, useState, useRef , useCallback, forwardRef} from 'react';
-import dynamic from 'next/dynamic';
+import React, { useEffect, useState, useRef , useCallback} from 'react';
 import { SideBarLayout } from '../../components/demoSidebar';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
-import { GuestMapHandle, GuestMapProps } from '../../components/guest/GuestMap';
+import GuestMap,{ GuestMapHandle } from '../../components/guest/GuestMap';
 import { GuestReports } from '../../components/guest/GuestReports';
 import { GuestActions } from '../../components/guest/GuestActions';
 
-import GuestMap from '../../components/guest/GuestMap'; 
 export default function GuestPublicDashboard() {
   const defaultLocation = { lat: -25.7479, lng: 28.2293 };
   const [location, setLocation] = useState(defaultLocation);
   const [envData, setEnvData] = useState(null);
   const [reports, setReports] = useState([]);
   const [drawMode, setDrawMode] = useState(false);
-  const [clearDrawings, setClearDrawings] = useState(0);
-  const [drawingCount, setDrawingCount] = useState(0);
+//  const [clearDrawings, setClearDrawings] = useState(0);
+//  const [drawingCount, setDrawingCount] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const mapRef = useRef<GuestMapHandle>(null);
   useEffect(() => {
@@ -70,7 +68,7 @@ export default function GuestPublicDashboard() {
     };
     const handleDrawingsChange = useCallback((count: number) => {
       console.log('drawing count changed:', count);
-      setDrawingCount(count);
+      //setDrawingCount(count);
     }, []);
   return (
     <SideBarLayout hideLogout>
@@ -99,7 +97,7 @@ export default function GuestPublicDashboard() {
                   user_location={location}
                   drawMode={drawMode}
                   onDrawComplete={handleDrawComplete}
-                  clearDrawings={clearDrawings}
+                  //clearDrawings={clearDrawings}
                   onDrawingsChange={handleDrawingsChange}
                 />
               ) : (
@@ -115,11 +113,11 @@ export default function GuestPublicDashboard() {
               <GuestActions
                 isDrawMode={drawMode}
                 onToggleDraw={handleToggleDraw}
-                onUndo={handleUndo}
-                onClear={handleClear}
+                //onUndo={handleUndo}
+                //onClear={handleClear}
                 onRecenter={handleRecenter}
-                canUndo={drawingCount > 0}
-                canClear={drawingCount > 0}
+                //canUndo={drawingCount > 0}
+                //canClear={drawingCount > 0}
               />
               </div>
           </div>
