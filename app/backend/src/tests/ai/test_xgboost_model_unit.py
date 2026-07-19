@@ -34,7 +34,7 @@ def test_shift_down():
     a[1, 1] = 1.0
     assert shift(a, 1, 0)[2, 1] == pytest.approx(1.0), "dy = +1 should shift content down"
     
-def test_shift_down():
+def test_shift_right():
     a = np.zeros((3, 3), np.float32)
     a[1,1] = 1.0
     assert shift(a, 0, 1)[1, 2] == pytest.approx(1.0), "dx = +1 should shift content right"
