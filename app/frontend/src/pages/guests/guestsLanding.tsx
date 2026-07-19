@@ -11,9 +11,6 @@ export default function GuestPublicDashboard() {
   const [location, setLocation] = useState(defaultLocation);
   const [envData, setEnvData] = useState(null);
   const [reports, setReports] = useState([]);
-  const [drawMode, setDrawMode] = useState(false);
-//  const [clearDrawings, setClearDrawings] = useState(0);
-//  const [drawingCount, setDrawingCount] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const mapRef = useRef<GuestMapHandle>(null);
   useEffect(() => {
@@ -43,34 +40,13 @@ export default function GuestPublicDashboard() {
         };
         fetchData();
     },[location]);
-  
-    const handleDrawComplete = useCallback((wkt: string) => {
-      console.log('Drawn WKT', wkt);
-      setDrawMode(false);
-    }, []);
-    const handleToggleDraw=()=>{
-      console.log('Draw mode changed')
-      setDrawMode(!drawMode);
-    };
-/*    const handleUndo = () => {
-      console.log('Undo called, mapRef.current:', mapRef.current);
-      mapRef.current?.undoDraw();
-    };
-    const handleClear = () => {
-      console.log('Clear called, mapRef.current:', mapRef.current);
-      mapRef.current?.clearDraw();
-    };
-    */
     const handleRecenter = () => {
       console.log('Recenter called, mapRef.current:', mapRef.current);
       if (mapRef.current && location) {
         mapRef.current.recenter(location.lat, location.lng);
       }
     };
-    const handleDrawingsChange = useCallback((count: number) => {
-      console.log('drawing count changed:', count);
-      //setDrawingCount(count);
-    }, []);
+
   return (
     <SideBarLayout hideLogout>
       <div className="flex flex-col p-6">
@@ -96,10 +72,6 @@ export default function GuestPublicDashboard() {
                   centerLat={location.lat}
                   centerLng={location.lng}
                   user_location={location}
-                  drawMode={drawMode}
-                  onDrawComplete={handleDrawComplete}
-                  //clearDrawings={clearDrawings}
-                  onDrawingsChange={handleDrawingsChange}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
@@ -112,13 +84,7 @@ export default function GuestPublicDashboard() {
             <div className="grid grid-cols-2 gap-2">
               <GuestEnvironment data={envData} />
               <GuestActions
-                isDrawMode={drawMode}
-                onToggleDraw={handleToggleDraw}
-                //onUndo={handleUndo}
-                //onClear={handleClear}
                 onRecenter={handleRecenter}
-                //canUndo={drawingCount > 0}
-                //canClear={drawingCount > 0}
               />
               </div>
           </div>

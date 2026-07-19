@@ -16,17 +16,10 @@ export interface GuestMapProps{
     reports:Report[];
     centerLat:number;
     centerLng:number;
-    drawMode?:boolean;
-    onDrawComplete?: (wkt:string) =>void ;
-    clearDrawings?:number;
     user_location?: {lat:number, lng:number};
-    onDrawingsChange?:(count:number)=>void;
 }
 
 export interface GuestMapHandle{
-    undoDraw:()=>void;
-    clearDraw:()=>void;
-    hasDrawings:()=>boolean;
     recenter:(lat:number, lng:number)=>void;
 }
 
@@ -36,10 +29,7 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     centerLat,
     centerLng,
     user_location,
-    onDrawingsChange,
-    drawMode,
-    onDrawComplete,
-    clearDrawings,
+
     }, ref)=>{
     const [selected, setSelected]= useState<Report |null>(null);
     const [viewport,  setViewport]= useState({
@@ -48,8 +38,6 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
         zoom:12,
     });
     const mapRef=useRef<any>(null);
-    const drawRef=useRef<any>(null);
-    const [drawingCount, setDrawingCount]=useState(0)  
     const [mapLoaded, setMapLoaded] = useState(false);
     
     useEffect(()=>{
@@ -57,92 +45,9 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     },[centerLat,centerLng]);
 
 
-    useEffect(()=>{
-        if(drawRef.current){
-            drawRef.current.deleteAll();
-            setDrawingCount(0);
-        }
-    },[clearDrawings]);
-
-    useEffect(() => {
-        if(!mapLoaded||!mapRef.current)return;
-        
-        const map = mapRef.current.getMap();
-
-        if(drawMode){
-            if(!drawRef.current){
-                drawRef.current = new MapboxDraw({
-                    displayControlsDefault: false,
-                    modes: {...MapboxDraw.modes},
-                });
-                map.addControl(drawRef.current);
-            }
-            const updateCount=()=>{
-                if(drawRef.current){
-                    const features =drawRef.current.getAll();
-                    const count=features.features.length;
-                    setDrawingCount(count);
-                    onDrawingsChange?.(count);
-                }
-            };
-            map.on('draw.create', updateCount);
-            map.on('draw.delete', updateCount);
-            map.on('draw.update', updateCount);
-            (drawRef.current as any)._listeners= {updateCount};
-
-            drawRef.current.changeMode('draw_line_string')
-
-
-            const handleDrawCreate = (e: any) => {
-                const line = e.features[0];
-                const coords = line.geometry.coordinates;
-                const coordStrings = coords.map((c: number[]) => `${c[0]} ${c[1]}`);
-                const wkt = `LINESTRING(${coordStrings.join(', ')})`;
-                onDrawComplete(wkt);
-
-                if(drawRef.current){
-                    drawRef.current.changeMode('simple-select');
-                }
-            }
-            map.on('draw.create', handleDrawCreate);
-            (drawRef.current as any)._handleDrawCreate = handleDrawCreate;
-
-        }else if(drawRef.current){
-                drawRef.current.changeMode('simple_select');
-        }
-        return () => {
-            if (map && drawRef.current) {
-                const listeners = (drawRef.current as any)._listeners;
-                if (listeners) {
-                map.off('draw.create', listeners.updateCount);
-                map.off('draw.delete', listeners.updateCount);
-                map.off('draw.update', listeners.updateCount);
-                }
-                if ((drawRef.current as any)._handleDrawCreate) {
-                map.off('draw.create', (drawRef.current as any)._handleDrawCreate);
-                }
-            }
-        };
-    }, [drawMode, onDrawComplete, onDrawingsChange, mapLoaded]);
+ 
 
 useImperativeHandle(ref, () => ({
-    undoDraw: () => {
-        if (!drawRef.current) return;
-        const features = drawRef.current.getAll();
-        if (features.features.length === 0) return;
-        const lastFeature = features.features[features.features.length - 1];
-        drawRef.current.delete(lastFeature.id);
-        const newCount = features.features.length - 1;
-        setDrawingCount(newCount);
-        onDrawingsChange?.(newCount);
-    },
-    clearDraw: () => {
-        if (!drawRef.current) return;
-        drawRef.current.deleteAll();
-        setDrawingCount(0);
-        onDrawingsChange?.(0);
-    },
-    hasDrawings: () => drawingCount > 0,
     recenter: (lat: number, lng: number) => {
       if (mapRef.current) {
         const map = mapRef.current.getMap();
