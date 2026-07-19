@@ -2,7 +2,6 @@
 import React,{useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import MapboxDraw from '@mapbox/mapbox-gl-draw';   
 interface Report{
     id: string;
     lat:number;
@@ -38,7 +37,6 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
         zoom:12,
     });
     const mapRef=useRef<any>(null);
-    const [mapLoaded, setMapLoaded] = useState(false);
     
     useEffect(()=>{
         setViewport(v =>({ ...v, longitude:centerLng, latitude:centerLat}));
@@ -72,7 +70,6 @@ useImperativeHandle(ref, () => ({
             onMove={evt=> setViewport(evt.viewState)}
             style={{width:'100%', height:'100%'}}
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
-            onLoad={() => setMapLoaded(true)}
 
         >
         {/*Markers*/}

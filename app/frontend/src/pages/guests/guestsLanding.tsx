@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState, useRef , useCallback} from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import { SideBarLayout } from '../../components/demoSidebar';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 import GuestMap,{ GuestMapHandle } from '../../components/guest/GuestMap';
