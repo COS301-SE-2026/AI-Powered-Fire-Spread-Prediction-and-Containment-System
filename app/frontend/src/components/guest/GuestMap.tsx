@@ -176,43 +176,46 @@ useImperativeHandle(ref, () => ({
                     <Marker key={report.id} longitude={report.lng} latitude={report.lat} anchor="center" onClick={() => setSelected(report)}>
                     <div className="relative flex items-center justify-center size-6">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />
-                        <span className="relative inline-flex rounded-full size-3 bg-ignite shadow-lg shadow-black" />
+                        <span className="relative inline-flex rounded-full size-4 bg-ignite shadow-lg shadow-black" />
                     </div>
                     </Marker>
                 ))}
-
-        {/*Circles around markers*/}
-            {circleFeatures.length>0 &&(
+        {/*Circles around fire markers*/}
+            {circleFeatures.length>=0 &&(
                 <Source 
-                    id ="fire-circles"
+                    id ="guest-fire-circles"
                     type="geojson"
                     data={{
-                        type:'FeatureCollection',
-                        features:circleFeatures
+                        type:'FeatureCollection' as const,
+                        features: circleFeatures.map(f => ({
+                            ...f,
+                            properties: {
+                            radius_m: f.properties.radius,
+                            },
+                        })),
                     }}
                     >
                         <Layer 
-                            id="fire-radius"
+                            id="guest-fire-radius"
                             type="circle"
                             paint={{
-                            'circle-color': '#ff4500',
-                            'circle-opacity': 0.25,
-                            'circle-stroke-color': '#ff4500',
-                            'circle-stroke-width': 1,
+                            'circle-color': '#ff4501',
+                            'circle-opacity': 0.24,
+                            'circle-stroke-color': '#ff4501',
+                            'circle-stroke-width': 1.1,
                             'circle-radius': [
                                 'interpolate',
                                 ['linear'],
                                 ['zoom'],
                                 0, 0,
-                                8, ['*', ['get', 'radius'], 0.05],
-                                12, ['*', ['get', 'radius'], 0.1],
-                                16, ['*', ['get', 'radius'], 0.2],
-                                20, ['*', ['get', 'radius'], 0.5]
-                            ]
+                                8, ['*', ['get', 'radius_m'], 0.05],
+                                12, ['*', ['get', 'radius_m'], 0.1],
+                                16, ['*', ['get', 'radius_m'], 0.2],
+                                20, ['*', ['get', 'radius_m'], 0.5],
+                            ],
                             }}
                         />
                 </Source>
-
             )}
             
       {/* Popup */}
