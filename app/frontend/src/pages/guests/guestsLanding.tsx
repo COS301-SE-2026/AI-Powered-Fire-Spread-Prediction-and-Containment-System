@@ -52,7 +52,7 @@ export default function GuestPublicDashboard() {
       console.log('Draw mode changed')
       setDrawMode(!drawMode);
     };
-    const handleUndo = () => {
+/*    const handleUndo = () => {
       console.log('Undo called, mapRef.current:', mapRef.current);
       mapRef.current?.undoDraw();
     };
@@ -60,6 +60,7 @@ export default function GuestPublicDashboard() {
       console.log('Clear called, mapRef.current:', mapRef.current);
       mapRef.current?.clearDraw();
     };
+    */
     const handleRecenter = () => {
       console.log('Recenter called, mapRef.current:', mapRef.current);
       if (mapRef.current && location) {

@@ -9,7 +9,7 @@ interface Report {
   readonly time_ago: string;
 }
 
-export function GuestReports({ reports }: { reports: Report[] }) {
+export function GuestReports({ reports }: {readonly reports: Report[] }) {
   if (!reports.length) return <div className="p-4 text-xs opacity-50">No reports</div>;
 
   const statusColor = (s: string) => {
