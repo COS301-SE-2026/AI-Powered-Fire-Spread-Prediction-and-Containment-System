@@ -96,7 +96,8 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
             const handleDrawCreate = (e: any) => {
                 const line = e.features[0];
                 const coords = line.geometry.coordinates;
-                const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+                const coordStrings = coords.map((c: number[]) => `${c[0]} ${c[1]}`);
+                const wkt = `LINESTRING(${coordStrings.join(', ')})`;
                 onDrawComplete(wkt);
 
                 if(drawRef.current){
@@ -106,10 +107,8 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
             map.on('draw.create', handleDrawCreate);
             (drawRef.current as any)._handleDrawCreate = handleDrawCreate;
 
-        }else{
-            if(drawRef.current){
+        }else if(drawRef.current){
                 drawRef.current.changeMode('simple_select');
-            }
         }
         return () => {
             if (map && drawRef.current) {

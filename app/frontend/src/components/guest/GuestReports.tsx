@@ -2,11 +2,11 @@ import React from 'react';
 import { ChevronRight } from 'lucide-react';
 
 interface Report {
-  id: string;
-  location_text: string;
-  status: string;
-  distance: number;
-  time_ago: string;
+  readonly id: string;
+  readonly location_text: string;
+  readonly  status: string;
+  readonly distance: number;
+  readonly time_ago: string;
 }
 
 export function GuestReports({ reports }: { reports: Report[] }) {
