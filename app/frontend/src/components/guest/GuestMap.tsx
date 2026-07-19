@@ -20,6 +20,7 @@ export interface GuestMapProps{
     onDrawComplete?: (wkt:string) =>void ;
     clearDrawings?:number;
     user_location?: {lat:number, lng:number};
+    onDrawingsChange?:(count:number)=>void;
 }
 
 export interface GuestMapHandle{
@@ -35,6 +36,7 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     centerLat,
     centerLng,
     user_location,
+    onDrawingsChange,
     drawMode,
     onDrawComplete,
     clearDrawings,
@@ -47,8 +49,9 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     });
     const mapRef=useRef<any>(null);
     const drawRef=useRef<any>(null);
-    const [drawingCount, setDrawingCount]=useState(0)
-
+    const [drawingCount, setDrawingCount]=useState(0)  
+    const [mapLoaded, setMapLoaded] = useState(false);
+    
     useEffect(()=>{
         setViewport(v =>({ ...v, longitude:centerLng, latitude:centerLat}));
     },[centerLat,centerLng]);
@@ -62,9 +65,8 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     },[clearDrawings]);
 
     useEffect(() => {
-        if(!mapRef.current){
-            return;
-        }
+        if(!mapLoaded||!mapRef.current)return;
+        
         const map = mapRef.current.getMap();
 
         if(drawMode){
@@ -78,7 +80,9 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
             const updateCount=()=>{
                 if(drawRef.current){
                     const features =drawRef.current.getAll();
-                    setDrawingCount(features.features.length);
+                    const count=features.features.length;
+                    setDrawingCount(count);
+                    onDrawingsChange?.(count);
                 }
             };
             map.on('draw.create', updateCount);
@@ -120,21 +124,24 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
                 }
             }
         };
-    }, [drawMode, onDrawComplete]);
+    }, [drawMode, onDrawComplete, onDrawingsChange, mapLoaded]);
 
 useImperativeHandle(ref, () => ({
     undoDraw: () => {
-      if (!drawRef.current) return;
-      const features = drawRef.current.getAll();
-      if (features.features.length === 0) return;
-      const lastFeature = features.features[features.features.length - 1];
-      drawRef.current.delete(lastFeature.id);
-      setDrawingCount(features.features.length - 1);
+        if (!drawRef.current) return;
+        const features = drawRef.current.getAll();
+        if (features.features.length === 0) return;
+        const lastFeature = features.features[features.features.length - 1];
+        drawRef.current.delete(lastFeature.id);
+        const newCount = features.features.length - 1;
+        setDrawingCount(newCount);
+        onDrawingsChange?.(newCount);
     },
     clearDraw: () => {
-      if (!drawRef.current) return;
-      drawRef.current.deleteAll();
-      setDrawingCount(0);
+        if (!drawRef.current) return;
+        drawRef.current.deleteAll();
+        setDrawingCount(0);
+        onDrawingsChange?.(0);
     },
     hasDrawings: () => drawingCount > 0,
     recenter: (lat: number, lng: number) => {
@@ -148,10 +155,11 @@ useImperativeHandle(ref, () => ({
     const circleFeatures = reports
     .filter(r => r.boundary_radius && r.boundary_radius > 0)
     .map(r => ({
-      type: 'Feature' as const,
-      geometry: { type: 'Point' as const, coordinates: [r.lng, r.lat] },
-      properties: { radius: r.boundary_radius * 1000 },
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [r.lng, r.lat] },
+        properties: { radius: r.boundary_radius * 1000 },
     }));
+
     return (
         <Map
             ref={mapRef}
@@ -160,6 +168,8 @@ useImperativeHandle(ref, () => ({
             onMove={evt=> setViewport(evt.viewState)}
             style={{width:'100%', height:'100%'}}
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+            onLoad={() => setMapLoaded(true)}
+
         >
         {/*Markers*/}
             {reports.map(report => (

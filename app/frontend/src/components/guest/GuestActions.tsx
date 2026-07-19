@@ -13,11 +13,11 @@ interface GuestActionsProps {
 export function GuestActions({
   isDrawMode,
   onToggleDraw,
-  onUndo,
-  onClear,
+  //onUndo,
+  //onClear,
   onRecenter,
-  canUndo,
-  canClear,
+  //canUndo,
+  //canClear,
 }: GuestActionsProps) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -31,7 +31,7 @@ export function GuestActions({
       >
         {isDrawMode ? 'Cancel Draw' : 'Draw Line'}
       </button>
-      <button
+      {/*<button
         onClick={onUndo}
         disabled={!canUndo}
         className="px-4 py-2 text-xs font-medium rounded transition-colors bg-carbon-side/40 text-neutral/70 hover:bg-carbon-side/60 disabled:opacity-30 disabled:cursor-not-allowed"
@@ -44,7 +44,7 @@ export function GuestActions({
         className="px-4 py-2 text-xs font-medium rounded transition-colors bg-carbon-side/40 text-neutral/70 hover:bg-carbon-side/60 disabled:opacity-30 disabled:cursor-not-allowed"
       >
         Clear
-      </button>
+      </button>*/}
       <button
         onClick={onRecenter}
         className="px-4 py-2 text-xs font-medium rounded transition-colors bg-carbon-side/40 text-neutral/70 hover:bg-carbon-side/60"
