@@ -9,7 +9,7 @@ readonly  wind_dir?: number;
 readonly  fire_danger?: string;
 }
 
-export function GuestEnvironment({ data }: { data: EnvData | null }) {
+export function GuestEnvironment({ data }: {readonly data: EnvData | null }) {
   if (!data) return <div className="text-xs opacity-50">No environment data</div>;
 
   const { temperature, humidity, wind, wind_dir, fire_danger } = data;
