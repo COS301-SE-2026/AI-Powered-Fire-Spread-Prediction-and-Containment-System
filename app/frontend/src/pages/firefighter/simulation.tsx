@@ -41,7 +41,7 @@ export default function ReportTable() {
                         <div className="flex gap-2 items-stretched">
                             {/* buttons to start simulation or draw page */}
                             <div className="flex flex-col gap-6 shrink-0 h-auto justify-between">
-                                <button className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
+                                <button onClick={() => setDrawMode(true)} className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
                                     <Pencil size={28}/> 
                                     Draw Containment
                                 </button>
