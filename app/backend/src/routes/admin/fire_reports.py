@@ -14,12 +14,12 @@ dbSession = Annotated[Session, Depends(get_db)]
 def get_reported_fires(db: dbSession):
     return fire_report.get_fire_reports(db)
 
-@router.get("/reported-fires/{report_id}", response_model=FireReportDetailResponse)
-def get_fire_report_id(report_id: str, db: dbSession):
-    return fire_report.get_fire_report_by_id(report_id, db)
+@router.get("/reported-fires/{report_ref}", response_model=FireReportDetailResponse)
+def get_fire_report_id(report_ref: str, db: dbSession):
+    return fire_report.get_fire_report_by_id(report_ref, db)
 
-@router.patch("/reported-fires/{report_id}/status", response_model=FireReportDetailResponse)
-def status_change(report_id: str, status: ReportStatus, db:dbSession):
-    return fire_report.status_change(report_id, status, db)
+@router.patch("/reported-fires/{report_ref}/status", response_model=FireReportDetailResponse)
+def status_change(report_ref: str, status: ReportStatus, db:dbSession):
+    return fire_report.status_change(report_ref, status, db)
 
 

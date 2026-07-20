@@ -9,7 +9,7 @@ export default function View() {
 
     return (
         <AdminSideBar>
-            <ViewPage report_id = {report_id as string}/>
+            <ViewPage report_ref = {report_id as string}/>
         </AdminSideBar>
     );
 }
