@@ -59,3 +59,11 @@ version: v20260717-141253_fedora
 trained on device: cpu
 val PR-AUC: 0.8702
 ```
+
+# Run the backend tests for the model
+- From root directory
+
+1. Unit tests
+```bash
+yarn test:xgboost:unit
+```
