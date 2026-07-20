@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports } from '../../components/firefighter/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
@@ -92,7 +92,7 @@ export default function FirefighterDashboard() {
     };
 
     return(
-        <SideBarLayout hideLoginRegister>
+        <FirefighterSideBar hideLoginRegister>
             <div className="flex flex-col p-6">
                 <header className="mb-4 flex items-center justify-between">
                     <div>
@@ -143,6 +143,6 @@ export default function FirefighterDashboard() {
                     </div>
                 </div>
             </div> 
-        </SideBarLayout>
+        </FirefighterSideBar>
     );
 }
