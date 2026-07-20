@@ -5,20 +5,7 @@ import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
-
-const FireMap = dynamic(
-    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
-    {
-        ssr: false,
-        loading: () => (
-            <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-                    Initializing Map
-                </span>
-            </div>
-        )
-    }
-);
+import { FireMap } from '../../components/DynamicFiremap';
 
 export default function FirefighterDashboard() {
     const [drawMode, setDrawMode] = useState(false);
