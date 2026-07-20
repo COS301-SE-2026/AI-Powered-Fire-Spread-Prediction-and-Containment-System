@@ -1,7 +1,7 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
-import { NearbyFire, NearbyReports } from '../../components/nearbyReports';
+import { NearbyFire, NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import Button from '../../components/Button';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
 
@@ -25,48 +25,7 @@ function PublicMap({ lat, lng }: Readonly<{ lat: number; lng: number }>) {
 
 export default function GuestPublicDashboard() {
     const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
-    const [nearbyFires, setNearbyFires] = useState<NearbyFire[]>([]);
-    const default_location = { lat: -25.7479, lng: 28.2293 }; // Pretoria
-    const [userLocation, setUserLocation] = useState(default_location);
-
-    useEffect (() => {
-        if(!navigator.geolocation){ // if user does not allow location return default location on map
-            return;
-        }
-    
-        // if users location permissions accepted set lat and lng to users location 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setUserLocation({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                });
-            },
-        () => {} // keeps default if there is failure retreiving users location
-        )
-    }, [])
-    
-    useEffect(() => {
-        const fetchController = new AbortController();
-        const fetchRequest = async () => {
-            const url = `/api/firefighter/firefighter-dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
-            try{
-                const resp = await fetch(url, {signal: fetchController.signal});
-                if (!resp.ok){
-                    setNearbyFires([]);
-                    return;
-                }
-                const data = await resp.json();
-                setNearbyFires(data.nearby_fires?.data ?? []);
-            } catch(error){
-                if(error.name === 'AbortError') return; // this request is superseded by a newer request
-                console.error("Was unable to find/retrieve nearby fires", error);
-                setNearbyFires([]);
-            }
-        };
-        fetchRequest();
-        return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
-    }, [userLocation]);
+    const { userLocation, nearbyFires } = useNearbyFires();
 
     return (
         <SideBarLayout hideLogout>
