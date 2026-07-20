@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
-import { NearbyReports } from '../../components/nearbyReports';
+import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 
@@ -21,57 +21,9 @@ const FireMap = dynamic(
 );
 
 export default function FirefighterDashboard() {
-    const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
     const [drawMode, setDrawMode] = useState(false);
-    const [userLocation, setUserLocation] = useState(default_location);
     const [clearDrawings, setClearDrawings] = useState(0);
-    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
-    const [nearbyFires, setNearbyFires] = useState<any[]>([]);
-    const [environmentVariables, setEnvironmentVariables] = useState<any | null>(null);
-
-    useEffect (() => {
-        if(!navigator.geolocation){ // if user does not allow location return default location on map
-            return;
-        }
-
-        {/* if users location permissions accepted set lat and lng to users location */}
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                setUserLocation({
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude,
-                });
-                setIsDefaultLocation(false);
-            },
-            () => {} // keeps default if there is failure retreiving users location
-        )
-    }, [])
-
-    useEffect(() => {
-
-        const fetchController = new AbortController();
-        const fetchRequest = async () => {
-            const url = `/api/firefighter/firefighter-dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
-            try{
-                const resp = await fetch(url, {signal: fetchController.signal});
-                if (!resp.ok){
-                    setNearbyFires([]);
-                    setEnvironmentVariables(null);
-                    return;
-                }
-                const data = await resp.json();
-                setNearbyFires(data.nearby_fires?.data ?? []);
-                setEnvironmentVariables(data.environment_variables ?? null);
-            } catch(error){
-                if(error.name === 'AbortError') return; // this request is superseded by a newer request
-                console.error("Was unable to find/retrieve dashboard data", error);
-                setNearbyFires([]);
-                setEnvironmentVariables(null);
-            }
-        };
-        fetchRequest();
-        return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
-    }, [userLocation]);
+    const { userLocation, nearbyFires, environmentVariables }=useNearbyFires();
 
     const handleDrawComplete = async (wkt: string) => {
         setDrawMode(false);
