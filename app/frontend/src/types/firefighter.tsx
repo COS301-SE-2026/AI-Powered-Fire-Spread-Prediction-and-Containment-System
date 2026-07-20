@@ -1,4 +1,4 @@
-export type ReportStatus = 'pending' | 'verified' | 'received' | 'rejected';
+export type ReportStatus = 'pending' | 'verified' | 'rejected';
 
 export interface Report{
     ref: string;
