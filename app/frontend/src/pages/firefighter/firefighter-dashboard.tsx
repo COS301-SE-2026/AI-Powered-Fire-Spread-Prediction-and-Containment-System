@@ -6,29 +6,14 @@ import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 import { FireMap } from '../../components/DynamicFiremap';
+import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
 
 export default function FirefighterDashboard() {
     const [drawMode, setDrawMode] = useState(false);
     const [clearDrawings, setClearDrawings] = useState(0);
     const { userLocation, nearbyFires, environmentVariables }=useNearbyFires();
 
-    const handleDrawComplete = async (wkt: string) => {
-        setDrawMode(false);
-        try{
-            const resp = await fetch('/api/firefighter/containment-line', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({wkt})
-            });
-            if(!resp.ok) {
-                const err = await resp.json();
-                console.error("Failed to save the containment line", err.detail);
-                return;
-            } 
-        }catch(error) {
-            console.error("was unable to submit containment line", error);
-        }
-    };
+    const handleDrawComplete = useContainmentLine(() => setDrawMode(false));
 
     return(
         <FirefighterSideBar hideLoginRegister>
