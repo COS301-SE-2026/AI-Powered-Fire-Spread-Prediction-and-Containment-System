@@ -1,5 +1,4 @@
-import dynamic from 'next/dynamic';
-import React, { useState,useEffect } from 'react';
+import React from 'react';
 import { NearbyReports, useNearbyFires} from '../../components/nearbyReports';
 import { SidebarLayout } from '../../components/users/sidebar';
 import { PageHeader } from '../../components/pageHeader';

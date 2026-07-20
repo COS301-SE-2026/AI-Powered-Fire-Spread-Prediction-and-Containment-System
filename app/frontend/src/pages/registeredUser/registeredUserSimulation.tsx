@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
-import { NearbyFire, NearbyReports, useNearbyFires } from '../../components/nearbyReports';
+import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import Button from '../../components/Button';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
 import { FireMap } from '../../components/DynamicFiremap';
