@@ -14,10 +14,10 @@ import dynamic from 'next/dynamic';
     );
 
     interface ViewProps {
-        report_id: string;
+        report_ref: string;
     }
 
-export function ViewPage({ report_id }: Readonly<ViewProps>) {
+export function ViewPage({ report_ref }: Readonly<ViewProps>) {
     const router = useRouter();
 
     const [report, setReport] = useState<FireReport | null>(null);
@@ -25,8 +25,8 @@ export function ViewPage({ report_id }: Readonly<ViewProps>) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!report_id) return;
-        fetch(`/api/admin/reported-fires/${report_id}`)
+        if (!report_ref) return;
+        fetch(`/api/admin/reported-fires/${report_ref}`)
         .then(res => {
             if (!res.ok) throw new Error("Report not found");
             return res.json();
@@ -34,7 +34,7 @@ export function ViewPage({ report_id }: Readonly<ViewProps>) {
         .then(data => setReport(data))
         .catch(err => setError(err.message))
         .finally(() => setLoading(false));
-    }, [report_id]);
+    }, [report_ref]);
 
 
 
@@ -74,7 +74,7 @@ export function ViewPage({ report_id }: Readonly<ViewProps>) {
                 <div className='lg:col-span-6 flex flex-col gap-4 h-full'>
                     <ReportPhoto report={report} />
                     <ReportDescription report={report} />
-                    <ReportActions report_id={report.id} status={report.status} onStatusChange={(updated) => setReport(updated)} />
+                    <ReportActions report_ref={report.reference_number} status={report.status} onStatusChange={(updated) => setReport(updated)} />
                 </div>
             </div>
         </div>
