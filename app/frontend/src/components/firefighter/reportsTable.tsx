@@ -1,5 +1,5 @@
 import React from "react";
-import { Report, ReportModal, ReportStatus } from "../../types/firefighter";
+import { Report, ReportStatus } from "../../types/firefighter";
 import { useRouter } from 'next/router';
 import { StatusBadge } from "../admin/reportStatusBadge";
 
@@ -8,6 +8,7 @@ interface ReportsTableProp{
     readonly filter: 'all' | ReportStatus;
     readonly onView: (request: Report) => void;
 }
+
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
     const filtered = requests.filter(req => 
