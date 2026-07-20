@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
-import { NearbyReports } from '../../components/firefighter/nearbyReports';
+import { NearbyReports } from '../../components/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 
