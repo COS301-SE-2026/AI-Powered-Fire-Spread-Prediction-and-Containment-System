@@ -1,7 +1,8 @@
 import { ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { statusBadge } from "../admin/statusBadge"
 
-interface NearbyFire{
+export interface NearbyFire{
+    readonly ref: string;
     readonly location_text: string;
     readonly distance: number;
     readonly time_ago: string;
@@ -11,12 +12,6 @@ interface NearbyFire{
 interface NearbyFireReports{
     readonly nearby_fires: NearbyFire[];
 }
-
-const statusColor = (s: string) => ({
-    verified: 'bg-ignite/20 text-flare border border-ignite/40',
-    pending: 'bg-torch/20 text-torch border border-torch/35',
-    received: 'bg-humidity/20 text-humidity border border-humidity/35',
-}[s] ?? 'bg-carbon-card text-neutral/50');
 
 export function NearbyReports({nearby_fires}: NearbyFireReports) {
     const verified_fires = nearby_fires.filter((fire) => fire.status === 'verified');
@@ -29,21 +24,24 @@ export function NearbyReports({nearby_fires}: NearbyFireReports) {
     }
     return(
         <div className="h-full overflow-y-auto flex flex-col p-2">
-        {verified_fires.map((fire, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
-                <div>
-                    <p className="font-semibold text-sm">{fire.location_text}</p>
-                    <p className="text-xs opacity-50">{fire.distance} km · {fire.time_ago}</p>
-                </div>
+        {verified_fires.map((fire) => {
+            const style = statusBadge[fire.status] ?? statusBadge.none;
+            return (
+                <div key={fire.ref} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
+                    <div>
+                        <p className="font-semibold text-sm">{fire.location_text}</p>
+                        <p className="text-xs opacity-50">{fire.distance} km · {fire.time_ago}</p>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                    <span className={`badge px-3 py-1 rounded-full ${statusColor(fire.status)}`}>
-                        {fire.status}
-                    </span>
-                    <ChevronRight className="size-4 opacity-30" />
+                    <div className="flex items-center gap-2">
+                        <span className={`badge px-3 py-1 rounded-full ${style.bg ?? ''} ${style.text ?? ''} ${style.border ?? ''}`}>
+                            {fire.status}
+                        </span>
+                        <ChevronRight className="size-4 opacity-30" />
+                    </div>
                 </div>
-            </div>
-        ))}
+            )
+        })}
         </div>
     );
 }
