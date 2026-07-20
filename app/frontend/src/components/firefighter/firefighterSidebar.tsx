@@ -6,8 +6,8 @@ export function FirefighterItems() {
     return (
         <>
             <NavLink icon={LayoutDashboard} label="Firefighter Dashboard" href="/firefighter/firefighter-dashboard" />
-            <NavLink icon={BookAlert} label="Reported Fires" href="/admin/analytics" />
-            <NavLink icon={Map} label="Fire Simulation AI" href="/admin/adminLiveMap" />
+            <NavLink icon={BookAlert} label="Reported Fires" href="/firefighter/reported-fires" />
+            <NavLink icon={Map} label="Fire Simulation AI" href="/firefighter/simulation" />
         </>
     );
 }
