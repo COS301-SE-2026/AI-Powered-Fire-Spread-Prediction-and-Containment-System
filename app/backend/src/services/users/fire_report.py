@@ -32,7 +32,6 @@ def get_fire_reports(db: Session):
             "location_text": report.location_text,
             "boundary_radius": report.boundary_radius,
             "user_id": report.user_id,
-            "location_text": report.location_text,
             "description": report.description,
             "lat": lat,
             "lng": lng,
