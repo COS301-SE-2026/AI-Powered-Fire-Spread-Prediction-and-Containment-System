@@ -51,7 +51,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                                     </td>
                                     <td className="px-4 py-3 text-sm text-neutral/70">{report.reporter_name}</td>
                                     <td className="px-4 py-3">
-                                        <button onClick={() => router.push(`/admin/${report.reference_number}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
+                                        <button type="button" onClick={() => router.push(`/admin/${report.reference_number}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
                                             View
                                         </button>
                                     </td>

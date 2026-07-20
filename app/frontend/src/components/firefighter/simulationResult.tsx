@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
+import { EnvironmentVariables, EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { LoggedContainmentLine } from './containmentLineCard';
 
 
@@ -13,9 +13,8 @@ export function SimulationResults () {
     ];
 
     const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
-    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
     const [userLocation, setUserLocation] = useState(default_location);
-    const [environmentVariables, setEnvironmentVariables] = useState<any | null>(null);
+    const [environmentVariables, setEnvironmentVariables] = useState<EnvironmentVariables | null>(null);
 
     useEffect (() => {
             if(!navigator.geolocation){ // if user does not allow location return default location on map
@@ -29,7 +28,6 @@ export function SimulationResults () {
                         lat: position.coords.latitude,
                         lng: position.coords.longitude,
                     });
-                    setIsDefaultLocation(false);
                 },
                 () => {} // keeps default if there is failure retreiving users location
             )

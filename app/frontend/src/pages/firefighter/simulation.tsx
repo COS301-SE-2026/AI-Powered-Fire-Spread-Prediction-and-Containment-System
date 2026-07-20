@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { Pencil,CirclePlay } from 'lucide-react';
 
@@ -22,12 +22,9 @@ export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
     const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
     const [drawMode, setDrawMode] = useState(false);
-    const [userLocation, setUserLocation] = useState(default_location);
-    const [clearDrawings, setClearDrawings] = useState(0);
-    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
-    const [nearbyFires, setNearbyFires] = useState<any[]>([]);
-    const [environmentVariables, setEnvironmentVariables] = useState<any | null>(null);
-    
+    const [userLocation] = useState(default_location);
+    const [clearDrawings] = useState(0);
+
     const handleDrawComplete = async (wkt: string) => {
         setDrawMode(false);
         try{
@@ -47,7 +44,7 @@ export default function ReportTable() {
     };
 
     return (
-        <SideBarLayout>
+        <FirefighterSideBar>
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
 
                 {/*Page header and subtitle*/}
@@ -123,6 +120,6 @@ export default function ReportTable() {
                     </div>
                 </div>
             </div>  
-        </SideBarLayout>
+        </FirefighterSideBar>
     );
 }
