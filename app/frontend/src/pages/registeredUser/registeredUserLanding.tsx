@@ -1,13 +1,13 @@
 import dynamic from 'next/dynamic';
 import React, { useState,useEffect } from 'react';
-import { NearbyFire, NearbyReports } from '../../components/users/nearbyReports';
+import { NearbyFire, NearbyReports } from '../../components/nearbyReports';
 import { SidebarLayout } from '../../components/users/sidebar';
 import { PageHeader } from '../../components/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
 import { SidePanelRight } from '../../components/users/sidePanelRight';
 
 const FireMap = dynamic(
-    () => import('../../components/reportfire/Firemap').then((mod) => mod.FireMap),
+    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
     {
         ssr: false,
         loading: () => (
@@ -75,7 +75,7 @@ export default function RegisteredUserDashboard (){
 
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
                     <MapPanel colSpan={8} height='lg'>
-                        <FireMap externalPin={{ lng: userLocation.lng, lat: userLocation.lat }}/>
+                        <FireMap lat={userLocation.lat} lng={userLocation.lng} drawMode={false} onDrawComplete={() => {}} clearDrawings={0}/>
                     </MapPanel>
 
                     <SidePanelRight title="Nearby Reports" colSpan={4} maxHeight="calc(480px + 2rem + 197px)">
