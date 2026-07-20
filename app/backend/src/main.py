@@ -22,6 +22,8 @@ from routes.auth.logout import router as logout_router
 from routes import image_uploads
 from services.storage import ensure_bucket
 
+from routes.guests.guests_dashboard import router as guests_dashboard_router
+
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
 
@@ -60,6 +62,7 @@ app.include_router(firefighter_reports)
 app.include_router(firefighter_dashboard)
 app.include_router(logout_router)
 app.include_router(image_uploads.router)
+app.include_router(guests_dashboard_router)
 
 @app.get("/")
 def read_root():
