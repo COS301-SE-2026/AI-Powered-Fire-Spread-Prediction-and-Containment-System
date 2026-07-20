@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import dynamic from 'next/dynamic';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { Pencil,CirclePlay } from 'lucide-react';
 import { FireMap } from '../../components/DynamicFiremap';
+import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
 
 export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
@@ -11,24 +11,7 @@ export default function ReportTable() {
     const [drawMode, setDrawMode] = useState(false);
     const [userLocation] = useState(default_location);
     const [clearDrawings] = useState(0);
-
-    const handleDrawComplete = async (wkt: string) => {
-        setDrawMode(false);
-        try{
-            const resp = await fetch('/api/firefighter/containment-line', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({wkt})
-            });
-            if(!resp.ok) {
-                const err = await resp.json();
-                console.error("Failed to save the containment line", err.detail);
-                return;
-            } 
-        }catch(error) {
-            console.error("was unable to submit containment line", error);
-        }
-    };
+    const handleDrawComplete = useContainmentLine(() => setDrawMode(false));
 
     return (
         <FirefighterSideBar>
