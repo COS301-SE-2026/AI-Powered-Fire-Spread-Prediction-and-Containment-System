@@ -8,8 +8,8 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         gcc \
-        libpq-dev \
         libexpat1 \
+        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt ./
