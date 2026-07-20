@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic';
 import React, { useState,useEffect } from 'react';
-import { NearbyReports } from '../../components/users/nearbyReports';
+import { NearbyFire, NearbyReports } from '../../components/users/nearbyReports';
 import { SidebarLayout } from '../../components/users/sidebar';
 import { PageHeader } from '../../components/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
@@ -23,22 +23,20 @@ const FireMap = dynamic(
 export default function RegisteredUserDashboard (){
     const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
     const [userLocation, setUserLocation] = useState(default_location);
-    const [isDefaultLocation, setIsDefaultLocation] = useState(true);
-    const [nearbyFires, setNearbyFires] = useState<any[]>([]);
+    const [nearbyFires, setNearbyFires] = useState<NearbyFire[]>([]);
 
     useEffect (() => {
         if(!navigator.geolocation){ // if user does not allow location return default location on map
             return;
         }
     
-        {/* if users location permissions accepted set lat and lng to users location */}
+        // if users location permissions accepted set lat and lng to users location 
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 setUserLocation({
                     lat: position.coords.latitude,
                     lng: position.coords.longitude,
                 });
-                setIsDefaultLocation(false);
             },
         () => {} // keeps default if there is failure retreiving users location
         )
@@ -64,7 +62,7 @@ export default function RegisteredUserDashboard (){
         };
         fetchRequest();
         return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
-    }, []);
+    }, [userLocation]);
 
     return(
         <SidebarLayout>
@@ -77,7 +75,7 @@ export default function RegisteredUserDashboard (){
 
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
                     <MapPanel colSpan={8} height='lg'>
-                        <FireMap />
+                        <FireMap externalPin={{ lng: userLocation.lng, lat: userLocation.lat }}/>
                     </MapPanel>
 
                     <SidePanelRight title="Nearby Reports" colSpan={4} maxHeight="calc(480px + 2rem + 197px)">

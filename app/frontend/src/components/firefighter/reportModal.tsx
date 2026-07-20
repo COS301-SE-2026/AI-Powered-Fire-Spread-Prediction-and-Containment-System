@@ -2,13 +2,13 @@ import { Report } from "../../types/firefighter"
 
 interface fireReport{
     report: Report;
-}
+};
 
-export function ReportModalTable({report}: fireReport){
+export function ReportModalTable({ report }: Readonly<fireReport>){
     return(
         <>
         {/* Open the modal using document.getElementById('ID').showModal() method */}
-        <button className="btn btn-soft btn-neutral btn-outline rounded-full" onClick={()=>(document.getElementById('my_modal_2') as HTMLDialogElement | null)?.showModal()}>
+        <button type="button" className="btn btn-soft btn-neutral btn-outline rounded-full" onClick={()=>(document.getElementById('my_modal_2') as HTMLDialogElement | null)?.showModal()}>
             view
         </button>
         
@@ -29,7 +29,7 @@ export function ReportModalTable({report}: fireReport){
                 </div>
             </div>
             <form method="dialog" className="modal-backdrop backdrop-blur-sm">
-                <button>close</button>
+                <button type="submit">close</button>
             </form>
         </dialog>
         </>
