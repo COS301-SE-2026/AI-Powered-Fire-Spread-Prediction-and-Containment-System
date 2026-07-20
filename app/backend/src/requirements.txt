@@ -17,4 +17,4 @@ requests
 pyjwt>=2.8
 pydantic>=2.0
 minio
-rasterio>=1.4.0
+rasterio==1.4.0
