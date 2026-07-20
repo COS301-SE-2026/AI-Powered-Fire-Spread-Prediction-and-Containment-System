@@ -3,20 +3,7 @@ import dynamic from 'next/dynamic';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { Pencil,CirclePlay } from 'lucide-react';
-
-const FireMap = dynamic(
-    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
-    {
-        ssr: false,
-        loading: () => (
-            <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-                    Initializing Map
-                </span>
-            </div>
-        )
-    }
-);
+import { FireMap } from '../../components/DynamicFiremap';
 
 export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
