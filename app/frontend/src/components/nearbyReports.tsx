@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
 import { statusBadge } from "./admin/statusBadge";
 
-interface NearbyFire{
+export interface NearbyFire{
     readonly ref: string;
     readonly location_text: string;
     readonly distance: number;
