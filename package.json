@@ -12,7 +12,8 @@
     "lint": "yarn --cwd app/frontend/src lint",
     "test:e2e": "yarn --cwd app/frontend/src test:e2e",
     "test:e2e:backend": "pytest -q app/backend/src/testing_config/e2e",
-    "pwa:start": "yarn --cwd app/pwa start"
+    "pwa:start": "yarn --cwd app/pwa start",
+    "test:xgboost:unit": "pytest app/backend/src/tests/ai/test_xgboost_model_unit.py -v"
   },
   "devDependencies": {
     "@types/react": "^18.3.1",
