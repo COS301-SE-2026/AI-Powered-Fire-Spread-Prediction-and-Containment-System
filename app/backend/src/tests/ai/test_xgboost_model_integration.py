@@ -115,3 +115,38 @@ def test_group_split_no_leakage():
     train_ids = fire_ids[~np.isin(fire_ids, val_fires)]
     assert not set(np.unique(train_ids)) & set(val_fires)
     
+# Trained model behaviour
+@pytest.mark.slow
+def test_model_beats_chance(tiny_booster):
+    """ Validation PR-AUC must comfortably exceed 0.5 """
+    assert float(tiny_booster.best_score) > 0.5, "val PR-AUC should beat positive base rate"
+    
+def test_model_physics_direction(tiny_booster):
+    """ A cell adjacent to fire must score higher than the same cell with no fire """
+    scorer = IgnitionScorer(tiny_booster)
+    weather, static, burn = small_grids(9, 9)
+    
+    no_fire = scorer.score_grid(weather, static, burn.copy())
+    burn[4, 4] = BURNING
+    with_fire = scorer.score_grid(weather, static, burn)
+    
+    assert with_fire[4, 5] > no_fire[4, 5], "adjacent cell should score higher when fire present"
+    assert with_fire[4, 5] > with_fire[0, 0], "adjacent cell should score higher than a distant cell"
+    
+@pytest.mark.slow
+def test_scorer_zeros_burning_cells(tiny_booster):
+    """ Cells already BURNING must get p=0 (DCA owns their state) """
+    scorer = IgnitionScorer(tiny_booster)
+    weather, static, burn = small_grids()
+    burn[1, 1] = BURNING
+    heat = scorer.score_grid(weather, static, burn)
+    assert heat[1, 1] == 0.0
+    
+@pytest.mark.slow
+def test_scorer_output_shape_and_dtype(tiny_booster):
+    """ score_grid must return float32 array matching burn_state shape """
+    scorer = IgnitionScorer(small_grids)
+    weather, static, burn = small_grids()
+    heat = scorer.score_grid(weather, static, burn)
+    assert heat.shape == burn.shape
+    assert heat.dtype == np.float32
