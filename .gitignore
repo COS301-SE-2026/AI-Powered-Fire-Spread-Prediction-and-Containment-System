@@ -39,3 +39,5 @@ database/minio/
 artifact_store/ignition/
 
 *.venv
+
+app/datasets/raw_data/
