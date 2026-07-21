@@ -9,7 +9,26 @@ from training.train_ignition import group_split, train
 
 # Shared helper function
 def small_grids(H=5, W=5):
-    """ Uniform weather blowing east, flat terrain, no fire """
+    """ Generate minimal synthetic grid data for testing physical model inputs.
+        
+        Creates uniform weather blowing east and flat terrain dictionaries along with an unburned status matrix of dimensions (H, W).
+        
+        Parameters
+        ----------
+        H : int, default 5
+            Height of spatial grid in cells.
+        W : int, default 5
+            Width of spatial grid in cells.
+        
+        Returns
+        -------
+        weather : dict of {str: np.ndaray}
+            Dictionary containing uniform meteorological arrays (`wind_u`, `wind_v`, `rel_humidity`, `temperature`)
+        static : dict of {str: np.ndarray}
+            Dictionary containing uniform terrain and fuel feature arrays (`elevation`, `slope`, `aspect_sin`, `aspect_cos`, `fuel_load`, `dryness`)
+        burn : np.ndarray
+            (H, W) array of zeros representing an initially unburned state matrix.
+    """
     weather = {
         "wind_u": np.full((H, W), 3.0, np.float32),
         "wind_v": np.zeros((H, W), np.float32),
@@ -27,11 +46,52 @@ def small_grids(H=5, W=5):
     burn = np.zeros((H, W), np.int8)
     return weather, static, burn
 
-    # Shared fixture. (scope="module" -> Trains once per pytest run)
-    @pytest.fixture(scope="module")
-    def tiny_booster():
-        X, y, fire_ids = generate_synthetic_dataset(
-            SynthConfig(n_fires=6, n_ticks=10, H=32, W=32, seed=3))
-        X_train, y_train, X_va, y_va, _ = group_split(X, y, fire_ids)
-        return train(X_train, y_train, X_va, y_va, device="cpu")    # Can change device="gpu"
+# Shared fixture. (scope="module" -> Trains once per pytest run)
+@pytest.fixture(scope="module")
+def tiny_booster():
+    """ Train a lightweight XGBoost model reused accross test cases.
+
+        Generate a small synthetic dataset and fits a booster model on CPU/GPU once per module execution session.
+        
+        Yields
+        ------
+            xgb.Booster
+                A trained XGBoost booster instance ready for inference testing
+    """
+    X, y, fire_ids = generate_synthetic_dataset(
+        SynthConfig(n_fires=6, n_ticks=10, H=32, W=32, seed=3))
+    X_train, y_train, X_va, y_va, _ = group_split(X, y, fire_ids)
+    return train(X_train, y_train, X_va, y_va, device="cpu")    # Can change device="gpu"
+
+# Synthetic data generator contract
+@pytest.mark.slow
+def test_synthetic_dataset_shape():
+    """ Verify generated synthetic data dimensions adhere to schema expectations.
+
+        Ensures feature matrix X contains column lengths mathing `len(FEATURES)` and that all outputs maintain equal entry lengths.
+    """
+    X, y, fire_ids = generate_synthetic_dataset(
+        SynthConfig(n_fires=3, n_ticks=8, H=32, W=32, seed=1)
+    )
+    assert X.shape[1] == len(FEATURES)
+    assert len(X) == len(y) == len(fire_ids)
     
+@pytest.mark.slow
+def test_synthetic_dataset_labels():
+    """ Verify synthetic label properties for binary classification readiness.
+            
+        Ensures target labels strictly binary ({0, 1}) and positive classes exist as a realistic minority subset.
+    """
+    X, y, fire_ids = generate_synthetic_dataset(
+        SynthConfig(n_fires=3, n_ticks=8, H=32, W=32, seed=1)
+    )
+    assert set(np.unique(y)) <= {0, 1}
+    assert 0 < y.mean() < 0.5, "positives should exist but as a minority"
+    
+@pytest.mark.slow
+def test_synthetic_dataset_fire_ids():
+    """ fire_ids must contain exactly as many unique values as n_fires """
+    X, y, fire_ids = generate_synthetic_dataset(
+        SynthConfig(n_fires=3, n_ticks=8, H=32, W=32, seed=1)
+    )
+    assert len(np.unique(fire_ids)) == 3
