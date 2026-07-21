@@ -1,4 +1,4 @@
-from pytorch import WildfireModel
+from pytorchfire import WildfireModel
 
 model = WildfireModel() # creates a model with default params and environment data
 model = model.cuda() # move model to gpu
