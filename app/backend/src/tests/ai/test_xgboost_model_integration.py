@@ -26,3 +26,12 @@ def small_grids(H=5, W=5):
     }
     burn = np.zeros((H, W), np.int8)
     return weather, static, burn
+
+    # Shared fixture. (scope="module" -> Trains once per pytest run)
+    @pytest.fixture(scope="module")
+    def tiny_booster():
+        X, y, fire_ids = generate_synthetic_dataset(
+            SynthConfig(n_fires=6, n_ticks=10, H=32, W=32, seed=3))
+        X_train, y_train, X_va, y_va, _ = group_split(X, y, fire_ids)
+        return train(X_train, y_train, X_va, y_va, device="cpu")    # Can change device="gpu"
+    
