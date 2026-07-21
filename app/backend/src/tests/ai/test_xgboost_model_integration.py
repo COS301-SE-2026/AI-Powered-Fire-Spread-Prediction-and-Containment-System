@@ -150,3 +150,58 @@ def test_scorer_output_shape_and_dtype(tiny_booster):
     heat = scorer.score_grid(weather, static, burn)
     assert heat.shape == burn.shape
     assert heat.dtype == np.float32
+    
+# Artifact store
+@pytest.mark.slow
+def test_artifact_publish_and_list(tiny_booster, tmp_path, monkeypatch):
+    """ Two publishes should produce two distinct listed versions """
+    monkeypatch.setenv("FIRE_ARTIFACT_STORE", str(tmp_path))
+    model_path = tmp_path / "m.json"
+    tiny_booster.save_model(str(model_path))
+    meta = {"schema_version": SCHEMA_VERSION, "features": FEATURES, "val_aucpr": float(tiny_booster.best_score)}
+    v1 = artifact_store.publish("ignition", model_path, meta, promote=True)
+    v2 = artifact_store.publish("ignition", model_path, meta, promote=False)
+    assert artifact_store.list_versions("ignition") == sorted([v1, v2])
+    
+@pytest.mark.slow
+def test_artifact_promote_updates_latest(tiny_booster, tmp_path, monkeypatch):
+    """ Promoting v2 should move LATEST from v1 tp v2 """
+    monkeypatch.setenv("FIRE_ARTIFACT_STORE", str(tmp_path))
+    model_path = tmp_path /"m.json"
+    tiny_booster.save_model(str(model_path))
+    meta = {"schema_version": SCHEMA_VERSION, "features": FEATURES, "val_aucpr": float(tiny_booster.best_score)}
+    
+    v1 = artifact_store.publish("ignition", model_path, meta, promote=True)
+    v2 = artifact_store.publish("ignition", model_path, meta, promote=False)
+    
+    assert artifact_store.resolve("ignition", "LATEST").name == v1
+    artifact_store.promote_version("ignition", v2)
+    assert artifact_store.resolve("ignition", "LATEST").name == v2
+    
+@pytest.mark.slow
+def test_artifact_load_roundtrip(tiny_booster, tmp_path, monkeypatch):
+    """ A published model must load correctly and score a grid """
+    monkeypatch.setenv("FIRE_ARTIFACT_STORE", str(tmp_path))
+    model_path = tmp_path / "m.json"
+    tiny_booster.save_model(str(model_path))
+    artifact_store.publish("ignition", model_path, 
+                           {"schema_version": SCHEMA_VERSION,
+                            "features": FEATURES,
+                            "val_aucpr": float(tiny_booster.best_score),
+                           },promote=True)
+    scorer = IgnitionScorer.load("LATEST")
+    weather, static, burn = small_grids()
+    assert scorer.score_grid(weather, static, burn).shape == (5, 5)
+    
+@pytest.mark.slow
+def test_schema_guard_rejects_mismatch(tiny_booster, tmp_path, monkeypatch):
+    """ Loading a model whose schema does not match the code must raise RuntimeError """
+    monkeypatch.setenv("FIRE_ARTIFACT_STORE", str(tmp_path))
+    model_path = tmp_path / "m.json"
+    tiny_booster.save_model(str(model_path))
+    artifact_store.publish("ignition", model_path,
+                           {"schema_version": 999,
+                            "features": ["bogus"]},
+                           promote=True)
+    with pytest.raises(RuntimeError, match="Schema mismatch"): IgnitionScorer.load("LATEST")
+                            
