@@ -40,7 +40,7 @@ def small_grids(H=5, W=5):
         "slope": np.zeros((H, W), np.float32),
         "aspect_sin": np.zeros((H, W), np.float32),
         "aspect_cos": np.ones((H, W), np.float32),
-        "fuel": np.full((H, W), 0.8, np.float32),
+        "fuel_load": np.full((H, W), 0.8, np.float32),
         "dryness": np.full((H, W), 0.6, np.float32),
     }
     burn = np.zeros((H, W), np.int8)
@@ -112,6 +112,7 @@ def test_group_split_no_leakage():
     X, y, fire_ids = generate_synthetic_dataset(
         SynthConfig(n_fires=5, n_ticks=5, H=24, W=24, seed=2)
     )
+    X_train, y_train, X_va, y_va, val_fires = group_split(X, y, fire_ids, val_frac=0.4, seed=0)
     train_ids = fire_ids[~np.isin(fire_ids, val_fires)]
     assert not set(np.unique(train_ids)) & set(val_fires)
     
@@ -145,7 +146,7 @@ def test_scorer_zeros_burning_cells(tiny_booster):
 @pytest.mark.slow
 def test_scorer_output_shape_and_dtype(tiny_booster):
     """ score_grid must return float32 array matching burn_state shape """
-    scorer = IgnitionScorer(small_grids)
+    scorer = IgnitionScorer(tiny_booster)
     weather, static, burn = small_grids()
     heat = scorer.score_grid(weather, static, burn)
     assert heat.shape == burn.shape
