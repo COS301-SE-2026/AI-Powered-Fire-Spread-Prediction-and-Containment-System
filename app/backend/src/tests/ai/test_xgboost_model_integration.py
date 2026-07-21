@@ -82,7 +82,7 @@ def test_synthetic_dataset_labels():
             
         Ensures target labels strictly binary ({0, 1}) and positive classes exist as a realistic minority subset.
     """
-    X, y, fire_ids = generate_synthetic_dataset(
+    _, y, _ = generate_synthetic_dataset(
         SynthConfig(n_fires=3, n_ticks=8, H=32, W=32, seed=1)
     )
     assert set(np.unique(y)) <= {0, 1}
@@ -91,7 +91,7 @@ def test_synthetic_dataset_labels():
 @pytest.mark.slow
 def test_synthetic_dataset_fire_ids():
     """ fire_ids must contain exactly as many unique values as n_fires """
-    X, y, fire_ids = generate_synthetic_dataset(
+    _, _, fire_ids = generate_synthetic_dataset(
         SynthConfig(n_fires=3, n_ticks=8, H=32, W=32, seed=1)
     )
     assert len(np.unique(fire_ids)) == 3
@@ -103,7 +103,7 @@ def test_group_split_sizes():
     X, y, fire_ids = generate_synthetic_dataset(
         SynthConfig(n_fires=5, n_ticks=5, H=24, W=24, seed=2)
     )
-    X_train, y_train, X_va, y_va, _ = group_split(X, y, fire_ids, val_frac=0.4, seed=0)
+    X_train, _, X_va, _, _ = group_split(X, y, fire_ids, val_frac=0.4, seed=0)
     assert len(X_train) + len(X_va) == len(X)
     
 @pytest.mark.slow
@@ -112,7 +112,7 @@ def test_group_split_no_leakage():
     X, y, fire_ids = generate_synthetic_dataset(
         SynthConfig(n_fires=5, n_ticks=5, H=24, W=24, seed=2)
     )
-    X_train, y_train, X_va, y_va, val_fires = group_split(X, y, fire_ids, val_frac=0.4, seed=0)
+    _, _, _, _, val_fires = group_split(X, y, fire_ids, val_frac=0.4, seed=0)
     train_ids = fire_ids[~np.isin(fire_ids, val_fires)]
     assert not set(np.unique(train_ids)) & set(val_fires)
     
@@ -141,7 +141,7 @@ def test_scorer_zeros_burning_cells(tiny_booster):
     weather, static, burn = small_grids()
     burn[1, 1] = BURNING
     heat = scorer.score_grid(weather, static, burn)
-    assert heat[1, 1] == 0.0
+    assert heat[1, 1] == pytest.approx(0.0)
     
 @pytest.mark.slow
 def test_scorer_output_shape_and_dtype(tiny_booster):
