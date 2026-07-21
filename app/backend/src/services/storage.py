@@ -4,6 +4,7 @@ import uuid
 from datetime import timedelta
 from io import BytesIO
 from minio import Minio
+from typing import Optional
 
 minio_client = Minio(
     os.environ["MINIO_ENDPOINT"],
@@ -42,7 +43,9 @@ def upload_image(filename: str, content_type: str, contents: bytes) -> str:
     
     return object_key
 
-def get_presigned_url(object_key: str, expires_minutes: int = 10) -> str:
+def get_presigned_url(object_key: Optional[str], expires_minutes: int = 10) -> Optional[str]:
+    if not object_key:
+        return None
     return minio_client.presigned_get_object(
         BUCKET,
         object_key,
