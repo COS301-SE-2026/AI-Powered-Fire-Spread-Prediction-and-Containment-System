@@ -15,7 +15,7 @@ RUN apt-get update \
 COPY requirements.txt ./
 
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir --only-binary :all: -r requirements.txt
+    && pip install --no-cache-dir --require-hashes -r requirements.txt
 
 COPY . .
 
