@@ -40,6 +40,20 @@ def get_single_fire_report(db:Session, ref:str):
     if not request:
         raise ValueError(f"Requested reference number {ref} does not exist")
 
-    return request
+    shape = to_shape(request.location_geom)
+
+    return {
+        "id": request.id,
+        "reference_number": request.reference_number,
+        "location_text": request.location_text,
+        "status": request.status,
+        "boundary_radius": float(request.boundary_radius),
+        "submitted_at": request.submitted_at,
+        "reporter": request.reporter,
+        "description": request.description,
+        "image_url": request.image_url,
+        "lat": shape.y,
+        "lng": shape.x
+    }
 
             

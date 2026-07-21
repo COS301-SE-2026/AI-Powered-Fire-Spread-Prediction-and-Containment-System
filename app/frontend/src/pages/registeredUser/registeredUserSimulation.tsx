@@ -1,26 +1,13 @@
 import React, { useState } from 'react';
-import dynamic from 'next/dynamic';
 import { SideBarLayout } from '../../components/demoSidebar';
-import { NearbyReports } from '../../components/firefighter/nearbyReports';
+import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import Button from '../../components/Button';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
-
-const PublicFireMap = dynamic(
-    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
-    {
-        ssr: false,
-        loading: () => (
-            <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-                    Initializing Public Map Canvas...
-                </span>
-            </div>
-        )
-    }
-);
+import { FireMap } from '../../components/DynamicFiremap';
 
 export default function GuestPublicDashboard() {
     const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
+    const { userLocation, nearbyFires } = useNearbyFires();
 
     return (
         <SideBarLayout hideLogout>
@@ -48,7 +35,7 @@ export default function GuestPublicDashboard() {
                         
                         {/*Map*/}
                         <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
-                            <PublicFireMap />
+                            <FireMap lat={userLocation.lat} lng={userLocation.lng} drawMode={false} onDrawComplete={() => {}} clearDrawings={0} />
                         </div>            
                     </div>
 
@@ -63,7 +50,7 @@ export default function GuestPublicDashboard() {
                             className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto" 
                             style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
                         >
-                            <NearbyReports />
+                            <NearbyReports nearby_fires={nearbyFires}/>
                         </div>
                     </div>
                 </div>
