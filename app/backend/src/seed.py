@@ -1,14 +1,16 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from db import engine, SessionLocal, Base
 #from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from models.users import User
 from models.role_request import RoleRequest
 from models.reported_fires import FireReports
+
 from enums.report_status import ReportStatus
 from enums.user_role import UserRole
 from enums.role_request_status import RequestStatus
+
 from auth import hash_password
 
 # 20 Users: 3 Admins, 5 Firefighters, 12 Users
@@ -129,7 +131,7 @@ def seed_role_requests(db):
             reviewed_at=datetime.now(timezone.utc) if data["reviewed_by"] else None
         )
         db.add(role_request)
-        print(f"  ADD   role request → {data['requested_role']} for {data['user_id']}")
+        print(f"  ADD   role request -> {data['requested_role']} for {data['user_id']}")
 
 def seed_fire_reports(db):
     for data in SEED_FIRE_REPORTS:
@@ -153,7 +155,7 @@ def seed_fire_reports(db):
             status_index=data["status_index"]
         )
         db.add(report)
-        print(f"  ADD   fire report → {data['reference_number']} at {data['location_text']}")
+        print(f"  ADD   fire report -> {data['reference_number']} at {data['location_text']}")
 
 def seed():
     print("Dropping old tables if they exist...")

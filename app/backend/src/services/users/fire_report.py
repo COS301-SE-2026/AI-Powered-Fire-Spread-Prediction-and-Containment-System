@@ -1,33 +1,74 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from models.reported_fires import FireReports
 import uuid
-from enums.report_status import ReportStatus
+import math
 from schemas.fire_report import FireReportCreate
+from enums.report_status import ReportStatus, status_level
+from services.storage import get_presigned_url
 
-def get_fire_reports(db:Session):
-    request = db.query(
-        FireReports, 
+# this is for hectares takes radius in km
+def calc_size(radius: float) -> float:
+    radius_m = radius * 1000
+    return round((math.pi * radius_m **2) / 10_000, 1)
+
+def get_fire_reports(db: Session):
+    results = db.query(
+        FireReports,
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
-        ).all()
+    ).outerjoin(FireReports.user).all()
     
+    if not results:
+        return []
+
     formatted_reports = []
-    for report, lat, lng in request:
-        formatted_reports.append({
+    for report, lat, lng in results:
+        formatted_reports.append ({
+            "id": report.id,
             "reference_number": report.reference_number,
+            "location_text": report.location_text,
+            "boundary_radius": report.boundary_radius,
             "user_id": report.user_id,
-            "location": report.location_text,
             "description": report.description,
             "lat": lat,
             "lng": lng,
             "status": report.status.value,
-            "status_index": report.status_index,
-            "submitted_at": report.submitted_at.isoformat()
+            "submitted_at": report.submitted_at.isoformat(),
+            "boundary_radius": float(report.boundary_radius),
+            "size": calc_size(float(report.boundary_radius)),
+            "reporter_name": f"{report.user.name} {report.user.surname}" if report.user else "Anonymous",
         })
     return formatted_reports
+
+def get_fire_report_by_id(report_ref: str, db: Session):
+    request = db.query(
+        FireReports,
+        func.ST_Y(FireReports.location_geom).label('lat'),
+        func.ST_X(FireReports.location_geom).label('lng')
+    ).outerjoin(FireReports.user).filter(FireReports.reference_number == report_ref).first()
+
+    if not request:
+        raise ValueError(f"Report with id {report_ref} does not exist")
+    
+    report, lat, lng = request
+    return {
+        "id": report.id,
+        "reference_number": report.reference_number,
+        "location_text": report.location_text,
+        "lat": lat,
+        "lng": lng,
+        "description": report.description,
+        "image_url": report.image_url,
+        "status": report.status,
+        "status_index": report.status_index,
+        "boundary_radius": float(report.boundary_radius),
+        "size": calc_size(float(report.boundary_radius)),
+        "submitted_at": report.submitted_at,
+        "reporter_name": f"{report.user.name} {report.user.surname}" if report.user else "Anonymous",
+    }
 
 def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, user_id:Optional[str] = None):
     year = datetime.now().year
@@ -46,15 +87,24 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
         image_url=report.image_url,
         location_geom=point_wkt,
         boundary_radius=report.boundary_radius,
-        status=ReportStatus.received,
-        status_index=0
+        status=ReportStatus.pending,
+        status_index=1
     )
 
     db.add(new_report)
     db.commit()
-    db.refresh(new_report)
 
-    new_report.lat=report.lat
-    new_report.lng=report.lng
+    return get_fire_report_by_id(new_report.reference_number, db)
 
-    return new_report
+def status_change(report_ref: str, status: ReportStatus, db:Session):
+    report = db.query(FireReports).filter(FireReports.reference_number == report_ref).first()
+
+    if not report:
+        raise ValueError(f"Report with id {report_ref} does not exist")
+    
+    report.status = status
+    report.status_index = status_level.get(status, 0)
+    report.updated_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return get_fire_report_by_id(report_ref, db)
