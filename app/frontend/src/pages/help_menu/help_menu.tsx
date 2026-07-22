@@ -1,6 +1,6 @@
 import { SideBarLayout } from '../../components/demoSidebar';
 import { PageHeader } from '../../components/pageHeader';
-import Card from '../../components/Card';
+import {Siren} from 'lucide-react'
 export default function HelpPage() {
 const faqs=[
   {
@@ -47,6 +47,30 @@ const faqs=[
             <p className="pt-2 text-white/70 text-sm">{faq.a}</p>
           </div>
         </div>))}
+      </div>
+      <div className="mt-10 px-6 pb-6">
+        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-white/70 text-sm">
+          <div>
+            <span className="font-display font-bold uppercase tracking-wide text-white/90 text-xs">
+              <Siren className='w-8 h-8 text-brand-400'/> Emergency Contacts 
+            </span>
+            <div className="mt-1 space-y-1">
+              <p>
+                <span className="font-medium text-white/80">National Fire Emergency:</span>{' '}
+                <a href="tel:10177" className="text-brand-400 hover:text-brand-300 transition-colors">
+                  10177
+                </a>
+                {' '}(toll-free from any phone)
+              </p>
+              <p>
+                <span className="font-medium text-white/80">City of Cape Town Fire & Rescue:</span>{' '}
+                <a href="tel:0214807700" className="text-brand-400 hover:text-brand-300 transition-colors">
+                  021 480 7700
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </SideBarLayout>  
   );
