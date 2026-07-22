@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookAlert, Map, LayoutDashboard, ShieldAlert, Flame, User, UserCircle, ChevronDown, PlusCircle} from 'lucide-react';
+import { BookAlert, Map, LayoutDashboard, ShieldAlert, Flame, User, UserCircle, ChevronDown, PlusCircle, HandHelping, CircleQuestionMark} from 'lucide-react';
 import { SideBar, NavLink } from './Sidebar';
 import { AdminItems } from './admin/adminSidebar';
 
@@ -80,6 +80,11 @@ export function SideBarLayout({
                             <NavLink icon={Map} label="Public Fire Map" href="/guests/guestsLanding" />
                             <NavLink icon={PlusCircle} label="Submit Report" href="/registeredUser/ReportFire" />
                         </SideBarDropdown >
+                        <SideBarDropdown title='Help' icon={HandHelping} isSidebarHovered={isHovered}>
+                            <NavLink icon={CircleQuestionMark} label="FAQ" href='/help_menu/help_menu'/>
+
+                            
+                        </SideBarDropdown>
                     </>
                 }
             >
