@@ -121,8 +121,7 @@ export default function ReportDetailsForm({ location = "", onSubmit, onLocationS
             newErrors.location = "Please select a valid location from the map or search suggestions.";
         }
 
-        const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
-        if (isDesktop && !photo) {
+        if (!photo) {
             newErrors.photo = "Field evidence attachment is mandatory on desktop. Please upload a telemetry image.";
         }
 
@@ -223,7 +222,7 @@ export default function ReportDetailsForm({ location = "", onSubmit, onLocationS
                 </div>
 
                 {/* Attach Evidence */}
-                <div className="hidden md:flex md:flex-col gap-1.5">
+                <div className="flex md:flex-col gap-1.5">
                     <label className="text-sm font-semibold text-white">Attach Evidence</label>
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
                     <button

@@ -1,5 +1,7 @@
 import React from "react";
 import { Report, ReportStatus } from "../../types/firefighter";
+import { useRouter } from 'next/router';
+import { StatusBadge } from "../admin/reportStatusBadge";
 
 interface ReportsTableProp{
     readonly requests: Report[];
@@ -7,11 +9,13 @@ interface ReportsTableProp{
     readonly onView: (request: Report) => void;
 }
 
+
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
     const filtered = requests.filter(req => 
-        filter === 'all' || req.Status === filter
+        filter === 'all' || req.status === filter
     );
 
+    const router = useRouter();
     return (
         <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-[600px] w-full">
             <table className="table table-pin-rows">
@@ -23,6 +27,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase">Size</th>
                         <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase">Reported</th>
                         <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase">Reporter</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -35,13 +40,18 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                     ) : (
                         filtered.map((req) => {
                             return(
-                                <tr key={req.Ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Ref}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Location}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Status}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Size} ha</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Reported}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.Reporter}</td>
+                                <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.ref}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.location}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card"><StatusBadge status={req.status} /></td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{new Date(req.reported).toLocaleDateString("en-ZA", {day: "2-digit", month: "2-digit", year: "numeric"})}</td>
+                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
+                                    <td className="px-4 py-3">
+                                        <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">
+                                            View
+                                        </button>
+                                    </td>
                                 </tr>
                             )
                         })

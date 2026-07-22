@@ -79,6 +79,7 @@ Once the stack is running, the default ports are:
 - `http://localhost:19006` – PWA / Expo web interface
 - `http://localhost:8080` – pgAdmin
 - `localhost:5432` – PostgreSQL database
+- `http://localhost:8000/docs#` - Swagger Docs
 
 ## Stop the containers
 
@@ -108,7 +109,7 @@ docker compose logs -f
 docker compose logs -f frontend
 ```
 
-## Commands for yarn
+# Yarn commands
 
 - Run the commands from the root of the repository to execute them in the correct context:
 
@@ -116,18 +117,14 @@ docker compose logs -f frontend
 yarn dev
 yarn build
 yarn lint
-yarn test:e2e
-yarn test:e2e:backend
-yarn pwa:start
 ```
 
 - To run from app/backend/src:
 
 ```bash
-pytest testing_config/e2e
+yarn test # runs all test files in the tests folder
 yarn start
 yarn dev
-yarn api
 ```
 
 - To run from app/frontend/src:
@@ -137,8 +134,8 @@ yarn dev
 yarn build
 yarn start
 yarn lint
-yarn test:e2e
-yarn test:e2e:headed
-yarn test:e2e:report
-yarn test:e2e:install
+yarn test
+yarn test:headed
+yarn test:report
+yarn test:install
 ```
