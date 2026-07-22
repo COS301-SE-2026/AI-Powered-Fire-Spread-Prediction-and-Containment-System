@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import json
+import uuid
 import os
 import platform
 import shutil
@@ -37,7 +38,8 @@ def gpu_name() -> str:
 def new_version_name() -> str:
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     host = platform.node().split(".")[0] or "unknown"
-    return f"v{ts}_{host}"
+    salt = uuid.uuid4().hex[:6]
+    return f"v{ts}-{salt}_{host}"
 
 def publish(model_family: str, model_path: str | Path, metadata: dict, promote: bool = False) -> str:
     """ Copy trained model + metadata to a new immutable version dir.

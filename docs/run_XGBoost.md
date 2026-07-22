@@ -67,3 +67,8 @@ val PR-AUC: 0.8702
 ```bash
 yarn test:xgboost:unit
 ```
+
+2. Integration tests
+```bash
+yarn test:xgboost:integration
+```
