@@ -943,7 +943,6 @@
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
-"@tybys/wasm-util@^0.10.1":
 "@tybys/wasm-util@^0.10.2":
   version "0.10.2"
   resolved "https://registry.yarnpkg.com/@tybys/wasm-util/-/wasm-util-0.10.2.tgz#12b3a1b33db1f9cad4ddff1f604ab7dd00bf464e"
