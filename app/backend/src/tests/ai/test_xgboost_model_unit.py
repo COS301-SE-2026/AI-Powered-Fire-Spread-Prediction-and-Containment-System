@@ -9,25 +9,6 @@ def test_schema_consistancy():
     assert len(FEATURES) == len(set(FEATURES)), "duplicate feature scheme"
     assert (UNBURNED, BURNING, BURNED) == (0, 1, 2)
     
-def small_grids(H=5, W=5):
-    """ Uniform weather blowing east, flat-ish terrain, no fire (example) """
-    weather = {
-        "wind_u": np.full((H, W), 3.0, np.float32),
-        "wind_v": np.zeros((H,W), np.float32),
-        "rel_humidity": np.full((H,W), 30.0, np.float32),
-        "temperature": np.full((H,W), 25.0, np.float32),
-    }
-    static = {
-        "elevation": np.full((H,W), 500.0, np.float32),
-        "slope": np.zeros((H,W), np.float32),
-        "aspect_sin": np.zeros((H, W), np.float32),
-        "aspect_cos": np.ones((H,W), np.float32),
-        "fuel_load": np.full((H,W), 0.8, np.float32),
-        "dryness": np.full((H,W), 0.6, np.float32),
-    }
-    burn = np.zeros((H,W), np.int8)
-    return weather, static, burn
-
 
 def test_shift_down():
     a = np.zeros((3, 3), np.float32)
@@ -50,7 +31,7 @@ def test_shift_fill():
     assert out[0, 0] == 99, "shifted-in cells should retrieve the fill value"
     
     
-def test_neighbour_count_fire():
+def test_neighbour_count_fire(small_grids):
     """ All 8 Moore neighbours of fire cell see exactly 1 burning neighbour """
     weather, static, burn = small_grids()
     burn[2, 2] = BURNING
@@ -60,28 +41,28 @@ def test_neighbour_count_fire():
     assert n[2, 1] == n[2, 3] == 1
     assert n[3, 1] == n[3, 2] == n[3, 3] == 1
     
-def test_neighbour_count_far_corner_zero():
+def test_neighbour_count_far_corner_zero(small_grids):
     """ Cell far from fire should see zero burning neighbours """
     weather, static, burn = small_grids()
     burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["n_burning_neighbours"][0, 0] == 0
     
-def test_upwind_burning_east():
+def test_upwind_burning_east(small_grids):
     """ Wind blows east. Cell east of fire has fire upwind (+u)"""
     weather, static, burn = small_grids()
     burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["upwind_burning"][2, 3] == pytest.approx(1.0), "Cell east of fire should see it as upwind"
     
-def test_upwind_burning_west_is_zero():
+def test_upwind_burning_west_is_zero(small_grids):
     """ Cell west of fire is upwind of it; so it should not see fire as upwind """
     weather, static, burn = small_grids()
     burn[2, 2] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["upwind_burning"][2, 1] == pytest.approx(0.0), "Cell west of fire is upwind of it"
     
-def test_downslope_burning_lower_neighbour():
+def test_downslope_burning_lower_neighbour(small_grids):
     """Cell uphill of burning cell should see downslope_burning = 1 """
     weather, static, burn = small_grids()
     static["elevation"][2, 2] = 400.0
@@ -89,7 +70,7 @@ def test_downslope_burning_lower_neighbour():
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["downslope_burning"][2, 3] == pytest.approx(1.0)
     
-def test_downslope_burning_highest_point_zero():
+def test_downslope_burning_highest_point_zero(small_grids):
     """ If fire at highest point, no cell should see downslope_burning """
     weather, static, burn = small_grids()
     static["elevation"][2, 2] = 900.0
@@ -97,48 +78,48 @@ def test_downslope_burning_highest_point_zero():
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["downslope_burning"].sum() == 0
     
-def test_dist_to_fire_at_fire():
+def test_dist_to_fire_at_fire(small_grids):
     """ Distance at the fire cell itself should be 0 """
     weather, static, burn = small_grids(7, 7)
     burn[3, 3] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["dist_to_fire"][3, 3] == 0
     
-def test_dist_to_fire_moore_diag():
+def test_dist_to_fire_moore_diag(small_grids):
     """ Moore neighbourhood: diag cell is distance 1, not 2 """
     weather, static, burn = small_grids(7, 7)
     burn[3, 3] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["dist_to_fire"][2, 2] == 1
     
-def test_dist_to_fire_two_steps():
+def test_dist_to_fire_two_steps(small_grids):
     """ Cell two steps away should be distance 2 """
     weather, static, burn = small_grids(7, 7)
     burn[3, 3] = BURNING
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert nbf["dist_to_fire"][3, 5] == 2
     
-def test_dist_to_fire_no_fire_caps():
+def test_dist_to_fire_no_fire_caps(small_grids):
     """ With no fire anywhere, all distances should equal DIST_CAP """
     weather, static, burn = small_grids(7, 7)
     nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
     assert (nbf["dist_to_fire"] == DIST_CAP).all()
     
 
-def test_grid_to_fmatrix_shape():
+def test_grid_to_fmatrix_shape(small_grids):
     """ Output must be [H*W, len(FEATURES)] float32 """
     weather, static, burn = small_grids()
     X = grid_to_fmatrix(weather, static, burn)
     assert X.shape == (25, len(FEATURES))
     assert X.dtype == np.float32
     
-def test_grid_to_fmatrix_col_order_weather():
+def test_grid_to_fmatrix_col_order_weather(small_grids):
     """ Temperature column must match value in weather dict """
     weather, static, burn = small_grids()
     X = grid_to_fmatrix(weather, static, burn)
     assert (X[:, FEATURES.index("temperature")] == pytest.approx(25.0))
     
-def test_grid_to_fmatrix_col_order_static():
+def test_grid_to_fmatrix_col_order_static(small_grids):
     """ fuel_load column must watch value in static dict """
     weather, static, burn = small_grids()
     X = grid_to_fmatrix(weather, static, burn)
