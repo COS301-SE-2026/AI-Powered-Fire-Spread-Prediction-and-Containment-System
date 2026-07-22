@@ -1,5 +1,6 @@
 .env
 database/postgres/
+database/minio/
 node_modules/
 app/frontend/src/node_modules/
 app/backend/src/__pycache__/
@@ -29,8 +30,4 @@ playwright-report/
 .env.*app/frontend/src/.env.local
 **/.env.local
 
-#distribution
-dist/
 
-# minio local storage
-database/minio/
