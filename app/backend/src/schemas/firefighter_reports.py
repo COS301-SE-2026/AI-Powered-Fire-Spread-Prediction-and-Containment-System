@@ -17,14 +17,17 @@ class FirefighterReportTable(BaseModel):
     model_config = ConfigDict(from_attributes = True, populate_by_name=True)
 
 class FirefighterReportModal(BaseModel):
+    id: str
     ref: str = Field(validation_alias="reference_number")
     location: str = Field(validation_alias="location_text")
     status: ReportStatus
     reported: datetime = Field(validation_alias="submitted_at")
+    reporter: str
     description: str
     image_url: str
     size: float = Field(validation_alias="boundary_radius")
-
+    lat: float
+    lng: float
     
     model_config = ConfigDict(from_attributes = True, populate_by_name=True)
 
