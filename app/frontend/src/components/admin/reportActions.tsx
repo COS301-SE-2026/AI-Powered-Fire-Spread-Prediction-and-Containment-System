@@ -4,12 +4,12 @@ import type { FireReport, ReportStatus } from "../../types/report";
 import Button from "../Button";
 
 interface ReportActionsProps {
-    readonly report_id: string;
+    readonly report_ref: string;
     readonly status: ReportStatus;
     readonly onStatusChange: (report: FireReport) => void;
 }
 
-export function ReportActions({ report_id, status, onStatusChange }: ReportActionsProps) {
+export function ReportActions({ report_ref, status, onStatusChange }: ReportActionsProps) {
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ export function ReportActions({ report_id, status, onStatusChange }: ReportActio
         setError(null);
         setSuccess(null);
         try{
-            const res = await fetch(`/api/admin/reported-fires/${report_id}/status?status=${newStatus}`, {
+            const res = await fetch(`/api/admin/reported-fires/${report_ref}/status?status=${newStatus}`, {
                 method: 'PATCH',
             });
             if (!res.ok) throw new Error("Failed to update status");
