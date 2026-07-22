@@ -1,6 +1,8 @@
 import { SideBarLayout } from '../../components/demoSidebar';
 import { PageHeader } from '../../components/pageHeader';
-import {Siren} from 'lucide-react'
+import { ActionCard } from '../../components/firefighter/actionCard';
+import {Siren, CirclePlay, Headset} from 'lucide-react'
+import { useRouter } from 'next/router';
 export default function HelpPage() {
 const faqs=[
   {
@@ -24,8 +26,9 @@ const faqs=[
     a:'The system runs predictive simulations up to 72 hours (3 days) ahead. However, we highly recommend relying on the 6-to-12-hour forecast for tactical ground operations, as atmospheric conditions (especially wind shifts) become increasingly unpredictable beyond that window in South African summers.',
   },
 ]
-  
+  const router = useRouter();
   return (
+    
     <SideBarLayout>
       <div className='flex flex-col p-6'>
         <PageHeader
@@ -33,6 +36,20 @@ const faqs=[
         subtitle='Find answers, tutorials and support resources for the Fire Away system'
         >
         </PageHeader>
+      </div>
+      <div className='grid grid-cols-2 '>
+        <ActionCard
+        title='Tutorials'
+        icon={<CirclePlay/>}
+        description='Want to learn how this works?'
+        onClick={() => router.push('/components/underConstruction')}
+        />
+        <ActionCard
+        title='Help Center'
+        icon={<Headset/>}
+        description='Need support?'
+        onClick={() => router.push('/components/underConstruction')}
+        />
       </div>
       <div className='px-6 space-y-3'>
         {faqs.map((faq,index)=>(
@@ -60,7 +77,7 @@ const faqs=[
                 <a href="tel:10177" className="text-brand-400 hover:text-brand-300 transition-colors">
                   10177
                 </a>
-                {' '}(toll-free from any phone)
+                {' '}(Toll-Free)
               </p>
               <p>
                 <span className="font-medium text-white/80">City of Cape Town Fire & Rescue:</span>{' '}
