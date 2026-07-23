@@ -17,3 +17,7 @@ requests
 pyjwt>=2.8
 pydantic>=2.0
 minio
+numpy
+torch
+pytorchfire
+xgboost
