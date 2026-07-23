@@ -20,7 +20,7 @@ class IgnitionScorer:   # The only interface backend/simulation loop needs
         self.booster.set_param({"nthread": 2, "device": "cpu"})
         
     @classmethod
-    def load(cls, version: str = "LASTEST") -> "IgnitionScorer":
+    def load(cls, version: str = "LATEST") -> "IgnitionScorer":
         """ Load a published model from the artifact store by version name or current latest.
             Verifies training-time schema matches this code - guard that matters when models are trained on different machine than the one serving them
         """
