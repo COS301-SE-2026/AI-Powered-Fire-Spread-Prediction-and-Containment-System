@@ -10,13 +10,13 @@ interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
   onBoundarySizeChange?: (radiusKm: number) => void;
   externalPin?: { lng: number; lat: number } | null;
-  fireReports?: any[];  // ADD THIS
+
 }
 
 const INITIAL_RADIUS_KM = 0.2;
 const INITIAL_ZOOM = 15.5;
 
-export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, fireReports }: FireMapProps) {
+export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
   const mapRef = useRef<any>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
@@ -48,15 +48,15 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
   }
 
   function toLocation(mapRef: React.RefObject<any>, lng: number, lat: number) {
-    mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essentia: true });
+    mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
   }
 
   function createPinElement(): HTMLDivElement {
     const el = document.createElement('div');
     el.className = "flex flex-col items-center pointer-events-none";
     el.innerHTML = `
-      <div class="w-7 h-7 rounder-full bg-ignite border-2 border-white shadow-lg flex items-center justify-center">
-        <div class="w-2.5 h-2.5 rounded-full bg-white"</div>
+      <div class="w-7 h-7 rounded-full bg-ignite border-2 border-white shadow-lg flex items-center justify-center">
+        <div class="w-2.5 h-2.5 rounded-full bg-white"><div/>
       </div>
       <div class="w-1 h-5 bg-ignite/40"></div>
       <div class="w-1 h-1 rounded-full bg-ignite"></div>
@@ -69,11 +69,11 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
     el.className = "flex flex.col items-center gap-1 cursor-grab";
 
     const label = document.createElement('div');
-    label.className = "mb-1 test-white text-xs font-mono whitespace-nowrap pointer-events-none";
+    label.className = "absolute left-full ml-2 text-white text-xs font-mono whitespace-nowrap pointer-events-none";
     label.textContent = output(radiusKm);
 
     const btn = document.createElement('div');
-    btn.className = "w-8 h-8 rounded-full bg-ignite/10 border border-ignite text-ignite flex items-center justify-center select-none leading-none";
+    btn.className = "w-8 h-8 rounded-full bg-white border-2 border-ignite text-ignite font-bold text-lg flex items-center justify-center select-none leading-none shadow-lg";
     btn.textContent = "+";
 
     el.append(label, btn);
@@ -114,7 +114,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
     if (!externalPin) return;
     resetBoundary(externalPin.lng, externalPin.lat, setMarkerPos, setRadius, onBoundarySizeChange);
     toLocation(mapRef, externalPin.lng, externalPin.lat);
-  }, [externalPin.lng, externalPin.lat]);
+  }, [externalPin?.lng, externalPin?.lat]);
 
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
@@ -159,7 +159,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin, f
       const json = await res.json();
       return json.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     } catch {
-      `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     }
   }
 
