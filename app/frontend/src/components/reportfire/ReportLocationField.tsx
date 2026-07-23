@@ -128,17 +128,17 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     }
     return (
         <div className="dropdown w-full" ref={wrapperRef}>
-            <span className="text-sm font-semibold text-white block mb-1.5">Location</span>
-            <label htmlFor="location-input" className="input input-bordered w-full h-11 bg-carbon-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none relative">
+            <span className="label-text font-semibold mb-2 block">Location</span>
+            <div className="input input-bordered flex item-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
                 <input type="text" value={value} onChange={handleInputChange} onFocus={handleFocus} onClick={handleClick} placeholder="Drop a pin or type your address" className="grow bg-transparent focus:outline-none"/>
                 {isSearching && <span className="loading loading-spinner loading-xs text-ignite" />}
-            </label>
+            </div>
 
-                {showDropdown && suggestions.length > 0 && (
-                    <ul className = "menu dropdown-content absolute top-full left-0 right-0 mt-1 z-50 bg-carbon-elevated border border-white/15">
-                        {renderSuggestions(suggestions, handleSuggestionSelect)}
-                    </ul>
-                )}
+            {showDropdown && suggestions.length > 0 && (
+                <ul className = "menu dropdown-content absolute top-full left-0 right-0 mt-1 z-50 bg-surface-elevated border border-white/15">
+                    {renderSuggestions(suggestions, handleSuggestionSelect)}
+                </ul>
+            )}
             {error && <FormError message={error} />}
             {searchError && <span className="text-error text-xs mt-1">{searchError}</span>}
         </div>
