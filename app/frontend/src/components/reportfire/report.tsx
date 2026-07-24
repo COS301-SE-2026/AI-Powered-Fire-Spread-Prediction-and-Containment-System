@@ -21,12 +21,6 @@ const FireMap = dynamic(
   }
 );
 
-const STEPS = [
-  { label: "Drop a pin on the map" },
-  { label: "Drag boundary ring to show size" },
-  { label: "Add details and submit" },
-];
-
 type SubmitState = "idle" | "loading" | "error";
 
 export default function ReportPage() {
@@ -120,14 +114,12 @@ export default function ReportPage() {
   }
 
   return (
-      <div className="flex flex-col p-6">
+      <div className="flex flex-col p-2">
         <header className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
-              Report a fire
-            </h1>
+            <h1 className="uppercase">Report a fire</h1>
             <div className="mt-2">
-              <StepIndicator steps={STEPS} />
+              <StepIndicator />
             </div>
           </div>
         </header>
@@ -136,7 +128,7 @@ export default function ReportPage() {
 
           {/* Left Column */}
           <div className="xl:col-span-8 flex flex-col gap-4">
-            <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
+            <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke flex flex-col overflow-hidden relative h-[600px]">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-m tracking-wide text-neutral/80 uppercase font-display">
                   Live Map
@@ -148,17 +140,7 @@ export default function ReportPage() {
                   externalPin={externalPin}
                   onLocationSelect={handleLocationSelect}
                   onBoundarySizeChange={handleBoundarySizeChange}
-                  fireReports={fireReports}
                 />
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                Map Legend
-              </h2>
-              <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm p-4 shadow-xl">
-                <MapKey />
               </div>
             </div>
           </div>
