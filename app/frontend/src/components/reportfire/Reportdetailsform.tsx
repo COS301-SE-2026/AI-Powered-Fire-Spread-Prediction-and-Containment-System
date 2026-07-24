@@ -92,7 +92,7 @@ export default function ReportDetailsForm({ location = "", onSubmit, onLocationS
         <form onSubmit={handleSubmit} className="w-full flex flex-col font-body">
             <h2 className="mb-4">Report details</h2>
 
-            <div className="flex flex-col gap-5">
+            <div className="flex flex-col gap-4">
                 <LocationField value={editableLocation} error={errors.location} onChange={handleLocationChange} onValidSelect={handleLocationValidSelect} />
                 <DescriptionField value={description} onChange={setDescription}/>
                 <PhotoField value={photo} error={errors.photo} onChange={handlePhotoChange}/>
