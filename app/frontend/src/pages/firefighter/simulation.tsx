@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { Pencil,CirclePlay } from 'lucide-react';
-import { FireMap } from '../../components/DynamicFiremap';
+import { FireMap } from '../../components/DynamicFirefighterMap';
 import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
 
 export default function ReportTable() {
