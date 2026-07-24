@@ -6,60 +6,60 @@ import { useRouter } from 'next/router';
 export default function HelpPage() {
 const faqs=[
   {
+    id:"1",
     q:"What exactly do I need to include when reporting a fire?",
     a:"For the prediction model to be useful, please provide: (1) The exact GPS location (drop a pin or enable location services), (2) a recent photo or video showing the smoke column or flame front, (3) an estimate of the size (e.g., small bush, large field), and (4) whether structures or dwellings are immediately threatened."
   },
   {
+    id:"2",
     q:"What if I accidentally report a controlled agricultural burn or a false alarm?",
     a:'You can "Cancel" or "Update" the report within the app for 15 minutes after submission. Additionally, our administrators verify all reports against satellite hotspot data (VIIRS/MODIS) before activating official response protocols. If it’s a legal controlled burn, please flag it as "Prescribed Burn" when reporting.',
   },
-  {
+  {    
+    id:"3",
     q:"Can I report a fire if I have no cellphone signal or data?",
     a:'The system requires a data connection to send the GPS and media. ',
   },
-   {
+   {    
+    id:"4",
     q: "Do I need an account to view the map or report a fire?",
     a: "No. Both the live fire map and the fire reporting form are available to anonymous visitors. Creating a free account (Registered User) additionally gives you the AI spread-prediction overlay and proximity push notifications."
   },
-  {
+  {    
+    id:"5",
     q: "How does a report get automatically verified?",
     a: "A report is auto-verified when either (1) two independent reports come in for the same location, or (2) it matches a NASA FIRMS satellite hotspot. Until then, it sits as 'Pending' and no alerts are sent. Firefighters and Administrators can also manually verify or reject a pending report."
   },
-  {
+  {    
+    id:"6",
     q: "What happens to a fire report once it's verified?",
     a: "Verification automatically triggers the AI fire-spread simulation, publishes the fire to the live map for all users, and dispatches push notifications to registered users in the surrounding risk zone — all within seconds."
   },
-  {
+  {    
+    id:"7",
     q: "What data does the AI use to predict how a fire will spread?",
-    a: "The simulation engine combines wind speed and direction, temperature, humidity, precipitation, and vegetation dryness with terrain slope and vegetation type to produce a colour-coded probability grid for the 1, 3, 6, and 24-hour horizons."
+    a: "The simulation engine combines wind speed and direction, temperature, humidity, precipitation, and vegetation dryness with terrain slope and vegetation type to produce a probability grid for the 1, 3, 6, and 24-hour horizons."
   },
-  {
+  {    
+    id:"8",
     q: "How reliable are the spread predictions?",
     a: "The model is benchmarked against at least 20 historical fires and must achieve an Intersection-over-Union of 0.30 or better for its 6-hour prediction versus the actual burned area. If live data becomes stale (over an hour old), predictions are flagged as lower quality so you know to treat them cautiously."
   },
-  {
+  {    
+    id:"9",
     q: "What happens if wind or weather data isn't available when a fire is verified?",
     a: "The system never leaves you with a blank map. It falls back to the last known good data, and if the simulation still can't complete in time, it shows a wind-biased estimate around the ignition point rather than no prediction at all."
   },
-  {
+  {    
+    id:"10",
     q: "Can I still use the app if my device loses signal in the field?",
     a: "Yes, for viewing. Map tiles and the most recent spread prediction are cached automatically while you're online, so you can still see the last known situation offline — you'll see an 'Offline' banner, and the app quietly refreshes once you're back on data. Submitting a new report still requires a live connection."
-  },
-  {
+  },  
+
+  {    
+    id:"11",
     q: "What can firefighters do that a regular registered user can't?",
     a: "Firefighters get a tactical dashboard with AI-recommended containment spots, live wind direction, and their own GPS position on the map. They can also draw containment lines directly on the map — each one is logged with GPS coordinates and a timestamp, and automatically triggers the simulation to re-run around it."
-  },
-  {
-    q: "How do I become an Administrator?",
-    a: "Administrator access can't be self-assigned during registration — it has to be approved by an existing Administrator through the admin panel. New sign-ups are automatically given the Registered User role by default."
-  },
-  {
-    q: "Is my account protected if someone tries to guess my password?",
-    a: "Yes. Login attempts are rate-limited to 5 failed tries per 15 minutes, and the account locks for 30 minutes after 10 consecutive failures. You can also turn on two-factor authentication (TOTP) from your account settings for an extra layer of protection."
-  },
-  {
-    q:"How far into the future does the system predict the fire spread?",
-    a:'The system runs predictive simulations up to 72 hours (3 days) ahead. However, we highly recommend relying on the 6-to-12-hour forecast for tactical ground operations, as atmospheric conditions (especially wind shifts) become increasingly unpredictable beyond that window in South African summers.',
   },
 ]
   const router = useRouter();
@@ -196,8 +196,10 @@ const faqs=[
   </div>
     {/*FAQ's */}
       <div className='px-6 space-y-3'>
-        {faqs.map((faq)=>(
+        {faqs.map((faq, index)=>(
+          
           <div 
+          key={faq.id}
           className="group hover:bg-white/5 border border-white/5 rounded-[var(--radius-md)] px-3 py-2.5 transition-colors cursor-pointer">
           <div className="flex items-center justify-between">
             <span className="font-display font-bold text-sm uppercase tracking-wide text-white/80 group-hover:text-white transition-colors">{faq.q}</span>
