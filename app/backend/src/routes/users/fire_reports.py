@@ -6,12 +6,13 @@ from schemas.fire_report import FireReportCreate, FireReportDetailResponse, Fire
 from services.users import fire_report
 from dependencies.auth import get_current_user_optional
 from models.users import User
+from dependencies.auth import get_current_user_optional, get_current_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
 @router.get("/reported-fires", response_model=List[FireReportMapResponse])
-def get_reported_fires(db:Session = Depends(get_db)):
-    return fire_report.get_fire_reports(db)
+def get_reported_fires(db: Annotated[Session, Depends(get_db)], current_user: Annotated[User, Depends(get_current_user)],):
+    return fire_report.get_fire_reports(db, user_id=current_user.id)
 
 @router.post("/reported-fires", response_model=FireReportDetailResponse)
 def create_fire_report(report:FireReportCreate, request:Request, db: Annotated[Session, Depends(get_db)], current_user: Annotated[Optional[User], Depends(get_current_user_optional)]):
