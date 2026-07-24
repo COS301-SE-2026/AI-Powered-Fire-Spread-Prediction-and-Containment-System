@@ -66,7 +66,7 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         "lat": lat,
         "lng": lng,
         "description": report.description,
-        "image_url": report.image_url,
+        "image_url": get_presigned_url(report.image_url),
         "status": report.status,
         "status_index": report.status_index,
         "boundary_radius": float(report.boundary_radius),
