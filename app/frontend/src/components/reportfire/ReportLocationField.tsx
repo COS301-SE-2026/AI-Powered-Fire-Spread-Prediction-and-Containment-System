@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FormError } from "./ReportFormError";
 import { MapPin } from "lucide-react";
+import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 
 interface GeocodingSuggestion {
     readonly place_name: string;
@@ -103,7 +104,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     }, []);
 
     function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
-        if (value === "Click the map to drop a pin") {
+        if (value === LOCATION_PLACEHOLDER) {
             onChange("");
         }
     }
@@ -129,7 +130,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     return (
         <div className="dropdown w-full" ref={wrapperRef}>
             <span className="label-text font-semibold mb-2 block">Location</span>
-            <div className="input input-bordered flex item-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
+            <div className="input input-bordered w-full flex item-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
                 <input type="text" value={value} onChange={handleInputChange} onFocus={handleFocus} onClick={handleClick} placeholder="Drop a pin or type your address" className="grow bg-transparent focus:outline-none"/>
                 {isSearching && <span className="loading loading-spinner loading-xs text-ignite" />}
             </div>

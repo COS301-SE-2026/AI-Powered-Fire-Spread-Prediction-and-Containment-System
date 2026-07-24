@@ -28,10 +28,7 @@ export function PhotoField({ value, error, onChange }: PhotoProps) {
     function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
             const file = e.target.files?.[0] ?? null;
 
-            if (!file) {
-                onChange(null);
-                return;
-            }
+            if (!file) return;
             
             if (!file.type.startsWith("image/")) {
                 onChange(null);
