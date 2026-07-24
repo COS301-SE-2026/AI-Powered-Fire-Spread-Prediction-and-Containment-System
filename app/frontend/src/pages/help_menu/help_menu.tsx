@@ -196,9 +196,8 @@ const faqs=[
   </div>
     {/*FAQ's */}
       <div className='px-6 space-y-3'>
-        {faqs.map((faq,index)=>(
+        {faqs.map((faq)=>(
           <div 
-          key={index}
           className="group hover:bg-white/5 border border-white/5 rounded-[var(--radius-md)] px-3 py-2.5 transition-colors cursor-pointer">
           <div className="flex items-center justify-between">
             <span className="font-display font-bold text-sm uppercase tracking-wide text-white/80 group-hover:text-white transition-colors">{faq.q}</span>
