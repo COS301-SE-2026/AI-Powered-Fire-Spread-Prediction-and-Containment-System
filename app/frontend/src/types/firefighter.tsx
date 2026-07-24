@@ -1,4 +1,4 @@
-export type ReportStatus = 'pending' | 'verified' | 'received';
+export type ReportStatus = 'pending' | 'verified' | 'rejected';
 
 export interface Report{
     ref: string;
@@ -7,14 +7,21 @@ export interface Report{
     size: number;
     reported: string; // date and time that report was made
     reporter: string;
+    description: string;
+    img_url: string;
 }
 
 export interface ReportModal{
-    ref: string;
-    location: string;
+    id: string;
+    reference_number: string;
+    location_text: string;
     status: ReportStatus;
-    reported: Date
-    description: string;
-    img_url: string;
     size: number;
+    submitted_at: string;
+    reporter_name: string;
+    description?: string;
+    image_url: string;
+    lat: number;
+    lng:number;
+    status_index?: number;
 }

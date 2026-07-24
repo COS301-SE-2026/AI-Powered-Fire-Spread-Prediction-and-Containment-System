@@ -2,8 +2,6 @@ name: CI/CD
 
 on:
   pull_request:
-    branches:
-      - main
 
 jobs:
   backend-e2e:
@@ -70,6 +68,29 @@ jobs:
 
       - name: Build
         run: yarn run build
+    
+  frontend-eslint:
+    name: Frontend Lint (ESLint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: app/frontend/src/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install
+        
+      - name: Run ESLint
+        run: yarn eslint
 
   frontend-e2e:
     name: Frontend E2E (Playwright)
@@ -105,3 +126,27 @@ jobs:
           name: playwright-report
           path: app/frontend/src/playwright-report/
           retention-days: 7
+  
+  frontend-react-doctor:
+    name: React Doctor
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend/src
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: app/frontend/src/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run React Doctor
+        run: yarn doctor 

@@ -32,7 +32,6 @@ def get_fire_reports(db: Session):
             "location_text": report.location_text,
             "boundary_radius": report.boundary_radius,
             "user_id": report.user_id,
-            "location_text": report.location_text,
             "description": report.description,
             "lat": lat,
             "lng": lng,
@@ -44,15 +43,15 @@ def get_fire_reports(db: Session):
         })
     return formatted_reports
 
-def get_fire_report_by_id(report_id: str, db: Session):
+def get_fire_report_by_id(report_ref: str, db: Session):
     request = db.query(
         FireReports,
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
-    ).outerjoin(FireReports.user).filter(FireReports.id == report_id).first()
+    ).outerjoin(FireReports.user).filter(FireReports.reference_number == report_ref).first()
 
     if not request:
-        raise ValueError(f"Report with id {report_id} does not exist")
+        raise ValueError(f"Report with id {report_ref} does not exist")
     
     report, lat, lng = request
     return {
@@ -62,7 +61,7 @@ def get_fire_report_by_id(report_id: str, db: Session):
         "lat": lat,
         "lng": lng,
         "description": report.description,
-        "image_url": report.image_url,
+        "image_url": get_presigned_url(report.image_url),
         "status": report.status,
         "status_index": report.status_index,
         "boundary_radius": float(report.boundary_radius),
@@ -95,17 +94,17 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
     db.add(new_report)
     db.commit()
 
-    return get_fire_report_by_id(new_report.id, db)
+    return get_fire_report_by_id(new_report.reference_number, db)
 
-def status_change(report_id: str, status: ReportStatus, db:Session):
-    report = db.query(FireReports).filter(FireReports.id == report_id).first()
+def status_change(report_ref: str, status: ReportStatus, db:Session):
+    report = db.query(FireReports).filter(FireReports.reference_number == report_ref).first()
 
     if not report:
-        raise ValueError(f"Report with id {report_id} does not exist")
+        raise ValueError(f"Report with id {report_ref} does not exist")
     
     report.status = status
     report.status_index = status_level.get(status, 0)
     report.updated_at = datetime.now(timezone.utc)
     db.commit()
 
-    return get_fire_report_by_id(report_id, db)
+    return get_fire_report_by_id(report_ref, db)

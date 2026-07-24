@@ -25,7 +25,7 @@ function StatCard({label, value, icon, iconColor = "bg-base-100"}: StatCardProps
     );
 }
 
-interface EnvironmentVariables{
+export interface EnvironmentVariables{
     readonly wind: number;
     readonly wind_dir: number;
     readonly temperature: number;
