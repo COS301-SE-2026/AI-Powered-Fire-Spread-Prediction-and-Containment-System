@@ -47,7 +47,7 @@ def process_sentinal2_and_worldcover(
     resample to match (H, W), and calc fuel_load and dryness matrices"""
 
     H, W = target_shape
-    fuel_weigths = load_fuel_base_weights()
+    fuel_weights = load_fuel_base_weights()
 
     def read_window(file_path: str, is_categorical: bool = False) -> np.ndarray:
         with rasterio.open(file_path) as src:
@@ -60,7 +60,7 @@ def process_sentinal2_and_worldcover(
         
     wc_map = read_window(worldcover_map_path, is_categorical=True)
     fuel_base = np.zeros((H, W), dtype=np.float32)
-    for class_val, weight in fuel_weigths.items():
+    for class_val, weight in fuel_weights.items():
         fuel_base[wc_map == class_val] = weight
 
     b04 = read_window(b04_path)
