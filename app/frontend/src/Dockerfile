@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN corepack enable \
-	&& yarn install
+	&& yarn install --ignore-workspaces
 
 COPY . .
 
