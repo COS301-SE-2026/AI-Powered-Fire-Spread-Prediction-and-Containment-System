@@ -61,7 +61,7 @@ export default function Login() {
 
       const roleRedirects: Record<string, string> = {
         admin: '/admin/adminDashboard',
-        firefighter: '/firefighterDashboard',
+        firefighter: '/firefighter/firefighter-dashboard',
         user: '/registeredUser/registeredUserLanding',
       };
 
