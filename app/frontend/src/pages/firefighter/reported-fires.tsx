@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Report, ReportStatus } from "../../types/firefighter";
-import { SideBarLayout } from '../../components/demoSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
 import { TableSearchBar } from '../../components/firefighter/searchbar';
@@ -56,7 +56,7 @@ export default function ReportTable() {
     
 
     return (
-        <SideBarLayout>
+        <FirefighterSideBar>
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
                             <header className="mb-6">
                                 <h1 className="text-page-title font-display font-bold tracking-wider text-neutral uppercase">Reported Fires</h1>
@@ -72,6 +72,6 @@ export default function ReportTable() {
                             {/* table */}
                             <ReportsTable requests={request} filter={statusFilter} onView={(req) => console.log(req)}/>       
                         </div>
-        </SideBarLayout>
+        </FirefighterSideBar>
     )
 }
