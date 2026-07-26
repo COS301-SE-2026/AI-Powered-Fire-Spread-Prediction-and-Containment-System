@@ -1,0 +1,27 @@
+from conftest import make_report
+
+#draw a line test for a line within 2km
+def test_log_containment_line_2km(client, db):
+    fire = make_report(db)
+
+    response = client.post(
+        "/api/firefighter/containment-line",
+        json={"wkt": "LINESTRING(28.2293 -25.7579, 28.2350 -25.7600)"}
+    )
+
+    assert response.status_code == 200, (
+        f"Expected 200 if containment line within 2km of reported fire. Response code: {response.status_code}"
+    )
+
+#draw a line test for a line outside 2km
+def test_log_containment_line_5km(client, db):
+    fire = make_report(db)
+
+    response = client.post(
+        "/api/firefighter/containment-line",
+        json={"wkt": "LINESTRING(28.2293 -25.7929, 28.2350 -25.7950)"}
+    )
+
+    assert response.status_code == 400, (
+        f"Expected 400 if containment line outside 2km of reported fire. Response code: {response.status_code}"
+    )
