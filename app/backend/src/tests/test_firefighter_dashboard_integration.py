@@ -25,3 +25,14 @@ def test_log_containment_line_5km(client, db):
     assert response.status_code == 400, (
         f"Expected 400 if containment line outside 2km of reported fire. Response code: {response.status_code}"
     )
+
+#testing for nearby fires and weather api response with default coords success
+def test_nearby_weather_success(client, db, seeded_fire_reports):
+    response = client.get(
+        "/api/firefighter/firefighter-dashboard",
+        params={"lat": -25.7479, "lng": 28.2293, "radius_km":20}
+    )
+
+    assert response.status_code == 200, {
+        f"Expected response code is 200 if the nearby fires are found within radius_km. Response code: {response.status_code}"
+    }
