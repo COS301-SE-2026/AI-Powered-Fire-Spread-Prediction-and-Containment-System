@@ -24,7 +24,8 @@ from models.reported_fires import FireReports
 from models.containment_lines import ContainmentLines
 
 #seed data
-from seed import SEED_FIRE_REPORTS
+from seed import SEED_FIRE_REPORTS, SEED_USERS
+from auth import hash_password
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL",
@@ -165,6 +166,24 @@ def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.pe
     db.refresh(report)
     return report
 
+def seed_users_table(db):
+    for data in SEED_USERS:
+        user = User(
+            id=data["id"],
+            name=data["name"],
+            surname=data["surname"],
+            email=data["email"],
+            id_number=data["id_number"],
+            license_number=data["license_number"],
+            hashed_password=hash_password(data["password"]),
+            role=data["role"],
+            is_active=True,
+            is_2fa_enabled=False,
+            totp_secret=None,
+        )
+        db.add(user)
+    db.commit()
+
 def seed_fire_reports_table(db):
     for data in SEED_FIRE_REPORTS:
         report = FireReports(
@@ -186,5 +205,6 @@ def seed_fire_reports_table(db):
 
 @pytest.fixture
 def seeded_fire_reports(db):
+    seed_users_table(db)
     seed_fire_reports_table(db)
     return db.query(FireReports).all()
