@@ -1,12 +1,12 @@
 # This is for any route that needs to check if person is logged and has correct role
 # Reads cookie, decodes token and either blocks or allows request
-from fastapi import Depends, HTTPException, Request
+from typing import Optional
+from fastapi import Depends, HTTPException, Request, status
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from db import get_db
 from models.users import User
-from auth import SECRET_KEY, ALGORITHM
-from typing import Optional
+from ..auth import SECRET_KEY, ALGORITHM
 from enums.user_role import UserRole
 
 def extract_token(request: Request) -> Optional[str]:
@@ -19,20 +19,20 @@ def extract_token(request: Request) -> Optional[str]:
 
 def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
     token = extract_token(request)
-    
+
     if not token:
         raise HTTPException(status_code=401, detail="Not Authenticated")
-    
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid/Expired Token")
-    
+    except JWTError as exc:
+        raise HTTPException(status_code=401, detail="Invalid/Expired Token") from exc
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
-    
+
     return user
 
 def require_role(*allowed_roles):
@@ -40,10 +40,11 @@ def require_role(*allowed_roles):
         @router.get("/dashboard/summary)
         def get_summary(user: User = Depends(require_role(UserRole.admin))): ...
     """
-    
+
     def role_checker(user: User = Depends(require_role(UserRole.admin))):
         if user.role not in allowed_roles:
-            raise HTTPException(status_code=403, detail="You do not have permission to access this resource")
+            raise HTTPException(status_code=403,
+                                detail="You do not have permission to access this resource")
         return user
     
     return role_checker
@@ -53,16 +54,16 @@ def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -
     token = extract_token(request)
     if not token:
         return None
-    
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id = payload.get("user_id")
     except JWTError:
         return None
-    
+
     if not user_id:
         return None
-    
+
     return db.query(User).filter(User.id == user_id).first()
 
 def get_current_admin_user(current_user: dict = Depends(get_current_user)):
@@ -73,4 +74,3 @@ def get_current_admin_user(current_user: dict = Depends(get_current_user)):
             detail = "Access denied: Admin privileges needed"
         )
     return current_user
-    
