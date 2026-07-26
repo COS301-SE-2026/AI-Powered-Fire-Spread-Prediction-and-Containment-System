@@ -1,6 +1,7 @@
 "use client";
 import 'mapbox-gl/dist/mapbox-gl.css'
-import React, { useEffect, useState, useRef } from 'react';
+import circle from '@turf/circle';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 
@@ -93,14 +94,14 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
         setViewState(v => ({...v, longitude: lng, latitude:lat}));
     },[lat,lng]);
 
-    const circleFeatures = fires.filter(f => f.size != null && f.size > 0)
-    .map(f => ({
-        type: 'Feature' as const,
-        geometry: {type : 'Point' as const, coordinates: [f.lng, f.lat]},
-        properties: { radius: f.size*1000 }
-    }));
+    const circleFeatures = useMemo(() => {
+        return fires.filter(f => f.size != null && f.size > 0).map(f => circle([f.lng, f.lat], f.size, {
+            steps: 64,
+            units: 'kilometers',
+            properties: {ref: f.ref}
+        }));
+    }, [fires])
 
-    console.log(fires)
 
     return (
         <Map
@@ -133,23 +134,20 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
                   }}
                   >
                       <Layer 
-                          id="fire-radius"
-                          type="circle"
+                          id="fire-radius-fill"
+                          type="fill"
                           paint={{
-                          'circle-color': '#ff4500',
-                          'circle-opacity': 0.25,
-                          'circle-stroke-color': '#ff4500',
-                          'circle-stroke-width': 1,
-                          'circle-radius': [
-                              'interpolate',
-                              ['linear'],
-                              ['zoom'],
-                              0, 0,
-                              8, ['*', ['get', 'radius'], 0.05],
-                              12, ['*', ['get', 'radius'], 0.1],
-                              16, ['*', ['get', 'radius'], 0.2],
-                              20, ['*', ['get', 'radius'], 0.5]
-                          ]
+                            'fill-color': '#ff4500',
+                            'fill-opacity': 0.25,
+                          }}
+                      />
+
+                      <Layer 
+                          id="fire-radius-outline"
+                          type="line"
+                          paint={{
+                            'line-color': '#ff4500',
+                            'line-width': 1,
                           }}
                       />
                   </Source>
