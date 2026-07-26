@@ -33,4 +33,4 @@ def add_containment_line(line: CreateContainmentLine, db: Session = Depends(get_
     try:
         return containment_lines.create_containment_line(db, line.wkt)
     except ValueError as error:
-        raise HTTPException(status_code=400, detail=(error))
+        raise HTTPException(status_code=400, detail=str(error))

@@ -20,6 +20,9 @@ from models.users import User
 from models.role_request import RoleRequest
 from models.reported_fires import FireReports
 
+# models for the firefighter dashboard
+from models.containment_lines import ContainmentLines
+
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL",
     "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -39,14 +42,16 @@ def create_tables():
     Base.metadata.create_all(bind=engine, tables=[
         User.__table__, 
         RoleRequest.__table__,
-        FireReports.__table__
+        FireReports.__table__,
+        ContainmentLines.__table__
     ])
     yield
 
     Base.metadata.drop_all(bind=engine, tables=[
         User.__table__, 
         RoleRequest.__table__,
-        FireReports.__table__])
+        FireReports.__table__,
+        ContainmentLines.__table__])
 
 
 @pytest.fixture(scope="function")
