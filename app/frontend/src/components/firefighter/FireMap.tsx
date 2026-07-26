@@ -102,7 +102,6 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
         }));
     }, [fires])
 
-    console.log(fires)
 
     return (
         <Map
