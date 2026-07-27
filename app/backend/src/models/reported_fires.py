@@ -13,7 +13,7 @@ class FireReports(Base):
     user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True) 
     reporter_ip = Column(String, nullable=True)
     description = Column(String, nullable=True)
-    image_url = Column(String, nullable=False)
+    image_url = Column(String, nullable=True)
     location_text = Column(Text, nullable=False)
     location_geom = Column(Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=False)
     boundary_radius = Column(Numeric(5,2), nullable=False)
