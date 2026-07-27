@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from geoalchemy2.shape import to_shape
 from models.reported_fires import FireReports
 from models.users import User
-from geoalchemy2.shape import to_shape
 
 def get_fire_reports(db:Session):
     request = db.query(FireReports).all()
@@ -27,11 +27,15 @@ def get_fire_reports(db:Session):
     return { "data": formatted, "total":len(formatted)}
 
 def search_report_table(db:Session, key:str):
-    request = db.query(FireReports).outerjoin(FireReports.user).filter(or_(FireReports.reference_number.ilike(f"%{key}%"), FireReports.location_text.ilike(f"%{key}%"), User.name.ilike(f"%{key}%"), User.surname.ilike(f"%{key}%"))).all()
+    pattern = f"%{key}%"
+    request=db.query(FireReports).outerjoin(FireReports.user).filter(or_(FireReports.reference_number.ilike(pattern),
+                                                                           FireReports.location_text.ilike(pattern),
+                                                                           User.name.ilike(pattern),
+                                                                           User.surname.ilike(pattern))).all()
 
     if not request:
         raise ValueError(f"{key} not found")
-    
+
     return { "data": request, "total":len(request)}
 
 def get_single_fire_report(db:Session, ref:str):
@@ -55,5 +59,3 @@ def get_single_fire_report(db:Session, ref:str):
         "lat": shape.y,
         "lng": shape.x
     }
-
-            

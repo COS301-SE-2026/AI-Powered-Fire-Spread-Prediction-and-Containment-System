@@ -8,7 +8,7 @@ def register_user(db:Session, request: RegisterRequest):
     existing = db.query(User).filter(User.email == request.email).first()
     if existing:
         raise ValueError("Email already exists please enter a valid email.")
-    
+
     new_user = User(
         id=f"usr_{uuid.uuid4().hex[:8]}",
         email = request.email,

@@ -9,7 +9,7 @@ def setup_2fa(username:str, db:Session):
 
     if not user:
         raise ValueError("User is not found or does not exist")
-    
+
     secret = pyotp.random_base32()
     user.totp_secret = secret
     user.is_2fa_enabled = True
@@ -19,19 +19,19 @@ def setup_2fa(username:str, db:Session):
     return {"otpauth_url": otpauth_url}
 
 def verify_2fa(db:Session, request:TwoFAVerifyRequest):
-    user = db.query(User).filter(User.email == request.username, User.is_2fa_enabled == True).first()
+    user = db.query(User).filter(User.email == request.username, User.is_2fa_enabled).first()
 
     if not user:
         raise ValueError("User does not exist or not found")
-    
+
     if not user.totp_secret:
         raise ValueError("two factor auth is not enabled")
-    
+
     totp = pyotp.TOTP(user.totp_secret)
-    
+
     if not totp.verify(request.code, valid_window=1):
         raise ValueError("Invalid code")
-    
+
     access_token = create_access_token(data={"sub": user.email, "user_id": user.id, "role": user.role.value,})
-    
+
     return {"access_token": access_token, "role": user.role.value}

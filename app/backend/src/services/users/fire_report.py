@@ -1,10 +1,10 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 from datetime import datetime, timezone
 from typing import Optional
-from models.reported_fires import FireReports
 import uuid
 import math
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from models.reported_fires import FireReports
 from schemas.fire_report import FireReportCreate
 from enums.report_status import ReportStatus, status_level
 from services.storage import get_presigned_url
@@ -20,7 +20,7 @@ def get_fire_reports(db: Session):
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
     ).outerjoin(FireReports.user).all()
-    
+
     if not results:
         return []
 
@@ -30,7 +30,6 @@ def get_fire_reports(db: Session):
             "id": report.id,
             "reference_number": report.reference_number,
             "location_text": report.location_text,
-            "boundary_radius": report.boundary_radius,
             "user_id": report.user_id,
             "description": report.description,
             "lat": lat,
@@ -52,7 +51,7 @@ def get_fire_report_by_id(report_ref: str, db: Session):
 
     if not request:
         raise ValueError(f"Report with id {report_ref} does not exist")
-    
+
     report, lat, lng = request
     return {
         "id": report.id,
@@ -101,7 +100,7 @@ def status_change(report_ref: str, status: ReportStatus, db:Session):
 
     if not report:
         raise ValueError(f"Report with id {report_ref} does not exist")
-    
+
     report.status = status
     report.status_index = status_level.get(status, 0)
     report.updated_at = datetime.now(timezone.utc)

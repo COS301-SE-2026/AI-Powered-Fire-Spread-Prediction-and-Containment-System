@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
 import uuid
 from datetime import datetime, timezone
+from sqlalchemy.orm import Session
 from models.role_request import RoleRequest
 from models.users import User
 from enums.role_request_status import RequestStatus
@@ -11,17 +11,17 @@ def get_role_requests(db:Session):
 
 def approve_role_request(request_id:str, admin_id: str, db:Session):
     request = db.query(RoleRequest).filter(RoleRequest.request_id == request_id).first()
-    
+
     if not request:
         return None
-    
+
     if request.status != RequestStatus.PENDING:
         raise ValueError(f"Role is already {request.status.value}")
-    
+
     user = db.query(User).filter(User.id == request.user_id).first()
     if not user:
         raise ValueError("User not found!!")
-    
+
     user.role = request.requested_role
     request.status = RequestStatus.APPROVED
     request.reviewed_by = admin_id
@@ -34,17 +34,17 @@ def approve_role_request(request_id:str, admin_id: str, db:Session):
 
 def reject_role_request(request_id:str, admin_id: str, db:Session):
     request = db.query(RoleRequest).filter(RoleRequest.request_id == request_id).first()
-    
+
     if not request:
         return None
-    
+
     if request.status != RequestStatus.PENDING:
         raise ValueError(f"Role is already {request.status.value}")
-    
+
     user = db.query(User).filter(User.id == request.user_id).first()
     if not user:
         raise ValueError("User not found!!")
-    
+
     request.status = RequestStatus.REJECTED
     request.reviewed_by = admin_id
     request.reviewed_at = datetime.now(timezone.utc)
@@ -55,17 +55,17 @@ def reject_role_request(request_id:str, admin_id: str, db:Session):
 
 def revoke_role_request(request_id:str, admin_id: str, db:Session):
     request = db.query(RoleRequest).filter(RoleRequest.request_id == request_id).first()
-    
+
     if not request:
         return None
-    
+
     if request.status != RequestStatus.APPROVED:
         raise ValueError("Only approved requests may be revoked!!")
-    
+
     user = db.query(User).filter(User.id == request.user_id).first()
     if not user:
         raise ValueError("User not found!!")
-    
+
     user.role = request.current_role
     request.status = RequestStatus.REVOKED
     request.reviewed_by = admin_id

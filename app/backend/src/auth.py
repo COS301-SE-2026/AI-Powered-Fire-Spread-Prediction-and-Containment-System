@@ -25,4 +25,3 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
-

@@ -17,9 +17,9 @@ from routes.firefighter.firefighter_dashboard import router as firefighter_dashb
 from routes.admin import admin_dashboard
 from routes.auth.logout import router as logout_router
 from routes import image_uploads
+from routes.guests.guests_dashboard import router as guests_dashboard_router
 from services.storage import ensure_bucket
 
-from routes.guests.guests_dashboard import router as guests_dashboard_router
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()

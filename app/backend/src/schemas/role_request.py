@@ -1,8 +1,8 @@
+from typing import Optional, List
+from pydantic import BaseModel
+from datetime import datetime
 from enums.user_role import UserRole
 from enums.role_request_status import RequestStatus
-from typing import Optional, List
-from datetime import datetime
-from pydantic import BaseModel
 
 class RoleRequestCreate(BaseModel):
     current_role:UserRole
@@ -16,7 +16,7 @@ class UserSummary(BaseModel):
 
     class Config:
         from_attributes = True
-    
+
 class RoleRequestResponse(BaseModel):
     request_id:str
     user:UserSummary

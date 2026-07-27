@@ -14,10 +14,10 @@ def login_route(request: LoginRequest, response: Response, db: Annotated[Session
         result = login_user(db, request)
     except ValueError as err:
         raise HTTPException(status_code=401, detail=str(err))
-    
+
     if result.get("requires_2fa"):
         return result
-    
+
     response.set_cookie(
         key="access_token",
         value=result["access_token"],
@@ -27,5 +27,5 @@ def login_route(request: LoginRequest, response: Response, db: Annotated[Session
         max_age=60*ACCESS_TOKEN_EXPIRE_MINUTES,
         path="/",
     )
-    
+
     return{"role": result["role"]}
