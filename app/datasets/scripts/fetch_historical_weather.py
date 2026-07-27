@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import math
+from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATASETS_DIR = SCRIPT_DIR.parent
@@ -68,7 +69,7 @@ def fetch_historical_weather(
     }, inplace=True)
 
     #dryness index
-    df["drynes"] = np.clip((100 - df["relative_humidity"] + df["temperature"]) / 100.0, 0.0, 1.0).round(4)
+    df["dryness"] = np.clip((100 - df["relative_humidity"] + df["temperature"]) / 100.0, 0.0, 1.0).round(4)
 
     #u and v wind vector
     u_list, v_list = [], []
@@ -91,6 +92,33 @@ def fetch_historical_weather(
 
     print(f"Saved {len(df):,} hourly weather records to: {out_file}")
     return df
+
+def get_weather_at_timestamp(
+    df_weather: pd.DataFrame,
+    when: datetime,
+    target_shape: tuple[int, int] = (64, 64),
+) -> dict[str, np.ndarray]:
+    """Looks up nearest hourly record to 'when' in already gotten weather dataframe and puts into
+    (H, W) gris. Matches key names used - exclude 'dryness
+    
+    Call fetch_historical_weather() once for every fire as not to make API call redundent"""
+
+    if df_weather.empty:
+        raise ValueError("df_weather is empty, fetch_historical_weather() could've failed silently")
+
+    H, W = target_shape
+
+    dt_series = pd.to_datetime(df_weather["datetime"])
+    when_ts = pd.Timestamp(when)
+    index = (dt_series - when_ts).abs().idxmin()
+    row = df_weather.loc[index]
+
+    return {
+        "wind_u": np.full((H, W), float(row["wind_u"]), dtype=np.float32),
+        "wind_v": np.full((H, W), float(row["wind_v"]), dtype=np.float32),
+        "temperature": np.full((H, W), float(row["temperature"]), dtype=np.float32),
+        "rel_humidity": np.full((H, W), float(row["relative_humidity"]), dtype=np.float32),
+    }
 
 if __name__ == "__main__":
     #fetch one year of weather for Pta, SA
