@@ -158,9 +158,6 @@ def seed_fire_reports(db):
         print(f"  ADD   fire report -> {data['reference_number']} at {data['location_text']}")
 
 def seed():
-    print("Dropping old tables if they exist...")
-    Base.metadata.drop_all(bind=engine)
-
     print("Creating tables if they don't exist...")
     Base.metadata.create_all(bind=engine)
 
