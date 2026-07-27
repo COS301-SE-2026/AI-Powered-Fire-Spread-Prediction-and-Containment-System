@@ -7,12 +7,16 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-PARAMS_CSV = "../raw_data/LF2025_FBFM40.csv"
-XWALK_TXT = "../raw_data/XWALK_EVT_EVG_EVS.txt"
-RULESET_TXT = "../raw_data/Master_Rilesets.txt"
+SCRIPT_DIR = Path(__file__).resolve().parent
+DATASETS_DIR = SCRIPT_DIR.parent
 
-OUTPUT_JSON = "../processed/worldcover_base_weights.json"
-OUTPUT_CSV = "../processed/worldcover_base_weights.csv"
+PARAMS_CSV = DATASETS_DIR / "raw_data" / "fbfm40_parameters.csv"
+LOOKUP_CSV = DATASETS_DIR / "raw_data" / "LF2025_FBFM40.csv"
+XWALK_TXT = DATASETS_DIR / "raw_data" / "XWALK_EVT_EVG_EVS.txt"
+RULESET_TXT = DATASETS_DIR / "raw_data" / "Master_Rulesets.txt"
+
+OUTPUT_JSON = DATASETS_DIR / "processed" / "worldcover_base_weights.json"
+OUTPUT_CSV = DATASETS_DIR / "processed" / "worldcover_base_weights.csv"
 
 CHUNK_SIZE = 100000
 
@@ -30,45 +34,26 @@ WORLDCOVER_LABELS = {
     100: "Moss and lichen",
 }
 
-def build_evt_to_worldcover_map(xwalk_path: str) -> dict[int, int]:
+def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
     """maps evt numeic code to an official esa worldcover class id"""
 
     xwalk_file= Path(xwalk_path)
     if not xwalk_file.exists():
         raise FileNotFoundError(f"Xwalk text file not found at: {xwalk_path}")
 
-    try:
-        df_xwalk = pd.read_csv(xwalk_file, sep=None, engine="python", on_bad_line="skip")
-    except Exception:
-        df_xwalk = pd.read_csv(xwalk_file, sep=";", on_bad_lines="skip")
-
-    evt_col = next(
-        (c for c in ["EVT", "VALUE", "EVT_Code", "EVT_CODE", "Class_ID"] if c in df_xwalk.columns),
-        df_xwalk.columns[0],
-    )
+    df_xwalk = pd.read_csv(xwalk_file, sep=";", header=None, engine="python", on_bad_lines="skip")
 
     evt_wc_map = {}
 
     for _, row in df_xwalk.iterrows():
         try:
-            evt_code = int(row[evt_col])
+            evt_code = int(row.iloc[0])
         except (ValueError, TypeError):
             continue
 
         text_info = (
             " ".join([
-                str(row.get(col, ""))
-                for col in [
-                    "EVT_NAME",
-                    "EVT_LIFEFORM",
-                    "EVT_PHYS",
-                    "EVT_CLASS",
-                    "EVG_NAME",
-                ]
-                if col in df_xwalk.columns
-            ])
-            .lower()
-            .strip()
+                str(val) for val in row.values]).lower().strip()
         )
 
         if "water" in text_info:
@@ -98,29 +83,39 @@ def build_evt_to_worldcover_map(xwalk_path: str) -> dict[int, int]:
 
         return evt_wc_map
 
-def build_fbfm_weight_map(params_path: str) -> dict[int, float]:
+def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, float]:
     """Reads fbfm40 csv and normalises weights"""
 
-    params_file = Path(params_path) 
-    if not params_file.exists():
-        raise FileNotFoundError(f"Parameters csv file not found at: {params_path}")
+    df_params = pd.read_csv(params_path)
+    df_lookup = pd.read_csv(lookup_path)
 
-    df = pd.read_cs(params_file)
-
-    df["total_tons_per_acre"] = (
-        df["load_1hr"] +
-        df["load_10hr"] +
-        df["load_100hr"] +
-        df["load_live_herb"] +
-        df["load_live_woody"]
+    df_params["total_tons_per_acre"] = (
+        df_params["load_1hr"] +
+        df_params["load_10hr"] +
+        df_params["load_100hr"] +
+        df_params["load_live_herb"] +
+        df_params["load_live_woody"]
     )
 
-    max_load = df["total_tons_per_acre"].max()
-    df["normalised_weight"] = (
-        df["total_tons_per_acre"] / (max_load if max_load > 0 else 1.0)
+    max_load = df_params["total_tons_per_acre"].max()
+    df_params["normalised_weight"] = (
+        df_params["total_tons_per_acre"] / (max_load if max_load > 0 else 1.0)
     ).round(4)
 
-    return dict(zip(df["fbfm_code"].astype(int), df["normalised_weight"]))
+    name_to_weight = dict(zip(df_params["model_name"], df_params["normalised_weight"]))
+
+    fbfm_weight_map = {}
+
+    for _, row in df_lookup.iterrows():
+        try:
+            code = int(row["VALUE"])
+            model_name = str(row["FBFM40"]).strip()
+            if model_name in name_to_weight:
+                fbfm_weight_map[code] = name_to_weight[model_name]
+        except (ValueError, TypeError):
+            continue
+
+    return fbfm_weight_map
 
 def calculate_ruleset_weights():
     """integrate xwalk and fbfm params, stream chunk blocks and aggregate avg base fuel weights/ worldcover class"""
@@ -151,25 +146,16 @@ def calculate_ruleset_weights():
     )
 
     for  i, chunk in enumerate(chunk_counter):
-        evt_col = next(
-            (c for c in ["EVT", "EVT_Code", "EVT_CODE", "Class_ID"] if c in chunk.columns),
-            chunk.columns[0],
-        )
-        fbfm_col = next(
-            (c for c in ["FBFM40", "FBFM40_Code", "Fuel_Model"] if c in chunk.columns),
-            None,
-        )
-
-        if not fbfm_col:
-            raise KeyError("Could not locate F=fbfm40 col in ruleset file")
+        evt_col_index = 0
+        fbfm_col_index = 8 if len(chunk.columns) > 8 else 1
 
         #nan is filled woth 30 as standard if there's no data
         chunk["wc_class"] = (
-            chunk[evt_col].astype(int).map(evt_wc_map).fillna(30).astype(int)
+            chunk.iloc[:, evt_col_index].astype(int).map(evt_wc_map).fillna(30).astype(int)
         )
 
         chunk["weight"] = (
-            chunk[fbfm_col].astype(int).map(fbfm_weight_map).fillna(0.0)
+            chunk.iloc[:, fbfm_col_index].astype(int).map(fbfm_weight_map).fillna(0.0)
         )
 
         #aggregate sums woth counts
