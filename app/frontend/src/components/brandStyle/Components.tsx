@@ -15,12 +15,12 @@ export default function ComponentsSection() {
           Buttons
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Button variant="dark"  className="h-11 min-h-[44px] px-4">View Map</Button>
-            <Button variant="red"   className="h-11 min-h-[44px] px-4">Reject</Button>
+          {/* <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)', display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Button variant="dark" className="h-11 min-h-[44px] px-4">View Map</Button>
+            <Button variant="red" className="h-11 min-h-[44px] px-4">Reject</Button>
             <Button variant="ghost" className="h-11 min-h-[44px] px-4">Cancel</Button>
-            <Button variant="fire"  className="h-11 min-h-[44px] px-4" disabled>Unavailable</Button>
-          </div>
+            <Button variant="fire" className="h-11 min-h-[44px] px-4" disabled>Unavailable</Button>
+          </div> */}
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#A0ACC0' }}>dark  red  ghost  fire (disabled) - min touch target 44px</p>
           </div>
