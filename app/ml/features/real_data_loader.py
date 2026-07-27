@@ -51,8 +51,8 @@ async def load_real_inference_data(
     }
 
     #real-time weather features for center point
-    center_lat = (min_lat + min_lat) / 2.0
-    center_lon = (min_lon + min_lon) / 2.0
+    center_lat = (min_lat + max_lat) / 2.0
+    center_lon = (min_lon + max_lon) / 2.0
 
     weather = await fetch_realtime_weather_features(
         center_lat=center_lat,
