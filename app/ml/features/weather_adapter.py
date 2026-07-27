@@ -13,7 +13,7 @@ async def fetch_realtime_weather_features(
     url = (
         f"https://api.open-meteo.com/v1/forecast?"
         f"latitude={center_lat}&longitude={center_lon}&"
-        f"current=temperature_2m,realtive_humidity_2m,wind_speed_10m,wind_direction_10m"
+        f"current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m"
     )
 
     async with httpx.AsyncClient() as client:

@@ -47,15 +47,11 @@ def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
 
     for _, row in df_xwalk.iterrows():
         try:
-            evt_code = int(row.iloc[0])
+            evt_code = int(pd.to_numeric(row.iloc[0]))
         except (ValueError, TypeError):
             continue
 
-        text_info = (
-            " ".join([
-                str(val) for val in row.values]).lower().strip()
-        )
-
+        text_info = " ".join([str(val) for val in row.values]).lower().strip()
         if "water" in text_info:
             wc_class = 80
         elif any(w in text_info for w in ["developed", "urban"]): 
@@ -78,10 +74,10 @@ def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
             wc_class = 60
         else:
             wc_class = 30
-
+            
         evt_wc_map[evt_code] = wc_class
 
-        return evt_wc_map
+    return evt_wc_map
 
 def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, float]:
     """Reads fbfm40 csv and normalises weights"""
@@ -115,6 +111,10 @@ def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, flo
         except (ValueError, TypeError):
             continue
 
+    matched = len(fbfm_weight_map)
+    nonzero = sum(1 for v in fbfm_weight_map.values() if  v > 0)
+    print(f"FBFM weight map: {matched} codes matched, {nonzero} with non-zero weight")
+
     return fbfm_weight_map
 
 def calculate_ruleset_weights():
@@ -125,9 +125,9 @@ def calculate_ruleset_weights():
     print(f"Mapped {len(evt_wc_map):,} unique EVT codes")
 
     print("Load FBFM40 physical fuel loading params")
-    fbfm_weight_map = build_evt_to_worldcover_map(PARAMS_CSV)
+    fbfm_weight_map = build_fbfm_weight_map(PARAMS_CSV, LOOKUP_CSV)
 
-    wordlcover_aggregates = {
+    worldcover_aggregates = {
         wc_id: {"weight_sum": 0.0, "count": 0} for wc_id in WORLDCOVER_LABELS
     }
 
@@ -146,58 +146,81 @@ def calculate_ruleset_weights():
     )
 
     for  i, chunk in enumerate(chunk_counter):
-        evt_col_index = 0
-        fbfm_col_index = 8 if len(chunk.columns) > 8 else 1
+        evt_col_index = 2
+        fbfm_col_index = 12
 
-        #nan is filled woth 30 as standard if there's no data
-        chunk["wc_class"] = (
-            chunk.iloc[:, evt_col_index].astype(int).map(evt_wc_map).fillna(30).astype(int)
+        evt_series = pd.to_numeric(chunk.iloc[:, evt_col_index], errors="coerce")
+
+        fbfm_raw = chunk.iloc[:, fbfm_col_index].astype(str)
+        fbfm_series = pd.to_numeric(
+            fbfm_raw.apply(
+                lambda x: x.split("/")[1].strip() if "/" in x else x
+            ),
+            errors="coerce",
         )
 
-        chunk["weight"] = (
-            chunk.iloc[:, fbfm_col_index].astype(int).map(fbfm_weight_map).fillna(0.0)
+        valid_rows = evt_series.notna() & fbfm_series.notna()
+        if not valid_rows.any():
+            continue
+
+        if i == 0:
+            print("raw fbfm col sample:", chunk.iloc[:5, fbfm_col_index].astype(str).tolist())
+            parsed_codes = fbfm_series[valid_rows].astype(int)
+            print("parsed fbfm codes sample:", parsed_codes.head(10).tolist())
+            unique_codes = parsed_codes.unique()
+            matched_codes = [c for c in unique_codes if c in fbfm_weight_map]
+            unmatched_codes = [c for c in unique_codes if c not in fbfm_weight_map]
+            print(f"unique parse codes: {len(unique_codes)}, matched in weight map: {len(matched_codes)}, unmatched: {len(unmatched_codes)}")
+            print("sample unmatched codes:", unmatched_codes[:15])
+
+        chunk_clean = chunk.loc[valid_rows].copy()
+
+        chunk_clean["wc_class"] = (
+            evt_series[valid_rows].astype(int).map(evt_wc_map).fillna(30).astype(int)
+        )
+        chunk_clean["weight"] = (
+            fbfm_series[valid_rows].astype(int).map(fbfm_weight_map).fillna(0.0)
         )
 
-        #aggregate sums woth counts
         grouped = (
-            chunk.groupby("wc_class")["weight"].agg(["sum", "count"]).reset_index()
-        )
+            chunk_clean.groupby("wc_class")["weight"].agg(["sum", "count"]).reset_index()
+        )        
 
         for _, row in grouped.iterrows():
             wc_id = int(row["wc_class"])
-            if wc_id in wordlcover_aggregates:
-                wordlcover_aggregates[wc_id]["weight_sum"] += float(row["sum"])
-                wordlcover_aggregates[wc_id]["count"] += int(row["count"])
+            if wc_id in worldcover_aggregates:
+                worldcover_aggregates[wc_id]["weight_sum"] += float(row["sum"])
+                worldcover_aggregates[wc_id]["count"] += int(row["count"])
 
         print(f"Chunk {i+1} finished processing")
 
-        print("Final base weight avg and export output")
-        final_results = []
-        json_lookup = {}
+    print("Final base weight avg and export output")
+    final_results = []
+    json_lookup = {}
 
-        for wc_id, data in sorted(wordlcover_aggregates.items()):
-            avg_weight = (
-                round(data["weight_sum"] / data["count"], 4) if data["count"] > 0 else 0.0
-            )
-            final_results.append({
-                "WorldCover_Class": wc_id,
-                "Description": WORLDCOVER_LABELS[wc_id],
-                "Base_Fuel_Weight": avg_weight,
-                "Total_Rules_Evaluated": data["count"],
-            })
-            json_lookup[wc_id] = avg_weight
+    for wc_id, data in sorted(worldcover_aggregates.items()):
+        avg_weight = (
+            round(data["weight_sum"] / data["count"], 4) if data["count"] > 0 else 0.0
+        )
+        final_results.append({
+            "WorldCover_Class": wc_id,
+            "Description": WORLDCOVER_LABELS[wc_id],
+            "Base_Fuel_Weight": avg_weight,
+            "Total_Rules_Evaluated": data["count"],
+        })
+        json_lookup[wc_id] = avg_weight
 
-        #save for runtime loading
-        Path(OUTPUT_JSON).parent.mkdir(parents=True, exist_ok=True)
-        with open(OUTPUT_JSON, "w") as f:
-            json.dump(json_lookup, f, indent=4)
+    #save for runtime loading
+    Path(OUTPUT_JSON).parent.mkdir(parents=True, exist_ok=True)
+    with open(OUTPUT_JSON, "w") as f:
+        json.dump(json_lookup, f, indent=4)
 
-        #save csv summary
-        pd.DataFrame(final_results).to_csv(OUTPUT_CSV, index=False)
+    #save csv summary
+    pd.DataFrame(final_results).to_csv(OUTPUT_CSV, index=False)
 
-        print("\nCalculations finished successfully")
-        print(f"json lookup dictionary exported to: {OUTPUT_JSON}")
-        print(f"csv summary report exported to: {OUTPUT_CSV}")
+    print("\nCalculations finished successfully")
+    print(f"json lookup dictionary exported to: {OUTPUT_JSON}")
+    print(f"csv summary report exported to: {OUTPUT_CSV}")
 
 if __name__ == "__main__":
     calculate_ruleset_weights()
