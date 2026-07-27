@@ -130,23 +130,20 @@ jobs:
   frontend-react-doctor:
     name: React Doctor
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app/frontend/src
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: app/frontend/src/yarn.lock
-
-      - name: Install dependencies
-        run: yarn install
+        with: 
+          fetch-depth: 0
 
       - name: Run React Doctor
-        run: yarn doctor 
+        uses: millionco/react-doctor@v2
+        with:
+          directory: app/frontend/src
+          blocking: error
