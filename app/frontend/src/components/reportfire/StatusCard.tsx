@@ -1,9 +1,10 @@
 import React from "react";
+import { LucideIcon } from "lucide-react";
 
 interface StatusProps {
     label: string;
     detail: string;
-    Icon: React.ComponentType<{ size?: number; className?: string }>;
+    Icon: LucideIcon;
     color: string;
     refNumber: string;
     locationText?: string;
