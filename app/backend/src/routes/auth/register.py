@@ -1,13 +1,13 @@
 from fastapi import HTTPException, APIRouter, Depends
 from sqlalchemy.orm import Session
 from db import get_db
-from schemas.auth import RegisterRequest, Two_FA_Required_Response
+from schemas.auth import RegisterRequest, TwoFARequiredResponse
 from services.auth.register import register_user
 from services.auth.two_factor import setup_2fa
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
-@router.post("/register", response_model=Two_FA_Required_Response , status_code=201)
+@router.post("/register", response_model=TwoFARequiredResponse , status_code=201)
 def register_route(request:RegisterRequest, db:Session = Depends(get_db)):
     try:
         new_user = register_user(db, request)

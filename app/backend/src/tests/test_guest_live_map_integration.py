@@ -17,7 +17,7 @@ def test_guest_fire_map_integration(client, db):
         image_url="image",
         location_geom=WKTElement("POINT(28.2293 -25.7479)", srid=4326),
         boundary_radius=2,
-        status=ReportStatus.verified,
+        status=ReportStatus.VERIFIED,
         status_index=2
     )
 

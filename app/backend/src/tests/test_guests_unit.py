@@ -21,7 +21,7 @@ class TestFireReportSchemaValidation:
             "lng": -25.7480,
             "lat": 28.2435,
             "boundary_radius_km": 0.5,
-            "status": ReportStatus.verified,
+            "status": ReportStatus.VERIFIED,
             "status_index": 2,
             #need to change to valid time
             "submitted_at": "2026-05-22T10:00:00Z", 
@@ -39,7 +39,7 @@ class TestFireReportSchemaValidation:
         assert report.lng == pytest.approx(-25.7480)
         assert report.lat == pytest.approx(28.2435)
         assert report.boundary_radius_km == pytest.approx(0.5)
-        assert report.status == ReportStatus.verified
+        assert report.status == ReportStatus.VERIFIED
         assert report.status_index == 2
 
     def test_ref_nr_is_string(self):

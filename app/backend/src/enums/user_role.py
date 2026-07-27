@@ -1,6 +1,7 @@
 from enum import Enum
 
 class UserRole(str, Enum):
-    user = "user"
-    firefighter = "firefighter"
-    admin = "admin"
+    USER = "user"
+    FIREFIGHTER = "firefighter"
+    ADMIN = "admin"
+    

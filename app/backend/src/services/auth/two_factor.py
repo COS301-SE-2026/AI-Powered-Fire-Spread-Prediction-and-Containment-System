@@ -1,7 +1,7 @@
 import pyotp
 from sqlalchemy.orm import Session
 from models.users import User
-from schemas.auth import Two_FA_Verify_Request
+from schemas.auth import TwoFAVerifyRequest
 from auth import create_access_token
 
 def setup_2fa(username:str, db:Session):
@@ -18,7 +18,7 @@ def setup_2fa(username:str, db:Session):
     otpauth_url = pyotp.TOTP(secret).provisioning_uri(name=username, issuer_name="FireAway")
     return {"otpauth_url": otpauth_url}
 
-def verify_2fa(db:Session, request:Two_FA_Verify_Request):
+def verify_2fa(db:Session, request:TwoFAVerifyRequest):
     user = db.query(User).filter(User.email == request.username, User.is_2fa_enabled == True).first()
 
     if not user:

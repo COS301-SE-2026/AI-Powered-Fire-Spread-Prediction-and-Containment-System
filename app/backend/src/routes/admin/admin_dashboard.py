@@ -53,7 +53,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
 
     pending_approvals = (
         db.query(func.count(RoleRequest.request_id))
-        .filter(RoleRequest.status == RequestStatus.pending)
+        .filter(RoleRequest.status == RequestStatus.PENDING)
         .scalar()
     )
 

@@ -15,7 +15,7 @@ def approve_role_request(request_id:str, admin_id: str, db:Session):
     if not request:
         return None
     
-    if request.status != RequestStatus.pending:
+    if request.status != RequestStatus.PENDING:
         raise ValueError(f"Role is already {request.status.value}")
     
     user = db.query(User).filter(User.id == request.user_id).first()
@@ -23,7 +23,7 @@ def approve_role_request(request_id:str, admin_id: str, db:Session):
         raise ValueError("User not found!!")
     
     user.role = request.requested_role
-    request.status = RequestStatus.approved
+    request.status = RequestStatus.APPROVED
     request.reviewed_by = admin_id
     request.reviewed_at = datetime.now(timezone.utc)
 
@@ -38,14 +38,14 @@ def reject_role_request(request_id:str, admin_id: str, db:Session):
     if not request:
         return None
     
-    if request.status != RequestStatus.pending:
+    if request.status != RequestStatus.PENDING:
         raise ValueError(f"Role is already {request.status.value}")
     
     user = db.query(User).filter(User.id == request.user_id).first()
     if not user:
         raise ValueError("User not found!!")
     
-    request.status = RequestStatus.rejected
+    request.status = RequestStatus.REJECTED
     request.reviewed_by = admin_id
     request.reviewed_at = datetime.now(timezone.utc)
 
@@ -59,15 +59,15 @@ def revoke_role_request(request_id:str, admin_id: str, db:Session):
     if not request:
         return None
     
-    if request.status != RequestStatus.approved:
-        raise ValueError("Only approved reqeusts may be revoked!!")
+    if request.status != RequestStatus.APPROVED:
+        raise ValueError("Only approved requests may be revoked!!")
     
     user = db.query(User).filter(User.id == request.user_id).first()
     if not user:
         raise ValueError("User not found!!")
     
     user.role = request.current_role
-    request.status = RequestStatus.revoked
+    request.status = RequestStatus.REVOKED
     request.reviewed_by = admin_id
     request.reviewed_at = datetime.now(timezone.utc)
 

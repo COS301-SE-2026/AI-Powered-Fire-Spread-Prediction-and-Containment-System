@@ -9,7 +9,7 @@ class UserCreate(BaseModel):
     email:str
     id_number:str
     license_number:Optional[str] = None
-    role:UserRole = UserRole.user
+    role:UserRole = UserRole.USER
 
 class UserResponse(BaseModel):
     id:str

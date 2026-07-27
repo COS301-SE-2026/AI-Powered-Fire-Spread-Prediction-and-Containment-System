@@ -14,7 +14,6 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-
 def get_db():
     """FastAPI dependency — yields a SQLAlchemy session."""
     db = SessionLocal()
@@ -22,7 +21,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
 
 def init_db():
     """Create all tables on startup."""

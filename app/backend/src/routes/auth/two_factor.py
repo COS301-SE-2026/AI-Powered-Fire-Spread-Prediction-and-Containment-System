@@ -1,14 +1,14 @@
 from fastapi import HTTPException, APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from db import get_db
-from schemas.auth import Two_FA_Create_Response, Two_FA_Verify_Request, LoginResponse
+from schemas.auth import TwoFACreateResponse, TwoFAVerifyRequest, LoginResponse
 from services.auth.two_factor import setup_2fa, verify_2fa
 from auth import ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import Annotated
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
-@router.post("/setup-2fa", response_model=Two_FA_Create_Response)
+@router.post("/setup-2fa", response_model=TwoFACreateResponse)
 def setup_2fa_route(username:str, db:Session = Depends(get_db)):
     try:
         return setup_2fa(username, db)
@@ -16,7 +16,7 @@ def setup_2fa_route(username:str, db:Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(err))
     
 @router.post("/verify-2fa", response_model=LoginResponse)
-def verify_2fa_route(request:Two_FA_Verify_Request, response: Response, db: Annotated[Session, Depends(get_db)]):
+def verify_2fa_route(request:TwoFAVerifyRequest, response: Response, db: Annotated[Session, Depends(get_db)]):
     try:
         result = verify_2fa(db, request)
     except ValueError as err:

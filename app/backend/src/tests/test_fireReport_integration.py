@@ -49,7 +49,7 @@ def test_get_report_shape(client, db):
 #happy path tests 
 #test if one anonymous report exsists and if all the values is correct
 def test_get_anonymous(client, db):
-    report = make_report(db, lat=-25.7479, lng=28.2293, status=ReportStatus.pending, status_index=1,)
+    report = make_report(db, lat=-25.7479, lng=28.2293, status=ReportStatus.PENDING, status_index=1,)
     response = client.get("/api/users/reported-fires")
 
     assert response.status_code == 200
@@ -65,7 +65,7 @@ def test_get_anonymous(client, db):
 
     assert item["id"] == report.id, "Expected {report.id}, got {item['id']}"
     assert item["location_text"] == report.location_text, "Expected {report.location_text}, got {item['location_text']}"
-    assert item["status"] == ReportStatus.pending.value, "Expected {report.status}, got {item['status']}"
+    assert item["status"] == ReportStatus.PENDING.value, "Expected {report.status}, got {item['status']}"
     assert item["boundary_radius"] == pytest.approx(float(report.boundary_radius)), "Expected {report.boundary_radius}, got {item['boundary_radius']}"
     assert item["lat"] == pytest.approx(-25.7479, abs=1e-4), "Expected lat possible swapped with lng"
     assert item["lng"] == pytest.approx(28.2293, abs=1e-4), "Expected lng possible swapped with lat"
@@ -151,14 +151,14 @@ def test_post_happy_path(client, db):
     body = response.json()
 
     assert body["location_text"] == PAYLOAD["location_text"], "Expected {PAYLOAD['location_text']}, got {body['location_text']}"
-    assert body["status"] == ReportStatus.pending.value, "Expected pending, got {body['status']}"
+    assert body["status"] == ReportStatus.PENDING.value, "Expected pending, got {body['status']}"
     assert body["lat"] == pytest.approx(PAYLOAD["lat"], abs=1e-4), "lat possibly swapped with lng, got {body['lat']}"
     assert body["lng"] == pytest.approx(PAYLOAD["lng"], abs=1e-4), "lat possibly swapped with lat, got {body['lng']}"
     assert body["reporter_name"] == "Anonymous", "Expected Anonymous, got {body['reporter_name']}"
     
     row = db.query(FireReports).filter(FireReports.id == body["id"]).first()
     assert row is not None, "Report not found in db after POST"
-    assert row.status == ReportStatus.pending
+    assert row.status == ReportStatus.PENDING
 
 #test if specific user exists and responds correctly
 def test_post_user(client, db):

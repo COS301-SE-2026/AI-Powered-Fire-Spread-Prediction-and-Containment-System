@@ -1,5 +1,5 @@
-from pydantic import BaseModel
 from typing import List
+from pydantic import BaseModel
 
 class ActivityItemSchema(BaseModel):
     id: str
@@ -27,3 +27,4 @@ class DashboardSummaryResponse(BaseModel):
     activity_log: List[ActivityItemSchema]
     weekly_incidents: List[WeeklyDataSchema]
     system_metrics: SystemMetricsSchema
+    

@@ -138,7 +138,7 @@ def make_role_request(db, user, role="firefighter", status="pending"):
     db.refresh(request)
     return request
 
-def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.pending, status_index=1, reference_number=None,):
+def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.PENDING, status_index=1, reference_number=None,):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
         id=str(uuid.uuid4()),

@@ -1,14 +1,14 @@
 from fastapi import HTTPException, APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from db import get_db
-from schemas.auth import LoginRequest, Two_FA_Required_Response, LoginResponse
+from schemas.auth import LoginRequest, TwoFARequiredResponse, LoginResponse
 from services.auth.login import login_user
 from typing import Union, Annotated
 from auth import ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
-@router.post("/login", response_model=Union[LoginResponse, Two_FA_Required_Response])
+@router.post("/login", response_model=Union[LoginResponse, TwoFARequiredResponse])
 def login_route(request: LoginRequest, response: Response, db: Annotated[Session, Depends(get_db)]):
     try:
         result = login_user(db, request)

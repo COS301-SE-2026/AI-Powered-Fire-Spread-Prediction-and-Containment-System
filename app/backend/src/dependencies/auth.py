@@ -6,8 +6,8 @@ from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from db import get_db
 from models.users import User
-from ..auth import SECRET_KEY, ALGORITHM
 from enums.user_role import UserRole
+from auth import SECRET_KEY, ALGORITHM  #pylint: disable-import-self
 
 def extract_token(request: Request) -> Optional[str]:
     token = request.cookies.get("access_token")
@@ -38,19 +38,19 @@ def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
 def require_role(*allowed_roles):
     """ Usage on any route that needs restricting:
         @router.get("/dashboard/summary)
-        def get_summary(user: User = Depends(require_role(UserRole.admin))): ...
+        def get_summary(user: User = Depends(require_role(UserRole.ADMIN))): ...
     """
 
-    def role_checker(user: User = Depends(require_role(UserRole.admin))):
+    def role_checker(user: User = Depends(require_role(UserRole.ADMIN))):
         if user.role not in allowed_roles:
             raise HTTPException(status_code=403,
                                 detail="You do not have permission to access this resource")
         return user
-    
+
     return role_checker
 
 def get_current_user_optional(request: Request, db: Session = Depends(get_db)) -> Optional[User]:
-    """ Same as get_current_user but returns None instead of raising when no/invalid token for routes that allow guests"""
+    """returns None instead of raising when invalid token for routes that allow guests"""
     token = extract_token(request)
     if not token:
         return None

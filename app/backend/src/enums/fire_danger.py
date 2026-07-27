@@ -1,7 +1,7 @@
 from enum import Enum
 
 class FireDanger(str, Enum):
-    low = "low"
-    medium = "medium"
-    high = "high"
-    very_high = "very high"
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    VERY_HIGH = "very high"

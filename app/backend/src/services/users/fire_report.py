@@ -87,7 +87,7 @@ def create_fire_report(report: FireReportCreate, db:Session, client_ip: str, use
         image_url=report.image_url,
         location_geom=point_wkt,
         boundary_radius=report.boundary_radius,
-        status=ReportStatus.pending,
+        status=ReportStatus.PENDING,
         status_index=1
     )
 

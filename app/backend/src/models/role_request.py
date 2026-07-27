@@ -1,8 +1,8 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum
+from datetime import datetime, timezone
+from sqlalchemy import Column, String, DateTime, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from enums.role_request_status import RequestStatus
 from enums.user_role import UserRole
-from datetime import datetime, timezone
 from db import Base
 
 class RoleRequest(Base):
@@ -10,9 +10,9 @@ class RoleRequest(Base):
 
     request_id = Column(String, primary_key=True)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    requested_role = Column(Enum(UserRole), default=UserRole.admin, nullable=False)
+    requested_role = Column(Enum(UserRole), default=UserRole.ADMIN, nullable=False)
     current_role = Column(Enum(UserRole), nullable=False)
-    status = Column(Enum(RequestStatus), default=RequestStatus.pending, nullable=False)
+    status = Column(Enum(RequestStatus), default=RequestStatus.PENDING, nullable=False)
     firefighter_license_id = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False)
     reviewed_by = Column(String, ForeignKey("users.id"), nullable=True)
