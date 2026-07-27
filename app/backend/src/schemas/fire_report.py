@@ -8,7 +8,7 @@ class FireReportCreate(BaseModel):
     lng: float = Field(...,ge=-180, le=180)
     location_text:str = Field(..., min_length=3, max_length=255)
     description:Optional[str] = Field(default=None, max_length=1000)
-    image_url: str  # Stores a minio object_key returned from POST /api/uploads/images. Not a public url, resolved to short-lived presigned url on read
+    image_url: Optional[str] = None
     boundary_radius: float = Field(..., gt=0, le=50)
 
 class FireReportMapResponse(BaseModel):

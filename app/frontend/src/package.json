@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "next lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "playwright test --config=testing_config/playwright.config.ts",
     "test:headed": "playwright test --headed --config=testing_config/playwright.config.ts",
     "test:report": "playwright show-report",
@@ -14,6 +16,7 @@
   },
   "dependencies": {
     "@mapbox/mapbox-gl-draw": "^1.5.1",
+    "@turf/circle": "^7.3.5",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "jose": "^6.2.3",
     "lucide-react": "^1.16.0",
@@ -34,9 +37,16 @@
     "autoprefixer": "^10.5.0",
     "daisyui": "^5.5.20",
     "eslint": "^8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
     "eslint-config-next": "14.2.5",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-react-hooks": "^4.6.2",
     "postcss": "^8.5.15",
+    "prettier": "^3.3.3",
     "tailwindcss": "^4.3.0",
-    "typescript": "^6.0.3"
+    "typescript": "^5.8.2"
   }
 }

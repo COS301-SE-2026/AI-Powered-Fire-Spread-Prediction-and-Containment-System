@@ -37,6 +37,8 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
+app = FastAPI(root_path="/api")
+
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
@@ -81,3 +83,4 @@ def health_check():
 @app.on_event("startup")
 def startup():
     ensure_bucket()
+    

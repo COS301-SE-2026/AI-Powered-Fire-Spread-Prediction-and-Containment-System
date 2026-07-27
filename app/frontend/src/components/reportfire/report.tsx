@@ -69,7 +69,7 @@ export default function ReportPage() {
     setSubmitState("loading");
     setSubmitError(null);
     try {
-      let imageUrl = "";
+      let imageUrl: string | undefined = undefined;
 
       if (data.photo){  // upload image first if one was attatched
         const formData = new FormData();
@@ -100,6 +100,11 @@ export default function ReportPage() {
           boundary_radius: boundarySize,
         }),
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to submit report");
+      }
+
       const report = await res.json();
       setActiveRefNum(report.reference_number);
       setStatusIndex(0);
@@ -108,7 +113,7 @@ export default function ReportPage() {
       setTimeout(() => {
         setActiveStep(0);
         setLocation('Click the map to drop a pin');
-        setBoundarySize(2);
+        setBoundarySize(200);
         setExternalPin(null);
         setMapKey((k) => k + 1);
       }, 1000);
