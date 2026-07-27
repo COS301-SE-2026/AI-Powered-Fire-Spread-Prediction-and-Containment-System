@@ -84,7 +84,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     rimMarker: mapboxgl.Marker,
     label: HTMLDivElement,
     markerPosRef: React.RefObject<{lng: number; lat: number }|null>,
-    radiusKmRef: React.RefObject<number>,
+    radiusKmRef: React.MutableRefObject<number>,
     mapRef: React.RefObject<any>,
     onBoundarySizeChange?: (r: number) => void
   ) {
