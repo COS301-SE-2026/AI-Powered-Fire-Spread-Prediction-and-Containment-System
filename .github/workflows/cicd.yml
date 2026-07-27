@@ -74,7 +74,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run pylint
-        run: pylint **/*.py --fail-under=8.0
+        run: pylint **/**/**/*.py --fail-under=8.0
 
   frontend-build:
     name: Frontend Build
