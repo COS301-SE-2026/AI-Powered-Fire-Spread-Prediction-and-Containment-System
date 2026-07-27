@@ -27,8 +27,6 @@ BUCKET = os.environ["MINIO_BUCKET"]
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_SIZE_MB = 10
 
-print("Endpoint:", os.environ["MINIO_ENDPOINT"])
-
 def ensure_bucket():
     if not minio_client.bucket_exists(BUCKET):
         minio_client.make_bucket(BUCKET)
