@@ -4,12 +4,23 @@ import uuid
 from datetime import timedelta
 from io import BytesIO
 from minio import Minio
+from typing import Optional
 
 minio_client = Minio(
     os.environ["MINIO_ENDPOINT"],
     access_key=os.environ["MINIO_ACCESS_KEY"],
     secret_key=os.environ["MINIO_SECRET_KEY"],
     secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
+    region="us-east-1",
+)
+
+# Separate client only for generating presigned URLs, using the browser-reachable endpoint
+presign_client = Minio(
+    os.environ.get("MINIO_PUBLIC_ENDPOINT", "localhost:9000"),
+    access_key=os.environ["MINIO_ACCESS_KEY"],
+    secret_key=os.environ["MINIO_SECRET_KEY"],
+    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
+    region="us-east-1",
 )
 
 BUCKET = os.environ["MINIO_BUCKET"]
@@ -42,8 +53,10 @@ def upload_image(filename: str, content_type: str, contents: bytes) -> str:
     
     return object_key
 
-def get_presigned_url(object_key: str, expires_minutes: int = 10) -> str:
-    return minio_client.presigned_get_object(
+def get_presigned_url(object_key: Optional[str], expires_minutes: int = 60) -> Optional[str]:
+    if not object_key:
+        return None
+    return presign_client.presigned_get_object(
         BUCKET,
         object_key,
         expires=timedelta(minutes=expires_minutes),
