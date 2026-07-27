@@ -1,90 +1,102 @@
-import pytest
-from unittest.mock import MagicMock, patch
-from fastapi import HTTPException
+
 from datetime import datetime
 
-# Stubs for unit tests
+import pytest
+from unittest.mock import MagicMock
 
+from enum import Enum
+
+# Stubs for unit tests
 import sys
 
-db_module = MagicMock()
-db_module.get_db = MagicMock()
-
-models_module = MagicMock()
-
-class roleRequestDB:
+class RoleRequest:
     """ORM Stand-in"""
+    request_id = "request_id"
     def __init__(self, **kwargs):
         for i, j in kwargs.items():
             setattr(self, i, j)
 
-class _User:
+class User:
+    id = "id"
     def __init__(self, **kwargs):
         for i, j in kwargs.items():
             setattr(self, i, j)
 
-models_module.RoleRequestDB = roleRequestDB
-models_module.User = _User
+class RequestStatus(Enum):
+    pending = "pending"
+    approved = "approved"
+    rejected = "rejected"
+    revoked = "revoked"
 
-sys.modules.setdefault("db", db_module)
-sys.modules.setdefault("models", models_module)
+role_request_module = MagicMock()
+role_request_module.RoleRequest = RoleRequest
 
-from admin.adminRoleApproval import(
+users_module = MagicMock()
+users_module.User = User
+
+enums_module = MagicMock()
+enums_module.RequestStatus = RequestStatus
+
+sys.modules.setdefault("models", MagicMock())
+sys.modules.setdefault("models.role_request", role_request_module)
+sys.modules.setdefault("models.users", users_module)
+sys.modules.setdefault("enums", MagicMock())
+sys.modules.setdefault("enums.role_request_status", enums_module)
+
+from services.admin.role_request import(
     get_role_requests,
     approve_role_request,
     reject_role_request,
     revoke_role_request,
-    FIREFIGHTER_LICENSE_IDS,
 )
 
 def make_db():
     """New Mock Session"""
     return MagicMock()
 
-def make_request(**kwargs) -> roleRequestDB:
+def make_request(**kwargs) -> RoleRequest:
     defaults = dict(
         request_id = "req-1",
         user_id = "user-1",
         full_name = "John Doe",
         email = "john@doe.com",
-        role = "firefighter",
-        status = "pending",
-        firefighter_license_id ="FF-1001",
+        requested_role = "firefighter",
+        current_role="guest",
+        status = RequestStatus.pending,
+        reviewed_by=None,
+        reviewed_at=None,
         created_at = datetime(2026, 5, 27),
     )
     defaults.update(kwargs)
-    return roleRequestDB(**defaults)
+    return RoleRequest(**defaults)
 
-def make_user(**kwargs) -> _User:
+def make_user(**kwargs) -> User:
     defaults = dict(
         id = "user-1",
         role = "guest",
     )
     defaults.update(kwargs)
-    return _User(**defaults)
+    return User(**defaults)
 
 def query_side_effect(db, model_map: dict):
     """Make db.query(ModelClass) return mock where .filter().first() finds value in model_map. Keyed by model class"""
     def query(model):
-        prod = model.__name__.lower().strip("_")
         matched_data = None
         for stub, data in model_map.items():
-            stub_name= stub.__name__.lower().strip("_")
-            
-            if prod == stub_name:
+            if model is stub:
                 matched_data = data
                 break
-        
+
         chain_query = MagicMock()
         chain_query.all.return_value = (
             matched_data if isinstance(matched_data, list) else ([] if matched_data is None else [matched_data])
         )
-        
+
         filter_mock = MagicMock()
         filter_mock.first.return_value = matched_data
         chain_query.filter.return_value = filter_mock
         return chain_query
-    
+
     db.query.side_effect = query
     return db
 
@@ -96,7 +108,7 @@ class TestGetRoleRequests:
         reqs = [make_request(request_id = f"req-{i}") for i in range(3)]
         db.query.return_value.all.return_value = reqs
 
-        result = get_role_requests(db = db)
+        result = get_role_requests(db=db)
 
         assert result["total"] == 3
         assert len(result["data"]) == 3
@@ -105,168 +117,130 @@ class TestGetRoleRequests:
         db = make_db()
         db.query.return_value.all.return_value = []
 
-        result = get_role_requests(db = db)
+        result = get_role_requests(db=db)
 
         assert result["total"] == 0
         assert result["data"] == []
 
-    
+
 # Test approve_role_request
 class TestApproveRoleRequest:
-    def test_approve_firefighter_with_valid_license(self):
-        req = make_request(role = "firefighter", status = "pending", firefighter_license_id = "FF-1001")
-        user = make_user(id = "user-1", role = "guest")
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: user})
+    def test_approve_pending_approves(self):
+        req = make_request(role = "firefighter", status = RequestStatus.pending)
+        user = make_user()
+        db = query_side_effect(make_db(), {RoleRequest: req, User: user})
 
-        result = approve_role_request("req-1", db = db)
+        result = approve_role_request("req-1", "user-1", db=db)
 
-        assert result.status == "approved"
+        assert result.status == RequestStatus.approved
         assert user.role == "firefighter"
         db.commit.assert_called_once()
 
-    def test_approve_firefighter_with_invalid_license(self):
-        req = make_request(role = "firefighter", status = "pending", firefighter_license_id = "FF-INVALID")
-        user = make_user()
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: user})
-
-        result = approve_role_request("req-1", db = db)
-
-        assert result.status == "rejected"
-        assert user.role == "guest"
-        db.commit.assert_called_once()
-
     def test_approve_non_firefighter(self):
-        req = make_request(role = "admin", status = "pending", firefighter_license_id = None)
+        req = make_request(role="admin", status=RequestStatus.pending)
         user = make_user()
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: user})
+        db = query_side_effect(make_db(), {RoleRequest: req, User: user})
 
-        result = approve_role_request("req-1", db = db)
-        
-        assert result.status == "approved"
+        result = approve_role_request("req-1", "admin-1", db=db)
+
+        assert result.status == RequestStatus.approved
         assert user.role == "admin"
-        
-    def test_approve_nonexistent_request(self):
-        db = query_side_effect(make_db(), {roleRequestDB: None})
 
-        with pytest.raises(HTTPException) as exc:
-            approve_role_request("no-such-id", db = db)
-        
-        assert exc.value.status_code == 404
+    def test_approve_nonexistent_request(self):
+        db = query_side_effect(make_db(), {RoleRequest: None})
+
+        result = approve_role_request("no-such-id", "admin-1", db=db)
+
+        assert result is None
 
     def test_approved_already_approved(self):
-        req = make_request(status = "approved")
-        db = query_side_effect(make_db(), {roleRequestDB: req})
+        req = make_request(status=RequestStatus.approved)
+        db = query_side_effect(make_db(), {RoleRequest: req})
 
-        with pytest.raises(HTTPException) as exc:
-            approve_role_request("req-1", db = db)
-
-        assert exc.value.status_code == 400
+        with pytest.raises(ValueError):
+            approve_role_request("req-1", "admin-1", db=db)
 
     def test_approved_already_rejected(self):
-        req = make_request(status = "rejected")
-        db = query_side_effect(make_db(), {roleRequestDB: req})
+        req = make_request(status=RequestStatus.rejected)
+        db = query_side_effect(make_db(), {RoleRequest: req})
 
-        with pytest.raises(HTTPException) as exc:
-            approve_role_request("req-1", db = db)
-        
-        assert exc.value.status_code == 400
+        with pytest.raises(ValueError):
+            approve_role_request("req-1","admin-1", db=db)
 
     def test_approve_with_no_matching_user(self):
         """User lookup returns none. Raise 404 instead of silent succeed"""
-        req = make_request(role = "admin", status = "pending")
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: None})
+        req = make_request(role = "admin", status=RequestStatus.pending)
+        db = query_side_effect(make_db(), {RoleRequest: req, User: None})
 
-        with pytest.raises(HTTPException) as exc:
-            approve_role_request("req-1", db = db) 
+        with pytest.raises(ValueError):
+            approve_role_request("req-1","admin-1", db=db)
 
-        assert exc.value.status_code == 404
-
-    @pytest.mark.parametrize("license_id", list(FIREFIGHTER_LICENSE_IDS))
-    def test_all_valid_firefighter_licenses_accepted(self, license_id):
-        req = make_request(role = "firefighter", status = "pending", firefighter_license_id = license_id)
-        user = make_user()
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: user})
-
-        result = approve_role_request("req-1", db = db)
-
-        assert result.status == "approved"
 
 # Test reject_role_request
-
 class TestRejectRoleRequest:
     def test_reject_pending_request(self):
-        req = make_request(status = "pending")
-        db = query_side_effect(make_db(), {roleRequestDB: req})
+        req = make_request(status=RequestStatus.pending)
+        user = make_user()
+        db = query_side_effect(make_db(), {RoleRequest: req, User: user})
 
-        result = reject_role_request("req-1", db = db)
+        result = reject_role_request("req-1", "admin-1", db=db)
 
-        assert result.status == "rejected"
+        assert result.status == RequestStatus.rejected
         db.commit.assert_called_once()
 
     def test_reject_nonexistent(self):
-        db = query_side_effect(make_db(), {roleRequestDB: None})
+        db = query_side_effect(make_db(), {RoleRequest: None})
 
-        with pytest.raises(HTTPException) as exc:
-            reject_role_request("no-such-id", db = db)
+        result = reject_role_request("no-such-id", "admin-1", db=db)
 
-        assert exc.value.status_code == 404
+        assert result is None
 
     def test_reject_already_processed(self):
-        for already_done in ("approved", "rejected", "revoked"):
+        for already_done in (RequestStatus.approved, RequestStatus.rejected, RequestStatus.revoked):
             req = make_request(status = already_done)
-            db = query_side_effect(make_db(), {roleRequestDB: req})
+            db = query_side_effect(make_db(), {RoleRequest: req})
 
-            with pytest.raises(HTTPException) as exc:
-                reject_role_request("req-1", db = db)
-            
-            assert exc.value.status_code == 400
-
+            with pytest.raises(ValueError):
+                reject_role_request("req-1", "admin-1", db=db)
 
 # Test revoke_role_request
-class TestRevkeRoleRequest:
+class TestRevokeRoleRequest:
     def test_revoke_approved(self):     # demotes user to guest
-        req = make_request(status = "approved", role = "firefighter")
+        req = make_request(status = RequestStatus.approved, current_role = "guest")
         user = make_user(role = "firefighter")
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: user})
+        db = query_side_effect(make_db(), {RoleRequest: req, User: user})
 
-        result = revoke_role_request("req-1", db = db)
+        result = revoke_role_request("req-1", "admin-1", db=db)
 
-        assert result.status == "revoked"
+        assert result.status == RequestStatus.revoked
         assert user.role == "guest"
         db.commit.assert_called_once()
 
     def test_revoke_nonexistent(self):
-        db = query_side_effect(make_db(), {roleRequestDB: None})
+        db = query_side_effect(make_db(), {RoleRequest: None})
 
-        with pytest.raises(HTTPException) as exc:
-            revoke_role_request("no-such-id", db = db)
+        result = revoke_role_request("no-such-id", "admin-1", db=db)
 
-        assert exc.value.status_code == 404
+        assert result is None
 
     def test_revoke_pending_request(self):
-        req = make_request(status = "pending")
-        db = query_side_effect(make_db(), {roleRequestDB: req})
+        req = make_request(status = RequestStatus.pending)
+        db = query_side_effect(make_db(), {RoleRequest: req})
 
-        with pytest.raises(HTTPException) as exc:
-            revoke_role_request("req-1", db = db)
-
-        assert exc.value.status_code == 400
+        with pytest.raises(ValueError):
+            revoke_role_request("req-1", "admin-1", db=db)
 
     def test_revoke_rejected(self):
-        req = make_request(status = "rejected")
-        db = query_side_effect(make_db(), {roleRequestDB: req})
+        req = make_request(status = RequestStatus.rejected)
+        db = query_side_effect(make_db(), {RoleRequest: req})
 
-        with pytest.raises(HTTPException) as exc:
-            revoke_role_request("req-1", db = db)
-        
-        assert exc.value.status_code == 400
+        with pytest.raises(ValueError):
+            revoke_role_request("req-1", "admin-1", db=db)
 
     def test_revoke_with_no_matching_user(self):
         """User lookup returns None. Raise 404 instead of silent succeed"""
-        req = make_request(status = "approved")
-        db = query_side_effect(make_db(), {roleRequestDB: req, _User: None})
+        req = make_request(status=RequestStatus.approved)
+        db = query_side_effect(make_db(), {RoleRequest: req, User: None})
 
-        with pytest.raises(HTTPException) as exc:
-            revoke_role_request("req-1", db = db)
-        
-        assert exc.value.status_code == 404
+        with pytest.raises(ValueError):
+            revoke_role_request("req-1", "admin-1", db=db)
