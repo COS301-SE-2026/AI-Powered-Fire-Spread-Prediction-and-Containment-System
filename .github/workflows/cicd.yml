@@ -33,7 +33,7 @@ jobs:
           - 9000:9000
         command: server /data
     env:
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_fire_db"
 
       MINIO_ENDPOINT: localhost:9000
       MINIO_ACCESS_KEY: admin

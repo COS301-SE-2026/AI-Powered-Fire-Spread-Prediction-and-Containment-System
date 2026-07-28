@@ -1,0 +1,167 @@
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   1) """
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   2) tests/test_admin_roles.py
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   3) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   4) Covers every endpoint in app/routers/admin.py:
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   5)   GET  /api/admin/roles/role-requests
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   6)   POST /api/admin/roles/role-requests/{id}/approve
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   7)   POST /api/admin/roles/role-requests/{id}/reject
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   8)   POST /api/admin/roles/role-requests/{id}/revoke
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200   9) """
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  10) import uuid
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  11) from tests.conftest import make_user, make_role_request
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  12) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  13) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  14) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  15) # GET /api/admin/roles/role-requests
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  16) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  17) class TestListRoleRequests:
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  18)     def test_empty_returns_empty_list(self, client):
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  19)         res = client.get("/api/admin/role-requests")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  20)         assert res.status_code == 200
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  21)         body = res.json()
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  22)         assert body["data"] == []
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  23)         assert body["total"] == 0
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  24) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  25)     def test_returns_all_requests(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  26)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  27)         make_role_request(db, user, status="pending")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  28)         make_role_request(db, user, status="approved")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  29) 
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  30)         res = client.get("/api/admin/role-requests")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  31)         assert res.status_code == 200
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  32)         body = res.json()
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  33)         assert body["total"] == 2
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  34)         assert len(body["data"]) == 2
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  35) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  36)     def test_response_shape(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  37)         user = make_user(db, full_name="Alice Smith", email="alice@test.com")
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  38)         make_role_request(db, user, role="firefighter")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  39) 
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  40)         res = client.get("/api/admin/role-requests")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  41)         item = res.json()["data"][0]
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  42) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  43)         assert "request_id" in item
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  44)         assert "requested_role" in item
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  45)         assert item["requested_role"] == "firefighter"
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  46)         assert item["status"] == "pending"
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  47)         assert item["firefighter_license_id"] == "LIC-001"
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  48) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  49) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  50) # ---------------------------------------------------------------------------
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200  51) # PUT /api/admin/roles/role-requests/{id}/approve
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  52) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  53) class TestApproveRoleRequest:
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  54)     def test_approve_pending_request(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  55)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  56)         req = make_role_request(db, user, status="pending")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  57) 
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  58)         admin = make_user(db)
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  59)         admin.id = "usr_01"
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  60)         db.commit()
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  61) 
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  62)         res = client.put(f"/api/admin/role-requests/{req.request_id}/approve")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  63)         assert res.status_code == 200
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  64)         body = res.json()
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  65)         assert body["status"] == "approved"
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  66)         assert str(body["request_id"]) == str(req.request_id)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  67) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  68)     def test_approve_non_pending_returns_400(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  69)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  70)         req = make_role_request(db, user, status="approved")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  71) 
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  72)         res = client.put(f"/api/admin/role-requests/{req.request_id}/approve")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  73)         assert res.status_code == 400
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  74)         assert "approved" in res.json()["detail"]
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  75) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  76)     def test_approve_nonexistent_returns_404(self, client):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  77)         fake_id = uuid.uuid4()
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  78)         res = client.put(f"/api/admin/role-requests/{fake_id}/approve")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  79)         assert res.status_code == 404
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  80) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  81)     def test_approve_rejected_request_returns_400(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  82)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  83)         req = make_role_request(db, user, status="rejected")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  84) 
+dc26d3e1 (keyseringe 2026-06-28 16:49:14 +0200  85)         res = client.put(f"/api/admin/role-requests/{req.request_id}/approve")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  86)         assert res.status_code == 400
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  87) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  88) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  89) # ---------------------------------------------------------------------------
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200  90) # POST /api/admin/role-requests/{id}/reject
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  91) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  92) class TestRejectRoleRequest:
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  93)     def test_reject_pending_request(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  94)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  95)         req = make_role_request(db, user, status="pending")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200  96) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200  97)         #user with id=usr_01 needs to exist
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200  98)         admin = make_user(db, role="admin")
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200  99)         admin.id = "usr_01"
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 100)         db.commit()
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 101) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 102)         res = client.put(f"/api/admin/role-requests/{req.request_id}/reject")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 103)         assert res.status_code == 200
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 104)         assert res.json()["status"] == "rejected"
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 105) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 106)     def test_reject_already_rejected_returns_400(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 107)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 108)         req = make_role_request(db, user, status="rejected")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 109) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 110)         res = client.put(f"/api/admin/role-requests/{req.request_id}/reject")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 111)         assert res.status_code == 400
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 112) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 113)     def test_reject_approved_request_returns_400(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 114)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 115)         req = make_role_request(db, user, status="approved")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 116) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 117)         res = client.put(f"/api/admin/role-requests/{req.request_id}/reject")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 118)         assert res.status_code == 400
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 119) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 120)     def test_reject_nonexistent_returns_404(self, client):
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 121)         res = client.put(f"/api/admin/role-requests/{uuid.uuid4()}/reject")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 122)         assert res.status_code == 404
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 123) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 124) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 125) # ---------------------------------------------------------------------------
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 126) # POST /api/admin/role-requests/{id}/revoke
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 127) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 128) class TestRevokeRoleRequest:
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 129)     def test_revoke_approved_request(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 130)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 131)         req = make_role_request(db, user, status="approved")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 132) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 133)         #user with id=usr_01 needs to exist
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 134)         admin = make_user(db, role="admin")
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 135)         admin.id = "usr_01"
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 136)         db.commit()
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 137) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 138)         res = client.put(f"/api/admin/role-requests/{req.request_id}/revoke")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 139)         assert res.status_code == 200
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 140)         assert res.json()["status"] == "revoked"
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 141) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 142)     def test_revoke_pending_returns_400(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 143)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 144)         req = make_role_request(db, user, status="pending")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 145) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 146)         res = client.put(f"/api/admin/role-requests/{req.request_id}/revoke")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 147)         assert res.status_code == 400
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 148) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 149)     def test_revoke_already_revoked_returns_400(self, client, db):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 150)         user = make_user(db)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 151)         req = make_role_request(db, user, status="revoked")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 152) 
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 153)         res = client.put(f"/api/admin/role-requests/{req.request_id}/revoke")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 154)         assert res.status_code == 400
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 155) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 156)     def test_revoke_nonexistent_returns_404(self, client):
+2863ebe0 (keyseringe 2026-06-28 11:37:22 +0200 157)         res = client.put(f"/api/admin/role-requests/{uuid.uuid4()}/revoke")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 158)         assert res.status_code == 404
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 159) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 160) 
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 161) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 162) # Health check (sanity)
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 163) # ---------------------------------------------------------------------------
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 164) def test_health(client):
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 165)     res = client.get("/health")
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 166)     assert res.status_code == 200
+dd2148bd (Megglez    2026-05-22 03:28:39 +0200 167)     assert res.json() == {"status": "ok"}
