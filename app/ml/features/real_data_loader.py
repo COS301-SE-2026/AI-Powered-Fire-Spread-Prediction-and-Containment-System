@@ -2,13 +2,14 @@
 #combines fuel_load, terrain for static data
 #and gets current weather
 
+from typing import Optional
+
 import numpy as np
 from app.ml.features.fuel_load import process_sentinal2_and_worldcover
 from app.ml.features.terrain import extract_terrain_features
 from app.ml.features.weather_adapter import fetch_realtime_weather_features
 
 async def load_real_inference_data(
-    worldcover_path: str,
     b04_path: str,
     b08_path: str,
     b11_path: str,
@@ -17,6 +18,9 @@ async def load_real_inference_data(
     min_lat: float,
     max_lon: float,
     max_lat: float,
+    worldcover_path: Optional[str] = None,
+    worldcover_year: int = 2021,
+    scl_path: Optional[str] = None,
     target_shape: tuple[int, int] = (64, 64)
 ) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray]]:
     """Put static weather feature dictionaries from real datasets to replace synhtetic_dat.py for fire prediction calls"""
@@ -24,6 +28,8 @@ async def load_real_inference_data(
     #static fuel_load and satellite dryness from worldcover and sentianl2
     veg_data = process_sentinal2_and_worldcover(
         worldcover_map_path=worldcover_path,
+        worldcover_year=worldcover_year,
+        scl_path=scl_path,
         b04_path=b04_path,
         b08_path=b08_path,
         b11_path=b11_path,
@@ -49,7 +55,8 @@ async def load_real_inference_data(
         "elevation": terrain_data["elevation"],
         "slope": terrain_data["slope"],
         "aspect": terrain_data["aspect"],
-        "fuel_load": veg_data["fuel_load"]
+        "fuel_load": veg_data["fuel_load"],
+        "valid_mask": veg_data["valid_mask"]
     }
 
     #real-time weather features for center point
