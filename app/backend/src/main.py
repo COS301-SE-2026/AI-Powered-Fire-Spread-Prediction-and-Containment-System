@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from routes.guests.fire_reports import router as guest_fire_router
 from routes.admin.role_requests import router as admin_roles_router
-from routes.admin.fire_reports import router as admin_fire_router 
+from routes.admin.fire_reports import router as admin_fire_router
 from routes.users.fire_reports import router as user_fire_router
 from routes.firefighter.fire_reports import router as firefighter_reports
 from routes.admin.analytics import router as admin_analytics_router
@@ -36,8 +36,6 @@ app = FastAPI(
     version="1.0.0",
     redirect_slashes=False,
 )
-
-app = FastAPI(root_path="/api")
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
@@ -83,4 +81,4 @@ def health_check():
 @app.on_event("startup")
 def startup():
     ensure_bucket()
-    
+
