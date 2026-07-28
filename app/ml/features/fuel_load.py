@@ -59,14 +59,14 @@ FUEL_BASE_WEIGHTS = {
 #tiles 3x3 degree COGs named by the lat/lon of their SW corner, of their SW corner
 
 WORLDCOVER_BUCKET = "esa-worldcover"
-WORLDCOVER_VERSIONS = {2020: " v100", 2021: "v200"}
+WORLDCOVER_VERSIONS = {2020: "v100", 2021: "v200"}
 
 #not od full directory/file listings or refetching overlapping bytes
 S3_READ_ENV = dict(
     AWS_NO_SIGN_REQUEST="YES",
     GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
     CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.TIF,.tiff",
-    GDAL_HTPP_MULTIPLEX="YES",
+    GDAL_HTTP_MULTIPLEX="YES",
     VSI_CACHE="TRUE",
     VSI_CACHE_SIZE=64_000_000,
     GDAL_CACHEMAX=64,
@@ -88,8 +88,8 @@ def worldcover_tile_id(lat: float, lon: float) -> str:
     """ESA WorldCover 3x3 degree tileid for a lat/lon"""
     tile_lat = int(math.floor(lat / 3.0) * 3)
     tile_lon = int(math.floor(lon / 3.0) * 3)
-    ns = "N" if title_lat >= 0 else "S"
-    ew = "E" if title_lon >= 0 else "W"
+    ns = "N" if tile_lat >= 0 else "S"
+    ew = "E" if tile_lon >= 0 else "W"
     return f"{ns}{abs(tile_lat):02d}{ew}{abs(tile_lon):03d}"
 
 def worldcover_s3_urls_for_bbox(
@@ -113,8 +113,7 @@ def worldcover_s3_urls_for_bbox(
         for lon in range(lon0, lon1 + 1, 3)
     }
     return [
-        f"s3://{WORLDCOVER_BUCKET}/{version}/{year}/map"
-        f"ESA_WorldCover_10m_{year}_{version}_{tile}_Map.tif"
+        f"s3://{WORLDCOVER_BUCKET}/{version}/{year}/map/ESA_WorldCover_10m_{year}_{version}_{tile}_Map.tif"
         for tile in sorted(tiles)
     ]
 
@@ -195,7 +194,7 @@ S2_REFLECTANCE_SCALE = 0.0001
 S2_REFLECTANCE_OFFSET = -0.1
 S2_NODATA_DN = 0
 
-def _dn_to_reflactance(
+def _dn_to_reflectance(
     dn: np.ndarray,
     scale: float = S2_REFLECTANCE_SCALE,
     offset: float = S2_REFLECTANCE_OFFSET,
