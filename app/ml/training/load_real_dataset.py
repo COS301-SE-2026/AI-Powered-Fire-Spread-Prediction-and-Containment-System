@@ -1,5 +1,5 @@
 #real data, should be able to replace synthetic data
-#VIIRS active-fire hotspot detections
+#VIIRS active-fire hotspot detections and historical weather
 
 from __future__ import annotations
 from dataclasses import dataclass
