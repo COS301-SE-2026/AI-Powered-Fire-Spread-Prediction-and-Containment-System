@@ -4,7 +4,7 @@ export function ComponentsGroup({ title, children }) {
             <h3 className="mb-4 text-sm uppercase tracking-wide text-text-muted">
                 {title}
             </h3>
-            <div className="flex flex-wrap items-center gap-6 p-6 rounded-box border border-carbon-stroke bg-carbon-card">
+            <div className="p-4 rounded-box border border-carbon-stroke bg-carbon-card">
                 {children}
             </div>
         </div>
@@ -13,7 +13,7 @@ export function ComponentsGroup({ title, children }) {
 
 export function Labled({ caption, children }) {
     return (
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
             {children}
             <span className="text-[11px] font-mono text-text-muted">{caption}</span>
         </div>
