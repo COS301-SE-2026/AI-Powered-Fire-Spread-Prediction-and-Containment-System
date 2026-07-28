@@ -78,10 +78,13 @@ export default function Login() {
     router.push('/guests/guestsLanding');
   };
 
-  const fieldClass = (hasError?: string) =>
-    `w-full px-3 py-2 bg-carbon-input border rounded-md text-text-primary focus:outline-none focus:ring-1 focus:ring-primary ${
-      hasError ? 'border-flare' : 'border-carbon-stroke'
-    }`
+  const fieldClass = (hasError?: string) => {
+    if (hasError) {
+      return 'input input-error w-full';
+    } else {
+      return 'input input-neutral focus:border-primary w-full';
+    }
+  };
 
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -129,10 +132,10 @@ export default function Login() {
               {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
             </div>
             {apiError && <div className="bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">{apiError}</div>}
-            <button type="submit" disabled={isLoading} className="w-full py-2 bg-primary hover:bg-deep text-white font-medium rounded-md transition disabled:opacity-50">
+            <button type="submit" disabled={isLoading} className="w-full btn btn-primary active:scale-90 text-lg">
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
-            <Link href="/register" className="block w-full py-2 text-center border border-carbon-stroke hover:bg-carbon-elevated text-white/90 rounded-md transition">
+            <Link href="/register" className="w-full btn btn-neutral text-lg">
               Register
             </Link>
             <button type="button" onClick={handleGuest} className="w-full py-2 text-white/80 hover:text-white transition">

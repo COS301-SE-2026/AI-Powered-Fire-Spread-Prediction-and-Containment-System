@@ -37,12 +37,12 @@ export default function Landing() {
           <h1 className="text-4xl font-bold text-text-primary mb-4">Welcome!</h1>
           <div className="space-y-4">
             <Link href="/register" className="mb-4 block">
-              <button className="w-full py-2 bg-primary hover:bg-deep text-text-primary font-xl font-bold rounded-md transition">
+              <button className="w-full btn btn-primary active:scale-90 text-lg">
                 Register
               </button>
             </Link>
             <Link href="/login" className="mb-3 block">
-              <button className="w-full py-2 border border-carbon-stroke hover:bg-carbon-elevated text-white/90 font-xl font-bold rounded-md transition">
+              <button className="w-full btn btn-neutral text-lg">
                 Login
               </button>
             </Link>
