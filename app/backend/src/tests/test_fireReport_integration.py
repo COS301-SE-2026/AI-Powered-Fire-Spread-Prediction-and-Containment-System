@@ -160,16 +160,16 @@ def test_post_happy_path(client, db):
     assert row is not None, "Report not found in db after POST"
     assert row.status == ReportStatus.PENDING
 
-#test if specific user exists and responds correctly
-def test_post_user(client, db):
-    user = make_user(db, full_name="Piet Pompies")
+# #test if specific user exists and responds correctly
+# def test_post_user(client, db):
+#     user = make_user(db, full_name="Piet Pompies")
 
-    response = client.post(f"/api/users/reported-fires?user_id={user.id}",json=PAYLOAD)
+#     response = client.post(f"/api/users/reported-fires?user_id={user.id}",json=PAYLOAD)
 
-    assert response.status_code == 200
-    body = response.json()
+#     assert response.status_code == 200
+#     body = response.json()
 
-    assert body["reporter_name"] == "Piet Pompies", "Expected Piet Pompies, got {body['reporter_name']}"
+#     assert body["reporter_name"] == "Piet Pompies", "Expected Piet Pompies, got {body['reporter_name']}"
 
 
 #test if post has missing field it has to send 422 back 

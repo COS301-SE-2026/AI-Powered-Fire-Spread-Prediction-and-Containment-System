@@ -81,9 +81,13 @@ def get_current_environment_vars(lat:float, lng: float):
                     "wind_direction_10m"]
     }
 
-    response = requests.get(url, params=params, timeout=5)
-    response.raise_for_status()
-    data = response.json()["current"]
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json()["current"]
+    
+    except (requests.RequestException, KeyError) as e:
+        raise ValueError(f"Failed to fetch environment data: {e}")
 
     return {
         "temperature": data["apparent_temperature"],

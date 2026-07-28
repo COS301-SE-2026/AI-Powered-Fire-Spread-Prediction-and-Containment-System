@@ -20,6 +20,13 @@ from models.users import User
 from models.role_request import RoleRequest
 from models.reported_fires import FireReports
 
+# models for the firefighter dashboard
+from models.containment_lines import ContainmentLines
+
+#seed data
+from seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
+from auth import hash_password
+
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL",
     "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -39,14 +46,16 @@ def create_tables():
     Base.metadata.create_all(bind=engine, tables=[
         User.__table__, 
         RoleRequest.__table__,
-        FireReports.__table__
+        FireReports.__table__,
+        ContainmentLines.__table__
     ])
     yield
 
     Base.metadata.drop_all(bind=engine, tables=[
         User.__table__, 
         RoleRequest.__table__,
-        FireReports.__table__])
+        FireReports.__table__,
+        ContainmentLines.__table__])
 
 
 @pytest.fixture(scope="function")
@@ -156,3 +165,27 @@ def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.PE
     db.commit()
     db.refresh(report)
     return report
+
+def seed_users_table(db):
+    for data in SEED_USERS:
+        user = User(
+            id=data["id"],
+            name=data["name"],
+            surname=data["surname"],
+            email=data["email"],
+            id_number=data["id_number"],
+            license_number=data["license_number"],
+            hashed_password=hash_password(data["password"]),
+            role=data["role"],
+            is_active=True,
+            is_2fa_enabled=False,
+            totp_secret=None,
+        )
+        db.add(user)
+    db.commit()
+
+@pytest.fixture
+def seeded_fire_reports(db):
+    seed_users_table(db)
+    seed_fire_reports(db)
+    return db.query(FireReports).all()

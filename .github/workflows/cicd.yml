@@ -10,6 +10,36 @@ jobs:
     defaults:
       run:
         working-directory: app/backend/src
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_fire_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d test_fire_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: admin
+          MINIO_ROOT_PASSWORD: miniosupersecretpassword
+        ports:
+          - 9000:9000
+        command: server /data
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+
+      MINIO_ENDPOINT: localhost:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: miniosupersecretpassword
+      MINIO_SECURE: "false"
+      MINIO_BUCKET: fire-reports
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -130,23 +160,20 @@ jobs:
   frontend-react-doctor:
     name: React Doctor
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app/frontend/src
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: app/frontend/src/yarn.lock
-
-      - name: Install dependencies
-        run: yarn install
+        with: 
+          fetch-depth: 0
 
       - name: Run React Doctor
-        run: yarn doctor 
+        uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
+        with:
+          directory: app/frontend/src
+          blocking: error
