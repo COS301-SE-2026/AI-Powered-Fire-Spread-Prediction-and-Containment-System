@@ -23,7 +23,7 @@ class RealDatasetConfig:
 
     worldcover_path: str = "app/datasets/raw_data/worldcover.tif"
     b04_path: str = "app/datasets/raw_data/b04.tif"
-    b08_path: str = "app/datasets/raw_data/b04.tif"
+    b08_path: str = "app/datasets/raw_data/b08.tif"
     b11_path: str = "app/datasets/raw_data/b11.tif"
     dem_path: str = "app/datasets/raw_data/dem.tif"
 
