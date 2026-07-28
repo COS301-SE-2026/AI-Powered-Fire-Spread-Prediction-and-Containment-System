@@ -68,7 +68,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                             return(
                                 <li className="w-full mt-auto" key={href}>
                                     <Link href={href} className={`py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left ${isActive ? 'bg-smoke-hover' : ''}`}>
-                                        <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-neutral/70 group-hover:text-ignite'}`}/>
+                                        <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-text-primary/70 group-hover:text-ignite'}`}/>
                                         <span className="text-sm font-semibold tracking-wide text-text-primary hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                                             {label}
                                         </span>

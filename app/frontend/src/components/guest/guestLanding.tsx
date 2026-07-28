@@ -21,7 +21,7 @@ export default function MapView() {
             {/*Public View Header*/}
             <header className="mb-4 flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
+                    <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
                         Incident Map
                     </h1>
                     <p className="text-sm text-text-primary/50 font-medium">

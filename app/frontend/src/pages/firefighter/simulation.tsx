@@ -19,8 +19,8 @@ export default function ReportTable() {
 
                 {/*Page header and subtitle*/}
                 <header className="mb-6">
-                    <h1 className="text-page-title font-display font-bold tracking-wider text-neutral uppercase">Fire Simulation</h1>
-                    <p className="font-body text-body text-neutral/50">Simulate fire spread and prevention methods</p>
+                    <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">Fire Simulation</h1>
+                    <p className="font-body text-body text-text-primary/50">Simulate fire spread and prevention methods</p>
                 </header>
 
                 <div className="flex flex-row gap-4 min-w-0">
@@ -30,9 +30,9 @@ export default function ReportTable() {
                         {/* Fire Map */}
                         <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative">
                             <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                                <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">LIVE FIRE MAP</span>
+                                <span className="font-bold text-lg tracking-wide text-text-primary/80 uppercase">LIVE FIRE MAP</span>
                             </div>
-                            <div className="w-full h-full"> 
+                            <div className="w-full h-full">
                                 <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={handleDrawComplete} clearDrawings={clearDrawings}/>
                             </div>
                         </div>
@@ -42,7 +42,7 @@ export default function ReportTable() {
                             {/* buttons to start simulation or draw page */}
                             <div className="flex flex-col gap-6 shrink-0 h-auto justify-between">
                                 <button type="button" onClick={() => setDrawMode(true)} className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
-                                    <Pencil size={28}/> 
+                                    <Pencil size={28}/>
                                     Draw Containment
                                 </button>
                                 <button className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
@@ -66,7 +66,7 @@ export default function ReportTable() {
                                                     <input type="checkbox" defaultChecked className="checkbox checkbox-sm rounded-lg" />
                                                 </label>
                                             </div>
-                                        
+
                                         <div className="w-full">
                                             <input type="range" min={0} max="24" className="range range-xs w-full" step="0.5" value={timeline} onChange={(e) => setTimeline(Number(e.target.value))}/>
                                             <div className="flex justify-between px-2.5 mt-2 text-sm">
@@ -89,7 +89,7 @@ export default function ReportTable() {
                         <SimulationResults/>
                     </div>
                 </div>
-            </div>  
+            </div>
         </FirefighterSideBar>
     );
 }
