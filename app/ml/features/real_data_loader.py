@@ -1,4 +1,6 @@
 #imports other classes in this folder
+#combines fuel_load, terrain for static data
+#and gets current weather
 
 import numpy as np
 from app.ml.features.fuel_load import process_sentinal2_and_worldcover

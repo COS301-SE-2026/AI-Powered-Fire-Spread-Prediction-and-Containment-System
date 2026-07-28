@@ -1,3 +1,17 @@
+#returns wind_u, wind_v, temperature and relative humidity
+#gets data from https://archive-api.open-meteo.com/v1/archive:
+# "latitude": latitude,
+# "longitude": longitude,
+# "start_date": start_date,
+# "end_date": end_date,
+# "hourly": [
+#     "temperature_2m",
+#     "relative_humidity_2m",
+#     "wind_speed_10m",
+#     "wind_direction_10m"
+# ]
+# currently gets only a year's data, because one can't query the fire data for longer than a year
+
 import httpx
 import numpy as np
 import pandas as pd
