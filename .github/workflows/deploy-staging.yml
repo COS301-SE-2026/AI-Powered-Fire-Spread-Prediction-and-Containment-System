@@ -1,0 +1,27 @@
+name: Deploy to Staging
+
+on:
+    push:
+        branches:
+            - staging
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Deploy to Staging
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USER }}
+                key: ${{ secrets.EC2_SSH_KEY }}
+                script: |
+                    cd /home/ubuntu/staging
+                    git pull origin staging
+                    docker compose -p staging -f docker-compose.yml -f docker-compose.staging.yml up -d --build
+                    docker system prune -f
+                
