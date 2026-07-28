@@ -18,10 +18,10 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
             <div className={`fixed inset-y-0 right-0 z-50 bg-carbon-side shadow-2xl border-l border-carbon-card transform transition-transform duration-300 ease-in-out w-full md:w-1/3 flex-col
             ${ isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className='p-6 flex items-center justify-between border-b border-carbon-card'>
-                    <h2 className='text-xl font-bold tracking-widest text-neutral uppercase'>
+                    <h2 className='text-xl font-bold tracking-widest text-text-primary uppercase'>
                         System Alerts
                     </h2>
-                    <button type="button" onClick={onClose} className='text-neutral/50 hover:text-neutral transition-colors'>
+                    <button type="button" onClick={onClose} className='text-text-primary/50 hover:text-text-primary transition-colors'>
                         Close
                     </button>
                 </div>
@@ -32,19 +32,19 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
                         <h3 className='text-red-500 font-bold mb-5'>
                             Verified Fire Alert
                         </h3>
-                        <p className='text text-neutral/70 mb-3'>
+                        <p className='text text-text-primary/70 mb-3'>
                             Location: ...
                         </p>
-                        <p className='text text-neutral/70 mb-3'>
+                        <p className='text text-text-primary/70 mb-3'>
                             Distance: ...
                         </p>
-                        <p className='text text-neutral/70 mb-5'>
+                        <p className='text text-text-primary/70 mb-5'>
                             Severity: ...
                         </p>
                         <Button className='w-full text-xs'>
                             View on Map
                         </Button>
-                    </div>                
+                    </div>
                 </div>
             </div>
         </>

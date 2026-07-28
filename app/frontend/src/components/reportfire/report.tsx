@@ -13,7 +13,7 @@ const FireMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-        <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
+        <span className="text-text-primary/40 font-display tracking-widest text-sm uppercase">
           Loading...
         </span>
       </div>
@@ -128,7 +128,7 @@ export default function ReportPage() {
       <div className="flex flex-col p-6">
         <header className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
+            <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
               Report a fire
             </h1>
             <div className="mt-2">
@@ -143,7 +143,7 @@ export default function ReportPage() {
           <div className="xl:col-span-8 flex flex-col gap-4">
             <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                <span className="font-bold text-m tracking-wide text-neutral/80 uppercase font-display">
+                <span className="font-bold text-m tracking-wide text-text-primary/80 uppercase font-display">
                   Live Map
                 </span>
               </div>
@@ -159,7 +159,7 @@ export default function ReportPage() {
             </div>
 
             <div className="flex flex-col">
-              <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
+              <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase mb-3">
                 Map Legend
               </h2>
               <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm p-4 shadow-xl">

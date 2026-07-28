@@ -58,9 +58,9 @@ export default function ComponentsSection() {
           Environment Widgets
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
+          {/* <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
             <EnvironmentWidgets />
-          </div>
+          </div> */}
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: '#A0ACC0' }}>Wind  Temperature  Fire Danger  Humidity - used on the Firefighter Dashboard</p>
           </div>
@@ -73,9 +73,9 @@ export default function ComponentsSection() {
           Nearby Reports
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
+          {/* <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
             <NearbyReports />
-          </div>
+          </div> */}
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: '#A0ACC0' }}>Scrollable list - each row shows location, distance, time, and a Badge - used on Firefighter Dashboard</p>
           </div>
@@ -88,9 +88,9 @@ export default function ComponentsSection() {
           Quick Actions
         </p>
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-          <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
+          {/* <div style={{ padding: '28px', backgroundColor: 'var(--color-carbon-card)' }}>
             <QuickActions />
-          </div>
+          </div> */}
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-input)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '14px', color: '#A0ACC0' }}>Action grid on the Firefighter Dashboard - each action maps to a primary workflow</p>
           </div>

@@ -2,8 +2,8 @@ import React from "react";
 
 export default function MapKey() {
     return (
-        <div 
-            className="flex items-center gap-6 px-4 py-2 text-xs flex-wrap font-body text-neutral/45 bg-carbon-side border-t border-carbon-stroke"
+        <div
+            className="flex items-center gap-6 px-4 py-2 text-xs flex-wrap font-body text-text-primary/45 bg-carbon-side border-t border-carbon-stroke"
             style={{ borderTopWidth: '1px' }}
         >
             {/* Active burn area */}
@@ -26,7 +26,7 @@ export default function MapKey() {
 
             {/* Drag handle */}
             <span className="flex items-center gap-1.5">
-                <span className="text-base leading-none font-light font-mono text-neutral/70">
+                <span className="text-base leading-none font-light font-mono text-text-primary/70">
                     +
                 </span>
                 Drag handle

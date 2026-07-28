@@ -19,30 +19,30 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
-                    <h3 className="font-display font-bold text-xl tracking-wider text-neutral uppercase">Role request - {request.user.name } {request.user.surname}</h3>
-                    <button onClick={onClose} className="text-neutral/40 hover:text-neutral transition-colors">✕</button>
+                    <h3 className="font-display font-bold text-xl tracking-wider text-text-primary uppercase">Role request - {request.user.name } {request.user.surname}</h3>
+                    <button onClick={onClose} className="text-text-primary/40 hover:text-text-primary transition-colors">✕</button>
                 </div>
 
                 {/* Info grid */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
                     <div>
-                        <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Full Name</p>
-                        <p className="text-sm font-semibold text-neutral">{request.user.name } {request.user.surname}</p>
+                        <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Full Name</p>
+                        <p className="text-sm font-semibold text-text-primary">{request.user.name } {request.user.surname}</p>
                     </div>
                     <div>
-                        <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Account Created</p>
-                        <p className="text-sm font-semibold text-neutral">{request.created_at ? new Date(request.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }): '—'}</p>
+                        <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Account Created</p>
+                        <p className="text-sm font-semibold text-text-primary">{request.created_at ? new Date(request.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }): '—'}</p>
                     </div>
                     <div>
-                        <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Email</p>
-                        <p className="text-sm font-semibold text-neutral">{request.user.email ?? '—'}</p>
+                        <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Email</p>
+                        <p className="text-sm font-semibold text-text-primary">{request.user.email ?? '—'}</p>
                     </div>
                     <div>
-                    <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Status</p>
+                    <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Status</p>
                     {(() => {
                         const badge = statusBadge[request.status] ?? {};
                         return (
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ?? 'bg-carbon-card'} ${badge.text ?? 'text-neutral/50'} ${badge.border ?? 'border-carbon-card'}`}>
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ?? 'bg-carbon-card'} ${badge.text ?? 'text-text-primary/50'} ${badge.border ?? 'border-carbon-card'}`}>
                                 {request.status}
                             </span>
                         );
@@ -55,11 +55,11 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 {/* Current role */}
                 <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
                     <div>
-                        <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Current Role</p>
-                        <p className="text-sm font-semibold text-neutral">{request.current_role}</p>
+                        <p className="text-xs font-bold tracking-widest text-text-text-primary/40 uppercase mb-1">Current Role</p>
+                        <p className="text-sm font-semibold text-text-primary">{request.current_role}</p>
                     </div>
                         <div>
-                            <p className="text-xs font-bold tracking-widest text-neutral/40 uppercase mb-1">Requested Role</p>
+                            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Requested Role</p>
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
                                 {request.requested_role}
                             </span>

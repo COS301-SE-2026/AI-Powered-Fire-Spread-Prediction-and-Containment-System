@@ -54,7 +54,7 @@
 @theme {
   --color-char: var(--color-base-content);
   --color-deep: #5C1800;
-  --color-ember: var(--color-neutral);
+  --color-ember: var(--color-error);
   --color-ignite: var(--color-primary);
   --color-flare: var(--color-secondary);
   --color-torch: #FFAA00;
