@@ -19,7 +19,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
     const router = useRouter();
 
     return (
-        <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialiased relative z-0">
+        <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialiased relative z-0">
             {/* Atmospheric Background Blooms */}
             <div className="global-atmos">
                 <div className="ga-bloom-primary"></div>
@@ -37,8 +37,8 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                 </div>
 
                 <div className="w-full text-center mt-6 mb-2 px-2 shrink-0">
-                    <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block group-hover:hidden whitespace-nowrap">MAIN</span>
-                    <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase hidden group-hover:block text-left px-4 whitespace-nowrap">MAIN MENU</span>
+                    <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase block group-hover:hidden whitespace-nowrap">MAIN</span>
+                    <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase hidden group-hover:block text-left px-4 whitespace-nowrap">MAIN MENU</span>
                 </div>
 
                 <div className="w-full grow overflow-y-auto overflow-x-hidden">
@@ -48,8 +48,8 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                             return (
                                 <li className="w-full" key={href}>
                                     <Link href={href} className={`py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left ${isActive ? 'bg-smoke-hover' : ''}`}>
-                                        <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-neutral/70 group-hover:text-ignite'}`}/>
-                                        <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                        <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-netext-primary/70 group-hover:text-ignite'}`}/>
+                                        <span className="text-sm font-semibold tracking-wide text-text-primary hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                                             {label}
                                         </span>
                                     </Link>
@@ -58,8 +58,8 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                         })}
 
                         <div className="w-full text-center mt-4 mb-1 px-2 border-t border-carbon-card pt-4 shrink-0">
-                            <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block group-hover:hidden whitespace-nowrap">SETTINGS</span>
-                            <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase hidden group-hover:block text-left px-4 whitespace-nowrap">APP SETTINGS</span>
+                            <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase block group-hover:hidden whitespace-nowrap">SETTINGS</span>
+                            <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase hidden group-hover:block text-left px-4 whitespace-nowrap">APP SETTINGS</span>
                         </div>
 
                         {settingsMenuItem.map(({label, href, icon: Icon}) => {
@@ -69,7 +69,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                                 <li className="w-full mt-auto" key={href}>
                                     <Link href={href} className={`py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left ${isActive ? 'bg-smoke-hover' : ''}`}>
                                         <Icon className={`size-6 shrink-0 transition-colors ${isActive ? 'text-ignite' : 'text-neutral/70 group-hover:text-ignite'}`}/>
-                                        <span className="text-sm font-semibold tracking-wide text-neutral hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+                                        <span className="text-sm font-semibold tracking-wide text-text-primary hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                                             {label}
                                         </span>
                                     </Link>
@@ -80,7 +80,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                 </div>
 
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-4 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side">
-                    <button 
+                    <button
                         onClick={async () => {
                             try {
                                 await fetch('/api/auth/logout',
@@ -94,7 +94,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                             }
                             router.replace('/login');
                         }}
-                        className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        className="p-2 text-text-primary/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                             <LogOut className="size-6 shrink-0" />
                         <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
                     </button>

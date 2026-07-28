@@ -13,7 +13,7 @@ export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label
     );
 
     const className =
-        "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-neutral/80 hoverLtext-neutral";
+        "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-text-primary/80 hoverLtext-neutral";
 
     return href ? (
         <Link href={href} className={className}>
@@ -38,7 +38,7 @@ export function SideBar({
     hideLoginRegister?: boolean;
 }>) {
     return(
-        <div className="flex min-h-screen bg-carbon-bg text-neutral font-body antialised realtive z-0">
+        <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialised realtive z-0">
             {/* background*/}
             <div className="global-atmos">
                 <div className="ga-bloom-primary"></div>
@@ -61,13 +61,13 @@ export function SideBar({
 
                     {/* settings section */}
                     <div className="w-full border-t border-carbon-card bg-carbon-side shrink-0 flex flex-col px-3 py-4 gap-2">
-                        <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase block text-center group-hover:hidden">SYS</span>
-                        <span className="text-[10px] font-bold tracking-widest text-neutral/40 uppercase hidden group-hover:block text-left px-2">SYSTEM SETTINGS</span>
+                        <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase block text-center group-hover:hidden">SYS</span>
+                        <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase hidden group-hover:block text-left px-2">SYSTEM SETTINGS</span>
                     </div>
 
                     {!hideLogout && (
                         <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-                            <Settings className="size-6 text-neutral/70 group-hover:text-ignite shrink-0 transition-colors" />
+                            <Settings className="size-6 text-text-primary/70 group-hover:text-ignite shrink-0 transition-colors" />
                             <span className="text-sm font-semibold hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
                             Global Settings
                             </span>
@@ -83,9 +83,9 @@ export function SideBar({
                             <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
                         </Link>
                     )}
-                    
+
                     {!hideLogout && (
-                        <Link href="/"className="p-2 text-neutral/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        <Link href="/"className="p-2 text-text-primary/50 hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                             <LogOut className="size-6 shrink-0" />
                             <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
                         </Link>

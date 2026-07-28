@@ -16,14 +16,14 @@ export function GuestActions({ onRecenter }: GuestActionsProps) {
       <button
         type="button"
         onClick={handleReportFire}
-        className="px-4 py-2 text-m font-medium rounded transition-colors bg-carbon-side/40 text-neutral/70 hover:bg-carbon-side/60"
+        className="px-4 py-2 text-m font-medium rounded transition-colors bg-carbon-side/40 text-text-primary/70 hover:bg-carbon-side/60"
       >
         🔥 Report Fire
       </button>
       <button
         type="button"
         onClick={onRecenter}
-        className="px-4 py-2 text-m font-medium rounded transition-colors bg-carbon-side/40 text-neutral/70 hover:bg-carbon-side/60"
+        className="px-4 py-2 text-m font-medium rounded transition-colors bg-carbon-side/40 text-text-primary/70 hover:bg-carbon-side/60"
       >
         🏡 Recenter
       </button>

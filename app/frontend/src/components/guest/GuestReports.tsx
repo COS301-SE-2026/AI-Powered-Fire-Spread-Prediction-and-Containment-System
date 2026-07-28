@@ -18,7 +18,7 @@ export function GuestReports({ reports }: {readonly reports: Report[] }) {
       pending: 'bg-torch/20 text-torch border border-torch/35',
       received: 'bg-humidity/20 text-humidity border border-humidity/35',
     };
-    return map[s.toLowerCase()] || 'bg-carbon-card text-neutral/50';
+    return map[s.toLowerCase()] || 'bg-carbon-card text-text-primary/50';
   };
 
   return (
