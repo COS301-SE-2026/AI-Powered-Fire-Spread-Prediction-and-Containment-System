@@ -3,7 +3,7 @@ import { SideBarLayout } from '../../components/demoSidebar';
 import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import Button from '../../components/Button';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
-import { FireMap } from '../../components/DynamicFiremap';
+import { FireMap } from '../../components/DynamicFirefighterMap';
 
 export default function GuestPublicDashboard() {
     const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);

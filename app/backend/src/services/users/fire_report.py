@@ -14,13 +14,18 @@ def calc_size(radius: float) -> float:
     radius_m = radius * 1000
     return round((math.pi * radius_m **2) / 10_000, 1)
 
-def get_fire_reports(db: Session):
-    results = db.query(
+def get_fire_reports(db: Session, user_id: Optional[str] = None):
+    query = db.query(
         FireReports,
         func.ST_Y(FireReports.location_geom).label('lat'),
         func.ST_X(FireReports.location_geom).label('lng')
-    ).outerjoin(FireReports.user).all()
+    ).outerjoin(FireReports.user)
 
+    if user_id:
+        query = query.filter(FireReports.user_id == user_id)
+
+    results = query.all()
+    
     if not results:
         return []
 
