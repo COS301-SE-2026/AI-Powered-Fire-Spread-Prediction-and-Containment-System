@@ -1,6 +1,6 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { NearbyReports } from '../../components/firefighter/nearbyReports';
+import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 
 const PublicFireMap = dynamic(
     () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -15,6 +15,7 @@ const PublicFireMap = dynamic(
 );
 
 export default function MapView() {
+    const { userLocation, nearbyFires } = useNearbyFires();
     return (
         <div className="flex flex-col p-6">
             
@@ -36,7 +37,7 @@ export default function MapView() {
                     
                     {/*Map*/}
                     <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[40rem] w-full shadow-md">
-                        <PublicFireMap />
+                        <PublicFireMap lat={userLocation.lat} lng={userLocation.lng} drawMode={false} onDrawComplete={() => {}} clearDrawings={0}/>
                     </div>            
                 </div>
 
@@ -51,7 +52,7 @@ export default function MapView() {
                         className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto" 
                         style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
                     >
-                        <NearbyReports />
+                        <NearbyReports nearby_fires={nearbyFires}/>
                     </div>
                 </div>
             </div>
