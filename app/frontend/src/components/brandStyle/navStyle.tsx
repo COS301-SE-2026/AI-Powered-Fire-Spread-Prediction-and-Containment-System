@@ -1,4 +1,4 @@
-const className =  "py-2.5 px-4 rounded-lg flex items-center text-sm font-medium tracking-wide text-neutral/80 hover:text-neutral hover:bg-smoke-hover active:scale-[0.98] transition-all";
+const className =  "py-2.5 px-4 rounded-lg flex items-center text-sm font-medium tracking-wide text-text-primary/80 hover:text-text-primary hover:bg-smoke-hover active:scale-[0.98] transition-all";
 
 export default function StyleGuideNav() {
   return (
