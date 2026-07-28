@@ -44,5 +44,3 @@ artifact_store/ignition/
 *.venv
 
 app/datasets/raw_data/
-=======
->>>>>>> c93db7935704d603b54e364abceb66b7d7ef2b7f
