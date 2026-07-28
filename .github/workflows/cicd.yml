@@ -147,7 +147,7 @@ jobs:
         run: yarn playwright install --with-deps
 
       - name: Run Playwright Tests
-        run: yarn playwright test
+        run: yarn playwright test --config=testing_config/playwright.config.ts
 
       - name: Upload Playwright Report
         if: always()
