@@ -36,7 +36,7 @@ export default function GuestPublicDashboard() {
                 setReports(data.nearby_reports);
             }catch(err){
                 console.error("Dashboard fetch error", err);
-            }  
+            }
         };
         fetchData();
     },[location]);
@@ -53,10 +53,10 @@ export default function GuestPublicDashboard() {
         {/* Header */}
         <header className="mb-4 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
+            <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
               Incident Map
             </h1>
-            <p className="text-sm text-neutral/50 font-medium">Public Fire Map View</p>
+            <p className="text-sm text-text-primary/50 font-medium">Public Fire Map View</p>
           </div>
         </header>
 
@@ -75,7 +75,7 @@ export default function GuestPublicDashboard() {
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                  <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
+                  <span className="text-text-primary/40 font-display tracking-widest text-sm uppercase">
                     Initializing Map
                   </span>
                 </div>
@@ -91,7 +91,7 @@ export default function GuestPublicDashboard() {
 
           {/* Right column – Nearby Reports */}
           <div className="xl:col-span-4 flex flex-col gap-3">
-            <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase">Nearby Reports</h2>
+            <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase">Nearby Reports</h2>
             <div
               className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto"
               style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}

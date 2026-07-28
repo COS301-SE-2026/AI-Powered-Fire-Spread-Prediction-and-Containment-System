@@ -13,7 +13,7 @@ export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label
     );
 
     const className =
-        "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-text-primary/80 hoverLtext-neutral";
+        "py-2.5 px=4 w-full rounded-lg flex items-center justify-center group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-text-primary/80 hoverLtext-text-primary";
 
     return href ? (
         <Link href={href} className={className}>
@@ -78,7 +78,7 @@ export function SideBar({
                 {/* footer */}
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-2 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
                     {!hideLoginRegister && (
-                        <Link href="/" className="p-2 text-neutral hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        <Link href="/" className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                             <UserCircle className="size-6 shrink-0 text-ignite" />
                             <span className="text-sm font-semibold hidden group-hover:inline">Login / Register</span>
                         </Link>
