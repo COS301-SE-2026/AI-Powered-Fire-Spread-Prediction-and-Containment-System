@@ -8,7 +8,7 @@ interface StatCardProps {
     iconColor?: string;
 }
 
-function StatCard({label, value, icon, iconColor = "bg-base-100"}: StatCardProps) {
+export function StatCard({label, value, icon, iconColor = "bg-base-100"}: StatCardProps) {
     return(
         <div className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke w-full h-full">
             {/* Icon wrapper */}
