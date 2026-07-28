@@ -11,47 +11,52 @@
   default: true;
   color-scheme: dark;
 
-  --color-primary: #E84500;
-  --color-primary-content: #EDEAE5;
+  --color-primary: #fd5d19;
+  --color-primary-content: #fcfde7;
 
-  --color-secondary: #9C2D00;
-  --color-secondary-content: #EDEAE5;
+  --color-secondary: #fe8024;
+  --color-secondary-content: #fcfde7;
 
-  --color-accent: #FFAA00;
-  --color-accent-content: #1A0500;
+  --color-accent: #fcba3e;
+  --color-accent-content: #1a0500;
 
-  --color-neutral: #ffffff;
-  --color-neutral-content: #151A26;
+  --color-neutral: #1e2436;
+  --color-neutral-content: #ffffff;
 
   --color-base-100: #080B12;
   --color-base-200: #0C0F1A;
   --color-base-300: #101420;
-  --color-base-content: #EDEAE5;
+  --color-base-content: #ffffff;
 
-  --color-info: #378ADD;
+  --color-info: #83b8fb;
   --color-info-content: #080B12;
 
-  --color-warning: #FFAA00;
-  --color-warning-content: #C98B00;
+  --color-warning: #ffc100;
+  --color-warning-content: #1a0500;
 
-  --color-success: #1A7A3A;
-  --color-success-content: #22C55E;
+  --color-success: #2bb75a;
+  --color-success-content: #ffffff;
 
-  --color-error: #E84500;
-  --color-error-content: #FF6B2B;
+  --color-error: #eb2a2b;
+  --color-error-content: #ffffff;
 
-  --radius-selector: 2px;
-  --radius-field: 2px;
-  --radius-box: 4px;
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
 }
 
 /*Use for interactive states, severity levels*/
 @theme {
-  --color-char: #1A0500;
+  --color-char: var(--color-base-content);
   --color-deep: #5C1800;
-  --color-ember: #9C2D00;
-  --color-ignite: #E84500;
-  --color-flare: #FF6B2B;
+  --color-ember: var(--color-neutral);
+  --color-ignite: var(--color-primary);
+  --color-flare: var(--color-secondary);
   --color-torch: #FFAA00;
   --color-flash: #FFE566;
 
@@ -89,11 +94,11 @@
   --color-status-error: var(--color-ignite);
   --color-status-info: var(--color-wind);
 /*---------------------------------------------------------------*/
- 
+
   --color-text-primary: #EDEAE5;
   --color-text-muted: #A0ACC0;
-  --color-text-disabled: #667085;
-  --color-text-inverse: var(--color-char);
+  --color-text-disabled: #7a87a2;
+  --color-text-inverse: #1a0500;
 
   --font-display: 'Barlow Condensed', sans-serif;
   --font-body: 'Exo 2', sans-serif;
@@ -147,8 +152,8 @@
   }
 
   p {
-    margin: 0; 
-    line-height: 1.7;      
+    margin: 0;
+    line-height: 1.7;
   }
 
     label,
@@ -186,9 +191,9 @@
 
   .ga-bloom-primary {
     position: absolute;
-    top: -10%; 
+    top: -10%;
     right: -8%;
-    width: 75vw; 
+    width: 75vw;
     height: 75vh;
     background: radial-gradient(ellipse at 60% 30%, rgba(232, 69, 0, 0.13) 0%, transparent 70%);
     border-radius: 50%;
@@ -197,9 +202,9 @@
 
   .ga-bloom-secondary {
     position: absolute;
-    top: 35%; 
+    top: 35%;
     left: -8%;
-    width: 35vw; 
+    width: 35vw;
     height: 40vh;
     background: radial-gradient(ellipse at 30% 50%, rgba(255, 107, 43, 0.07) 0%, transparent 70%);
     border-radius: 50%;
