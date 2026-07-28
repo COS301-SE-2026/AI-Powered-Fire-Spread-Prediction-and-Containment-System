@@ -69,21 +69,21 @@
 #         matched_data = None
 #         for stub, data in model_map.items():
 #             stub_name= stub.__name__.lower().strip("_")
-            
+
 #             if prod == stub_name:
 #                 matched_data = data
 #                 break
-        
+
 #         chain_query = MagicMock()
 #         chain_query.all.return_value = (
 #             matched_data if isinstance(matched_data, list) else ([] if matched_data is None else [matched_data])
 #         )
-        
+
 #         filter_mock = MagicMock()
 #         filter_mock.first.return_value = matched_data
 #         chain_query.filter.return_value = filter_mock
 #         return chain_query
-    
+
 #     db.query.side_effect = query
 #     return db
 
@@ -109,7 +109,7 @@
 #         assert result["total"] == 0
 #         assert result["data"] == []
 
-    
+
 # # Test approve_role_request
 # class TestApproveRoleRequest:
 #     def test_approve_firefighter_with_valid_license(self):
@@ -140,16 +140,16 @@
 #         db = query_side_effect(make_db(), {roleRequestDB: req, _User: user})
 
 #         result = approve_role_request("req-1", db = db)
-        
+
 #         assert result.status == "approved"
 #         assert user.role == "admin"
-        
+
 #     def test_approve_nonexistent_request(self):
 #         db = query_side_effect(make_db(), {roleRequestDB: None})
 
 #         with pytest.raises(HTTPException) as exc:
 #             approve_role_request("no-such-id", db = db)
-        
+
 #         assert exc.value.status_code == 404
 
 #     def test_approved_already_approved(self):
@@ -167,7 +167,7 @@
 
 #         with pytest.raises(HTTPException) as exc:
 #             approve_role_request("req-1", db = db)
-        
+
 #         assert exc.value.status_code == 400
 
 #     def test_approve_with_no_matching_user(self):
@@ -176,7 +176,7 @@
 #         db = query_side_effect(make_db(), {roleRequestDB: req, _User: None})
 
 #         with pytest.raises(HTTPException) as exc:
-#             approve_role_request("req-1", db = db) 
+#             approve_role_request("req-1", db = db)
 
 #         assert exc.value.status_code == 404
 
@@ -207,7 +207,7 @@
 
 #             with pytest.raises(HTTPException) as exc:
 #                 reject_role_request("req-1", db = db)
-            
+
 #             assert exc.value.status_code == 400
 
 
@@ -247,7 +247,7 @@
 
 #         with pytest.raises(HTTPException) as exc:
 #             revoke_role_request("req-1", db = db)
-        
+
 #         assert exc.value.status_code == 400
 
 #     def test_revoke_with_no_matching_user(self):
@@ -257,5 +257,5 @@
 
 #         with pytest.raises(HTTPException) as exc:
 #             revoke_role_request("req-1", db = db)
-        
+
 #         assert exc.value.status_code == 404

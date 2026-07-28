@@ -1,7 +1,9 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+
 from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, sessionmaker
+
 load_dotenv()
 
 DATABASE_URL = os.environ["DATABASE_URL"]
@@ -22,9 +24,9 @@ def get_db():
 
 def init_db():
     """Create all tables on startup."""
-    from models.users import User
-    from models.role_request import RoleRequest
-    from models.reported_fires import FireReports
     from models.containment_lines import ContainmentLines
+    from models.reported_fires import FireReports
+    from models.role_request import RoleRequest
+    from models.users import User
 
     Base.metadata.create_all(bind=engine)
