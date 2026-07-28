@@ -21,7 +21,7 @@ services:
     
     restart: unless-stopped
 
-  test-minio:
+    test-minio:
     image: minio/minio:latest
     container_name: fireaway_test_minio
     environment:

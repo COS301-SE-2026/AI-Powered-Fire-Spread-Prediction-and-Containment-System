@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import React from 'react';
 
 export interface ColourPair {
     readonly label: string;
@@ -33,7 +33,7 @@ export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>){
     );
 }
 
-export function ColourPairTable({ children }: Readonly<{ children: ReactNode }>) {
+export function ColourPairTable({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <div className="overflow-x-auto border border-carbon-stroke">
             <table className="table border-collapse">

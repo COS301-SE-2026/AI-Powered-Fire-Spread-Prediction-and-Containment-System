@@ -7,6 +7,8 @@ const config = {
     '**/guests/**/*.spec.@(js|ts|tsx)',
     '**/firefighter/**/*.spec.@(js|ts|tsx)',
     '**/registeredUser/**/*.spec.@(js|ts|tsx)',
+    '**/admin/**/*.spec.@(js|ts|tsx)',
+
   ],
   timeout: 30000,
   expect: {

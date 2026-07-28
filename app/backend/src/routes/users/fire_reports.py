@@ -11,9 +11,9 @@ from dependencies.auth import get_current_user_optional, get_current_user
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
 @router.get("/reported-fires", response_model=List[FireReportMapResponse])
-def get_reported_fires(db: Annotated[Session, Depends(get_db)], current_user: Annotated[User, Depends(get_current_user)],):
-    return fire_report.get_fire_reports(db, user_id=current_user.id)
-
+def get_reported_fires(db: Annotated[Session, Depends(get_db)], current_user: Annotated[Optional[User], Depends(get_current_user_optional)]):
+    user_id = current_user.id if current_user else None
+    return fire_report.get_fire_reports(db, user_id=user_id)
 @router.post("/reported-fires", response_model=FireReportDetailResponse)
 def create_fire_report(report:FireReportCreate, request:Request, db: Annotated[Session, Depends(get_db)], current_user: Annotated[Optional[User], Depends(get_current_user_optional)]):
     client_ip = request.client.host # gets users IP used mainly for guests to be able to see in a way who reported it and to be used to protect against spam

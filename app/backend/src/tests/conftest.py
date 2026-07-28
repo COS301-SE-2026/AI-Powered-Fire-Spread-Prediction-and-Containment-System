@@ -29,7 +29,7 @@ from auth import hash_password
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL",
-    "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+    "postgresql://fireaway_admin:supersecretpassword@postgres:5432/fireaway_db"
 )
 
 engine =create_engine(TEST_DB_URL)
@@ -168,20 +168,22 @@ def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.PE
 
 def seed_users_table(db):
     for data in SEED_USERS:
-        user = User(
-            id=data["id"],
-            name=data["name"],
-            surname=data["surname"],
-            email=data["email"],
-            id_number=data["id_number"],
-            license_number=data["license_number"],
-            hashed_password=hash_password(data["password"]),
-            role=data["role"],
-            is_active=True,
-            is_2fa_enabled=False,
-            totp_secret=None,
-        )
-        db.add(user)
+        existing = db.query(User).filter(User.id == data["id"]).first()
+        if not existing:
+            user = User(
+                id=data["id"],
+                name=data["name"],
+                surname=data["surname"],
+                email=data["email"],
+                id_number=data["id_number"],
+                license_number=data["license_number"],
+                hashed_password=hash_password(data["password"]),
+                role=data["role"],
+                is_active=True,
+                is_2fa_enabled=False,
+                totp_secret=None,
+            )
+            db.add(user)
     db.commit()
 
 @pytest.fixture

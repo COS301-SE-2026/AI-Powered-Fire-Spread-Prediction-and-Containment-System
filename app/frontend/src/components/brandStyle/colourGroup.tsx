@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
+import React from 'react';
 
 interface ColourGroupProps {
     readonly title: string;
-    readonly children: ReactNode;
+    readonly children: React.ReactNode;
     readonly columns: 3 | 4;
 }
 
