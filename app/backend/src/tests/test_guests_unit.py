@@ -5,7 +5,7 @@
 
 # from models.reported_fires import FireReports
 # from schemas.fire_report import FireReportCreate
-# from enums.report_status import ReportStatus 
+# from enums.report_status import ReportStatus
 
 # #testing so that the correct data is sent to mapbox to display the fires
 # #the guest page map needs to get fire report data that is correctly structured.
@@ -15,7 +15,7 @@
 #         """The valid base payload. Each test can override the fields as needed."""
 #         base = {
 #             "reference_number": "FR-2026-001",
-#             "user_id": "usr_01", 
+#             "user_id": "usr_01",
 #             "location": "LC de Villiers Sports Grounds, Hatfield",
 #             "description": "Brush fire starting near the northern fence along the road.",
 #             "lng": -25.7480,
@@ -24,7 +24,7 @@
 #             "status": ReportStatus.verified,
 #             "status_index": 2,
 #             #need to change to valid time
-#             "submitted_at": "2026-05-22T10:00:00Z", 
+#             "submitted_at": "2026-05-22T10:00:00Z",
 #         }
 #         base.update(overrides)
 #         return base
