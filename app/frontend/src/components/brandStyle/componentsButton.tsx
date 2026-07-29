@@ -1,5 +1,5 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
-import { Pencil, CirclePlay } from "lucide-react";
+import { Pencil, CirclePlay, Flame, LocateFixed } from "lucide-react";
 
 export function ButtonComponents() {
     return (
@@ -32,7 +32,7 @@ export function ButtonComponents() {
             </ComponentsGroup>
 
             <ComponentsGroup title="Button States">
-                <div className ="flex flex-wrap items-center gap-11">
+                <div className ="flex flex-wrap items-center gap-6">
                     <Labled caption="default">
                         <button className="btn btn-primary text-lg">Report Fire</button>
                     </Labled>
@@ -63,16 +63,28 @@ export function ButtonComponents() {
                             Submitting
                         </button>
                     </Labled>
-                    <Labled caption="Firefighter draw containment line">
-                        <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2">
+                    <Labled caption="Draw containment line">
+                        <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-m p-2">
                             <Pencil size={28} />
                             Draw Containment
                         </button>
                     </Labled>
-                    <Labled caption="Firefighter RUN simulation">
-                        <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2">
+                    <Labled caption="RUN simulation">
+                        <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-m p-2">
                             <CirclePlay />
                             RUN
+                        </button>
+                    </Labled>
+                    <Labled caption="Report fire">
+                        <button className="btn btn-ghost gap-2 w-32 text-sm">
+                            <Flame className="size-5" />
+                            Report Fire
+                        </button>
+                    </Labled>
+                    <Labled caption="Recenter">
+                        <button className="btn btn-ghost gap-2 w-32 text-sm">
+                            <LocateFixed className="size-5" />
+                            Report Fire
                         </button>
                     </Labled>
                 </div>
