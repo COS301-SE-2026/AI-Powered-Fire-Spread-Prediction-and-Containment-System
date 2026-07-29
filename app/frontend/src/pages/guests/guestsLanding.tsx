@@ -1,30 +1,39 @@
 'use client';
 import React, { useEffect, useState, useRef} from 'react';
 import { SideBar, NavLink } from '../../components/Sidebar';
+import dynamic from 'next/dynamic';
 import {Map, Flame, CircleAlert} from 'lucide-react'
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 import GuestMap,{ GuestMapHandle } from '../../components/guest/GuestMap';
 import { GuestReports } from '../../components/guest/GuestReports';
 import { GuestActions } from '../../components/guest/GuestActions';
 
+const PublicFireMap = dynamic(
+  () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex-1 flex items-center justify-center h-full w-full">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    )
+  }
+);
+
 export default function GuestPublicDashboard() {
   const defaultLocation = { lat: -25.7479, lng: 28.2293 };
   const [location, setLocation] = useState(defaultLocation);
   const [envData, setEnvData] = useState(null);
   const [reports, setReports] = useState([]);
-  const [isClient, setIsClient] = useState(false);
-  const mapRef = useRef<GuestMapHandle>(null);
+
+  //get user location
   useEffect(() => {
-    setIsClient(true);
-  }, []);
-    //get user location
-    useEffect(() => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-                () => {}
-            );
-        }
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+              pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+              () => {}
+          );
+      }
     }, []);
     //fetch dashboard data
     useEffect(()=>{
@@ -37,21 +46,26 @@ export default function GuestPublicDashboard() {
                 setReports(data.nearby_reports);
             }catch(err){
                 console.error("Dashboard fetch error", err);
-            }  
+            }
         };
         fetchData();
     },[location]);
+
     const handleRecenter = () => {
-      console.log('Recenter called, mapRef.current:', mapRef.current);
-      if (mapRef.current && location) {
-        mapRef.current.recenter(location.lat, location.lng);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => {}
+        );
+      } else {
+      setLocation({ ...defaultLocation });
       }
     };
 
     const guestNavItems =(
         <>
-            <NavLink icon={Map} label="Live Map" href="/dashboard/guest"/>
-            <NavLink icon={CircleAlert} label="Report Fire" href="/dashboard/guest"/>
+            <NavLink icon={Map} label="Live Map" href="/guests/guestsLanding"/>
+            <NavLink icon={CircleAlert} label="Report Fire" href="/guests/guestsReportFire"/>
         </>
       );
 
@@ -73,21 +87,13 @@ export default function GuestPublicDashboard() {
           {/* Left column */}
           <div className="xl:col-span-7 flex flex-col gap-6">
             <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[33rem] w-full shadow-md">
-                            {isClient ? (
-                <GuestMap
-                  ref={mapRef}
-                  reports={reports}
-                  centerLat={location.lat}
-                  centerLng={location.lng}
-                  user_location={location}
+                <PublicFireMap
+                  lat={location.lat}
+                  lng={location.lng}
+                  drawMode={false}
+                  onDrawComplete={() => {}}
+                  clearDrawings={0}
                 />
-              ) : (
-                <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-                  <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-                    Initializing Map
-                  </span>
-                </div>
-              )}
             </div>
             <div className="grid grid-cols-2 gap-2">
               <GuestEnvironment data={envData} />
