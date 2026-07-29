@@ -5,9 +5,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -17,7 +17,7 @@ for cand in (here.parents[2] / "backend_src", here.parents[2]):
     if cand.is_dir() and str(cand) not in sys.path:
         sys.path.insert(0, str(cand))
 
-from ai.schema import UNBURNED, BURNING, BURNED, FEATURES, LABEL, DIST_CAP
+from ai.schema import UNBURNED, BURNING, BURNED, FEATURES, LABEL
 from ai.features import grid_to_fmatrix
 
 EARTH_RADIUS_KM = 6371.0088
@@ -94,15 +94,15 @@ def build_fire_events(detections: pd.DataFrame, fire_ids: np.ndarray, bbox_buffe
         ))
     return events
 
-def rasterize_tick(detections_today: pd.DataFrame, event: FireEvent, H: int, W: int) -> np.ndarray:
-    """bool H W grid"""
-    hit = np.zeros((H, W), dtype=bool)
+def rasterize_tick(detections_today: pd.DataFrame, event: FireEvent, height: int, width: int) -> np.ndarray:
+    """bool height width grid"""
+    hit = np.zeros((H, width), dtype=bool)
     if detections_today.empty:
         return hit
-    col = ((detections_today["lon"].to_numpy() - event.min_lon) / (event.max_lon - event.min_lon) * W).astype(int)
-    row = ((event.max_lat - detection_today["lat"].to_numpy()) / (event.max_lat - event.min_lat) * H).astype(int)
-    col = np.clip(col, 0, W-1)
-    row = np.clip(row, 0, H-1)
+    col = ((detections_today["lon"].to_numpy() - event.min_lon) / (event.max_lon - event.min_lon) * width).astype(int)
+    row = ((event.max_lat - detection_today["lat"].to_numpy()) / (event.max_lat - event.min_lat) * height).astype(int)
+    col = np.clip(col, 0, width-1)
+    row = np.clip(row, 0, height-1)
     hit[row, col] = True
     return hit
 
@@ -119,14 +119,17 @@ class ConstantWeatherProvider:
     Swap in historical weather data"""
  
     def __init__(self, wind_u=2.0, wind_v=1.0, rel_humidity=30.0, temperature=28.0):
-        self.defaults = dict(wind_u=wind_u, wind_v=wind_v, rel_humidity=rel_humidity, temperature=temperature)
+        self.defaults = {
+            "wind_u": wind_u, "wind_v": wind_v, "rel_humidity": rel_humidity, "temperature": temperature,
+        }
  
-    def prepare_for_fire(self, event: "FireEvent", target_shape: tuple[int, int]) -> None:
+    def prepare_for_fire(self, event: FireEvent, target_shape: tuple[int, int]) -> None:
+        #consts req no preface
         pass  # nothing to prefetch - values are fixed
  
     def fetch(self, min_lon, min_lat, max_lon, max_lat, timestamp, target_shape) -> dict[str, np.ndarray]:
-        H, W = target_shape
-        return {k: np.full((H, W), v, dtype=np.float32) for k, v in self.defaults.items()}
+        height, width = target_shape
+        return {k: np.full((height, width), v, dtype=np.float32) for k, v in self.defaults.items()}
  
  
 class HistoricalWeatherProvider:
@@ -135,7 +138,8 @@ class HistoricalWeatherProvider:
     loop runs gets for whole duration of fire. Caches this for per tick
     retruns : wind_u, wind_v, rel_humidity, temperature"""
  
-    def prepare_for_fire(self, event: "FireEvent", target_shape: tuple[int, int]) -> None:
+    def prepare_for_fire(self, event: FireEvent, target_shape: tuple[int, int]) -> None:
+        #interface hook
         pass
  
     def fetch(self, min_lon: float, min_lat: float, max_lon: float, max_lat: float,
@@ -247,9 +251,9 @@ def build_rows_for_fire(
     weather_provider,
     target_shape: tuple[int, int],
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Returns (X_fire [n_rows, len(FEATURES)], y_fire [n_rows])"""
-    H, W = target_shape
-    burn_state = np.full((H, W), UNBURNED, dtype=np.int64)
+    """Returns (x_all [n_rows, len(FEATURES)], y_fire [n_rows])"""
+    height,width = target_shape
+    burn_state = np.full((height, width), UNBURNED, dtype=np.int64)
  
     weather_provider.prepare_for_fire(event, target_shape)
  
@@ -257,7 +261,7 @@ def build_rows_for_fire(
  
     for t_idx, tick in enumerate(event.ticks[:-1]):  #last tick
         detections_today = event.detections[event.detections["timestamp"].dt.floor("D") == tick]
-        detected_today_mask = rasterize_tick(detections_today, event, H, W)
+        detected_today_mask = rasterize_tick(detections_today, event, height, width)
  
         weather_grids = weather_provider.fetch(
             event.min_lon, event.min_lat, event.max_lon, event.max_lat, tick, target_shape,
@@ -266,15 +270,15 @@ def build_rows_for_fire(
         #candidate row
         eligible = burn_state == UNBURNED
         if eligible.any():
-            Xg = grid_to_fmatrix(weather_grids, static_grids, burn_state)
+            x_grid = grid_to_fmatrix(weather_grids, static_grids, burn_state)
  
             next_tick = event.ticks[t_idx + 1]
             detections_next = event.detections[event.detections["timestamp"].dt.floor("D") == next_tick]
-            detected_next_mask = rasterize_tick(detections_next, event, H, W)
+            detected_next_mask = rasterize_tick(detections_next, event, height, width)
             ignited_next = (eligible & detected_next_mask).ravel()
  
             elig_flat = eligible.ravel()
-            X_parts.append(Xg[elig_flat])
+            X_parts.append(x_grid[elig_flat])
             y_parts.append(ignited_next[elig_flat].astype(np.float32))
  
         #burn_state for next detection
@@ -331,7 +335,7 @@ def main() -> None:
     manifest = StaticSourceManifest.from_csv(args.manifest)
     target_shape = tuple(args.target_shape)
  
-    X_all, y_all, fid_all = [], [], []
+    x_all, y_all, fid_all = [], [], []
     skipped = []
     for event in events:
         try:
@@ -344,35 +348,38 @@ def main() -> None:
         static_grids = load_static_grids_for_fire(
             manifest_row, event.min_lon, event.min_lat, event.max_lon, event.max_lat, target_shape,
         )
-        X_fire, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
+        x_all, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
         if len(y_fire) == 0:
             print(f"  [empty] fire_id={event.fire_id}: no eligible rows (single-tick fire?)")
             continue
  
-        X_all.append(X_fire)
+        x_all.append(x_all)
         y_all.append(y_fire)
         fid_all.append(np.full(len(y_fire), event.fire_id, dtype=np.int64))
         print(f"  fire_id={event.fire_id}: {len(event.ticks)} ticks, "
               f"{len(y_fire):,} rows, {y_fire.mean()*100:.2f}% positive")
  
-    if not X_all:
+    if not x_all:
         raise SystemExit("No usable fire events - nothing to write.")
  
-    X = np.concatenate(X_all, axis=0)
-    y = np.concatenate(y_all, axis=0)
+    x_matrix = np.concatenate(x_all, axis=0)
+    y_vector = np.concatenate(y_all, axis=0)
     fire_ids_out = np.concatenate(fid_all, axis=0)
  
-    print(f"\nTotal: {len(y):,} rows across {len(X_all)} fires "
+    print(f"\nTotal: {len(y):,} rows across {len(x_all)} fires "
           f"({len(skipped)} skipped for missing manifest entries)")
-    print(f"Overall positive rate: {y.mean()*100:.3f}%")
+    print(f"Overall positive rate: {y_vector.mean()*100:.3f}%")
  
-    out_path = Path(args.out)
-    np.savez_compressed(out_path, X=X, y=y, fire_ids=fire_ids_out)
+    out_path = validate_and_resolve_path(args.out)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
+
     meta_path = out_path.with_suffix(".meta.json")
     meta_path.write_text(json.dumps({
         "source_csv": args.csv,
-        "n_fires": len(X_all),
-        "n_rows": int(len(y)),
+        "n_fires": len(x_all),
+        "n_rows": int(len(y_vector)),
         "features": FEATURES,
         "label": LABEL,
         "target_shape": list(target_shape),
