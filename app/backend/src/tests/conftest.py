@@ -1,31 +1,36 @@
 import os
 import sys
 import uuid
-import pytest
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models.reported_fires import FireReports
+
 from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
+from auth import hash_password
 from db import Base, get_db
 from main import app
-from models.users import User
-from models.role_request import RoleRequest
+# models for the firefighter dashboard
+from models.containment_lines import ContainmentLines
 from models.reported_fires import FireReports
+from models.role_request import RoleRequest
+from models.users import User
+# seed data
+from seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
-    "TEST_DB_URL",
-    "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+    "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
 )
 
-engine =create_engine(TEST_DB_URL)
+engine = create_engine(TEST_DB_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -33,20 +38,29 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def create_tables():
     """Build db schema in test cluster before tests start"""
     with engine.begin() as conn:
-        #need for spacial columns
+        # need for spacial columns
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
 
-    Base.metadata.create_all(bind=engine, tables=[
-        User.__table__, 
-        RoleRequest.__table__,
-        FireReports.__table__
-    ])
+    Base.metadata.create_all(
+        bind=engine,
+        tables=[
+            User.__table__,
+            RoleRequest.__table__,
+            FireReports.__table__,
+            ContainmentLines.__table__,
+        ],
+    )
     yield
 
-    Base.metadata.drop_all(bind=engine, tables=[
-        User.__table__, 
-        RoleRequest.__table__,
-        FireReports.__table__])
+    Base.metadata.drop_all(
+        bind=engine,
+        tables=[
+            User.__table__,
+            RoleRequest.__table__,
+            FireReports.__table__,
+            ContainmentLines.__table__,
+        ],
+    )
 
 
 @pytest.fixture(scope="function")
@@ -68,6 +82,7 @@ def db():
 @pytest.fixture(scope="function")
 def client(db):
     """Overrides FastAPI app db dependency use isolated test sess"""
+
     def override_get_db():
         try:
             yield db
@@ -138,7 +153,16 @@ def make_role_request(db, user, role="firefighter", status="pending"):
     db.refresh(request)
     return request
 
-def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.pending, status_index=1, reference_number=None,):
+
+def make_report(
+    db,
+    user=None,
+    lat=-25.7479,
+    lng=28.2293,
+    status=ReportStatus.pending,
+    status_index=1,
+    reference_number=None,
+):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
         id=str(uuid.uuid4()),
@@ -156,3 +180,29 @@ def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.pe
     db.commit()
     db.refresh(report)
     return report
+
+
+def seed_users_table(db):
+    for data in SEED_USERS:
+        user = User(
+            id=data["id"],
+            name=data["name"],
+            surname=data["surname"],
+            email=data["email"],
+            id_number=data["id_number"],
+            license_number=data["license_number"],
+            hashed_password=hash_password(data["password"]),
+            role=data["role"],
+            is_active=True,
+            is_2fa_enabled=False,
+            totp_secret=None,
+        )
+        db.add(user)
+    db.commit()
+
+
+@pytest.fixture
+def seeded_fire_reports(db):
+    seed_users_table(db)
+    seed_fire_reports(db)
+    return db.query(FireReports).all()
