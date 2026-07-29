@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
+from enums.user_role import UserRole
 
 
 class UserCreate(BaseModel):
