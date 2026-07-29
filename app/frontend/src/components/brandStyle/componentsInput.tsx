@@ -6,7 +6,7 @@ export function Input() {
             <ComponentsGroup title="Input States">
                 <div className="flex flex-wrap justify-start items-start gap-4">
                     <Labled caption="default">
-                        <input type="text" placeholder="example@something.co.za" className="input input-neutral w-96 text-text-primary focus:border-primary"/>
+                        <input type="text" placeholder="example@something.co.za" className="input input-bordered w-96 item-center gap-2 border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11"/>
                     </Labled>
                     <Labled caption="focus (forced)">
                         <input type="text" placeholder="example@something.co.za" className="input input-neutral w-96 text-text-primary border-primary"/>

@@ -136,7 +136,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     }
     return (
         <div className="dropdown w-full" ref={wrapperRef}>
-            <span className="label-text font-semibold mb-2 block">Location</span>
+            <span className="label-text text-lg font-semibold mb-2 block">Location</span>
             <div className="input input-bordered w-full flex item-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
                 <input id={id} type="text" value={value} onChange={handleInputChange} onFocus={handleFocus} onClick={handleClick} placeholder="Drop a pin or type your address" className="grow bg-transparent focus:outline-none" aria-invalid={!!error} aria-describedby={errorId}/>
                 {isSearching && <span className="loading loading-spinner loading-xs text-ignite" />}
