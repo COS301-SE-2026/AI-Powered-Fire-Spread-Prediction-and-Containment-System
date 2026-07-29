@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "./Card";
 import type { FireReport } from "../../types/report";
+import Image from "next/image";
 
 interface ReportPhotoProps {
     readonly report: FireReport;
@@ -10,7 +11,9 @@ export function ReportPhoto({ report }: ReportPhotoProps) {
     return (
         <Card title="Photo Evidence">
             {report.image_url ? (
-                <img src={report.image_url} alt="Fire report evidence" className="w-full  max-h-96 rounded-lg object-contain bg-carbon-card"/>
+                <div className="relative w-full h-96 rounded-lg overflow-hidden bg-carbon-card">
+                    <Image src={report.image_url} alt="Fire report evidence" fill unoptimized className="object-contain"/>
+                </div>
             ) : (
                 <div className="flex flex-col items-center justify-center h-48 rounded-lg border border-carbon-stroke gap-2">
                     <span className="text-text-muted text-sm">No photo attached</span>
