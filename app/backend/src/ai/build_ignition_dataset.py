@@ -391,10 +391,10 @@ def load_detections(
     return out.sort_values("timestamp").reset_index(drop=True)
 
 
-def validate_and_resolve_path(
+def _resolve_within_base(
     user_path: str | Path, base_dir: Path | None = None
-) -> Path:
-    """user stays inside allowed dir"""
+) -> tuple[Path, Path]:
+    """shared resolution and containment check"""
     if base_dir is None:
         base_dir = Path.cwd().resolve()
     else:
@@ -408,6 +408,18 @@ def validate_and_resolve_path(
         raise ValueError(
             f"Security error: Path '{resolved_path}', escapes allowed base_dir '{base_dir}'"
         )
+    return resolved_path, base_dir
+
+def validate_input_path(user_path: str | Path, base_dir: Path| None = None) -> Path:
+    """validate path about to read from"""
+    resolved_path, _=_resolve_within_base(user_path, base_dir)
+    if not resolved_path.is_file():
+        raise ValueError(f"input path not exist or isn't a file: '{resolved_path}")
+    return resolved_path
+
+def validate_output_path(user_path: str | Path, base_dir: Path| None = None) -> Path:
+    """validate path about to write to"""
+    resolved_path, _=_resolve_within_base(user_path, base_dir)
     resolved_path.parent.mkdir(parents=True, exist_ok=True)
     return resolved_path
 
@@ -440,6 +452,11 @@ def main() -> None:
     ap.add_argument("--max-gap-days", type=float, default=4.0)
     ap.add_argument("--out", default="ignition_dataset.npz")
     args = ap.parse_args()
+
+    base_dir = Path(args.base_dir).resolve() if args.base_dir else Path.cwd().resolve()
+
+    csv_path = validate_input_path(args.csv, base_dir)
+    manifest_path = validate_input_path(args.manifest, base_dir)
 
     if args.weather == "historical":
         weather_provider = OpenMeteoWeatherProvider()
@@ -512,7 +529,7 @@ def main() -> None:
     )
     print(f"Overall positive rate: {y_vector.mean()*100:.3f}%")
 
-    out_path = validate_and_resolve_path(args.out)
+    out_path = validate_output_path(args.out, base_dir)
 
     np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
 
