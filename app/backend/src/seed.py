@@ -1048,7 +1048,6 @@ def seed_role_requests(db):
             status=data["status"],
             reviewed_by=data["reviewed_by"],
             reviewed_at=datetime.now(timezone.utc) if data["reviewed_by"] else None,
-            reviewed_at=datetime.now(timezone.utc) if data["reviewed_by"] else None,
         )
         db.add(role_request)
         print(f"  ADD   role request -> {data['requested_role']} for {data['user_id']}")
@@ -1083,7 +1082,6 @@ def seed_fire_reports(db):
             location_geom=data["location_geom"],
             boundary_radius=data["boundary_radius"],
             status=data["status"],
-            status_index=data["status_index"],
             status_index=data["status_index"],
         )
         db.add(report)
