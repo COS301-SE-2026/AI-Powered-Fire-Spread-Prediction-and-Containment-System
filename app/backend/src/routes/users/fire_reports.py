@@ -1,15 +1,16 @@
+from typing import Annotated, List, Optional
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
-from typing import Optional, Annotated, List
+from typing import  Optional, Annotated, List
 from db import get_db
-from schemas.fire_report import (
-    FireReportCreate,
-    FireReportDetailResponse,
-    FireReportMapResponse,
-)
+from schemas.fire_report import FireReportCreate, FireReportDetailResponse, FireReportMapResponse
 from services.users import fire_report
 from dependencies.auth import get_current_user_optional
 from models.users import User
+from schemas.fire_report import (FireReportCreate, FireReportDetailResponse,
+                                 FireReportMapResponse)
+from services.users import fire_report
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 

@@ -1,10 +1,12 @@
-from fastapi import HTTPException, APIRouter, Depends, Response
+from typing import Annotated, Union
+
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
-from db import get_db
-from schemas.auth import LoginRequest, Two_FA_Required_Response, LoginResponse
-from services.auth.login import login_user
-from typing import Union, Annotated
+
 from auth import ACCESS_TOKEN_EXPIRE_MINUTES
+from db import get_db
+from schemas.auth import LoginRequest, LoginResponse, Two_FA_Required_Response
+from services.auth.login import login_user
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 

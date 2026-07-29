@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from db import get_db
 from schemas.firefighter_reports import (
     FirefighterReportTable,

@@ -1,8 +1,12 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Enum
-from sqlalchemy.orm import relationship
-from enums.user_role import UserRole
 from datetime import datetime, timezone
+
+from sqlalchemy import (Boolean, Column, DateTime, Enum, ForeignKey, Integer,
+                        String)
+from sqlalchemy.orm import relationship
+
 from db import Base
+from enums.user_role import UserRole
+
 
 
 class User(Base):

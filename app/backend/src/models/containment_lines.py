@@ -1,7 +1,9 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
+
 from geoalchemy2 import Geometry
+from sqlalchemy import Column, DateTime, ForeignKey, String
+from sqlalchemy.orm import relationship
+
 from db import Base
 
 

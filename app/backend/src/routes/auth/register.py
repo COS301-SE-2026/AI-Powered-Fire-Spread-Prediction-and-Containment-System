@@ -1,5 +1,6 @@
-from fastapi import HTTPException, APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from db import get_db
 from schemas.auth import RegisterRequest, Two_FA_Required_Response
 from services.auth.register import register_user

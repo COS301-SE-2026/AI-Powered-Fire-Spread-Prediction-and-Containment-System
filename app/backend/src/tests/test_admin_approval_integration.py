@@ -9,7 +9,8 @@ Covers every endpoint in app/routers/admin.py:
 """
 
 import uuid
-from tests.conftest import make_user, make_role_request
+
+from tests.conftest import make_role_request, make_user
 
 
 # ---------------------------------------------------------------------------

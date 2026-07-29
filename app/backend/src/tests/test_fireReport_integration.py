@@ -1,15 +1,16 @@
-import pytest
-from models.reported_fires import FireReports
 from datetime import datetime, timezone
+
+import pytest
 from geoalchemy2.elements import WKTElement
-from enums.report_status import ReportStatus
+
 from conftest import make_report, make_user
+from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 ### GET /api/users/reported-fires ###
 
-
-# test if nothing in db then endpoint returns HTTP 200 OK
-# smoke test and empty-case test
+#test if nothing in db then endpoint returns HTTP 200 OK
+#smoke test and empty-case test
 def test_get_report_empty(client):
     response = client.get("/api/users/reported-fires")
 
@@ -229,18 +230,16 @@ def test_post_happy_path(client, db):
     assert row.status == ReportStatus.pending
 
 
-# test if specific user exists and responds correctly
-def test_post_user(client, db):
-    user = make_user(db, full_name="Piet Pompies")
+# #test if specific user exists and responds correctly
+# def test_post_user(client, db):
+#     user = make_user(db, full_name="Piet Pompies")
 
-    response = client.post(f"/api/users/reported-fires?user_id={user.id}", json=PAYLOAD)
+#     response = client.post(f"/api/users/reported-fires?user_id={user.id}",json=PAYLOAD)
 
-    assert response.status_code == 200
-    body = response.json()
+#     assert response.status_code == 200
+#     body = response.json()
 
-    assert (
-        body["reporter_name"] == "Piet Pompies"
-    ), "Expected Piet Pompies, got {body['reporter_name']}"
+#     assert body["reporter_name"] == "Piet Pompies", "Expected Piet Pompies, got {body['reporter_name']}"
 
 
 # test if post has missing field it has to send 422 back

@@ -1,12 +1,15 @@
-from geoalchemy2.functions import ST_DWithin, ST_Distance
-from geoalchemy2.shape import to_shape
-from geoalchemy2.elements import WKTElement
-from sqlalchemy.orm import Session
-from sqlalchemy import cast
-import requests
-from models.reported_fires import FireReports
-from geoalchemy2.types import Geography
 from datetime import datetime, timezone
+
+import requests
+from geoalchemy2.elements import WKTElement
+from geoalchemy2.functions import ST_Distance, ST_DWithin
+from geoalchemy2.shape import to_shape
+from geoalchemy2.types import Geography
+from sqlalchemy import cast
+from sqlalchemy.orm import Session
+
+from models.reported_fires import FireReports
+
 
 
 def calculate_time_ago(
@@ -90,9 +93,13 @@ def get_current_environment_vars(
         ],
     }
 
-    response = requests.get(url, params=params, timeout=5)
-    response.raise_for_status()
-    data = response.json()["current"]
+    try:
+        response = requests.get(url, params=params, timeout=5)
+        response.raise_for_status()
+        data = response.json()["current"]
+
+    except (requests.RequestException, KeyError) as e:
+        raise ValueError(f"Failed to fetch environment data: {e}")
 
     return {
         "temperature": data["apparent_temperature"],

@@ -1,10 +1,13 @@
-from fastapi import HTTPException, APIRouter, Depends, Response
-from sqlalchemy.orm import Session
-from db import get_db
-from schemas.auth import Two_FA_Create_Response, Two_FA_Verify_Request, LoginResponse
-from services.auth.two_factor import setup_2fa, verify_2fa
-from auth import ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
+
+from auth import ACCESS_TOKEN_EXPIRE_MINUTES
+from db import get_db
+from schemas.auth import (LoginResponse, Two_FA_Create_Response,
+                          Two_FA_Verify_Request)
+from services.auth.two_factor import setup_2fa, verify_2fa
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 

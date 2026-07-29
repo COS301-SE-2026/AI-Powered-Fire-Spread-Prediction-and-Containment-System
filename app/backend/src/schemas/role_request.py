@@ -1,7 +1,6 @@
-from enums.user_role import UserRole
-from enums.role_request_status import RequestStatus
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
 from pydantic import BaseModel
 
 

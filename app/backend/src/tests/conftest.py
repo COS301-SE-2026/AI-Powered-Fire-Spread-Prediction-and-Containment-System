@@ -1,24 +1,30 @@
 import os
 import sys
 import uuid
-import pytest
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models.reported_fires import FireReports
+
 from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
+from auth import hash_password
 from db import Base, get_db
 from main import app
-from models.users import User
-from models.role_request import RoleRequest
+# models for the firefighter dashboard
+from models.containment_lines import ContainmentLines
 from models.reported_fires import FireReports
+from models.role_request import RoleRequest
+from models.users import User
+# seed data
+from seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -32,7 +38,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def create_tables():
     """Build db schema in test cluster before tests start"""
     with engine.begin() as conn:
-        # need for spacial columns
+        #  need for spacial columns
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
 
     Base.metadata.create_all(

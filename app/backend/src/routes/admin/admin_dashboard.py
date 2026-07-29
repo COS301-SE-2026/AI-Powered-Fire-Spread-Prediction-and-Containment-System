@@ -1,18 +1,16 @@
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy import func
 from typing import Any
 
-from schemas.admin_dashboard import DashboardSummaryResponse
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 from db import get_db
-from models.users import User
-from models.role_request import RoleRequest
-from models.reported_fires import FireReports
 from enums.report_status import ReportStatus
 from enums.role_request_status import RequestStatus
 
 # from auth import get_current_admin_user
+
 
 
 router = APIRouter(
@@ -31,6 +29,8 @@ def _as_aware(dt):
         return dt.replace(tzinfo=timezone.utc)
 
 
+
+
 def _time_ago(dt) -> str:
     dt = _as_aware(dt)
     if dt is None:
@@ -47,10 +47,12 @@ def _time_ago(dt) -> str:
     return f"{hours // 24} day(s) ago"
 
 
+
 @router.get("/summary", response_model=DashboardSummaryResponse)
 def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
     """Retrieves all aggregate data required to render admin dashboard"""
 
+    # need to add a state for fires that is not active anymore
     # need to add a state for fires that is not active anymore
     active_fires = db.query(func.count(FireReports.id)).scalar()
 
@@ -63,8 +65,10 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
     total_users = db.query(func.count(User.id)).scalar()
 
     # need actual health check (does not exist yet)
+    # need actual health check (does not exist yet)
     system_status = "ALERT" if active_fires > 10 else "OKAY"
 
+    # will pull the metrics from db at some point
     # will pull the metrics from db at some point
     top_metrics = {
         "active_fires": active_fires,
@@ -74,6 +78,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
     }
 
     recent_fires = (
+        db.query(FireReports).order_by(FireReports.submitted_at.desc()).limit(5).all()
         db.query(FireReports).order_by(FireReports.submitted_at.desc()).limit(5).all()
     )
     recent_role_requests = (
@@ -94,7 +99,23 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
                 "_sort_ts": _as_aware(report.submitted_at),
             }
         )
+        activity_items.append(
+            {
+                "id": f"fire-{report.id}",
+                "message": f"New fire reported - {report.location_text}",
+                "timeAgo": _time_ago(report.submitted_at),
+                "_sort_ts": _as_aware(report.submitted_at),
+            }
+        )
     for rr in recent_role_requests:
+        activity_items.append(
+            {
+                "id": f"role-{rr.request_id}",
+                "message": f"Role {rr.status.value} - {rr.user_id} ({rr.requested_role.value})",
+                "timeAgo": _time_ago(rr.reviewed_at),
+                "_sort_ts": _as_aware(rr.reviewed_at),
+            }
+        )
         activity_items.append(
             {
                 "id": f"role-{rr.request_id}",
@@ -115,6 +136,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
     seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
     recent_week_fires = (
         db.query(FireReports).filter(FireReports.submitted_at >= seven_days_ago).all()
+        db.query(FireReports).filter(FireReports.submitted_at >= seven_days_ago).all()
     )
 
     day_order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -131,6 +153,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
         "model_health": "Unknown",
         "avg_confidence_percent": 0,
         "last_sync_time": "Not yet tracked",
+        "last_sync_time": "Not yet tracked",
     }
 
     return {
@@ -138,4 +161,6 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
         "activity_log": activity_log,
         "weekly_incidents": weekly_incidents,
         "system_metrics": system_metrics,
+        "system_metrics": system_metrics,
     }
+

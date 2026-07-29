@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState, useRef} from 'react';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { SideBar, NavLink } from '../../components/Sidebar';
+import {Map, Flame, CircleAlert} from 'lucide-react'
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 import GuestMap,{ GuestMapHandle } from '../../components/guest/GuestMap';
 import { GuestReports } from '../../components/guest/GuestReports';
@@ -47,8 +48,15 @@ export default function GuestPublicDashboard() {
       }
     };
 
+    const guestNavItems =(
+        <>
+            <NavLink icon={Map} label="Live Map" href="/dashboard/guest"/>
+            <NavLink icon={CircleAlert} label="Report Fire" href="/dashboard/guest"/>
+        </>
+      );
+
   return (
-    <SideBarLayout hideLogout>
+    <SideBar items={guestNavItems} hideLogout>
       <div className="flex flex-col p-6">
         {/* Header */}
         <header className="mb-4 flex items-center justify-between">
@@ -101,6 +109,6 @@ export default function GuestPublicDashboard() {
           </div>
         </div>
       </div>
-    </SideBarLayout>
+    </SideBar>
   );
 }

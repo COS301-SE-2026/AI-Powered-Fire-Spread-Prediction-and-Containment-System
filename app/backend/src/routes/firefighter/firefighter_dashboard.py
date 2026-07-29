@@ -1,12 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
 from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from db import get_db
-from schemas.firefighter_dashboard import DashboardData
-from services.firefighter import firefighter_dashboard, containment_lines
 from schemas.containment_lines import ContainmentLines, CreateContainmentLine
+from schemas.firefighter_dashboard import DashboardData
+from services.firefighter import containment_lines, firefighter_dashboard
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
+
 
 
 # returns nearby fires to location based on the long and lat selected by user or gotten via location aswell as environment variables based on coordinates
@@ -51,4 +54,4 @@ def add_containment_line(line: CreateContainmentLine, db: Session = Depends(get_
     try:
         return containment_lines.create_containment_line(db, line.wkt)
     except ValueError as error:
-        raise HTTPException(status_code=400, detail=(error))
+        raise HTTPException(status_code=400, detail=str(error))

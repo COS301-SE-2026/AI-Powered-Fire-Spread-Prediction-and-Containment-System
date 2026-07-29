@@ -1,15 +1,15 @@
-from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+
+from geoalchemy2.elements import WKTElement
 from geoalchemy2.functions import ST_Distance
 from geoalchemy2.shape import to_shape
-from geoalchemy2.elements import WKTElement
 from geoalchemy2.types import Geography
 from sqlalchemy import cast
+from sqlalchemy.orm import Session
+
 from models.reported_fires import FireReports
 from datetime import datetime, timezone
-from services.firefighter.firefighter_dashboard import (
-    get_current_environment_vars,
-)  # im reusing the firefighter weather api, since it saves time
-
+from services.firefighter.firefighter_dashboard import get_current_environment_vars #im reusing the firefighter weather api, since it saves time
 
 def calculate_time_ago(reported_at: datetime) -> str:
     now = datetime.now(timezone.utc)
