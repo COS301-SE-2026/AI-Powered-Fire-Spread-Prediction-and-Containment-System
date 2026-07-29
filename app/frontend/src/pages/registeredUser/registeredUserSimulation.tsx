@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SideBarLayout } from '../../components/demoSidebar';
+import { SidebarLayout } from '../../components/users/sidebar';
 import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import Button from '../../components/Button';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
@@ -10,7 +10,7 @@ export default function GuestPublicDashboard() {
     const { userLocation, nearbyFires } = useNearbyFires();
 
     return (
-        <SideBarLayout hideLogout>
+        <SidebarLayout>
             <div className="flex flex-col p-6 relative h-full overflow-hidden">
                 
                 {/*Public View Header*/}
@@ -57,6 +57,6 @@ export default function GuestPublicDashboard() {
 
                 <SystemAlertsPanel isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} />
             </div> 
-        </SideBarLayout>
+        </SidebarLayout>
     );
 }
