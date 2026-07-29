@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class FireDanger(str, Enum):
     low = "low"
     medium = "medium"
