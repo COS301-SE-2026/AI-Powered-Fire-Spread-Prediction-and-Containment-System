@@ -11,13 +11,13 @@ interface ReportsTableProp{
 
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
-    const filtered = requests.filter(req => 
+    const filtered = requests.filter(req =>
         filter === 'all' || req.status === filter
     );
 
     const router = useRouter();
     return (
-        <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-[600px] w-full">
+        <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-150 w-full">
             <table className="table table-pin-rows">
                 <thead>
                     <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40 ">
@@ -46,7 +46,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card"><StatusBadge status={req.status} /></td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
                                     <td className="px-4 text-sm text-neutral">
-                                        {new Date(req.reported).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+                                        {new Date(req.reported).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', timeZone: "Africa/Johannesburg" })}
                                         {' | '}
                                         {new Date(req.reported).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                                     </td>
