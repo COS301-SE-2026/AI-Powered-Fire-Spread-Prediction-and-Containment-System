@@ -5,7 +5,7 @@ import { ActionCard } from "../firefighter/actionCard";
 import { Wind, Thermometer, Flame, Droplets, FileWarning, PenLine, TrendingUp, ClipboardPlus } from "lucide-react";
 import { MapStatsOverlay } from "../firefighter/mapStat";
 
-export function FirefighterCards() {
+export function EnvironmentCards() {
     return (
         <div className="flex flex-wrap items-start gap-19">
             <ComponentsGroup title="Environment Stat Cards">
@@ -16,16 +16,20 @@ export function FirefighterCards() {
                     <StatCard icon={<Droplets />} label="Humidity" value="38%" />
                 </div>
             </ComponentsGroup>
-
-            <ComponentsGroup title="Quick Action Cards">
-                <div className="grid grid-cols-2 gap-3 w-96">
-                    <ActionCard icon={<ClipboardPlus />} title="View all reports" description="View team on map" onClick={() => {}} />
-                    <ActionCard icon={<FileWarning />} title="Report a fire" description="New fire location" onClick={() => {}} />
-                    <ActionCard icon={<PenLine />} title="Log containment line" description="Draw live on map" onClick={() => {}} />
-                    <ActionCard icon={<TrendingUp />} title="Simulate fires" description="View AI prediction" onClick={() => {}} />
-                </div>
-            </ComponentsGroup>
         </div>
+    );
+}
+
+export function ActionCards() {
+    return (
+        <ComponentsGroup title="Quick Action Cards">
+            <div className="grid grid-cols-2 gap-3 w-96">
+                <ActionCard icon={<ClipboardPlus />} title="View all reports" description="View team on map" onClick={() => {}} />
+                <ActionCard icon={<FileWarning />} title="Report a fire" description="New fire location" onClick={() => {}} />
+                <ActionCard icon={<PenLine />} title="Log containment line" description="Draw live on map" onClick={() => {}} />
+                <ActionCard icon={<TrendingUp />} title="Simulate fires" description="View AI prediction" onClick={() => {}} />
+            </div>
+        </ComponentsGroup>
     );
 }
 
@@ -43,16 +47,26 @@ export function NearbyReport(){
                     <NearbyReports nearby_fires={dummyFires} />
                 </div>
             </ComponentsGroup>
-
-            <ComponentsGroup title="Map Stats Overlay">
-                <div className="flex flex-wrap gap-2">
-                    <Labled caption="with data">
-                        <div className="relative w-72 h-96 bg-carbon-side/40 rounded-lg border border-carbon-stroke overflow-hidden">
-                            <MapStatsOverlay nearby_fires={dummyFires} />
-                        </div>
-                    </Labled>
-                </div>
-            </ComponentsGroup>
         </div>
+    );
+}
+
+export function MapOverlay() {
+    const dummyFires = [
+    { ref: "FR-1042", location_text: "Moreleta Park", distance: 2.4, time_ago: "10 min ago", status: "verified" },
+    { ref: "FR-1043", location_text: "Faerie Glen", distance: 5.1, time_ago: "32 min ago", status: "pending" },
+    { ref: "FR-1044", location_text: "Silver Lakes", distance: 8.7, time_ago: "1 hr ago", status: "received" },
+    ];
+
+    return (
+        <ComponentsGroup title="Map Stats Overlay">
+            <div className="flex flex-wrap gap-2">
+                <Labled caption="with data">
+                    <div className="relative w-72 h-96 bg-carbon-side/40 rounded-lg border border-carbon-stroke overflow-hidden">
+                        <MapStatsOverlay nearby_fires={dummyFires} />
+                    </div>
+                </Labled>
+            </div>
+        </ComponentsGroup>
     );
 }

@@ -1,7 +1,7 @@
 export function ComponentsGroup({ title, children }) {
     return (
-        <div className="mb-10">
-            <h3 className="mb-4 text-sm uppercase tracking-wide text-text-muted">
+        <div className="mb-6">
+            <h3 className="mb-2 text-sm uppercase tracking-wide text-text-muted">
                 {title}
             </h3>
             <div className="p-4 rounded-box border border-carbon-stroke bg-carbon-card">

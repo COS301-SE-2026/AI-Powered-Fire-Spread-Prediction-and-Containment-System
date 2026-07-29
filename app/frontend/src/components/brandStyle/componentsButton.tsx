@@ -1,4 +1,5 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
+import { Pencil, CirclePlay } from "lucide-react";
 
 export function ButtonComponents() {
     return (
@@ -62,8 +63,21 @@ export function ButtonComponents() {
                             Submitting
                         </button>
                     </Labled>
+                    <Labled caption="Firefighter draw containment line">
+                        <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2">
+                            <Pencil size={28} />
+                            Draw Containment
+                        </button>
+                    </Labled>
+                    <Labled caption="Firefighter RUN simulation">
+                        <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2">
+                            <CirclePlay />
+                            RUN
+                        </button>
+                    </Labled>
                 </div>
             </ComponentsGroup>
+
         </>
     );
 }
