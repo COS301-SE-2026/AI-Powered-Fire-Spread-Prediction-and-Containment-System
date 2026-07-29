@@ -451,6 +451,7 @@ def main() -> None:
     ap.add_argument("--max-gap-km", type=float, default=5.0)
     ap.add_argument("--max-gap-days", type=float, default=4.0)
     ap.add_argument("--out", default="ignition_dataset.npz")
+    ap.add_argument("--base-dir", default=None, help="Dir all --csv/--manifest/--out paths resolved")
     args = ap.parse_args()
 
     base_dir = Path(args.base_dir).resolve() if args.base_dir else Path.cwd().resolve()
@@ -478,7 +479,7 @@ def main() -> None:
     )
 
     events = build_fire_events(detections, fire_ids)
-    manifest = StaticSourceManifest.from_csv(args.manifest)
+    manifest = StaticSourceManifest.from_csv(manifest_path, base_dir=base_dir)
     target_shape = tuple(args.target_shape)
 
     x_all, y_all, fid_all = [], [], []
