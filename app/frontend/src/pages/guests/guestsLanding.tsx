@@ -37,7 +37,7 @@ export default function GuestPublicDashboard() {
                 setReports(data.nearby_reports);
             }catch(err){
                 console.error("Dashboard fetch error", err);
-            }  
+            }
         };
         fetchData();
     },[location]);
@@ -50,8 +50,8 @@ export default function GuestPublicDashboard() {
 
     const guestNavItems =(
         <>
-            <NavLink icon={Map} label="Live Map" href="/dashboard/guest"/>
-            <NavLink icon={CircleAlert} label="Report Fire" href="/dashboard/guest"/>
+            <NavLink icon={Map} label="Live Map" href="/guests/guestsLanding"/>
+            <NavLink icon={CircleAlert} label="Report Fire" href="/guests/guestsReportFire"/>
         </>
       );
 
