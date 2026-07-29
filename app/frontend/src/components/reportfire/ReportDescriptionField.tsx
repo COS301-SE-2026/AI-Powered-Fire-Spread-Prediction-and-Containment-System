@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, {useId} from "react";
 import { FormError } from "./ReportFormError";
 
 interface DescriptionProps {
@@ -10,19 +10,24 @@ interface DescriptionProps {
 }
 
 export function DescriptionField({ value, error, onChange }: DescriptionProps) {
+    const id = useId();
+
     return (
         <div className="w-full">
             <div className="flex items-baseline gap-2 mb-2">
-                <span className="label-text font-semibold ">Description</span>
+                <label htmlFor={id} className="label-text font-semibold ">Description</label>
                 <span className="text-xs text-white/40">optional</span>
             </div>
             <textarea
+                id={id}
                 rows={4}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder="E.g., Surface line fire spreading northeast toward residential properties..."
-                className="textarea textarea-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite resize-none leading-relaxed"/>
-            {error && <FormError message={error}/>}
+                className="textarea textarea-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite resize-none leading-relaxed"
+                aria-invalid={!!error}
+                aria-describedby={error ? `${id}-error` : undefined} />
+            {error && <FormError message={error} id={`${id}-error`}/>}
         </div>
     );
 }

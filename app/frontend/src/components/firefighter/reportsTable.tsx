@@ -39,17 +39,22 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         </tr>
                     ) : (
                         filtered.map((req) => {
+                            const reportedDate = new Date(req.reported);
+                            const formattedDate = new Intl.DateTimeFormat('en-ZA', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                timeZone: "Africa/Johannesburg",
+                            }).format(reportedDate);
+
                             return(
                                 <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.ref}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.location}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card"><StatusBadge status={req.status} /></td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
-                                    <td className="px-4 text-sm text-neutral">
-                                        {new Date(req.reported).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', timeZone: "Africa/Johannesburg" })}
-                                        {' | '}
-                                        {new Date(req.reported).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
-                                    </td>
+                                    <td className="px-4 text-sm text-neutral">{formattedDate}</td>
                                     <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
                                     <td className="px-4 py-3">
                                         <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-neutral/50 hover:bg-smoke-hover hover:text-neutral transition-colors">

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useId } from "react";
 import { FormError } from "./ReportFormError";
 import { MapPin } from "lucide-react";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
@@ -55,6 +55,11 @@ function renderSuggestions( suggestions: GeocodingSuggestion[], onSelect: (s: Ge
 async function fetchSuggestions(query: string): Promise<GeocodingSuggestion[]> {
     const res = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&autocomplete=true&limit=5&types=address,place,locality,neighborhood,poi`);
+
+    if (!res.ok) {
+        throw new Error(`Geocoding request failed: ${res.status} ${res.statusText}`);
+    }
+
     const json = await res.json();
     const features = json.features ?? [];
     const results: GeocodingSuggestion[] = [];
@@ -64,7 +69,14 @@ async function fetchSuggestions(query: string): Promise<GeocodingSuggestion[]> {
     return results;
 }
 
+function handleClick(e: React.MouseEvent<HTMLInputElement>) {
+    e.currentTarget.select();
+}
+
 export function LocationField({ value, error, onChange, onValidSelect}: LocationFieldProps) {
+    const id = useId();
+    const errorId = error ? `${id}-error` : undefined;
+
     const [suggestions, setSuggestions] = useState<GeocodingSuggestion[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
@@ -82,7 +94,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
         document.addEventListener("mousedown", handleOutside);
         return () => document.removeEventListener("mousedown", handleOutside);
     }, []);
-    
+
     const runSearch = useCallback(async (query: string) => {
         if (query.trim().length < 3) {
             setSuggestions([]);
@@ -109,19 +121,15 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
         }
     }
 
-    function handleClick(e: React.MouseEvent<HTMLInputElement>) {
-        e.currentTarget.select();
-    }
-    
     function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
         const val = e.target.value;
-        
+
         onChange(val);
-    
+
         if (debounceRef.current) clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => runSearch(val), 300);
     }
-    
+
     function handleSuggestionSelect(s: GeocodingSuggestion) {
         setSuggestions([]);
         setShowDropdown(false);
@@ -131,7 +139,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
         <div className="dropdown w-full" ref={wrapperRef}>
             <span className="label-text font-semibold mb-2 block">Location</span>
             <div className="input input-bordered w-full flex item-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
-                <input type="text" value={value} onChange={handleInputChange} onFocus={handleFocus} onClick={handleClick} placeholder="Drop a pin or type your address" className="grow bg-transparent focus:outline-none"/>
+                <input id={id} type="text" value={value} onChange={handleInputChange} onFocus={handleFocus} onClick={handleClick} placeholder="Drop a pin or type your address" className="grow bg-transparent focus:outline-none" aria-invalid={!!error} aria-describedby={errorId}/>
                 {isSearching && <span className="loading loading-spinner loading-xs text-ignite" />}
             </div>
 
@@ -140,7 +148,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
                     {renderSuggestions(suggestions, handleSuggestionSelect)}
                 </ul>
             )}
-            {error && <FormError message={error} />}
+            {error && <FormError message={error} id={errorId} />}
             {searchError && <span className="text-error text-xs mt-1">{searchError}</span>}
         </div>
     );
