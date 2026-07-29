@@ -33,4 +33,6 @@ playwright-report/
 .venv/
 .python-version
 
+*.yarn/install-state.gz
+
 

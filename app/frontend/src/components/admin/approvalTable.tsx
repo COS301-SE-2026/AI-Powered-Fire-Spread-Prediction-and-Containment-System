@@ -14,22 +14,22 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
     );
 
     return (
-        <div className="rounded-2xl border border-carbon-card overflow-hidden bg-carbon-side/60 shadow-xl shadow-black/30 max-h-[600px] overflow-y-auto">
-            <table className="w-full">
-                <thead className="sticky top-0 z-10">
-                    <tr className="bg-carbon-bg border-b border-ignite/20">
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary/40 uppercase px-4 py-3">Name</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary/40 uppercase px-4 py-3">Email</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary/40 uppercase px-4 py-3">Role</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary/40 uppercase px-4 py-3">Date</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary/40 uppercase px-4 py-3">Status</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary/40 uppercase px-4 py-3">View</th>
+        <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-150">
+            <table className="table table-pin-rows w-full">
+                <thead>
+                    <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Name</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Email</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Role</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Date</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Status</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">View</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filtered.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="px-4 py-8 text-center text-sm text-text-primary/30">
+                            <td colSpan={6} className="px-4 py-8 text-center text-sm font-bold text-error ">
                                 No requests found
                             </td>
                         </tr>
@@ -37,12 +37,14 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                         filtered.map((req) => {
                             const badge: BadgeStyle = statusBadge[req.status] ?? statusBadge.none;
                             return (
-                                <tr key={req.request_id} className="border-t border-carbon-card hover:bg-smoke-hover transition-colors even:bg-carbon-bg/30">
-                                    <td className="px-4 py-3 text-sm text-text-primary font-medium">{req.user.name} {req.user.surname}</td>
-                                    <td className="px-4 py-3 text-sm text-text-primary/70">{req.user.email ?? '-'}</td>
-                                    <td className="px-4 py-3 text-sm text-text-primary/70 capatilize">{req.requested_role}</td>
-                                    <td className="px-4 py-3 text-sm text-text-primary/70">
-                                        {req.created_at ? new Date(req.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                                <tr key={req.request_id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-smoke-hover even:bg-carbon-bg/80">
+                                    <td className="px-4 text-sm text-neutral">{req.user.name} {req.user.surname}</td>
+                                    <td className="px-4 text-sm text-neutral">{req.user.email ?? '-'}</td>
+                                    <td className="px-4 text-sm text-neutral capatilize">{req.requested_role}</td>
+                                    <td className="px-4 text-sm text-neutral">
+                                        {new Date(req.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
+                                        {' | '}
+                                        {new Date(req.created_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ? `${badge.bg} ${badge.text} ${badge.border}` : 'bg-carbon-card text-text-primary/50'}`}>
