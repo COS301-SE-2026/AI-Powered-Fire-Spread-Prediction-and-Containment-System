@@ -121,3 +121,69 @@ def params_to_torch(dca: DCAParams):
         "c_2": torch.tensor(dca.c_2),
         "p_continue": torch.tensor(dca.p_continue),
     }
+
+
+# The endpoint
+@router.post("/simulate", response_model=SimulationResponse)
+async def run_simulation(req: SimulationRequest) -> SimulationResponse:
+    """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
+
+    Frontend sends map-center coordinates and environment parameters. This endpoint builds
+    uniform grids (simple proxy for real raster data), runs IgnitionScorer to select ignition
+    points, executes WildfireModel and returns the complete history so frontend can animate it.
+
+    Note:
+        When real raster/weather data becomes available, only grid and weather initialisation
+        call sites need to be updated. Everything downstream (IgnitionScorer, run_dca, response serialization)
+        remains unchanged. Also update this docstring when real data is plugged in.
+
+    Args:
+        req (SimulationRequest): Incoming request payload containing grid dimentions,
+        coordinates and simulation configuration parameters.
+
+    Returns:
+        SimulationResponse: Formatted response containing flattened per-tick grid histories, dimentions, stats and execution steps.
+
+    Raises:
+        HTTPException: Status 500 if underlying DCA model execution fails.
+    """
+    H, W = req.grid_h, req.grid_w
+
+    # TODO: Pass req.lat and req.lng into these two functions so they can compute the bounding box and fetch real spatial data.
+    weather_grids = build_weather_grids(H, W, req.weather)
+    static_grids = build_static_grids(H, W, req.static)
+
+    try:
+        history = run_dca(
+            weather_grids=weather_grids,
+            static_grids=static_grids,
+            n_steps=req.n_steps,
+            n_ignition_points=req.n_ignition_points,
+            params=params_to_torch(req.dca),
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Simulation failed: {exc}"
+        ) from exc
+
+    tick_stats: list[TickStats] = []
+    flat_history: list[list[int]] = []
+
+    for t, grid in enumerate(history):
+        flat_history.append(grid.ravel().tolist())
+        tick_stats.append(
+            TickStats(
+                tick=t,
+                burning=int((grid == 1).sum()),
+                burned=int((grid == 2).sum()),
+                total_cells=H * W,
+            )
+        )
+
+    return SimulationResponse(
+        history=flat_history,
+        grid_h=H,
+        grid_w=W,
+        tick_stats=tick_stats,
+        n_steps_run=len(history),
+    )
