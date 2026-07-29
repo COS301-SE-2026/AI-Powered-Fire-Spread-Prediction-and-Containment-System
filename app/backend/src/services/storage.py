@@ -7,40 +7,24 @@ from typing import Optional
 
 from minio import Minio
 
-def get_minio_client() -> Minio:
-    global minio_client
-    if minio_client is None:
-        minio_client  = Minio(
-        os.environ["MINIO_ENDPOINT"],
-        access_key=os.environ["MINIO_ACCESS_KEY"],
-        secret_key=os.environ["MINIO_SECRET_KEY"],
-        secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
-        region="us-east-1",
-        )
-    return minio_client
-
-#minio_client = Minio(
-#    os.environ["MINIO_ENDPOINT"],
-#    access_key=os.environ["MINIO_ACCESS_KEY"],
-#    secret_key=os.environ["MINIO_SECRET_KEY"],
-#    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
-#    region="us-east-1",
-#)
+minio_client = Minio(
+    os.environ["MINIO_ENDPOINT"],
+    access_key=os.environ["MINIO_ACCESS_KEY"],
+    secret_key=os.environ["MINIO_SECRET_KEY"],
+    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
+    region="us-east-1",
+)
 
 # Separate client only for generating presigned URLs, using the browser-reachable endpoint
-def get_presign_client() -> Minio:
-    global presign_client
-    if presign_client is None:
-        presign_client = Minio(
-            os.environ.get("MINIO_PUBLIC_ENDPOINT", "localhost:9000"),
-            access_key=os.environ["MINIO_ACCESS_KEY"],
-            secret_key=os.environ["MINIO_SECRET_KEY"],
-            secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
-            region="us-east-1",
-        )
-    return presign_client
+presign_client = Minio(
+    os.environ.get("MINIO_PUBLIC_ENDPOINT", "localhost:9000"),
+    access_key=os.environ["MINIO_ACCESS_KEY"],
+    secret_key=os.environ["MINIO_SECRET_KEY"],
+    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
+    region="us-east-1",
+)
 
-#BUCKET = os.environ["MINIO_BUCKET"]
+BUCKET = os.environ["MINIO_BUCKET"]
 ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_SIZE_MB = 10
 
@@ -79,8 +63,8 @@ def get_presigned_url(
 ) -> Optional[str]:
     if not object_key:
         return None
-    return get_presign_client().presigned_get_object(
-        get_bucket(),
+    return presign_client.presigned_get_object(
+        BUCKET,
         object_key,
         expires=timedelta(minutes=expires_minutes),
     )
