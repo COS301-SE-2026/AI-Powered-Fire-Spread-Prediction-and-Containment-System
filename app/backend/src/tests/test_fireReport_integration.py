@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 import pytest
-from conftest import make_report, make_user
+#from conftest import make_report, make_user
 from enums.report_status import ReportStatus
 from geoalchemy2.elements import WKTElement
 from models.reported_fires import FireReports
@@ -11,7 +11,7 @@ from models.reported_fires import FireReports
 
 # test if nothing in db then endpoint returns HTTP 200 OK
 # smoke test and empty-case test
-def test_get_report_empty(client):
+def test_get_report_empty(client, make_report, make_user):
     response = client.get("/api/users/reported-fires")
 
     assert (
@@ -25,7 +25,7 @@ def test_get_report_empty(client):
 
 # endpoint exsistance test
 # test if the report is in db then must appear in GET response
-def test_get_reports(client, db):
+def test_get_reports(client, db, make_report, make_user):
     report = make_report(db)
     response = client.get("/api/users/reported-fires")
 
@@ -41,7 +41,7 @@ def test_get_reports(client, db):
 
 
 # test if the shape of the get is correct
-def test_get_report_shape(client, db):
+def test_get_report_shape(client, db, make_report, make_user):
     make_report(db)
     response = client.get("/api/users/reported-fires")
 
@@ -70,7 +70,7 @@ def test_get_report_shape(client, db):
 
 # happy path tests
 # test if one anonymous report exsists and if all the values is correct
-def test_get_anonymous(client, db):
+def test_get_anonymous(client, db, make_report, make_user):
     report = make_report(
         db,
         lat=-25.7479,
@@ -113,7 +113,7 @@ def test_get_anonymous(client, db):
 
 
 # test if the reporter name comes back as the actual full name
-def test_get_reporter(client, db):
+def test_get_reporter(client, db, make_report, make_user):
     user = make_user(db, full_name="Piet Pompies", role="user")
     report = make_report(db, user=user)
     response = client.get("/api/users/reported-fires")
@@ -134,7 +134,7 @@ def test_get_reporter(client, db):
 
 
 # test if 3 reports exist then 3 needs to come back exactly as they are
-def test_get_multiple_reports(client, db):
+def test_get_multiple_reports(client, db, make_report, make_user):
     reports = []
     for _ in range(3):
         reports.append(make_report(db))
@@ -164,7 +164,7 @@ PAYLOAD = {
 
 
 # test if post endpoint exist and returns a valid response
-def test_post_exist(client):
+def test_post_exist(client, make_report, make_user):
     response = client.post("/api/users/reported-fires", json=PAYLOAD)
 
     assert (
