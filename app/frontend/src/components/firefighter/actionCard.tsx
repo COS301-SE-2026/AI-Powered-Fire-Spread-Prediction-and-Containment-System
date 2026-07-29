@@ -4,7 +4,7 @@ interface ActionCardProps {
     title: string;
     description: string;
     icon: React.ReactNode;
-    onClick: () => void;
+    onClick?: () => void;
 }
 
 export function ActionCard({title, description, icon, onClick}: ActionCardProps){
