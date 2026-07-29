@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+
 import numpy as np
 import pytest
 
@@ -9,29 +10,30 @@ root = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(root / "app" / "backend" / "src"))
 sys.path.insert(0, str(root / "app" / "ml"))
 
+
 # Shared helper function
 @pytest.fixture
 def small_grids():
     def _make(H=5, W=5):
-        """ Generate minimal synthetic grid data for testing physical model inputs.
-            
-            Creates uniform weather blowing east and flat terrain dictionaries along with an unburned status matrix of dimensions (H, W).
-            
-            Parameters
-            ----------
-            H : int, default 5
-                Height of spatial grid in cells.
-            W : int, default 5
-                Width of spatial grid in cells.
-            
-            Returns
-            -------
-            weather : dict of {str: np.ndaray}
-                Dictionary containing uniform meteorological arrays (`wind_u`, `wind_v`, `rel_humidity`, `temperature`)
-            static : dict of {str: np.ndarray}
-                Dictionary containing uniform terrain and fuel feature arrays (`elevation`, `slope`, `aspect_sin`, `aspect_cos`, `fuel_load`, `dryness`)
-            burn : np.ndarray
-                (H, W) array of zeros representing an initially unburned state matrix.
+        """Generate minimal synthetic grid data for testing physical model inputs.
+
+        Creates uniform weather blowing east and flat terrain dictionaries along with an unburned status matrix of dimensions (H, W).
+
+        Parameters
+        ----------
+        H : int, default 5
+            Height of spatial grid in cells.
+        W : int, default 5
+            Width of spatial grid in cells.
+
+        Returns
+        -------
+        weather : dict of {str: np.ndaray}
+            Dictionary containing uniform meteorological arrays (`wind_u`, `wind_v`, `rel_humidity`, `temperature`)
+        static : dict of {str: np.ndarray}
+            Dictionary containing uniform terrain and fuel feature arrays (`elevation`, `slope`, `aspect_sin`, `aspect_cos`, `fuel_load`, `dryness`)
+        burn : np.ndarray
+            (H, W) array of zeros representing an initially unburned state matrix.
         """
         weather = {
             "wind_u": np.full((H, W), 3.0, np.float32),
@@ -49,4 +51,5 @@ def small_grids():
         }
         burn = np.zeros((H, W), np.int8)
         return weather, static, burn
+
     return _make

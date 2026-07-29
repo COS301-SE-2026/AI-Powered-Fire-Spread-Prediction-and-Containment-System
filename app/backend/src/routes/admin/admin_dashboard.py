@@ -1,17 +1,16 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func
-from sqlalchemy.orm import Session
-
 from db import get_db
 from enums.report_status import ReportStatus
 from enums.role_request_status import RequestStatus
+from fastapi import APIRouter, Depends, HTTPException, status
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
 from models.users import User
 from schemas.admin_dashboard import DashboardSummaryResponse
+from sqlalchemy import func
+from sqlalchemy.orm import Session
 
 # from auth import get_current_admin_user
 

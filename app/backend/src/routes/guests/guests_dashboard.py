@@ -1,10 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-
 from db import get_db
+from fastapi import APIRouter, Depends, HTTPException, Query
 from services.guests.guests_dashboard import get_guest_dashboard_data
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/guests", tags=["Guests"])
 
