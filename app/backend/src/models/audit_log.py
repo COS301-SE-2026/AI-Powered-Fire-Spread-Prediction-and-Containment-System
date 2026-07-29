@@ -1,12 +1,19 @@
 from datetime import datetime, timezone
 
-from geoalchemy2 import Geometry
-from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, Numeric,
-                        String, Text)
-from sqlalchemy.orm import relationship
-
 from db import Base
 from enums.audit_action import AuditAction
+from geoalchemy2 import Geometry
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
+from sqlalchemy.orm import relationship
 
 
 class AuditLog(Base):

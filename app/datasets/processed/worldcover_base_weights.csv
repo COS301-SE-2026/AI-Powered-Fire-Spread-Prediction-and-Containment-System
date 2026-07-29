@@ -1,0 +1,12 @@
+WorldCover_Class,Description,Base_Fuel_Weight,Total_Rules_Evaluated
+10,Tree cover,0.3173,203822
+20,Shrubland,0.1678,49922
+30,Grassland,0.0856,30053
+40,Cropland,0.198,42428
+50,Built-up,0.2754,166095
+60,Bare / sparse vegetation,0.0391,2934
+70,snow and ice,0.2813,55956
+80,Permanent water bodies,0.2787,63655
+90,Herbaceous wetland,0.1998,11605
+95,Mangroves,0.2683,36
+100,Moss and lichen,0.0,0

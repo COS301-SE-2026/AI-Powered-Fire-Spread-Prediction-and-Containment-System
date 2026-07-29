@@ -1,12 +1,19 @@
+import numpy as np
 import torch
 from pytorchfire import WildfireModel
-import numpy as np
 
 from .ignition import IgnitionScorer
 from .schema import UNBURNED
-from .simulation import pick_ignition_points, build_env_data, state_to_burn_state
+from .simulation import build_env_data, pick_ignition_points, state_to_burn_state
 
-def run_dca(weather_grids: dict, static_grids: dict, n_steps: int = 100, n_ignition_points: int=1, params: dict | None = None):
+
+def run_dca(
+    weather_grids: dict,
+    static_grids: dict,
+    n_steps: int = 100,
+    n_ignition_points: int = 1,
+    params: dict | None = None,
+):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
