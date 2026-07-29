@@ -159,28 +159,31 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
       .setLngLat([rimPos.lng, rimPos.lat])
       .addTo(mapRef.current.getMap());
 
-    rimMarker.on('dragstart', () => { isDragging.current = true; });
+    function handleDragStart() {
+      isDragging.current = true;
+    }
 
-    rimMarker.on('drag', () => handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChangeRef.current));
+    function handleDrag() {
+      handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChangeRef.current);
+    }
 
-    rimMarker.on('dragend', () => {
+    function handleDragEnd() {
       setRadiusKm(radiusKmRef.current);
       isDragging.current = false;
       dragEndTime.current = Date.now();
-    });
+    }
+    rimMarker.on('dragstart', handleDragStart);
+    rimMarker.on('drag', handleDrag);
+    rimMarker.on('dragend', handleDragEnd);
 
     rimMarkerRef.current = rimMarker;
 
     return () => {
-      rimMarker.off('dragstart', () => { isDragging.current = true; });
-      rimMarker.off('drag', () => handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChangeRef.current));
-      rimMarker.off('dragend', () => {
-        setRadiusKm(radiusKmRef.current);
-        isDragging.current = false;
-        dragEndTime.current = Date.now();
-      });
-    }
-
+      rimMarker.off('dragstart', handleDragStart);
+      rimMarker.off('drag', handleDrag);
+      rimMarker.off('dragend', handleDragEnd);
+      rimMarker.remove();
+    };
   }, [markerPos]);
 
   //map click
