@@ -36,7 +36,7 @@ interface SetBoundarySizeAction {
   value: number;
 }
 
-interface setLocationAction {
+interface SetLocationAction {
   type: "SET_LOCATION";
   address:string;
   pin: { lng: number; lat: number };
@@ -55,7 +55,7 @@ interface SubmitSuccessResetAction {
   type: "SUBMIT_SUCCESS_RESET";
 }
 
-type FormAction = | SetBoundarySizeAction | setLocationAction | SubmitStartAction | SubmitErrorAction | SubmitSuccessResetAction;
+type FormAction = | SetBoundarySizeAction | SetLocationAction | SubmitStartAction | SubmitErrorAction | SubmitSuccessResetAction;
 
 function formReducer(state: FormStateProps, action: FormAction): FormStateProps {
   switch (action.type) {
@@ -94,7 +94,7 @@ export default function ReportPage() {
     fetch(`/api/users/reported-fires`)
         .then((res) => res.json())
         .then((data: FireReport[]) => {
-          if (cancelled) return;
+          if (cancelled) { return };
             const sorted = [...data].sort(
                 (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
             );
