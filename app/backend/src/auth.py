@@ -1,9 +1,10 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
 import os
 from datetime import datetime, timedelta, timezone
-from jose import jwt
+
 import bcrypt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-super-secret-key-change-this")
 ALGORITHM = "HS256"

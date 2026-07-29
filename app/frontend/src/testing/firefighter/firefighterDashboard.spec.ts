@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Firefighter Dashboard - live fire map', () => {
 
     test.beforeEach(async({ page }) =>{
-        await page.goto('/firefighter/firefighterDashboard');
+        await page.goto('/firefighter/firefighter-dashboard');
     });
 
     test('Main page renders', async ({page}) =>{

@@ -1,17 +1,19 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from typing import List, Annotated
-from db import get_db
 from datetime import datetime
-from models.users import User
-from models.role_request import RoleRequest
-from schemas.user import UserResponse
-from schemas.role_request import UserSummary
-from schemas.role_request import RoleRequestResponse, RoleRequestList
+from typing import Annotated, List
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from schemas.admin_analytics import KPIs, AnalyticsOverviewResponse
-from enums.user_role import UserRole
+from sqlalchemy.orm import Session
+
+from db import get_db
 from enums.role_request_status import RequestStatus
+from enums.user_role import UserRole
+from models.role_request import RoleRequest
+from models.users import User
+from schemas.admin_analytics import AnalyticsOverviewResponse, KPIs
+from schemas.role_request import (RoleRequestList, RoleRequestResponse,
+                                  UserSummary)
+from schemas.user import UserResponse
 
 router = APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
 
@@ -34,12 +36,37 @@ def get_analytics_overview(db: Annotated[Session, Depends(get_db)]):
         .filter(User.role == UserRole.admin, User.is_active == True)
         .count()
     )
+    total_users = db.query(User).filter(User.is_active == True).count()
+    pending_count = (
+        db.query(RoleRequest)
+        .filter(RoleRequest.status == RequestStatus.pending)
+        .count()
+    )
+    total_firefighters = (
+        db.query(User)
+        .filter(User.role == UserRole.firefighter, User.is_active == True)
+        .count()
+    )
+    total_admins = (
+        db.query(User)
+        .filter(User.role == UserRole.admin, User.is_active == True)
+        .count()
+    )
     kpis = KPIs(
         total_users=total_users,
         pending_role_requests=pending_count,
         total_firefighters=total_firefighters,
         total_admins=total_admins,
     )
+
+    pending_requests = (
+        db.query(RoleRequest)
+        .filter(RoleRequest.status == RequestStatus.pending)
+        .order_by(RoleRequest.created_at.desc())
+        .limit(20)
+        .all()
+    )
+
 
     pending_requests = (
         db.query(RoleRequest)
@@ -75,3 +102,4 @@ def get_analytics_overview(db: Annotated[Session, Depends(get_db)]):
         kpis=kpis,
         pending_requests=pending_responses,
     )
+

@@ -1,13 +1,16 @@
 # This is for any route that needs to check if person is logged and has correct role
 # Reads cookie, decodes token and either blocks or allows request
-from fastapi import Depends, HTTPException, Request
-from jose import jwt, JWTError
-from sqlalchemy.orm import Session
-from db import get_db
-from models.users import User
-from auth import SECRET_KEY, ALGORITHM
 from typing import Optional
+
+from fastapi import Depends, HTTPException, Request
+from jose import JWTError, jwt
+from sqlalchemy.orm import Session
+
+from auth import ALGORITHM, SECRET_KEY
+from db import get_db
 from enums.user_role import UserRole
+from models.users import User
+
 
 
 def extract_token(request: Request) -> Optional[str]:

@@ -1,7 +1,6 @@
-from enums.report_status import ReportStatus
-from enums.fire_danger import FireDanger
-from typing import List
 from datetime import datetime
+from typing import List
+
 from pydantic import BaseModel, ConfigDict
 
 

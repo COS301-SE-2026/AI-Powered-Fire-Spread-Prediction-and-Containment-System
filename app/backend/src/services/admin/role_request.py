@@ -1,12 +1,14 @@
-from sqlalchemy.orm import Session
 import uuid
 from datetime import datetime, timezone
+
+from sqlalchemy.orm import Session
+
+from enums.role_request_status import RequestStatus
 from models.role_request import RoleRequest
 from models.users import User
-from enums.role_request_status import RequestStatus
 
 
-def get_role_requests(db: Session):
+def get_role_requests(db:Session):
     request = db.query(RoleRequest).all()
     return {"data": request, "total": len(request)}
 

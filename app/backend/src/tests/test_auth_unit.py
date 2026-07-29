@@ -1,8 +1,11 @@
-import pytest
-from auth import hash_password, verify_password, create_access_token
-from jose import jwt
-from datetime import timedelta
 import os
+from datetime import timedelta
+
+import pytest
+from jose import jwt
+
+from auth import create_access_token, hash_password, verify_password
+
 
 
 def test_password_hashing():

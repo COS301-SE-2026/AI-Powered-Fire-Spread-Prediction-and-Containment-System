@@ -1,7 +1,10 @@
-from enums.report_status import ReportStatus
-from typing import List
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from typing import List
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from enums.report_status import ReportStatus
+
 
 
 # response structure for the reported fires table

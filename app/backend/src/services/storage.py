@@ -3,8 +3,9 @@ import os
 import uuid
 from datetime import timedelta
 from io import BytesIO
-from minio import Minio
 from typing import Optional
+
+from minio import Minio
 
 minio_client = Minio(
     os.environ["MINIO_ENDPOINT"],

@@ -1,7 +1,9 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
 from typing import List
+
 from geoalchemy2.shape import to_shape
+from pydantic import BaseModel, ConfigDict
+
 
 
 class ContainmentLines(BaseModel):
