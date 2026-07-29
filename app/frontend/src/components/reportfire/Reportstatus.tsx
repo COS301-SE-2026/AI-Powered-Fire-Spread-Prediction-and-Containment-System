@@ -4,9 +4,9 @@ import type { ReportStatus } from "../../types/report";
 import { StatusCard } from "../reportfire/StatusCard";
 
 interface StatusProps {
-    status: ReportStatus;
-    refNumber: string;
-    locationText?: string;
+    readonly status: ReportStatus;
+    readonly refNumber: string;
+    readonly locationText?: string;
 };
 
 export default function ReportStatus({ status, refNumber, locationText }: StatusProps) {
@@ -19,7 +19,6 @@ export default function ReportStatus({ status, refNumber, locationText }: Status
         label="Report submitted";
         detail="Ref assigned, awaiting review";
         Icon = FileCheck;
-        color = "text-neutral";
     } else if (status === "pending") {
         label = "Pending";
         detail = "Started verification process";

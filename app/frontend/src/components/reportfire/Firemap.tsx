@@ -105,7 +105,7 @@ const INITIAL_ZOOM = 15.5;
     }
   }
 
-export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
+export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: Readonly<FireMapProps>) {
   const mapRef = useRef<any>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
@@ -132,8 +132,9 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
   //pin from search
   useEffect(() => {
     if (!externalPin) return;
-    resetBoundary(externalPin.lng, externalPin.lat, setMarkerPos, setRadius, onBoundarySizeChangeRef.current);
-    toLocation(mapRef, externalPin.lng, externalPin.lat);
+    const { lng, lat } = externalPin;
+    resetBoundary(lng, lat, setMarkerPos, setRadius, onBoundarySizeChangeRef.current);
+    toLocation(mapRef, lng, lat);
   }, [externalPin?.lng, externalPin?.lat]);
 
   useEffect(() => {

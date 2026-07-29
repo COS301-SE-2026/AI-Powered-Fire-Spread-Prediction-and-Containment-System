@@ -45,8 +45,7 @@ function SuggestionRow({ suggestion, onSelect }: SuggestionRowProps) {
 
 function renderSuggestions( suggestions: GeocodingSuggestion[], onSelect: (s: GeocodingSuggestion) => void): React.ReactNode[] {
     const rows: React.ReactNode[] = [];
-    for (let i = 0; i < suggestions.length; i++) {
-        const s = suggestions[i];
+    for (const s of suggestions) {
         rows.push(<SuggestionRow key={s.place_name} suggestion={s} onSelect={onSelect} />);
     }
     return rows;
@@ -63,8 +62,8 @@ async function fetchSuggestions(query: string): Promise<GeocodingSuggestion[]> {
     const json = await res.json();
     const features = json.features ?? [];
     const results: GeocodingSuggestion[] = [];
-    for (let i = 0; i< features.length; i++) {
-        results.push({ place_name: features[i].place_name, center: features[i].center });
+    for (const f of features) {
+        results.push({ place_name: f.place_name, center: f.center });
     }
     return results;
 }

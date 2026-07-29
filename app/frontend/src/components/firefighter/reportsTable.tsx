@@ -9,6 +9,14 @@ interface ReportsTableProp{
     readonly onView: (request: Report) => void;
 }
 
+const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
+                                day: 'numeric',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                timeZone: "Africa/Johannesburg",
+});
+
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
     const filtered = requests.filter(req =>
@@ -39,14 +47,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         </tr>
                     ) : (
                         filtered.map((req) => {
-                            const reportedDate = new Date(req.reported);
-                            const formattedDate = new Intl.DateTimeFormat('en-ZA', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: "Africa/Johannesburg",
-                            }).format(reportedDate);
+                            const formattedDate = dateFormatter.format(new Date(req.reported));
 
                             return(
                                 <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
