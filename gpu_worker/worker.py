@@ -5,6 +5,7 @@ import logging
 import os
 import time
 from pathlib import Path
+from app.backend.src.ai.dca import run_dca
 
 import boto3
 
@@ -18,7 +19,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(message)s"
 )
-logs = logging.getLogger("gpu_worker")  # Logs go to local systemd journal only (journalctl -u fire-worker)
+log = logging.getLogger("gpu_worker")  # Logs go to local systemd journal only (journalctl -u fire-worker)
 
 # Where systemd unit's monitoring checks for liveness
 HEARTBEAT_FILE = Path(os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat"))
@@ -37,9 +38,40 @@ def run_inference(job: dict) -> dict:
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
     # Must return a JSON-serializable dict. Needs enough identifying info (min 'job_id' and 'region_id')so backend's results-consumer background task can key result correctly in Valkey
     
-    raise NotImplementedError(
-        "Plug in the ai model"
+    job_id = job["job_id"]
+    region_id = job["region_id"]
+
+    weather_grids = {
+        "wind_u": job["weather"]["wind_u"],
+        "wind_v": job["weather"]["wind_v"],
+        "rel_humidity": job["weather"]["rel_humidity"],
+        "temperature": job["weather"]["temperature"],
+    }
+    
+    static_grids ={
+        "elevation": job["static"]["elevation"],
+        "slope": job["static"]["slope"],
+        "aspect_sin": job["static"]["aspect_sin"],
+        "aspect_cos": job["static"]["aspect_cos"],
+        "fuel_load": job["static"]["fuel_load"],
+        "dryness": job["static"]["dryness"],
+    }
+
+    n_steps = job.get("steps", 100)
+    n_ignition_points = job.get("n_ignition_points", 1)
+
+    history = run_dca(
+        weather_grids,
+        static_grids,
+        n_steps=n_steps,
+        n_ignition_points=n_ignition_points,
     )
+
+    return {
+        "job_id": job_id,
+        "region_id": region_id,
+        "history": [grid.tolist() for grid in history],
+    }
     
 def touch_heartbeat() -> None:
     HEARTBEAT_FILE.write_text(str(time.time()))
