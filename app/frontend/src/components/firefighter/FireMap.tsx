@@ -22,9 +22,12 @@ interface MapProps{
     drawMode: boolean;
     onDrawComplete: (line: string) => void;
     clearDrawings: number;
+    burnGrid?: number[] | null;
+    burnGridH?: number;
+    burnGridW?: number;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGrid, burnGridH, burnGridW}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
