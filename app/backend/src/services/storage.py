@@ -17,7 +17,7 @@ minio_client = Minio(
 
 # Separate client only for generating presigned URLs, using the browser-reachable endpoint
 presign_client = Minio(
-    os.environ.get("MINIO_PUBLIC_ENDPOINT", "localhost:9000"),
+    os.environ.get("MINIO_PUBLIC_ENDPOINT", "minio:9000"),
     access_key=os.environ["MINIO_ACCESS_KEY"],
     secret_key=os.environ["MINIO_SECRET_KEY"],
     secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
