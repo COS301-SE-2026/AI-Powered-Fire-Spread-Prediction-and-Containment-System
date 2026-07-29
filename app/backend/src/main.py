@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from routes.guests.fire_reports import router as guest_fire_router
 from routes.admin.role_requests import router as admin_roles_router
-from routes.admin.fire_reports import router as admin_fire_router 
+from routes.admin.fire_reports import router as admin_fire_router
 from routes.users.fire_reports import router as user_fire_router
 from routes.firefighter.fire_reports import router as firefighter_reports
 from routes.admin.analytics import router as admin_analytics_router
@@ -37,11 +37,13 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-#app = FastAPI(root_path="/api")
+# app = FastAPI(root_path="/api")
+
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -66,9 +68,13 @@ app.include_router(logout_router)
 app.include_router(image_uploads.router)
 app.include_router(guests_dashboard_router)
 
+
 @app.get("/")
 def read_root():
-    return {"status": "online", "message": "FireAway API is running and connected to PostgreSQL."}
+    return {
+        "status": "online",
+        "message": "FireAway API is running and connected to PostgreSQL.",
+    }
 
 
 @app.get("/api/ping")
@@ -80,7 +86,7 @@ def ping():
 def health_check():
     return {"status": "ok"}
 
+
 @app.on_event("startup")
 def startup():
     ensure_bucket()
-    
