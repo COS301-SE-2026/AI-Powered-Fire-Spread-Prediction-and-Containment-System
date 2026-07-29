@@ -1,7 +1,10 @@
-from enums.report_status import ReportStatus
-from typing import List
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict
+from typing import List
+
+from pydantic import BaseModel, ConfigDict, Field
+
+from enums.report_status import ReportStatus
+
 
 # response structure for the reported fires table
 class FirefighterReportTable(BaseModel):
@@ -14,7 +17,8 @@ class FirefighterReportTable(BaseModel):
     lat: float
     lng: float
 
-    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
 
 class FirefighterReportModal(BaseModel):
     id: str
@@ -28,8 +32,9 @@ class FirefighterReportModal(BaseModel):
     size: float = Field(validation_alias="boundary_radius")
     lat: float
     lng: float
-    
-    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
 
 class ReportList(BaseModel):
     data: List[FirefighterReportTable]
