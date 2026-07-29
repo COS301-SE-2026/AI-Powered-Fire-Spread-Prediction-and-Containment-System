@@ -127,7 +127,7 @@ class ConstantWeatherProvider:
         #consts req no preface
         pass  # nothing to prefetch - values are fixed
  
-    def fetch(self, min_lon, min_lat, max_lon, max_lat, timestamp, target_shape) -> dict[str, np.ndarray]:
+    def fetch(self, _min_lon, _min_lat, _max_lon, _max_lat, _timestamp, target_shape) -> dict[str, np.ndarray]:
         height, width = target_shape
         return {k: np.full((height, width), v, dtype=np.float32) for k, v in self.defaults.items()}
  
@@ -257,7 +257,7 @@ def build_rows_for_fire(
  
     weather_provider.prepare_for_fire(event, target_shape)
  
-    X_parts, y_parts = [], []
+    x_parts, y_parts = [], []
  
     for t_idx, tick in enumerate(event.ticks[:-1]):  #last tick
         detections_today = event.detections[event.detections["timestamp"].dt.floor("D") == tick]
@@ -278,15 +278,15 @@ def build_rows_for_fire(
             ignited_next = (eligible & detected_next_mask).ravel()
  
             elig_flat = eligible.ravel()
-            X_parts.np.append(x_grid[elig_flat])
-            y_parts.np.append(ignited_next[elig_flat].astype(np.float32))
+            x_parts.append(x_grid[elig_flat])
+            y_parts.append(ignited_next[elig_flat].astype(np.float32))
  
         #burn_state for next detection
         burn_state = step_burn_state(burn_state, detected_today_mask)
  
-    if not X_parts:
+    if not x_parts:
         return np.empty((0, len(FEATURES)), dtype=np.float32), np.empty((0,), dtype=np.float32)
-    return np.concatenate(X_parts, axis=0), np.concatenate(y_parts, axis=0)
+    return np.concatenate(x_parts, axis=0), np.concatenate(y_parts, axis=0)
 
  
 def load_detections(csv_path: str, lat_col: str, lon_col: str, date_col: str, time_col: Optional[str]) -> pd.DataFrame:
@@ -301,7 +301,11 @@ def load_detections(csv_path: str, lat_col: str, lon_col: str, date_col: str, ti
         ts = pd.to_datetime(df[date_col])
     out = pd.DataFrame({"lat": df[lat_col].astype(float), "lon": df[lon_col].astype(float), "timestamp": ts})
     return out.sort_values("timestamp").reset_index(drop=True)
- 
+
+def validate_and_resolve_path(user_path: str | Path) -> Path:
+    resolved_path = Path(user_path).resolve()
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
+    return resolved_path
  
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
@@ -348,7 +352,7 @@ def main() -> None:
         static_grids = load_static_grids_for_fire(
             manifest_row, event.min_lon, event.min_lat, event.max_lon, event.max_lat, target_shape,
         )
-        x_all, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
+        x_fire, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
         if len(y_fire) == 0:
             print(f"  [empty] fire_id={event.fire_id}: no eligible rows (single-tick fire?)")
             continue
@@ -370,7 +374,7 @@ def main() -> None:
           f"({len(skipped)} skipped for missing manifest entries)")
     print(f"Overall positive rate: {y_vector.mean()*100:.3f}%")
  
-    out_path = Path(args.out).resolve
+    out_path = validate_and_resolve_path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
