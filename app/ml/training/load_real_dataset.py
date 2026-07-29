@@ -1,21 +1,22 @@
-#real data, should be able to replace synthetic data
-#VIIRS active-fire hotspot detections and historical weather
+# real data, should be able to replace synthetic data
+# VIIRS active-fire hotspot detections and historical weather
 
 from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 
-from app.backend.src.ai.schema import BURNING, BURNED, UNBURNED
-from app.backend.src.ai.features import neighbour_features, grid_to_fmatrix
-
-from app.ml.features.fuel_load import process_sentinal2_and_worldcover
-from app.ml.features.terrain import extract_terrain_features
+from app.backend.src.ai.features import grid_to_fmatrix, neighbour_features
+from app.backend.src.ai.schema import BURNED, BURNING, UNBURNED
 from app.datasets.scripts.fetch_historical_weather import (
     fetch_historical_weather,
     get_weather_at_timestamp,
 )
+from app.ml.features.fuel_load import process_sentinal2_and_worldcover
+from app.ml.features.terrain import extract_terrain_features
+
 
 @dataclass
 class RealDatasetConfig:
@@ -30,21 +31,23 @@ class RealDatasetConfig:
     target_shape: tuple[int, int] = (64, 64)
     bbox_buffer_deg: float = 0.02
 
-    #low-confidence detections, false positives, remove as starting point
+    # low-confidence detections, false positives, remove as starting point
     min_confidence: set[str] = None
 
-    #spatiotemporal clustering thresholds grouping pnts into fire events
+    # spatiotemporal clustering thresholds grouping pnts into fire events
     cluster_distance_km: float = 5.0
     cluster_time_gap_days: float = 2.0
+
 
 def _load_hotspots(cfg: RealDatasetConfig) -> pd.DataFrame:
     """Loads VIIRS csv, builds datetime column, applies confidence filter"""
     df = pd.read_csv(cfg.hotspots_csv, dtype={"acq_time": str})
 
-    #pad to HHMM before parsing
+    # pad to HHMM before parsing
     df["acq_time"] = df["acq_time"].str.zfill(4)
     df["datetime"] = pd.to_datetime(
-        df["acq_date"] + " " + df["acq_time"].str[:2] + ":" + df["acq_time"].str[2:], format="%Y-%m-%d %H:%M",
+        df["acq_date"] + " " + df["acq_time"].str[:2] + ":" + df["acq_time"].str[2:],
+        format="%Y-%m-%d %H:%M",
     )
 
     if cfg.min_confidence:
@@ -61,10 +64,12 @@ def _haversine_km(lat1, lon1, lat2, lon2) -> float:
     a = np.sin(dphi / 2) ** 2 + np.cos(p1) * np.cos(p2) * np.sin(dlmb / 2) ** 2
     return 2 * R * np.arcsin(np.sqrt(a))
 
+
 def _cluster_into_fire_events(df: pd.DataFrame, cfg: RealDatasetConfig) -> pd.Series:
     """Group raw hotspot detections into distinct fire events: merge into same fire if within cluster_distance_km" and within cluster_time_gap_days
-    
-    Will need to change to scikit-learn DBSCAN with havrsine metric or KD-tree windowed search when more points"""
+
+    Will need to change to scikit-learn DBSCAN with havrsine metric or KD-tree windowed search when more points
+    """
 
     n = len(df)
     parent = list(range(n))
@@ -85,21 +90,27 @@ def _cluster_into_fire_events(df: pd.DataFrame, cfg: RealDatasetConfig) -> pd.Se
     times = df["datetime"].to_numpy()
     time_gap = np.timedelta64(int(cfg.cluster_time_gap_days * 24), "h")
 
-    #sort by time
+    # sort by time
     order = np.argsort(times)
     for a_pos in range(1, n):
         i = order[a_pos]
-        for b_pos in range(a_pos -1, -1, -1):
+        for b_pos in range(a_pos - 1, -1, -1):
             j = order[b_pos]
             if times[i] - times[j] > time_gap:
                 break
-            if  _haversine_km(lats[i], lons[i], lats[j], lons[j]) <= cfg.cluster_distance_km:
+            if (
+                _haversine_km(lats[i], lons[i], lats[j], lons[j])
+                <= cfg.cluster_distance_km
+            ):
                 union(i, j)
 
     roots = [find(i) for i in range(n)]
     return pd.Series(roots, index=df.index, name="fire_id").astype(str)
 
-def _static_features_for_fire(cfg, min_lon, min_lat, max_lon, max_lat) -> dict[str, np.ndarray]:
+
+def _static_features_for_fire(
+    cfg, min_lon, min_lat, max_lon, max_lat
+) -> dict[str, np.ndarray]:
     terrain = extract_terrain_features(
         dem_path=cfg.dem_path,
         min_lon=min_lon,
@@ -131,14 +142,15 @@ def _static_features_for_fire(cfg, min_lon, min_lat, max_lon, max_lat) -> dict[s
         "dryness": veg["dryness"],
     }
 
+
 def _rasterize_points(
-        lats: np.ndarray,
-        lons: np.ndarray,
-        min_lon: float,
-        min_lat: float,
-        max_lon: float,
-        max_lat: float,
-        target_shape: tuple[int, int],
+    lats: np.ndarray,
+    lons: np.ndarray,
+    min_lon: float,
+    min_lat: float,
+    max_lon: float,
+    max_lat: float,
+    target_shape: tuple[int, int],
 ) -> np.ndarray:
     """Bins point detection to bool (H, W) grid over bounding box"""
     H, W = target_shape
@@ -152,7 +164,10 @@ def _rasterize_points(
     grid[row[valid], col[valid]] = True
     return grid
 
-def load_real_dataset(cfg: RealDatasetConfig = RealDatasetConfig()) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+def load_real_dataset(
+    cfg: RealDatasetConfig = RealDatasetConfig(),
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Returns X [N, n_features], y [N], fire_ids [N] same contract as generate_synthetic_dataset(). Candidate rows = UNBURNED cells only"""
 
     df = _load_hotspots(cfg)
@@ -173,7 +188,7 @@ def load_real_dataset(cfg: RealDatasetConfig = RealDatasetConfig()) -> tuple[np.
 
         static = _static_features_for_fire(cfg, min_lon, min_lat, max_lon, max_lat)
 
-        #fetch weather once
+        # fetch weather once
         start_date = fire_df["acq_date"].min()
         end_date = fire_df["acq_date"].max()
         center_lat = (min_lat + max_lat) / 2.0
@@ -210,7 +225,7 @@ def load_real_dataset(cfg: RealDatasetConfig = RealDatasetConfig()) -> tuple[np.
                 max_lon,
                 max_lat,
                 cfg.target_shape,
-            )           
+            )
 
             burn[:] = UNBURNED
             burn[hotspots_t] = BURNING
@@ -218,10 +233,12 @@ def load_real_dataset(cfg: RealDatasetConfig = RealDatasetConfig()) -> tuple[np.
             weather = get_weather_at_timestamp(
                 df_weather,
                 when=day_t["datetime"].iloc[0],
-                target_shape=cfg.target_shape
+                target_shape=cfg.target_shape,
             )
 
-            nbf = neighbour_features(burn, weather["wind_u"], weather["wind_v"], static["elevation"])
+            nbf = neighbour_features(
+                burn, weather["wind_u"], weather["wind_v"], static["elevation"]
+            )
 
             unburned = burn == UNBURNED
 

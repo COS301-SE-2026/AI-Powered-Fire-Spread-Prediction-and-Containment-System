@@ -1,10 +1,9 @@
 from datetime import datetime, timezone
 
 import pytest
-from geoalchemy2.elements import WKTElement
-
 from conftest import make_report, make_user
 from enums.report_status import ReportStatus
+from geoalchemy2.elements import WKTElement
 from models.reported_fires import FireReports
 
 ### GET /api/users/reported-fires ###

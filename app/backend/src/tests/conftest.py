@@ -3,12 +3,11 @@ import sys
 import uuid
 
 import pytest
+from enums.report_status import ReportStatus
 from fastapi.testclient import TestClient
+from models.reported_fires import FireReports
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -18,11 +17,13 @@ os.environ.setdefault("SKIP_SEED", "1")
 from auth import hash_password
 from db import Base, get_db
 from main import app
+
 # models for the firefighter dashboard
 from models.containment_lines import ContainmentLines
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
 from models.users import User
+
 # seed data
 from seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 

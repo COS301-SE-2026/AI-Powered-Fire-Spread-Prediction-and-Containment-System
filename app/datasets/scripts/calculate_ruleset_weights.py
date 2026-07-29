@@ -1,9 +1,10 @@
-#to execute:
-#python app/datasets/scripts/calculate_ruleset_weights.py
-#only need to exe once
+# to execute:
+# python app/datasets/scripts/calculate_ruleset_weights.py
+# only need to exe once
 
 import json
 from pathlib import Path
+
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -21,7 +22,7 @@ CHUNK_SIZE = 100000
 
 WORLDCOVER_LABELS = {
     10: "Tree cover",
-    20: "Shrubland", 
+    20: "Shrubland",
     30: "Grassland",
     40: "Cropland",
     50: "Built-up",
@@ -47,6 +48,7 @@ CLASSIFICATION_RULES = [
     (("sparse", "rock", "barren"), 60),
 ]
 
+
 def classify_worldcover_text(text_info: str) -> int:
     """Helper to classify txt to wordlcover id's (sonarcube was having a fit)"""
     for keywords, wc_class in CLASSIFICATION_RULES:
@@ -54,14 +56,17 @@ def classify_worldcover_text(text_info: str) -> int:
             return wc_class
     return 30
 
+
 def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
     """maps evt numeic code to an official esa worldcover class id"""
 
-    xwalk_file= Path(xwalk_path)
+    xwalk_file = Path(xwalk_path)
     if not xwalk_file.exists():
         raise FileNotFoundError(f"Xwalk text file not found at: {xwalk_path}")
 
-    df_xwalk = pd.read_csv(xwalk_file, sep=";", header=None, engine="python", on_bad_lines="skip")
+    df_xwalk = pd.read_csv(
+        xwalk_file, sep=";", header=None, engine="python", on_bad_lines="skip"
+    )
 
     evt_wc_map = {}
 
@@ -76,6 +81,7 @@ def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
 
     return evt_wc_map
 
+
 def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, float]:
     """Reads fbfm40 csv and normalises weights"""
 
@@ -83,11 +89,11 @@ def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, flo
     df_lookup = pd.read_csv(lookup_path)
 
     df_params["total_tons_per_acre"] = (
-        df_params["load_1hr"] +
-        df_params["load_10hr"] +
-        df_params["load_100hr"] +
-        df_params["load_live_herb"] +
-        df_params["load_live_woody"]
+        df_params["load_1hr"]
+        + df_params["load_10hr"]
+        + df_params["load_100hr"]
+        + df_params["load_live_herb"]
+        + df_params["load_live_woody"]
     )
 
     max_load = df_params["total_tons_per_acre"].max()
@@ -109,17 +115,18 @@ def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, flo
             continue
 
     matched = len(fbfm_weight_map)
-    nonzero = sum(1 for v in fbfm_weight_map.values() if  v > 0)
+    nonzero = sum(1 for v in fbfm_weight_map.values() if v > 0)
     print(f"FBFM weight map: {matched} codes matched, {nonzero} with non-zero weight")
 
     return fbfm_weight_map
 
+
 def _log_first_chunk_debug(
-        chunk: pd.DataFrame,
-        fbfm_series: pd.Series,
-        valid_rows: pd.Series,
-        fbfm_col_index: int,
-        fbfm_weight_map: dict[int, float],
+    chunk: pd.DataFrame,
+    fbfm_series: pd.Series,
+    valid_rows: pd.Series,
+    fbfm_col_index: int,
+    fbfm_weight_map: dict[int, float],
 ) -> None:
     """helps log diagnostic sample for first chunk"""
     print(
@@ -131,14 +138,17 @@ def _log_first_chunk_debug(
     unique_codes = parsed_codes.unique()
     matched_codes = [c for c in unique_codes if c in fbfm_weight_map]
     unmatched_codes = [c for c in unique_codes if c not in fbfm_weight_map]
-    print("unique parse codes: {len(unique_codes)}, matched in weight map: {len(matched_codes)}, unmatched: {len(unmatched_codes)}")
+    print(
+        "unique parse codes: {len(unique_codes)}, matched in weight map: {len(matched_codes)}, unmatched: {len(unmatched_codes)}"
+    )
     print("sample unmatched codes: ", unmatched_codes[:15])
 
+
 def process_ruleset_chunk(
-        chunk: pd.DataFrame,
-        evt_wc_map: dict[int, int],
-        fbfm_weight_map: dict[int, float],
-        is_first_chunk: bool,
+    chunk: pd.DataFrame,
+    evt_wc_map: dict[int, int],
+    fbfm_weight_map: dict[int, float],
+    is_first_chunk: bool,
 ) -> pd.DataFrame:
     """single chunk, return grouped sum and counts"""
     evt_col_index = 2
@@ -148,9 +158,7 @@ def process_ruleset_chunk(
 
     fbfm_raw = chunk.iloc[:, fbfm_col_index].astype(str)
     fbfm_series = pd.to_numeric(
-        fbfm_raw.apply(
-            lambda x: x.split("/")[1].strip() if "/" in x else x
-        ),
+        fbfm_raw.apply(lambda x: x.split("/")[1].strip() if "/" in x else x),
         errors="coerce",
     )
 
@@ -160,7 +168,11 @@ def process_ruleset_chunk(
 
     if is_first_chunk:
         _log_first_chunk_debug(
-            chunk, fbfm_series, valid_rows, fbfm_col_index, fbfm_weight_map,
+            chunk,
+            fbfm_series,
+            valid_rows,
+            fbfm_col_index,
+            fbfm_weight_map,
         )
 
     chunk_clean = chunk.loc[valid_rows].copy()
@@ -171,7 +183,8 @@ def process_ruleset_chunk(
         fbfm_series[valid_rows].astype(int).map(fbfm_weight_map).fillna(0.0)
     )
 
-    return (chunk_clean.groupby("wc_class")["weight"].agg(["sum", "count"]).reset_index())
+    return chunk_clean.groupby("wc_class")["weight"].agg(["sum", "count"]).reset_index()
+
 
 def calculate_ruleset_weights():
     """integrate xwalk and fbfm params, stream chunk blocks and aggregate avg base fuel weights/ worldcover class"""
@@ -201,8 +214,10 @@ def calculate_ruleset_weights():
         on_bad_lines="skip",
     )
 
-    for  i, chunk in enumerate(chunk_counter):
-        grouped = process_ruleset_chunk(chunk, evt_wc_map, fbfm_weight_map, is_first_chunk=(i == 0))
+    for i, chunk in enumerate(chunk_counter):
+        grouped = process_ruleset_chunk(
+            chunk, evt_wc_map, fbfm_weight_map, is_first_chunk=(i == 0)
+        )
 
         for _, row in grouped.iterrows():
             wc_id = int(row["wc_class"])
@@ -220,25 +235,28 @@ def calculate_ruleset_weights():
         avg_weight = (
             round(data["weight_sum"] / data["count"], 4) if data["count"] > 0 else 0.0
         )
-        final_results.append({
-            "WorldCover_Class": wc_id,
-            "Description": WORLDCOVER_LABELS[wc_id],
-            "Base_Fuel_Weight": avg_weight,
-            "Total_Rules_Evaluated": data["count"],
-        })
+        final_results.append(
+            {
+                "WorldCover_Class": wc_id,
+                "Description": WORLDCOVER_LABELS[wc_id],
+                "Base_Fuel_Weight": avg_weight,
+                "Total_Rules_Evaluated": data["count"],
+            }
+        )
         json_lookup[wc_id] = avg_weight
 
-    #save for runtime loading
+    # save for runtime loading
     Path(OUTPUT_JSON).parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_JSON, "w") as f:
         json.dump(json_lookup, f, indent=4)
 
-    #save csv summary
+    # save csv summary
     pd.DataFrame(final_results).to_csv(OUTPUT_CSV, index=False)
 
     print("\nCalculations finished successfully")
     print(f"json lookup dictionary exported to: {OUTPUT_JSON}")
     print(f"csv summary report exported to: {OUTPUT_CSV}")
+
 
 if __name__ == "__main__":
     calculate_ruleset_weights()

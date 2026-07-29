@@ -1,12 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
 from db import get_db
-from schemas.firefighter_reports import (FirefighterReportModal,
-                                         FirefighterReportTable, ReportList)
+from fastapi import APIRouter, Depends, HTTPException
+from schemas.firefighter_reports import (
+    FirefighterReportModal,
+    FirefighterReportTable,
+    ReportList,
+)
 from services.firefighter import firefighter_reports
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
