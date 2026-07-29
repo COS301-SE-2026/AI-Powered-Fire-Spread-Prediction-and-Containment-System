@@ -257,9 +257,9 @@ def process_sentinal2_and_worldcover(
             )
             cloud_mask = np.isin(scl, np.array(sorted(scl_masked_classes), dtype=scl.dtype))
 
-    b04 = _dn_to_reflactance(b04_dn, s2_reflectance_scale, s2_reflectance_offset)
-    b08 = _dn_to_reflactance(b08_dn, s2_reflectance_scale, s2_reflectance_offset)
-    b11 = _dn_to_reflactance(b11_dn, s2_reflectance_scale, s2_reflectance_offset)
+    b04 = _dn_to_reflectance(b04_dn, s2_reflectance_scale, s2_reflectance_offset)
+    b08 = _dn_to_reflectance(b08_dn, s2_reflectance_scale, s2_reflectance_offset)
+    b11 = _dn_to_reflectance(b11_dn, s2_reflectance_scale, s2_reflectance_offset)
 
     if cloud_mask is not None:
         b04 = np.where(cloud_mask, np.nan, b04)

@@ -9,6 +9,7 @@ import pandas as pd
 
 from app.backend.src.ai.schema import BURNING, BURNED, UNBURNED
 from app.backend.src.ai.features import neighbour_features, grid_to_fmatrix
+from app.backend.src.ai.utils import UnionFind
 
 from app.ml.features.fuel_load import process_sentinal2_and_worldcover
 from app.ml.features.terrain import extract_terrain_features
@@ -67,19 +68,9 @@ def _cluster_into_fire_events(df: pd.DataFrame, cfg: RealDatasetConfig) -> pd.Se
     Will need to change to scikit-learn DBSCAN with havrsine metric or KD-tree windowed search when more points"""
 
     n = len(df)
-    parent = list(range(n))
 
-    def find(i):
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    def union(i, j):
-        ri, rj = find(i), find(j)
-        if ri != rj:
-            parent[ri] = rj
-
+    uf = UnionFind(n)
+    
     lats = df["latitude"].to_numpy()
     lons = df["longitude"].to_numpy()
     times = df["datetime"].to_numpy()
@@ -94,9 +85,9 @@ def _cluster_into_fire_events(df: pd.DataFrame, cfg: RealDatasetConfig) -> pd.Se
             if times[i] - times[j] > time_gap:
                 break
             if  _haversine_km(lats[i], lons[i], lats[j], lons[j]) <= cfg.cluster_distance_km:
-                union(i, j)
+                uf.union(i, j)
 
-    roots = [find(i) for i in range(n)]
+    roots = [uf.find(i) for i in range(n)]
     return pd.Series(roots, index=df.index, name="fire_id").astype(str)
 
 def _static_features_for_fire(cfg, min_lon, min_lat, max_lon, max_lat) -> dict[str, np.ndarray]:

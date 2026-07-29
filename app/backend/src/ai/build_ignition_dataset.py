@@ -8,6 +8,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+from ai.utils import UnionFind
 
 import numpy as np
 import pandas as pd
@@ -36,18 +37,8 @@ def cluster_fire_events(
 ) -> np.ndarray:
     """union-find clustering of point detections into distinct fire events"""
     n = len(detections)
-    parent = np.arange(n)
 
-    def find(i: int) -> int:
-        while parent[i] != i:
-            parent[i] = parent[[parent[i]]]
-            i = parent[i]
-        return i
-
-    def union(i: int, j: int) -> None:
-        ri, rj = find(i), find(j)
-        if ri != rj:
-            parent[ri] = rj
+    uf = UnionFind(n)
 
     lat = detections["lat"].to_numpy()
     lon = detections["lon"].to_numpy()
@@ -59,10 +50,10 @@ def cluster_fire_events(
         j = i + 1
         while j<n and (ts[j] - ts[i]) <= max_gap_ns:
             if haversine_km(lat[i], lon[i], lat[j], lon[j]) <= max_gap_km:
-                union(i, j)
+                uf.union(i, j)
             j += 1
 
-    roots = np.array([find(i) for i in range(n)])
+    roots = np.array([uf.find(i) for i in range(n)])
     _, fire_ids = np.unique(roots, return_inverse=True)
     return fire_ids
 
@@ -77,30 +68,30 @@ class FireEvent:
     max_lat: float
     ticks: list
 
-def build_fire_events(detections: pd.DataFrame, fire_ids: np.ndarray, bbox_buffer_km: float = 2.0) -> list[FireEvent]:
+def build_fire_events(detection: pd.DataFrame, fire_ids: np.ndarray, bbox_buffer_km: float = 2.0) -> list[FireEvent]:
     events = []
-    detections = detections.assign(fire_id=fire_ids)
-    for fid, grp in detections.groupby("fire_id"):
+    detection = detection.assign(fire_id=fire_ids)
+    for fid, grp in detection.groupby("fire_id"):
         grp = grp.sort_values("timestamp")
         buf_deg = bbox_buffer_km / 111.0
         events.append(FireEvent(
             fire_id=int(fid),
-            detections=grp,
+            detection=grp,
             min_lon=float(grp["lon"].min() - buf_deg),
             min_lat=float(grp["lat"].min() - buf_deg),
-            max_lon=float(grp["lon"].min() - buf_deg),
-            max_lat=float(grp["lat"].min() - buf_deg),
+            max_lon=float(grp["lon"].min() + buf_deg),
+            max_lat=float(grp["lat"].min() + buf_deg),
             ticks=sorted(grp["timestamp"].dt.floor("D").unique()),
         ))
     return events
 
 def rasterize_tick(detections_today: pd.DataFrame, event: FireEvent, height: int, width: int) -> np.ndarray:
     """bool height width grid"""
-    hit = np.zeros((H, width), dtype=bool)
+    hit = np.zeros((height, width), dtype=bool)
     if detections_today.empty:
         return hit
     col = ((detections_today["lon"].to_numpy() - event.min_lon) / (event.max_lon - event.min_lon) * width).astype(int)
-    row = ((event.max_lat - detection_today["lat"].to_numpy()) / (event.max_lat - event.min_lat) * height).astype(int)
+    row = ((event.max_lat - detections_today["lat"].to_numpy()) / (event.max_lat - event.min_lat) * height).astype(int)
     col = np.clip(col, 0, width-1)
     row = np.clip(row, 0, height-1)
     hit[row, col] = True
@@ -278,8 +269,8 @@ def build_rows_for_fire(
             ignited_next = (eligible & detected_next_mask).ravel()
  
             elig_flat = eligible.ravel()
-            X_parts.append(x_grid[elig_flat])
-            y_parts.append(ignited_next[elig_flat].astype(np.float32))
+            X_parts.np.append(x_grid[elig_flat])
+            y_parts.np.append(ignited_next[elig_flat].astype(np.float32))
  
         #burn_state for next detection
         burn_state = step_burn_state(burn_state, detected_today_mask)
@@ -312,7 +303,7 @@ def main() -> None:
     ap.add_argument("--time-col", default="acq_time")
     ap.add_argument("--manifest", required=True, help="CSV: fire_id -> pre-fire imagery/DEM paths (see StaticSourceManifest)")
     ap.add_argument("--weather", choices=["constant", "historical"], default="constant")
-    ap.add_argument("--target-shape", type=int, nargs=2, default=(64, 64), metavar=("H", "W"))
+    ap.add_argument("--target-shape", type=int, nargs=2, default=(64, 64), metavar=("height", "weight"))
     ap.add_argument("--max-gap-km", type=float, default=5.0)
     ap.add_argument("--max-gap-days", type=float, default=4.0)
     ap.add_argument("--out", default="ignition_dataset.npz")
@@ -348,12 +339,12 @@ def main() -> None:
         static_grids = load_static_grids_for_fire(
             manifest_row, event.min_lon, event.min_lat, event.max_lon, event.max_lat, target_shape,
         )
-        x_all, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
+        x_fire, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
         if len(y_fire) == 0:
             print(f"  [empty] fire_id={event.fire_id}: no eligible rows (single-tick fire?)")
             continue
  
-        x_all.append(x_all)
+        x_all.append(x_fire)
         y_all.append(y_fire)
         fid_all.append(np.full(len(y_fire), event.fire_id, dtype=np.int64))
         print(f"  fire_id={event.fire_id}: {len(event.ticks)} ticks, "
@@ -366,11 +357,11 @@ def main() -> None:
     y_vector = np.concatenate(y_all, axis=0)
     fire_ids_out = np.concatenate(fid_all, axis=0)
  
-    print(f"\nTotal: {len(y):,} rows across {len(x_all)} fires "
+    print(f"\nTotal: {len(y_vector):,} rows across {len(x_all)} fires "
           f"({len(skipped)} skipped for missing manifest entries)")
     print(f"Overall positive rate: {y_vector.mean()*100:.3f}%")
  
-    out_path = validate_and_resolve_path(args.out)
+    out_path = Path(args.out).resolve
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
