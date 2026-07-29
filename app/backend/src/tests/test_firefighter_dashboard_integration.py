@@ -1,8 +1,8 @@
-#from conftest import make_report
+from tests.conftest import make_report
 
 
 # draw a line test for a line within 2km
-def test_log_containment_line_2km(client, db, make_report):
+def test_log_containment_line_2km(client, db):
     fire = make_report(db)
 
     response = client.post(
@@ -16,7 +16,7 @@ def test_log_containment_line_2km(client, db, make_report):
 
 
 # draw a line test for a line outside 2km
-def test_log_containment_line_5km(client, db, make_report):
+def test_log_containment_line_5km(client, db):
     fire = make_report(db)
 
     response = client.post(
@@ -30,7 +30,7 @@ def test_log_containment_line_5km(client, db, make_report):
 
 
 # testing for nearby fires and weather api response with default coords success
-def test_nearby_weather_success(client, db, seeded_fire_reports):
+def test_nearby_weather_success(client, db):
     response = client.get(
         "/api/firefighter/firefighter-dashboard",
         params={"lat": -25.7479, "lng": 28.2293, "radius_km": 20},
