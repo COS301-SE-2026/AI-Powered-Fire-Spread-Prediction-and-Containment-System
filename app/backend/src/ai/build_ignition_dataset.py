@@ -451,7 +451,7 @@ def main() -> None:
     ap.add_argument("--max-gap-km", type=float, default=5.0)
     ap.add_argument("--max-gap-days", type=float, default=4.0)
     ap.add_argument("--out", default="ignition_dataset.npz")
-    ap.add_argument("--base-dir", default=None, help="Dir all --csv/--manifest/--out paths resolved")
+    ap.add_argument("--base-dir", default=None, help="Dir all --csv/--manifest/--out paths resolved",)
     args = ap.parse_args()
 
     base_dir = Path(args.base_dir).resolve() if args.base_dir else Path.cwd().resolve()
@@ -465,7 +465,7 @@ def main() -> None:
         weather_provider = ConstantWeatherProvider()
 
     detections = load_detections(
-        args.csv, args.lat_col, args.lon_col, args.date_col, args.time_col
+        str(csv_path), args.lat_col, args.lon_col, args.date_col, args.time_col
     )
     print(f"Loaded {len(detections):,} raw detections from {args.csv}")
 
@@ -538,7 +538,7 @@ def main() -> None:
     meta_path.write_text(
         json.dumps(
             {
-                "source_csv": args.csv,
+                "source_csv": str(csv_path),
                 "n_fires": len(x_all),
                 "n_rows": int(len(y_vector)),
                 "features": FEATURES,
