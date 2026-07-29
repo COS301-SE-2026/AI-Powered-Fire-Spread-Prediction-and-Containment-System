@@ -89,6 +89,22 @@ const INITIAL_ZOOM = 15.5;
     onBoundarySizeChange?.(newRadius);
   }
 
+  async function reverseGeocode(lng: number, lat: number): Promise<string> {
+     try {
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=address,place&limit=1`);
+
+      if (!res.ok) {
+        console.error(`Reverse geocode failed: ${res.status} ${res.statusText}`);
+        return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      }
+      const json = await res.json();
+      return json.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    } catch (err){
+      console.error("Reverse geocode error", err);
+      return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    }
+  }
+
 export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
   const mapRef = useRef<any>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
@@ -108,10 +124,15 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     radiusKmRef.current = r;
   }, []);
 
+  const onBoundarySizeChangeRef = useRef(onBoundarySizeChange);
+  useEffect(() => {
+    onBoundarySizeChangeRef.current = onBoundarySizeChange;
+  }, [onBoundarySizeChange]);
+
   //pin from search
   useEffect(() => {
     if (!externalPin) return;
-    resetBoundary(externalPin.lng, externalPin.lat, setMarkerPos, setRadius, onBoundarySizeChange);
+    resetBoundary(externalPin.lng, externalPin.lat, setMarkerPos, setRadius, onBoundarySizeChangeRef.current);
     toLocation(mapRef, externalPin.lng, externalPin.lat);
   }, [externalPin?.lng, externalPin?.lat]);
 
@@ -140,7 +161,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
 
     rimMarker.on('dragstart', () => { isDragging.current = true; });
 
-    rimMarker.on('drag', () => handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChange));
+    rimMarker.on('drag', () => handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChangeRef.current));
 
     rimMarker.on('dragend', () => {
       setRadiusKm(radiusKmRef.current);
@@ -152,28 +173,18 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     return () => { rimMarkerRef.current?.remove(); };
   }, [markerPos]);
 
-  async function reverseGeocode(lng: number, lat: number): Promise<string> {
-     try {
-      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=address,place&limit=1`);
-      const json = await res.json();
-      return json.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    } catch {
-      return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    }
-  }
-
   //map click
   const handleMapClick = useCallback(async (e: any) => {
     if (isDragging.current) return;
     if (Date.now() - dragEndTime.current < 300) return;
 
     const { lng, lat } = e.lngLat;
-    resetBoundary(lng, lat, setMarkerPos, setRadius, onBoundarySizeChange);
+    resetBoundary(lng, lat, setMarkerPos, setRadius, onBoundarySizeChangeRef.current);
     toLocation(mapRef, lng, lat);
 
     const address = await reverseGeocode(lng, lat);
     onLocationSelect?.({ lat, lng, address });
-  }, [onLocationSelect, onBoundarySizeChange]);
+  }, [onLocationSelect]);
 
   const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
 
