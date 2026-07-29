@@ -19,6 +19,7 @@ export default function ReportStatus({ status, refNumber, locationText }: Status
         label="Report submitted";
         detail="Ref assigned, awaiting review";
         Icon = FileCheck;
+        color = "text-text-primary";
     } else if (status === "pending") {
         label = "Pending";
         detail = "Started verification process";
