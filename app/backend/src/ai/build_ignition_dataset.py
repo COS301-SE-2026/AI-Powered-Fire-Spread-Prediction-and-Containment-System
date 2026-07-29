@@ -8,7 +8,6 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-from ai.utils import UnionFind
 
 import numpy as np
 import pandas as pd
@@ -37,8 +36,18 @@ def cluster_fire_events(
 ) -> np.ndarray:
     """union-find clustering of point detections into distinct fire events"""
     n = len(detections)
+    parent = np.arange(n)
 
-    uf = UnionFind(n)
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i: int, j: int) -> None:
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
 
     lat = detections["lat"].to_numpy()
     lon = detections["lon"].to_numpy()
@@ -50,10 +59,10 @@ def cluster_fire_events(
         j = i + 1
         while j<n and (ts[j] - ts[i]) <= max_gap_ns:
             if haversine_km(lat[i], lon[i], lat[j], lon[j]) <= max_gap_km:
-                uf.union(i, j)
+                union(i, j)
             j += 1
 
-    roots = np.array([uf.find(i) for i in range(n)])
+    roots = np.array([find(i) for i in range(n)])
     _, fire_ids = np.unique(roots, return_inverse=True)
     return fire_ids
 
@@ -339,7 +348,7 @@ def main() -> None:
         static_grids = load_static_grids_for_fire(
             manifest_row, event.min_lon, event.min_lat, event.max_lon, event.max_lat, target_shape,
         )
-        x_fire, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
+        x_all, y_fire = build_rows_for_fire(event, static_grids, weather_provider, target_shape)
         if len(y_fire) == 0:
             print(f"  [empty] fire_id={event.fire_id}: no eligible rows (single-tick fire?)")
             continue
