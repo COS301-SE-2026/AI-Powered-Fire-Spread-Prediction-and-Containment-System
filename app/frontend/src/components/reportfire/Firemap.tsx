@@ -170,7 +170,17 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     });
 
     rimMarkerRef.current = rimMarker;
-    return () => { rimMarkerRef.current?.remove(); };
+
+    return () => {
+      rimMarker.off('dragstart', () => { isDragging.current = true; });
+      rimMarker.off('drag', () => handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChangeRef.current));
+      rimMarker.off('dragend', () => {
+        setRadiusKm(radiusKmRef.current);
+        isDragging.current = false;
+        dragEndTime.current = Date.now();
+      });
+    }
+
   }, [markerPos]);
 
   //map click
