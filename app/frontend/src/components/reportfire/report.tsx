@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer, useRef } from "react";
 import StepIndicator from "./Stepindicator";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
@@ -11,50 +11,117 @@ import type { FireReport } from "../../types/report";
 
 type SubmitState = "idle" | "loading" | "error";
 
+interface FormStateProps {
+  activeStep: number;
+  location: string;
+  boundarySize: number;
+  externalPin: { lng: number; lat: number } | null;
+  mapKey: number;
+  submitState: SubmitState;
+  submitError: string | null;
+}
+
+const initialFormState: FormStateProps = {
+  activeStep: 0,
+  location: LOCATION_PLACEHOLDER,
+  boundarySize: 0.2,
+  externalPin: null,
+  mapKey: 0,
+  submitState: "idle",
+  submitError: null,
+};
+
+interface SetBoundarySizeAction {
+  type: "SET_BOUNDARY_SIZE";
+  value: number;
+}
+
+interface setLocationAction {
+  type: "SET_LOCATION";
+  address:string;
+  pin: { lng: number; lat: number };
+}
+
+interface SubmitStartAction {
+  type: "SUBMIT_START";
+}
+
+interface SubmitErrorAction {
+  type: "SUBMIT_ERROR";
+  message: string;
+}
+
+interface SubmitSuccessResetAction {
+  type: "SUBMIT_SUCCESS_RESET";
+}
+
+type FormAction = | SetBoundarySizeAction | setLocationAction | SubmitStartAction | SubmitErrorAction | SubmitSuccessResetAction;
+
+function formReducer(state: FormStateProps, action: FormAction): FormStateProps {
+  switch (action.type) {
+    case "SET_BOUNDARY_SIZE":
+      return {
+        ...state,
+        boundarySize: action.value,
+        activeStep: Math.max(state.activeStep, 1),
+      };
+    case "SET_LOCATION":
+      return {
+        ...state,
+        location: action.address,
+        externalPin: action.pin,
+        activeStep: Math.max(state.activeStep, 1),
+      };
+    case "SUBMIT_START":
+      return {...state, submitState: "loading", submitError: null };
+    case "SUBMIT_ERROR":
+      return {...state, submitState: "error", submitError: action.message };
+    case "SUBMIT_SUCCESS_RESET":
+      return {...initialFormState, mapKey: state.mapKey + 1 };
+    default:
+      return state;
+  }
+}
+
 export default function ReportPage() {
-  const [activeStep, setActiveStep] = useState(0);
-  const [location, setLocation] = useState(LOCATION_PLACEHOLDER);
-  const [boundarySize, setBoundarySize] = useState(0.2);
-  const [statusIndex, setStatusIndex] = useState(-1);
-  const [mapKey, setMapKey] = useState(0);
+  const [form, dispatch] = useReducer(formReducer, initialFormState);
+  const statusIndexRef = useRef(-1);
   const [activeRefNum, setActiveRefNum] = useState("");
-  const [externalPin, setExternalPin] = useState<{ lng: number; lat: number } | null>(null);
-  const [submitState, setSubmitState] = useState<SubmitState>("idle");
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [reports, setReports] = useState<FireReport[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     fetch(`/api/users/reported-fires`)
         .then((res) => res.json())
         .then((data: FireReport[]) => {
+          if (cancelled) return;
             const sorted = [...data].sort(
                 (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
             );
             setReports(sorted);
         })
-        .catch((err) => console.error("Failed to fetch reports", err));
+        .catch((err) => {
+          if (!cancelled) console.error("Failed to fetch reports", err);
+        });
+      return () => {
+        cancelled = true;
+      };
   }, [activeRefNum]);
 
   function handleBoundarySizeChange(value: number) {
-    setBoundarySize(value);
-    if (activeStep < 1) setActiveStep(1);
+    dispatch({ type: "SET_BOUNDARY_SIZE", value});
   }
 
-  function handleLocationSelect(loc: { lat: number; lng: number; address: string }) {
-    setLocation(loc.address);
-    setExternalPin({ lng: loc.lng, lat: loc.lat });
-    setActiveStep((prev) => Math.max(prev, 1));
+  function handleLocationSelect(loc: {lat: number; lng: number; address: string} ) {
+    dispatch({ type: "SET_LOCATION", address: loc.address, pin: { lng: loc.lng, lat: loc.lat }});
   }
 
-  function handleLocationSearch(loc: { lat: number; lng: number; address: string }) {
-    setLocation(loc.address);
-    setActiveStep((prev) => Math.max(prev, 1));
-    setExternalPin({ lng: loc.lng, lat: loc.lat });
+  function handleLocationSearch(loc: {lat: number; lng: number; address: string} ) {
+    dispatch({ type: "SET_LOCATION", address: loc.address, pin: { lng: loc.lng, lat: loc.lat }});
   }
 
   async function handleSubmit(data: ReportFormData) {
-    setSubmitState("loading");
-    setSubmitError(null);
+    dispatch({ type: "SUBMIT_START" });
     try {
       let imageUrl: string | undefined = undefined;
 
@@ -82,9 +149,9 @@ export default function ReportPage() {
           location_text: data.location,
           description: data.description,
           image_url: imageUrl,
-          lat: externalPin?.lat ?? 0,
-          lng: externalPin?.lng ?? 0,
-          boundary_radius: boundarySize,
+          lat: form.externalPin?.lat ?? 0,
+          lng: form.externalPin?.lng ?? 0,
+          boundary_radius: form.boundarySize,
         }),
       });
 
@@ -94,20 +161,14 @@ export default function ReportPage() {
 
       const report = await res.json();
       setActiveRefNum(report.reference_number);
-      setStatusIndex(0);
-      setActiveStep(2);
-      setSubmitState("idle");
+      statusIndexRef.current = 0;
+
       setTimeout(() => {
-        setActiveStep(0);
-        setLocation(LOCATION_PLACEHOLDER);
-        setBoundarySize(0.2);
-        setExternalPin(null);
-        setMapKey((k) => k + 1);
+        dispatch({ type: "SUBMIT_SUCCESS_RESET" });
       }, 1000);
     } catch (err) {
       console.error('Failed to submit report', err);
-      setSubmitState("error");
-      setSubmitError("Failed to submit report. Please try again.");
+      dispatch({ type: "SUBMIT_ERROR", message: "Failed to submit report. Please try again." });
     }
   }
 
@@ -132,8 +193,8 @@ export default function ReportPage() {
               </div>
               <div className="flex-1 w-full">
                 <FireMap
-                  key={mapKey}
-                  externalPin={externalPin}
+                  key={form.mapKey}
+                  externalPin={form.externalPin}
                   onLocationSelect={handleLocationSelect}
                   onBoundarySizeChange={handleBoundarySizeChange}
                 />
@@ -145,7 +206,7 @@ export default function ReportPage() {
           <div className="xl:col-span-4 flex flex-col gap-3">
             <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
               <ReportDetailsForm
-                location={location}
+                location={form.location}
                 onSubmit={handleSubmit}
                 onLocationSearch={handleLocationSearch}
               />
@@ -153,8 +214,8 @@ export default function ReportPage() {
 
             <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
               <h4 className = "mb-2">Report status</h4>
-              {submitState === "error" && submitError && <FormError message={submitError} />}
-              
+              {form.submitState === "error" && form.submitError && <FormError message={form.submitError} />}
+
               {reports.length == 0 ? (
                 <p className="text-sm text-neutural">No reports submitted yet.</p>
               ) : (
