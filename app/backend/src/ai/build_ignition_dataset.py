@@ -302,8 +302,21 @@ def load_detections(csv_path: str, lat_col: str, lon_col: str, date_col: str, ti
     out = pd.DataFrame({"lat": df[lat_col].astype(float), "lon": df[lon_col].astype(float), "timestamp": ts})
     return out.sort_values("timestamp").reset_index(drop=True)
 
-def validate_and_resolve_path(user_path: str | Path) -> Path:
+def validate_and_resolve_path(user_path: str | Path, base_dir: Path| None = None) -> Path:
+    """user stays inside allowed dir"""
+    if base_dir is None:
+        base_dir = Path.cwd().resolve()
+    else:
+        base_dir= Path(base_dir).resolve()
+
     resolved_path = Path(user_path).resolve()
+
+    try:
+        resolved_path.relative_to(base_dir)
+    except ValueError:
+        raise ValueError(
+            f"Security error: Path '{resolved_path}', escapes allowed base_dir '{base_dir}'"
+        )
     resolved_path.parent.mkdir(parents=True, exist_ok=True)
     return resolved_path
  
@@ -375,7 +388,6 @@ def main() -> None:
     print(f"Overall positive rate: {y_vector.mean()*100:.3f}%")
  
     out_path = validate_and_resolve_path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
 
     np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
 
