@@ -70,6 +70,33 @@ export function SimulationResults () {
                 <p className="text-xs text-text-disabled">Last run 2 min ago · Auto Update</p>
             </div>
 
+            {/* Live burn stats for current tick */}
+            {currentStats && (
+                <div className='flex gap-3'>
+                    <div className='flex flex-col'>
+                        <span className='text-xs text-text-muted uppercase'>Burning</span>
+                        <span className='text-sm font-semibold text-ignite'>
+                            {currentStats.burning}
+                                cells
+                        </span>
+                    </div>
+                    <div className='flex flex-col'>
+                        <span className='text-xs text-text-muted uppercase'>Buring</span>
+                        <span className='text-sm font-semibold text-green-500/70'>
+                            {currentStats.burned}
+                                cells
+                        </span>
+                    </div>
+                    <div className='flex flex-col'>
+                        <span className='text-xs text-text-muted uppercase'>Unburned</span>
+                        <span className='text-sm font-semibold text-green-500/70'>
+                            {currentStats.total_cells - currentStats.burning - currentStats.burned}
+                                cells
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {/* Weather conditions */}
             <div>
                 <p className="text-sm uppercase py-2">weather inputs</p>
