@@ -37,7 +37,7 @@ app = FastAPI(
     redirect_slashes=False,
 )
 
-app = FastAPI(root_path="/api")
+#app = FastAPI(root_path="/api")
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
