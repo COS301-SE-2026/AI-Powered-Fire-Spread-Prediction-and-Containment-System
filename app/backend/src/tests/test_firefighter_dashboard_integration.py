@@ -1,8 +1,8 @@
-from conftest import make_report
+#from conftest import make_report
 
 
 # draw a line test for a line within 2km
-def test_log_containment_line_2km(client, db):
+def test_log_containment_line_2km(client, db, make_report):
     fire = make_report(db)
 
     response = client.post(
@@ -16,7 +16,7 @@ def test_log_containment_line_2km(client, db):
 
 
 # draw a line test for a line outside 2km
-def test_log_containment_line_5km(client, db):
+def test_log_containment_line_5km(client, db, make_report):
     fire = make_report(db)
 
     response = client.post(
