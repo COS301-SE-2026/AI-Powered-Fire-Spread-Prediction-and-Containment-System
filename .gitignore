@@ -39,8 +39,9 @@ database/minio/
 
 # artifact_store
 artifact_store/ignition/
-<<<<<<< HEAD
 
 *.venv
 
-app/datasets/raw_data/
+app/datasets/raw_data/*
+
+!app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv
