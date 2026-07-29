@@ -1,21 +1,24 @@
-#we should add more tests as the valid ranges for fields become apparent throughout this project, should be fine for now.
+# we should add more tests as the valid ranges for fields become apparent throughout this project, should be fine for now.
 import pytest
-from pydantic import ValidationError #for explicit type checking, considering python doesn't do it for some reason
+from pydantic import (
+    ValidationError,
+)  # for explicit type checking, considering python doesn't do it for some reason
 from datetime import datetime, timezone
 
 from models.reported_fires import FireReports
 from schemas.fire_report import FireReportCreate
-from enums.report_status import ReportStatus 
+from enums.report_status import ReportStatus
 
-#testing so that the correct data is sent to mapbox to display the fires
-#the guest page map needs to get fire report data that is correctly structured.
+
+# testing so that the correct data is sent to mapbox to display the fires
+# the guest page map needs to get fire report data that is correctly structured.
 class TestFireReportSchemaValidation:
-    #helper for data values
+    # helper for data values
     def _valid_payload(self, **overrides) -> dict:
         """The valid base payload. Each test can override the fields as needed."""
         base = {
             "reference_number": "FR-2026-001",
-            "user_id": "usr_01", 
+            "user_id": "usr_01",
             "location": "LC de Villiers Sports Grounds, Hatfield",
             "description": "Brush fire starting near the northern fence along the road.",
             "lng": -25.7480,
@@ -23,8 +26,8 @@ class TestFireReportSchemaValidation:
             "boundary_radius_km": 0.5,
             "status": ReportStatus.verified,
             "status_index": 2,
-            #need to change to valid time
-            "submitted_at": "2026-05-22T10:00:00Z", 
+            # need to change to valid time
+            "submitted_at": "2026-05-22T10:00:00Z",
         }
         base.update(overrides)
         return base

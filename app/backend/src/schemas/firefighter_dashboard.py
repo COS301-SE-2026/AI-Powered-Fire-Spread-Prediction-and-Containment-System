@@ -4,6 +4,7 @@ from typing import List
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
+
 class NearbyFire(BaseModel):
     location_text: str
     distance: float
@@ -12,16 +13,19 @@ class NearbyFire(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class EnvironmentVariables(BaseModel):
     wind: float
-    wind_dir: int # wind angle in degrees 
+    wind_dir: int  # wind angle in degrees
     temperature: float
     fire_danger: FireDanger
     humidity: float
 
+
 class NearbyFiresList(BaseModel):
     data: List[NearbyFire]
     total: int
+
 
 class DashboardData(BaseModel):
     nearby_fires: NearbyFiresList

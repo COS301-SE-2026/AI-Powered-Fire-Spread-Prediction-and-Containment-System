@@ -4,6 +4,7 @@ from enums.user_role import UserRole
 from datetime import datetime, timezone
 from db import Base
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -15,12 +16,14 @@ class User(Base):
     license_number = Column(String)
     hashed_password = Column(String, nullable=False, default="")
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )
     is_active = Column(Boolean, default=True)
     is_2fa_enabled = Column(Boolean, default=False)
     totp_secret = Column(String, nullable=True)
 
     fire_reports = relationship("FireReports", back_populates="user")
-    role_requests = relationship("RoleRequest", back_populates="user", foreign_keys="RoleRequest.user_id")
-
-
+    role_requests = relationship(
+        "RoleRequest", back_populates="user", foreign_keys="RoleRequest.user_id"
+    )

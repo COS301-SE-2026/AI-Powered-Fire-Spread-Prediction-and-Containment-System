@@ -3,6 +3,7 @@ from typing import List
 from datetime import datetime
 from pydantic import BaseModel, Field, ConfigDict
 
+
 # response structure for the reported fires table
 class FirefighterReportTable(BaseModel):
     ref: str = Field(validation_alias="reference_number")
@@ -14,7 +15,8 @@ class FirefighterReportTable(BaseModel):
     lat: float
     lng: float
 
-    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
 
 class FirefighterReportModal(BaseModel):
     id: str
@@ -28,8 +30,9 @@ class FirefighterReportModal(BaseModel):
     size: float = Field(validation_alias="boundary_radius")
     lat: float
     lng: float
-    
-    model_config = ConfigDict(from_attributes = True, populate_by_name=True)
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
 
 class ReportList(BaseModel):
     data: List[FirefighterReportTable]

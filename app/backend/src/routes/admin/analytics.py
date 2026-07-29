@@ -13,22 +13,42 @@ from schemas.admin_analytics import KPIs, AnalyticsOverviewResponse
 from enums.user_role import UserRole
 from enums.role_request_status import RequestStatus
 
-router =APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
+router = APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
+
+
 @router.get("/overview", response_model=AnalyticsOverviewResponse)
 def get_analytics_overview(db: Annotated[Session, Depends(get_db)]):
-    total_users= db.query(User).filter(User.is_active== True).count()
-    pending_count =db.query(RoleRequest).filter( RoleRequest.status == RequestStatus.pending).count()
-    total_firefighters=db.query(User).filter(User.role == UserRole.firefighter, User.is_active == True).count()
-    total_admins=db.query(User).filter(User.role == UserRole.admin, User.is_active==True).count()
+    total_users = db.query(User).filter(User.is_active == True).count()
+    pending_count = (
+        db.query(RoleRequest)
+        .filter(RoleRequest.status == RequestStatus.pending)
+        .count()
+    )
+    total_firefighters = (
+        db.query(User)
+        .filter(User.role == UserRole.firefighter, User.is_active == True)
+        .count()
+    )
+    total_admins = (
+        db.query(User)
+        .filter(User.role == UserRole.admin, User.is_active == True)
+        .count()
+    )
     kpis = KPIs(
         total_users=total_users,
         pending_role_requests=pending_count,
         total_firefighters=total_firefighters,
         total_admins=total_admins,
     )
-    
-    pending_requests=db.query(RoleRequest).filter(RoleRequest.status==RequestStatus.pending).order_by(RoleRequest.created_at.desc()).limit(20).all()
-    
+
+    pending_requests = (
+        db.query(RoleRequest)
+        .filter(RoleRequest.status == RequestStatus.pending)
+        .order_by(RoleRequest.created_at.desc())
+        .limit(20)
+        .all()
+    )
+
     pending_responses = []
     for req in pending_requests:
         user = db.query(User).filter(User.id == req.user_id).first()

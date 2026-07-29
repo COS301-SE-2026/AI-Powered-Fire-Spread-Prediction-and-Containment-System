@@ -21,11 +21,10 @@ from models.role_request import RoleRequest
 from models.reported_fires import FireReports
 
 TEST_DB_URL = os.getenv(
-    "TEST_DB_URL",
-    "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+    "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
 )
 
-engine =create_engine(TEST_DB_URL)
+engine = create_engine(TEST_DB_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -33,20 +32,19 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def create_tables():
     """Build db schema in test cluster before tests start"""
     with engine.begin() as conn:
-        #need for spacial columns
+        # need for spacial columns
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
 
-    Base.metadata.create_all(bind=engine, tables=[
-        User.__table__, 
-        RoleRequest.__table__,
-        FireReports.__table__
-    ])
+    Base.metadata.create_all(
+        bind=engine,
+        tables=[User.__table__, RoleRequest.__table__, FireReports.__table__],
+    )
     yield
 
-    Base.metadata.drop_all(bind=engine, tables=[
-        User.__table__, 
-        RoleRequest.__table__,
-        FireReports.__table__])
+    Base.metadata.drop_all(
+        bind=engine,
+        tables=[User.__table__, RoleRequest.__table__, FireReports.__table__],
+    )
 
 
 @pytest.fixture(scope="function")
@@ -68,6 +66,7 @@ def db():
 @pytest.fixture(scope="function")
 def client(db):
     """Overrides FastAPI app db dependency use isolated test sess"""
+
     def override_get_db():
         try:
             yield db
@@ -138,7 +137,16 @@ def make_role_request(db, user, role="firefighter", status="pending"):
     db.refresh(request)
     return request
 
-def make_report(db, user=None, lat=-25.7479, lng=28.2293, status=ReportStatus.pending, status_index=1, reference_number=None,):
+
+def make_report(
+    db,
+    user=None,
+    lat=-25.7479,
+    lng=28.2293,
+    status=ReportStatus.pending,
+    status_index=1,
+    reference_number=None,
+):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
         id=str(uuid.uuid4()),

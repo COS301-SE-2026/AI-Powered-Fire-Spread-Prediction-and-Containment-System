@@ -7,6 +7,7 @@ Covers every endpoint in app/routers/admin.py:
   POST /api/admin/roles/role-requests/{id}/reject
   POST /api/admin/roles/role-requests/{id}/revoke
 """
+
 import uuid
 from tests.conftest import make_user, make_role_request
 
@@ -94,7 +95,7 @@ class TestRejectRoleRequest:
         user = make_user(db)
         req = make_role_request(db, user, status="pending")
 
-        #user with id=usr_01 needs to exist
+        # user with id=usr_01 needs to exist
         admin = make_user(db, role="admin")
         admin.id = "usr_01"
         db.commit()
@@ -130,7 +131,7 @@ class TestRevokeRoleRequest:
         user = make_user(db)
         req = make_role_request(db, user, status="approved")
 
-        #user with id=usr_01 needs to exist
+        # user with id=usr_01 needs to exist
         admin = make_user(db, role="admin")
         admin.id = "usr_01"
         db.commit()
