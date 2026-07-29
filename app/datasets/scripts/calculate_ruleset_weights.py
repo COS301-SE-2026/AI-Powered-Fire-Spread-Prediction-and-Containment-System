@@ -4,7 +4,6 @@
 
 import json
 from pathlib import Path
-import numpy as np
 import pandas as pd
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -34,6 +33,27 @@ WORLDCOVER_LABELS = {
     100: "Moss and lichen",
 }
 
+# rule mapping to remove complexity
+CLASSIFICATION_RULES = [
+    (("water",), 80),
+    (("developed", "urban"), 50),
+    (("snow", "ice", "glacier"), 70),
+    (("marsh", "bog"), 90),
+    (("mangrove",), 95),
+    (("crop", "agriculture", "field"), 40),
+    (("tree", "forest", "woodland", "hardwood", "conifer"), 10),
+    (("shrub", "chaparral", "sagebush"), 20),
+    (("grass", "herbaceous", "steppe", "prairie"), 30),
+    (("sparse", "rock", "barren"), 60),
+]
+
+def classify_worldcover_text(text_info: str) -> int:
+    """Helper to classify txt to wordlcover id's (sonarcube was having a fit)"""
+    for keywords, wc_class in CLASSIFICATION_RULES:
+        if any(keyword in text_info for keyword in keywords):
+            return wc_class
+    return 30
+
 def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
     """maps evt numeic code to an official esa worldcover class id"""
 
@@ -52,30 +72,7 @@ def build_evt_to_worldcover_map(xwalk_path: Path) -> dict[int, int]:
             continue
 
         text_info = " ".join([str(val) for val in row.values]).lower().strip()
-        if "water" in text_info:
-            wc_class = 80
-        elif any(w in text_info for w in ["developed", "urban"]): 
-            wc_class = 50
-        elif any(w in text_info for w in ["snow", "ice", "glacier"]):
-            wc_class = 70 
-        elif any(w in text_info for w in ["marsh", "bog"]):
-            wc_class = 90
-        elif any(w in text_info for w in ["mangrove"]):
-            wc_class = 95
-        elif any(w in text_info for w in ["crop", "agriculture", "field"]):
-            wc_class = 40
-        elif any(w in text_info for w in ["tree", "forest", "woodland", "hardwood", "conifer"]):
-            wc_class = 10
-        elif any(w in text_info for w in ["shrub", "chaparral", "sagebrush"]):
-            wc_class = 20
-        elif any(w in text_info for w in ["grass", "herbaceous", "steppe", "prairie"]):
-            wc_class = 30
-        elif any(w in text_info for w in ["sparse", "rock", "barren"]):
-            wc_class = 60
-        else:
-            wc_class = 30
-            
-        evt_wc_map[evt_code] = wc_class
+        evt_wc_map[evt_code] = classify_worldcover_text(text_info)
 
     return evt_wc_map
 
@@ -117,6 +114,65 @@ def build_fbfm_weight_map(params_path: Path, lookup_path: Path) -> dict[int, flo
 
     return fbfm_weight_map
 
+def _log_first_chunk_debug(
+        chunk: pd.DataFrame,
+        fbfm_series: pd.Series,
+        valid_rows: pd.Series,
+        fbfm_col_index: int,
+        fbfm_weight_map: dict[int, float],
+) -> None:
+    """helps log diagnostic sample for first chunk"""
+    print(
+        "raw fbfm col sample:",
+        chunk.iloc[:5, fbfm_col_index].astype(str).tolist(),
+    )
+    parsed_codes = fbfm_series[valid_rows].astype(int)
+    print("parsed fbfm code sample:", parsed_codes.head(10).tolist())
+    unique_codes = parsed_codes.unique()
+    matched_codes = [c for c in unique_codes if c in fbfm_weight_map]
+    unmatched_codes = [c for c in unique_codes if c not in fbfm_weight_map]
+    print("unique parse codes: {len(unique_codes)}, matched in weight map: {len(matched_codes)}, unmatched: {len(unmatched_codes)}")
+    print("sample unmatched codes: ", unmatched_codes[:15])
+
+def process_ruleset_chunk(
+        chunk: pd.DataFrame,
+        evt_wc_map: dict[int, int],
+        fbfm_weight_map: dict[int, float],
+        is_first_chunk: bool,
+) -> pd.DataFrame:
+    """single chunk, return grouped sum and counts"""
+    evt_col_index = 2
+    fbfm_col_index = 12
+
+    evt_series = pd.to_numeric(chunk.iloc[:, evt_col_index], errors="coerce")
+
+    fbfm_raw = chunk.iloc[:, fbfm_col_index].astype(str)
+    fbfm_series = pd.to_numeric(
+        fbfm_raw.apply(
+            lambda x: x.split("/")[1].strip() if "/" in x else x
+        ),
+        errors="coerce",
+    )
+
+    valid_rows = evt_series.notna() & fbfm_series.notna()
+    if not valid_rows.any():
+        return pd.DataFrame(columns=["wc_class", "sum", "counnt"])
+
+    if is_first_chunk:
+        _log_first_chunk_debug(
+            chunk, fbfm_series, valid_rows, fbfm_col_index, fbfm_weight_map,
+        )
+
+    chunk_clean = chunk.loc[valid_rows].copy()
+    chunk_clean["wc_class"] = (
+        evt_series[valid_rows].astype(int).map(evt_wc_map).fillna(30).astype(int)
+    )
+    chunk_clean["weight"] = (
+        fbfm_series[valid_rows].astype(int).map(fbfm_weight_map).fillna(0.0)
+    )
+
+    return (chunk_clean.groupby("wc_class")["weight"].agg(["sum", "count"]).reset_index())
+
 def calculate_ruleset_weights():
     """integrate xwalk and fbfm params, stream chunk blocks and aggregate avg base fuel weights/ worldcover class"""
 
@@ -146,45 +202,7 @@ def calculate_ruleset_weights():
     )
 
     for  i, chunk in enumerate(chunk_counter):
-        evt_col_index = 2
-        fbfm_col_index = 12
-
-        evt_series = pd.to_numeric(chunk.iloc[:, evt_col_index], errors="coerce")
-
-        fbfm_raw = chunk.iloc[:, fbfm_col_index].astype(str)
-        fbfm_series = pd.to_numeric(
-            fbfm_raw.apply(
-                lambda x: x.split("/")[1].strip() if "/" in x else x
-            ),
-            errors="coerce",
-        )
-
-        valid_rows = evt_series.notna() & fbfm_series.notna()
-        if not valid_rows.any():
-            continue
-
-        if i == 0:
-            print("raw fbfm col sample:", chunk.iloc[:5, fbfm_col_index].astype(str).tolist())
-            parsed_codes = fbfm_series[valid_rows].astype(int)
-            print("parsed fbfm codes sample:", parsed_codes.head(10).tolist())
-            unique_codes = parsed_codes.unique()
-            matched_codes = [c for c in unique_codes if c in fbfm_weight_map]
-            unmatched_codes = [c for c in unique_codes if c not in fbfm_weight_map]
-            print(f"unique parse codes: {len(unique_codes)}, matched in weight map: {len(matched_codes)}, unmatched: {len(unmatched_codes)}")
-            print("sample unmatched codes:", unmatched_codes[:15])
-
-        chunk_clean = chunk.loc[valid_rows].copy()
-
-        chunk_clean["wc_class"] = (
-            evt_series[valid_rows].astype(int).map(evt_wc_map).fillna(30).astype(int)
-        )
-        chunk_clean["weight"] = (
-            fbfm_series[valid_rows].astype(int).map(fbfm_weight_map).fillna(0.0)
-        )
-
-        grouped = (
-            chunk_clean.groupby("wc_class")["weight"].agg(["sum", "count"]).reset_index()
-        )        
+        grouped = process_ruleset_chunk(chunk, evt_wc_map, fbfm_weight_map, is_first_chunk=(i == 0))
 
         for _, row in grouped.iterrows():
             wc_id = int(row["wc_class"])
