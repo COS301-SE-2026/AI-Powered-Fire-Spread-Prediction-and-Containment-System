@@ -16,25 +16,6 @@ interface FireMapProps {
 const INITIAL_RADIUS_KM = 0.2;
 const INITIAL_ZOOM = 15.5;
 
-export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
-  const mapRef = useRef<any>(null);
-  const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
-  const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
-  const markerPosRef = useRef(markerPos);
-  const radiusKmRef = useRef(radiusKm);
-  const isDragging = useRef(false);
-  const dragEndTime = useRef(0);
-  const pinMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const rimMarkerRef = useRef<mapboxgl.Marker | null>(null);
-
-  useEffect(() => { markerPosRef.current = markerPos; }, [markerPos]);
-  useEffect(() => { radiusKmRef.current = radiusKm; }, [radiusKm]);
-
-  const setRadius = useCallback((r: number) => {
-    setRadiusKm(r);
-    radiusKmRef.current = r;
-  }, []);
-
   function resetBoundary(
     lng: number,
     lat: number,
@@ -46,8 +27,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     setRadius(INITIAL_RADIUS_KM);
     onBoundarySizeChange?.(INITIAL_RADIUS_KM);
   }
-
-  function toLocation(mapRef: React.RefObject<any>, lng: number, lat: number) {
+    function toLocation(mapRef: React.RefObject<any>, lng: number, lat: number) {
     mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
   }
 
@@ -108,6 +88,25 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     radiusKmRef.current = newRadius;
     onBoundarySizeChange?.(newRadius);
   }
+
+export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: FireMapProps) {
+  const mapRef = useRef<any>(null);
+  const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
+  const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
+  const markerPosRef = useRef(markerPos);
+  const radiusKmRef = useRef(radiusKm);
+  const isDragging = useRef(false);
+  const dragEndTime = useRef(0);
+  const pinMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const rimMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  useEffect(() => { markerPosRef.current = markerPos; }, [markerPos]);
+  useEffect(() => { radiusKmRef.current = radiusKm; }, [radiusKm]);
+
+  const setRadius = useCallback((r: number) => {
+    setRadiusKm(r);
+    radiusKmRef.current = r;
+  }, []);
 
   //pin from search
   useEffect(() => {
