@@ -29,7 +29,7 @@ class FireReports(Base):
         Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=False
     )
     boundary_radius = Column(Numeric(5, 2), nullable=False)
-    status = Column(Numeric(5, 2), nullable=False)
+    status = Column(Enum(ReportStatus), default=ReportStatus.received, nullable=False)
     status_index = Column(Integer, default=0, nullable=False)
     submitted_at = Column(
         DateTime(timezone=True),

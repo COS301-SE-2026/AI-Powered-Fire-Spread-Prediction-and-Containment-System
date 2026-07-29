@@ -16,15 +16,11 @@ from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, Numeric,
                         String, Text)
 from sqlalchemy.orm import relationship
 
+from enums.audit_action import AuditAction
 from db import Base
 
 
 class AuditLog(Base):
-    __tablename__ = "audit_log"
-
-    id = Column(String, primary_key=True, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False)
-    action = Column(Enum(AuditAction), nullable=False)
     __tablename__ = "audit_log"
 
     id = Column(String, primary_key=True, index=True)
