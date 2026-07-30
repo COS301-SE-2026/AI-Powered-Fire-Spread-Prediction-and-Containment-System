@@ -6,7 +6,11 @@ import React, {useEffect, useRef} from 'react';
 // Cheney Lin, "Fire Embers by Html5 Canvas", CodePen.
 // https://codepen.io/CheneyLin/pen/ZmaxNG
 
-export default function EmberField() {
+interface EmberFieldProps {
+    density?: number;
+}
+
+export default function EmberField({density = 25}: EmberFieldProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -19,7 +23,7 @@ export default function EmberField() {
         let wh = canvas.height = canvas.offsetHeight;
 
         function between(min: number, max: number) {
-            return Math.random() * (max - min) + min;
+            return Math.random() * (max - min) + min; //NOSONAR
         }
 
         interface Particle {
@@ -41,9 +45,9 @@ export default function EmberField() {
                 p.x = between(ww * 0.1, ww * 0.9);
                 p.y = between(wh * 0.9, wh * 1);
 
-                p.size = Math.random() * 2.5;
+                p.size = Math.random() * 2.5; //NOSONAR
 
-                p.vx = Math.random() * 1 - 0.5;
+                p.vx = Math.random() * 1 - 0.5; //NOSONAR
                 p.vy = between(-0.5, -0.75);
 
                 p.g = -0.001 * Math.random() * 10;
@@ -58,7 +62,7 @@ export default function EmberField() {
             return p;
         }    
 
-    const particles: Particle[] = Array.from({length: 25}, createP);
+    const particles: Particle[] = Array.from({length: density}, createP);
 
     let rafId: number;
     const draw = () => {
@@ -83,9 +87,9 @@ export default function EmberField() {
     draw();
 
     return () => cancelAnimationFrame(rafId);
-}, []);
+}, [density]);
 
 return (
-    <canvas ref={canvasRef} className='pointer-events-none absolute inset-0 w-ful h-full' aria-hidden="true" />
+    <canvas ref={canvasRef} className='pointer-events-none absolute inset-0 w-full h-full' aria-hidden="true" />
 );
 }
