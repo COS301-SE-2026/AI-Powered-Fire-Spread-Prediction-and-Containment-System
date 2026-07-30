@@ -20,7 +20,7 @@ export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label
             {content}
         </Link>
     ) : (
-        <button className={className}>
+        <button type="button" className={className}>
             {content}
         </button>
     );

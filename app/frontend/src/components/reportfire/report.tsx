@@ -8,7 +8,6 @@ import { FireMap } from "../DynamicUserMap"
 import { Alert } from "../Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 import type { FireReport } from "../../types/report";
-import { error } from "node:console";
 
 type SubmitState = "idle" | "loading" | "error";
 

@@ -20,7 +20,7 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
                     <h3 className="font-display font-bold text-xl tracking-wider text-text-primary uppercase">Role request - {request.user.name } {request.user.surname}</h3>
-                    <button onClick={onClose} className="text-text-primary/40 hover:text-text-primary transition-colors">✕</button>
+                    <button type="button" onClick={onClose} className="text-text-primary/40 hover:text-text-primary transition-colors">✕</button>
                 </div>
 
                 {/* Info grid */}
@@ -70,10 +70,10 @@ export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRev
                 <div className="border-t border-ignite/30 pt-4 flex justify-end gap-2">
                     {request.status === 'pending' && (
                         <>
-                            <button data-testid="reject-btn" onClick={() => onReject(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
+                            <button type="button" data-testid="reject-btn" onClick={() => onReject(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
                                 Reject
                             </button>
-                            <button data-testid="approve-btn" onClick={() => onApprove(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors">
+                            <button type="submit" data-testid="approve-btn" onClick={() => onApprove(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors">
                                 Approve
                             </button>
                         </>

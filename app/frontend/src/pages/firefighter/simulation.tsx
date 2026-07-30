@@ -45,7 +45,7 @@ export default function ReportTable() {
                                     <Pencil size={28}/>
                                     Draw Containment
                                 </button>
-                                <button className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
+                                <button type="button" className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
                                     <CirclePlay />
                                     RUN
                                 </button>

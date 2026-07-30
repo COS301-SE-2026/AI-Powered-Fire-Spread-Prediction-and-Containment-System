@@ -7,6 +7,15 @@ function validateEmail(email: string){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+  const fieldClass = (hasError?: string) => {
+    if (hasError) {
+      return 'input input-error w-full';
+    } else {
+      return 'input input-neutral focus:border-primary w-full';
+    }
+  };
+
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,14 +85,6 @@ export default function Login() {
 
   const handleGuest = () => {
     router.push('/guests/guestsLanding');
-  };
-
-  const fieldClass = (hasError?: string) => {
-    if (hasError) {
-      return 'input input-error w-full';
-    } else {
-      return 'input input-neutral focus:border-primary w-full';
-    }
   };
 
   return (

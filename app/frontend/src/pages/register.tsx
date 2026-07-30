@@ -31,6 +31,11 @@ function validateSAId(id: string) {
   return /^\d{13}$/.test(id);
 }
 
+const fieldClass = (hasError?: string) =>
+  `w-full px-3 py-2 bg-carbon-input border rounded-md text-text-muted focus:outline-none focus:ring-1 focus:ring-primary ${
+    hasError ? 'border-flare' : 'border-carbon-stroke'
+  }`;
+
 export default function Register() {
   const [form, setForm] = useState<RegisterForm>({
     name: '',
@@ -136,11 +141,6 @@ export default function Register() {
       setIsLoading(false);
     }
   };
-
-  const fieldClass = (hasError?: string) =>
-    `w-full px-3 py-2 bg-carbon-input border rounded-md text-text-muted focus:outline-none focus:ring-1 focus:ring-primary ${
-      hasError ? 'border-flare' : 'border-carbon-stroke'
-    }`;
 
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">

@@ -36,6 +36,10 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                     ) : (
                         filtered.map((req) => {
                             const badge: BadgeStyle = statusBadge[req.status] ?? statusBadge.none;
+                            const badgeClasses = badge.bg
+                                ? `${badge.bg} ${badge.text} ${badge.border}`
+                                : 'bg-carbon-card text-text-primary/50';
+
                             return (
                                 <tr key={req.request_id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-smoke-hover even:bg-carbon-bg/80">
                                     <td className="px-4 text-sm text-text-primary">{req.user.name} {req.user.surname}</td>
@@ -47,12 +51,12 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                                         {new Date(req.created_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ? `${badge.bg} ${badge.text} ${badge.border}` : 'bg-carbon-card text-text-primary/50'}`}>
+                                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badgeClasses}`}>
                                             {req.status}
                                         </span>
                                     </td>
                                     <td className="px-4 py-3">
-                                        <button onClick={() => onView(req)} data-testid={`view-request-${req.request_id}`} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-text-primary/50 hover:bg-smoke-hover hover:text-text-primary transition-colors">
+                                        <button type="button" onClick={() => onView(req)} data-testid={`view-request-${req.request_id}`} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-text-primary/50 hover:bg-smoke-hover hover:text-text-primary transition-colors">
                                             View
                                         </button>
                                     </td>
