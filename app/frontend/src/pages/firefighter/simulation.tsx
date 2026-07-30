@@ -56,8 +56,8 @@ export default function ReportTable() {
 
                 {/*Page header and subtitle*/}
                 <header className="mb-6">
-                    <h1 className="text-page-title font-display font-bold tracking-wider text-neutral uppercase">Fire Simulation</h1>
-                    <p className="font-body text-body text-neutral/50">Simulate fire spread and prevention methods</p>
+                    <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">Fire Simulation</h1>
+                    <p className="font-body text-body text-text-primary/50">Simulate fire spread and prevention methods</p>
                 </header>
 
                 <div className="flex flex-row gap-4 min-w-0">
@@ -120,8 +120,8 @@ export default function ReportTable() {
                         <div className="flex gap-2 items-stretched">
                             {/* buttons to start simulation or draw page */}
                             <div className="flex flex-col gap-6 shrink-0 h-auto justify-between">
-                                <button type="button" onClick={() => setDrawMode(true)} className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
-                                    <Pencil size={28}/> 
+                                <button type="button" onClick={() => setDrawMode(true)} className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
+                                    <Pencil size={28}/>
                                     Draw Containment
                                 </button>
 
@@ -169,7 +169,7 @@ export default function ReportTable() {
                                                     <input type="checkbox" checked={autoplay} onChange={(e) => setAutoPlay(e.target.checked)} className="checkbox checkbox-sm rounded-lg" />
                                                 </label>
                                             </div>
-                                        
+
                                         <div className="w-full">
                                             <input 
                                                 type="range" 
@@ -285,7 +285,7 @@ export default function ReportTable() {
                         status={status}/>
                     </div>
                 </div>
-            </div>  
+            </div>
         </FirefighterSideBar>
     );
 }

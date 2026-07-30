@@ -7,6 +7,8 @@ jobs:
   backend-e2e:
     name: Backend E2E
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     defaults:
       run:
         working-directory: app/backend/src
@@ -51,9 +53,14 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+      
+      - name: Run tests with coverage
+        run: pytest tests --cov=. --cov-report=xml:coverage.xml
 
-      - name: Run tests
-        run: pytest tests
+      - name: Post coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   backend-pylint:
     name: Backend Lint (pylint)
@@ -98,7 +105,7 @@ jobs:
 
       - name: Build
         run: yarn run build
-    
+
   frontend-eslint:
     name: Frontend Lint (ESLint)
     runs-on: ubuntu-latest
@@ -118,7 +125,7 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-        
+
       - name: Run ESLint
         run: yarn eslint
 
@@ -158,7 +165,7 @@ jobs:
           name: playwright-report
           path: app/frontend/src/playwright-report/
           retention-days: 7
-  
+
   frontend-react-doctor:
     name: React Doctor
     runs-on: ubuntu-latest
@@ -171,7 +178,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with: 
+        with:
           fetch-depth: 0
 
       - name: Run React Doctor
