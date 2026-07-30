@@ -12,11 +12,11 @@ test.describe('Firefighter Dashboard - live fire map', () => {
         await page.getByRole('button', { name: 'Login' }).click();
     });
     test('nearby reports section renders', async({ page }) => {
-        await expect(page.getByText('Nearby Reports')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Nearby Reports' })).toBeVisible();
     });
 
     test('Map renders', async ({ page }) => {
-        await expect(page.getByRole('region', { name: 'Map' })).toBeVisible();
+        await expect(page.getByText('LIVE FIRE MAPClear Lines')).toBeVisible();
     })
 
     test('All quick action map overlay stats are rendered', async ({page}) => {

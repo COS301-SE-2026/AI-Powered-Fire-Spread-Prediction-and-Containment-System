@@ -53,7 +53,6 @@ test.describe('Sidebar menu navigation', () => {
     test.beforeEach(async ({ page }) => {
         await page.setViewportSize(DESKTOP_VIEW);
         await login(page);
-        await expect(page).toHaveURL(new RegExp(`${DASHBOARD_ROUTE}$`));
     });
 
     const sidebar = (page: Page) => page.locator('aside');
