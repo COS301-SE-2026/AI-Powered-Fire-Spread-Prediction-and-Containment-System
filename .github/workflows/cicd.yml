@@ -159,7 +159,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install backend dependencies
-        run: pip install -r app/backend/source/requirements.txt
+        run: pip install -r app/backend/src/requirements.txt
       
       - name: Launch backend
         env:
@@ -171,7 +171,7 @@ jobs:
           JWT_SECRET: "your-super-secret-key-change-this"
         run: |
           cd app/backend/src
-          nohup uvicorn main:app --host 0.0.0.0 --post 8000 & 
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 & 
           sleep 3
 
       - name: Set up Node
@@ -179,7 +179,7 @@ jobs:
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: yarn.lock
+          cache-dependency-path: app/frontend/src/yarn.lock
 
       - name: Install frontend dependencies
         run: yarn install
