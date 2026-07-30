@@ -109,7 +109,10 @@ export default function StyleGuidePage() {
                 <ColourCard colour={textDisabled} />
                 <ColourCard colour={textInverse} />
               </ColourGroup>
+            </section>
 
+            <section id="colourpairs" className="mb-10 scroll-mt-8">
+              <h3 className="mb-4">Colour Contrast Pairs</h3>
               <ColourPairTable>
                 <ColourPairRow pair={{ label: "Text Primary on Page", fg: textPrimary.hex, bg: page.hex, ratio: 19.6 }} />
                 <ColourPairRow pair={{ label: "Text Muted on Page", fg: textMuted.hex, bg: page.hex, ratio: 8.5 }} />
@@ -121,7 +124,6 @@ export default function StyleGuidePage() {
                 <ColourPairRow pair={{ label: "Warning on Page", fg: warning.hex, bg: page.hex, ratio: 12 }} />
                 <ColourPairRow pair={{ label: "Success on Page", fg: success.hex, bg: page.hex, ratio: 7.5 }} />
                 <ColourPairRow pair={{ label: "Info on Page", fg: info.hex, bg: page.hex, ratio: 9.5 }} />
-
 
                 <ColourPairRow pair={{ label: "Text Primary on Primary", fg: textPrimary.hex, bg: primary.hex, ratio: 3.1  }} />
                 <ColourPairRow pair={{ label: "Text Primary on Sidebar", fg: textPrimary.hex, bg: sidebar.hex, ratio: 19.1  }} />
