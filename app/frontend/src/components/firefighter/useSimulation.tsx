@@ -39,18 +39,19 @@ export interface SimulationRequest {
     dca?: Partial<DCAParams>;
 }
 
-export interface TickStats {
-    tick: number;
-    burning: number;
-    burned: number;
-    total_cells: number;
+export interface Prediction {
+    ref: string;
+    lat: number;
+    lng: number;
+    history: number[][];
+    burned_cells: number;
+    radius_m: number;
 }
 
 export interface SimulationResult {
-    history: number[][];    //[tick][H*W] flat burn-state arrays
+    predictions: Prediction[];   
     grid_h: number;
     grid_w: number;
-    tick_stats: TickStats[];
     n_steps_run: number;
 }
 
@@ -201,13 +202,13 @@ export function useSimulation() {
     );
 
     // Derived data for current tick
-    const currentGrid = result ? result.history[currentTick] : null;
-    const currentStats = result ? result.tick_stats[currentTick] : null;
+    const currentGrids = result ? Object.fromEntries(result.predictions.map(p => [p.ref, p.history[currentTick]])) : {}
 
     return {
         status,
         error,
         runSimulation,
+        predictions: result?.predictions ?? [],
         currentTick,
         seekToTick,
         play,
@@ -215,11 +216,8 @@ export function useSimulation() {
         autoplay,
         setAutoPlay,
         totalTicks: result?.n_steps_run ?? 0,
-        currentGrid,
-        currentStats,
         gridH: result?.grid_h ?? 30,
         gridW: result?.grid_w ?? 30,
-        allStats: result?.tick_stats ?? [],
         weather, 
         setWeather,
         staticParams,
