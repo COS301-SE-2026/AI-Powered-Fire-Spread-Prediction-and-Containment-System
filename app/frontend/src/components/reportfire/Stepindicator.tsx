@@ -1,33 +1,26 @@
 import React from "react";
 
-type Step = {
-    label: string;
-};
-
-type Props = {
-    steps: Step[];
-};
-
-export default function StepIndicator({ steps }: Props) {
+function StepBadge({ number }: Readonly<{number: number }>) {
     return (
-        <ol className="flex items-center gap-6 flex-wrap font-body text-primary-content">
-            {steps.map((step, i) => {
-                return (
-                    <li key={i} className="flex items-center gap-2.5">
-                        
-                        {/* Numbered Badge */}
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold shrink-0 bg-ignite text-primary-content">
-                            {i + 1}
-                        </span>
+        <span className="w-6 h-6 rounded-full bg-primary grid place-items-center text-primary-content font-bold text-xs leading-none">{number}</span>
+    );
+}
 
-                        {/* Label  */}
-                        <span className="text-xs md:text-sm font-semibold tracking-wide">
-                            {step.label}
-                        </span>
-
-                    </li>
-                );
-            })}
+export default function StepIndicator() {
+    return (
+        <ol className="flex items-center gap-6 flex-wrap text-body text-text-primary">
+            <li className="flex items-center gap-2">
+                <StepBadge number={1} />
+                Drop a pin on the map
+            </li>
+            <li className="flex items-center gap-2">
+                <StepBadge number={2} />
+                Drag boundary ring to show size
+            </li>
+            <li className="flex items-center gap-2">
+                <StepBadge number={3} />
+                Add details and submit
+            </li>
         </ol>
     );
 }

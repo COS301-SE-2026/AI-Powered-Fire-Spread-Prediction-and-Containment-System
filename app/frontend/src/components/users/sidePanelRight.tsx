@@ -19,7 +19,7 @@ export function SidePanelRight({title, children, maxHeight, colSpan=4}: Readonly
 
     return(
         <div className={`${colSpanClass} flex flex-col gap-3`}>
-            <h2 className={"text-xs font-bold tracking-widest text-neutral/50 uppercase shrink-0"}>
+            <h2 className={"text-xs font-bold tracking-widest text-text-primary/50 uppercase shrink-0"}>
                 {title}
             </h2>
             <div className="rounded-2xl bg-surface-sidebar/40 backdrop-blur-md border border-surface-card overflow-y-auto" style={{maxHeight}}>

@@ -34,6 +34,8 @@ app/frontend/src/.env.local
 .venv/
 .python-version
 
+*.yarn/install-state.gz
+
 
 # minio local storage
 database/minio/

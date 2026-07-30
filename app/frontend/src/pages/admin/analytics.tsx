@@ -109,14 +109,14 @@ export default function AdminAnalyticsPage() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
+            <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
               Admin Analytics
             </h1>
-            <p className="text-sm text-neutral/50">
+            <p className="text-sm text-text-primary/50">
               User governance and role management overview
             </p>
           </div>
-          <span className="text-sm text-neutral/40">
+          <span className="text-sm text-text-primary/40">
             Updated: {new Date().toLocaleString()}
           </span>
         </div>
@@ -126,7 +126,7 @@ export default function AdminAnalyticsPage() {
           {kpiCards.map((kpi) => (
             <Card key={kpi.label} title={kpi.label}>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-neutral">{kpi.value}</span>
+                <span className="text-2xl font-bold text-text-primary">{kpi.value}</span>
                 {/* No change indicator for now */}
               </div>
             </Card>
@@ -158,7 +158,7 @@ export default function AdminAnalyticsPage() {
                 <tbody>
                   {data.pending_requests.map((req) => (
                     <tr key={req.request_id} className="border-b border-carbon-stroke/50 last:border-0">
-                      <td className="py-2 text-neutral">
+                      <td className="py-2 text-text-primary">
                         {req.user.name} {req.user.surname}
                       </td>
                       <td className="py-2 text-white/80">{req.user.email}</td>

@@ -4,7 +4,7 @@ import { SidebarLayout } from '../../components/users/sidebar';
 import { PageHeader } from '../../components/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
 import { SidePanelRight } from '../../components/users/sidePanelRight';
-import { FireMap } from '../../components/DynamicFiremap';
+import { FireMap } from '../../components/DynamicFirefighterMap';
 
 export default function RegisteredUserDashboard (){
     const { userLocation, nearbyFires } = useNearbyFires();
