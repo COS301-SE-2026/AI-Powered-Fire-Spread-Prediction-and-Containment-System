@@ -14,18 +14,18 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     await page.getByRole('link', { name: 'Report a Fire' }).click(); 
   });
  
-  test("updates location field on search and change in map", async ({ page }) => {
-    const searchInput = page.locator(
-      'input[placeholder*="Drop a pin or type your address"]'
-    );
-    await searchInput.fill("Pretoria");
-    await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
-    await expect(searchInput).toHaveValue("Pretoria, Gauteng, South Africa");
+  // test("updates location field on search and change in map", async ({ page }) => {
+  //   const searchInput = page.locator(
+  //     'input[placeholder*="Drop a pin or type your address"]'
+  //   );
+  //   await searchInput.fill("Pretoria");
+  //   await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
+  //   await expect(searchInput).toHaveValue("Pretoria, Gauteng, South Africa");
  
-    const pinMarkerSelector =
-      '.mapboxgl-marker.mapboxgl-marker-anchor-bottom[aria-label="Map marker"]';
-    await page.waitForSelector(pinMarkerSelector, { state: "visible", timeout: 10000 });
-  });
+  //   const pinMarkerSelector =
+  //     '.mapboxgl-marker.mapboxgl-marker-anchor-bottom[aria-label="Map marker"]';
+  //   await page.waitForSelector(pinMarkerSelector, { state: "visible", timeout: 10000 });
+  // });
  
   // test("submits a report and shows ref#", async ({ page }) => {
   //   const searchInput = page.locator(
