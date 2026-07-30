@@ -50,12 +50,12 @@ export default function EmberField({density = 25}: EmberFieldProps) {
                 p.vx = Math.random() * 1 - 0.5; //NOSONAR
                 p.vy = between(-0.5, -0.75);
 
-                p.g = -0.001 * Math.random() * 10;
+                p.g = -0.001 * Math.random() * 10; //NOSONAR
 
                 p.life = between(wh / 2, wh);
 
                 const colors = ['#FF4904', '#fe8024', '#fcba3e'];
-                p.color = colors[Math.floor(Math.random() * colors.length)];
+                p.color = colors[Math.floor(Math.random() * colors.length)]; //NOSONAR
             };
             setup();
             p.reset = setup;
@@ -90,6 +90,8 @@ export default function EmberField({density = 25}: EmberFieldProps) {
 }, [density]);
 
 return (
-    <canvas ref={canvasRef} className='pointer-events-none absolute inset-0 w-full h-full' aria-hidden="true" />
+    <div aria-hidden="true" className='pointer-events-none absolute inset-0 w-full h-full'>
+        <canvas ref={canvasRef} tabIndex={-1} className='w-full h-full' />
+    </div>
 );
 }
