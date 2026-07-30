@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { FormError } from "./ReportFormError";
+import { Alert } from "../Alerts";
 import { Paperclip, Check } from "lucide-react";
 
 interface PhotoProps {
@@ -29,7 +29,7 @@ export function PhotoField({ value, error, onChange }: PhotoProps) {
             const file = e.target.files?.[0] ?? null;
 
             if (!file) return;
-            
+
             if (!file.type.startsWith("image/")) {
                 onChange(null);
                 e.target.value = "";
@@ -53,13 +53,13 @@ export function PhotoField({ value, error, onChange }: PhotoProps) {
                             <span>Attach Image</span></>
                     )}
                 </button>
-            
+
             {previewUrl && (
                 <div className="mt-3  mx-auto w-fit rounded-md border border-carbon-stroke overflow-hidden bg-surface-input shadow-md">
                     <img src={previewUrl} alt="Evidence preview" className="max-h-48 max-w-full object-contain block"/>
                 </div>
             )}
-            {error && <FormError message={error}/>}
+            {error && <Alert variant="error" message={error} />}
         </div>
     );
 }
