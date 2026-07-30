@@ -22,8 +22,8 @@ log = logging.getLogger(
 )  # Logs go to local systemd journal only (journalctl -u fire-worker)
 
 # Where systemd unit's monitoring checks for liveness
-#NOSONAR
-HEARTBEAT_FILE = Path(os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat"))
+
+HEARTBEAT_FILE = Path(os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat")) # NOSONAR
 
 # SQS long-polling wait time
 WAIT_TIME_SECONDS = 20
