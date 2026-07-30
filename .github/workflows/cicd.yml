@@ -130,7 +130,6 @@ jobs:
       postgres:
         image: postgis/postgis:15-3.3
         env:
-          CI: true
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_fire_db
@@ -160,7 +159,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install backend dependencies
-        run: pip install --only-binary :all: -r app/backend/src/requirements.txt
+        run: "pip install --only-binary :all: -r app/backend/src/requirements.txt"
       
       - name: Launch backend
         env:
@@ -191,6 +190,7 @@ jobs:
       - name: Run Playwright Tests
         working-directory: app/frontend/src
         env:
+          CI: true
           BACKEND_INTERNAL_URL: "http://localhost:8000"
         run: yarn test --config=testing_config/playwright.config.ts
 
