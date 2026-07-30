@@ -9,7 +9,8 @@ test('test', async ({ page }) => {
   await page.getByRole('textbox', { name: 'Password' }).fill('Password123!');
   await page.getByRole('button', { name: 'Login' }).click();
   await page.locator('aside').hover();
-  await page.getByRole('link', { name: 'Analytics' }).click();  await expect(page.getByRole('heading', { name: 'Admin Analytics' })).toBeVisible();
+  await page.getByRole('link', { name: 'Analytics' }).click();  
+  await expect(page.getByRole('heading', { name: 'Admin Analytics' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Total Users' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Pending Role Requests' }).first()).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Total Firefighters' })).toBeVisible();
