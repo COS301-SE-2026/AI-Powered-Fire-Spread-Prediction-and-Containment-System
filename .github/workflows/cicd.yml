@@ -7,8 +7,6 @@ jobs:
   backend-e2e:
     name: Backend E2E
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
     defaults:
       run:
         working-directory: app/backend/src
