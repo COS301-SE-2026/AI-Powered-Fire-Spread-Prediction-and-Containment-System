@@ -17,7 +17,7 @@ RESULTS_QUEUE_URL = os.environ["RESULTS_QUEUE_URL"]
 WORKER_ID = os.environ.get("WORKER_ID", "gpu-worker-1")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-logs = logging.getLogger(
+log = logging.getLogger(
     "gpu_worker"
 )  # Logs go to local systemd journal only (journalctl -u fire-worker)
 
@@ -80,14 +80,14 @@ def touch_heartbeat() -> None:
 
 
 def handle_message(message: dict) -> None:
-    body = json.loads(message["body"])
+    body = json.loads(message["Body"])
     job_id = body.get("job_id", "<unknown>")
     log.info("Processing job %s", job_id)
 
     result = run_inference(body)
 
     sqs.send_message(
-        QueueURL=RESULTS_QUEUE_URL,
+        QueueUrl=RESULTS_QUEUE_URL,
         MessageBody=json.dumps(result),
     )
     log.info("Published result for job %s", job_id)

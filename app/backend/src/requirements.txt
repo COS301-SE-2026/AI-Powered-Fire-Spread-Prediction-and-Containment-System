@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi==0.111.1
 uvicorn[standard]==0.23.2
 psycopg2-binary==2.9.12
@@ -17,7 +19,9 @@ requests
 pyjwt>=2.8
 pydantic>=2.0
 minio
-numpy
-torch
-pytorchfire
-xgboost
+
+# ML inference (CPU only — no GPU in this container)
+numpy<2.3
+torch==2.5.1+cpu
+xgboost==3.3.0
+pytorchfire==1.1.1
