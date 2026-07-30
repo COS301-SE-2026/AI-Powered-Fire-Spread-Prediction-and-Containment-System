@@ -25,7 +25,7 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
                 <div className="w-full grow overflow-y-auto overflow-x-hidden">
                     <ul className="menu w-full px-3 space-y-3 flex flex-col items-center group-hover:items-start">
                         <li className="w-full">
-                            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
+                            <button type="button" className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
                                 <LayoutDashboard className="size-6 text-text-primary/70 group-hover:text-ignite shrink-0 transition-colors" />
                                 <span className="text-sm font-semibold tracking-wide text-text-primary hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">Firefighter Dashboard</span>
                             </button>

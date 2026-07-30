@@ -80,7 +80,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
                 </div>
 
                 <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-4 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side">
-                    <button
+                    <button type="button"
                         onClick={async () => {
                             try {
                                 await fetch('/api/auth/logout',

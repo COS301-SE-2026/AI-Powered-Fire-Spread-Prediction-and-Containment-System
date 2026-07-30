@@ -33,7 +33,7 @@ export default function FirefighterDashboard() {
                         <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
                             <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                                 <span className="font-bold text-m tracking-wide text-text-primary/80">LIVE FIRE MAP</span>
-                                <button onClick={() => setClearDrawings(c => c + 1)} className="text-xs font-medium text-text-primary/60 hover:text-ignite transition-colors">Clear Lines</button>
+                                <button type="button" onClick={() => setClearDrawings(c => c + 1)} className="text-xs font-medium text-text-primary/60 hover:text-ignite transition-colors">Clear Lines</button>
                             </div>
                             <div className="flex-1 w-full h-full pt-[53px]">
                                 <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={handleDrawComplete} clearDrawings={clearDrawings}/>

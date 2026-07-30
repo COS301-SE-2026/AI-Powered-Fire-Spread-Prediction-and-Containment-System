@@ -33,13 +33,13 @@ export function ActionCards() {
     );
 }
 
-export function NearbyReport(){
-    const dummyFires = [
+const dummyFires = [
         { ref: "FR-1042", location_text: "Moreleta Park", distance: 2.4, time_ago: "10 min ago", status: "verified" },
         { ref: "FR-1043", location_text: "Faerie Glen", distance: 5.1, time_ago: "32 min ago", status: "pending" },
         { ref: "FR-1044", location_text: "Silver Lakes", distance: 8.7, time_ago: "1 hr ago", status: "received" },
     ];
 
+export function NearbyReport(){
     return (
         <div className="flex flex-wrap items-start gap-27">
             <ComponentsGroup title="Nearby Reports Panel">
@@ -52,12 +52,6 @@ export function NearbyReport(){
 }
 
 export function MapOverlay() {
-    const dummyFires = [
-    { ref: "FR-1042", location_text: "Moreleta Park", distance: 2.4, time_ago: "10 min ago", status: "verified" },
-    { ref: "FR-1043", location_text: "Faerie Glen", distance: 5.1, time_ago: "32 min ago", status: "pending" },
-    { ref: "FR-1044", location_text: "Silver Lakes", distance: 8.7, time_ago: "1 hr ago", status: "received" },
-    ];
-
     return (
         <ComponentsGroup title="Map Stats Overlay">
             <div className="flex flex-wrap gap-2">
