@@ -37,15 +37,14 @@ const faqs=[
   >
     
     <summary className="collapse-title font-semibold p-4 flex items-center gap-3 cursor-pointer hover:bg-carbon-card/30 rounded-t-lg transition-colors">
-      <div className="size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center text-neutral/60 group-hover:text-ignite group-hover:border-ignite/30 transition-colors shrink-0">
+      <div className="size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center text-white/60 group-hover:text-ignite group-hover:border-ignite/30 transition-colors shrink-0">
         <CirclePlay />
       </div>
       <div className="flex flex-col">
-        <span className="font-bold text-neutral text-sm tracking-wide">Getting Started</span>
-        <span className="text-xs text-neutral/50 font-medium">Learn the basics</span>
+        <span className="font-bold text-white text-sm tracking-wide">Getting Started</span>
+        <span className="text-xs text-white/50 font-medium">Learn the basics</span>
       </div>
       {/* Optional expand/collapse indicator */}
-      <span className="ml-auto text-neutral/30 text-sm">▼</span>
     </summary>
     <div className="collapse-content p-4 pt-0">
       <div className="flex flex-col md:flex-row gap-6 mt-4">
@@ -59,8 +58,8 @@ const faqs=[
         </div>
         {/* Description next to it */}
         <div className="flex-1 flex flex-col justify-center">
-          <h4 className="text-neutral font-bold text-base mb-2">Step-by-step guide</h4>
-          <p className="text-neutral/70 text-sm leading-relaxed">
+          <h4 className="text-white font-bold text-base mb-2">Step-by-step guide</h4>
+          <p className="text-white/70 text-sm leading-relaxed">
             You can report fires using the Report button. This takes you to a page where you can report a fire by giving a description and a photo for verification.
           </p>
         </div>
@@ -76,8 +75,8 @@ const faqs=[
           />
         </div>
         <div className="flex-1 flex flex-col justify-center">
-          <h4 className="text-neutral font-bold text-base mb-2">Log a containment line</h4>
-          <p className="text-neutral/70 text-sm leading-relaxed">
+          <h4 className="text-white font-bold text-base mb-2">Log a containment line</h4>
+          <p className="text-white/70 text-sm leading-relaxed">
             From the dashboard's Live Fire Map, select "Log containment line" under Quick Actions,
             then draw directly on the map to mark where a line has been established. Use "Clear Lines"
             in the top-right corner if you need to undo and redraw.
@@ -95,8 +94,8 @@ const faqs=[
           />
         </div>
         <div className="flex-1 flex flex-col justify-center">
-          <h4 className="text-neutral font-bold text-base mb-2">Simulate a containment strategy</h4>
-          <p className="text-neutral/70 text-sm leading-relaxed">
+          <h4 className="text-white font-bold text-base mb-2">Simulate a containment strategy</h4>
+          <p className="text-white/70 text-sm leading-relaxed">
             Open "Simulate fires" from Quick Actions to reach the Fire Simulation view, then tap
             "Draw Containment" to sketch a proposed containment line onto the predicted spread map
             before running the model.
@@ -114,8 +113,8 @@ const faqs=[
           />
         </div>
         <div className="flex-1 flex flex-col justify-center">
-          <h4 className="text-neutral font-bold text-base mb-2">Run the simulation</h4>
-          <p className="text-neutral/70 text-sm leading-relaxed">
+          <h4 className="text-white font-bold text-base mb-2">Run the simulation</h4>
+          <p className="text-white/70 text-sm leading-relaxed">
             Once your containment line is drawn, tap "RUN" to simulate how it affects the fire's
             predicted spread area, using the current weather inputs shown alongside the map.
           </p>
@@ -132,8 +131,8 @@ const faqs=[
           />
         </div>
         <div className="flex-1 flex flex-col justify-center">
-          <h4 className="text-neutral font-bold text-base mb-2">Step through the timeline</h4>
-          <p className="text-neutral/70 text-sm leading-relaxed">
+          <h4 className="text-white font-bold text-base mb-2">Step through the timeline</h4>
+          <p className="text-white/70 text-sm leading-relaxed">
             Drag the timeline slider at the bottom of the simulation panel to see how the predicted
             spread area changes hour by hour, from now out to 24 hours ahead.
           </p>
