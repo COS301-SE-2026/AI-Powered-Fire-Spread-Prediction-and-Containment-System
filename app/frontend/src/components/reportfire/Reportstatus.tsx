@@ -13,7 +13,7 @@ export default function ReportStatus({ status, refNumber, locationText }: Status
     let label = "";
     let detail = "";
     let Icon = Clock;
-    let color = "text-neutral";
+    let color = "text-text-primary";
 
     if (status === "received"){
         label="Report submitted";
