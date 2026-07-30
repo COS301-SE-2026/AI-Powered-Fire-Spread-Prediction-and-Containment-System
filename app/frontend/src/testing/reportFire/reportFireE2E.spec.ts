@@ -96,7 +96,6 @@ test.describe("Report a Fire, Frontend (real API)", () => {
   test("shows error when photo is missing on desktop", async ({ page }) => {
     const searchInput = page.getByRole('textbox', { name: 'Drop a pin or type your' });
     await searchInput.fill("Pretoria");
-    await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
     await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
  
     const descriptionField = page.locator("textarea");
