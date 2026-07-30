@@ -58,7 +58,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                                     <td className="px-4 text-sm text-text-primary">{formattedDate}</td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>
                                     <td className="px-4 py-3">
-                                        <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-text-primary/50 hover:bg-smoke-hover hover:text-text-primary transition-colors">
+                                        <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
                                             View
                                         </button>
                                     </td>
