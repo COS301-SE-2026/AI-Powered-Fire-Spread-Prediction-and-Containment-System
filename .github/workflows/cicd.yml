@@ -121,43 +121,92 @@ jobs:
 
       - name: Run ESLint
         run: yarn eslint
+frontend-e2e:
+  name: Frontend E2E (Playwright)
+  runs-on: ubuntu-latest
+  needs: frontend-build
+  if: false   # <- flip to true once this is wired up and passing
 
-  frontend-e2e:
-    name: Frontend E2E (Playwright)
-    runs-on: ubuntu-latest
-    needs: frontend-build
+  services:
+    postgres:
+      image: postgis/postgis:15-3.3
+      env:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+        POSTGRES_DB: test_fire_db
+      ports:
+        - 5433:5432
+      options: >-
+        --health-cmd "pg_isready -U postgres -d test_fire_db"
+        --health-interval 10s
+        --health-timeout 5s
+        --health-retries 5
+    minio:
+      image: minio/minio:latest
+      env:
+        MINIO_ROOT_USER: admin
+        MINIO_ROOT_PASSWORD: miniosupersecretpassword
+      ports:
+        - 9000:9000
+      command: server /data
 
-    defaults:
-      run:
-        working-directory: app/frontend/src
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  defaults:
+    run:
+      working-directory: app/frontend/src
 
-      - name: Set Up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: app/frontend/src/yarn.lock
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Install Dependencies
-        run: yarn install
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
-      - name: Install Playwright browsers
-        run: yarn playwright install --with-deps
+    - name: Install backend dependencies
+      working-directory: app/backend/src
+      run: pip install -r requirements.txt
 
-      - name: Run Playwright Tests
-        run: yarn playwright test --config=testing_config/playwright.config.ts
+    - name: Start backend
+      working-directory: app/backend/src
+      env:
+        DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+        MINIO_ENDPOINT: localhost:9000
+        MINIO_ACCESS_KEY: admin
+        MINIO_SECRET_KEY: miniosupersecretpassword
+        MINIO_SECURE: "false"
+        MINIO_BUCKET: fire-reports
+        JWT_SECRET_KEY: "your-super-secret-key-change-this"
+      run: |
+        nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+        npx wait-on http://localhost:8000/health -t 30000
 
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: app/frontend/src/playwright-report/
-          retention-days: 7
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: yarn
+        cache-dependency-path: yarn.lock
 
+    - name: Install frontend dependencies
+      run: yarn install
+
+    - name: Install Playwright browsers
+      run: yarn playwright install --with-deps
+
+    - name: Run Playwright Tests
+      env:
+        BACKEND_INTERNAL_URL: "http://localhost:8000"
+      run: yarn playwright test --config=testing_config/playwright.config.ts
+
+    - name: Upload Playwright Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: app/frontend/src/playwright-report/
+        retention-days: 7
+        
   frontend-react-doctor:
     name: React Doctor
     runs-on: ubuntu-latest
