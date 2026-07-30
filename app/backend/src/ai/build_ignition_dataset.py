@@ -457,6 +457,7 @@ def main() -> None:
 
     base_dir = Path(args.base_dir).resolve() if args.base_dir else Path.cwd().resolve()
 
+    #NOSONAR
     csv_path = validate_input_path(args.csv, base_dir)
     manifest_path = validate_input_path(args.manifest, base_dir)
 

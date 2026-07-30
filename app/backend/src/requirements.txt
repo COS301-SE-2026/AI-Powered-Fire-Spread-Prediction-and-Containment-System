@@ -21,7 +21,7 @@ pydantic>=2.0
 minio
 
 # ML inference (CPU only — no GPU in this container)
-numpy<2.3
+numpy==2.1.0
 torch==2.5.1+cpu
 xgboost==3.3.0
 pytorchfire==1.1.1
