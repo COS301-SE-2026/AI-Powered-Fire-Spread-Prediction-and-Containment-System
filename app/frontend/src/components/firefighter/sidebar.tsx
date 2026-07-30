@@ -18,8 +18,8 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
                 </div>
 
                 <div className="w-full text-center mt-6 mb-2 px-2 shrink-0">
-                    <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase block group-hover:hidden">MAIN</span>
-                    <span className="text-[10px] font-bold tracking-widest text-text-primary/40 uppercase hidden group-hover:block text-left px-4">MAIN MENU</span>
+                    <span className="text-[10px] font-bold tracking-widest text-text-primary uppercase block group-hover:hidden">MAIN</span>
+                    <span className="text-[10px] font-bold tracking-widest text-text-primary uppercase hidden group-hover:block text-left px-4">MAIN MENU</span>
                 </div>
 
                 <div className="w-full grow overflow-y-auto overflow-x-hidden">
