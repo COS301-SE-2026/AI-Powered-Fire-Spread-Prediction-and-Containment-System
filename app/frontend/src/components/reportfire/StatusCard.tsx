@@ -16,7 +16,7 @@ export function StatusCard({  label, detail, Icon, color, refNumber, locationTex
             <Icon size={20} className={`shrink-0 ${color}`}/>
                 <div>
                     <p className="text-sm font-semibold text-primary-content flex items-center gap-2">{label} #{refNumber}</p>
-                    <p className="text-xs text-neutral">{detail}</p>
+                    <p className="text-xs text-text-primary">{detail}</p>
                 </div>
             </div>
     );

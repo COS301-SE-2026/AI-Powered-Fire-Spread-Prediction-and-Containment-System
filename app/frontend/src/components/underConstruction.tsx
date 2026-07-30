@@ -8,7 +8,7 @@ export function UnderConstruction({message = "This page is still under developme
             <img src="/images/logo-large.png" alt="FireAway" className="w-64 md:w-150 object-contain" />
             <img src="/images/Under_construction.png" alt="Coming Soon" className="w-full max-w-lg object-contain" />
 
-            <p className="text-sm text-neutral/50 max-w-sm">
+            <p className="text-sm text-text-primary/50 max-w-sm">
                 {message}
             </p>
         </div>
