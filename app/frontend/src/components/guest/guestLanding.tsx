@@ -37,8 +37,6 @@ export default function MapView() {
 
                     {/*Map*/}
                     <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[40rem] w-full shadow-md">
-                        <PublicFireMap />
-                    </div>
                         <PublicFireMap lat={userLocation.lat} lng={userLocation.lng} drawMode={false} onDrawComplete={() => {}} clearDrawings={0}/>
                     </div>
                 </div>

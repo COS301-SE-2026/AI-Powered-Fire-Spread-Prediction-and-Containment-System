@@ -57,8 +57,6 @@ export default function GuestPublicDashboard() {
 
                 <SystemAlertsPanel isOpen={isAlertsOpen} onClose={() => setIsAlertsOpen(false)} />
             </div>
-        </SideBarLayout>
-            </div>
         </SidebarLayout>
     );
 }

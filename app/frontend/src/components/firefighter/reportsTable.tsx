@@ -51,12 +51,12 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
 
                             return(
                                 <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.ref}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.location}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card"><StatusBadge status={req.status} /></td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.size} ha</td>
-                                    <td className="px-4 text-sm text-neutral">{formattedDate}</td>
-                                    <td className="py-4 text-sm text-neutral border-t border-carbon-card">{req.reporter}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.size} ha</td>
+                                    <td className="px-4 text-sm text-text-primary">{formattedDate}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>
                                     <td className="px-4 py-3">
                                         <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-text-primary/50 hover:bg-smoke-hover hover:text-text-primary transition-colors">
                                             View

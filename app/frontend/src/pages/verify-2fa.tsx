@@ -13,7 +13,7 @@ export default function Verify2FA() {
   const isValidEmail = email && typeof email === 'string';
   const hasQrSetup = isValidEmail && otpauth_url && typeof otpauth_url === 'string';
 
-  const qrCodeSrc = hasQrSetup ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauth_url as string)}` : ''; 
+  const qrCodeSrc = hasQrSetup ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauth_url as string)}` : '';
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -73,7 +73,7 @@ export default function Verify2FA() {
         </div>
 
         <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
-          <h2 className="text-2xl font-bold text-neutral mb-2">Two‑Factor Authentication</h2>
+          <h2 className="text-2xl font-bold text-text-primary mb-2">Two‑Factor Authentication</h2>
           {!isValidEmail ? (
             <>
               <p className="text-white/60 text-sm mb-4">
@@ -110,7 +110,7 @@ export default function Verify2FA() {
                   type="text"
                   maxLength={6}
                   placeholder="000000"
-                  className="w-full px-3 py-2 bg-carbon-input border border-carbon-stroke rounded-md text-neutral text-center text-2xl tracking-widest focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full px-3 py-2 bg-carbon-input border border-carbon-stroke rounded-md text-text-primary text-center text-2xl tracking-widest focus:outline-none focus:ring-1 focus:ring-primary"
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                   required
@@ -121,7 +121,7 @@ export default function Verify2FA() {
                     {error}
                   </div>
                 )}
-                
+
                 <button
                   type="submit"
                   disabled={isLoading}

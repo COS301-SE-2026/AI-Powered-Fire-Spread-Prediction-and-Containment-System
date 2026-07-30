@@ -20,13 +20,13 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
             <table className="table table-pin-rows w-full">
                 <thead>
                     <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">Ref</th>
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">Location</th>
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">Status</th>
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">Size</th>
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">Reported</th>
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">Reporter</th>
-                        <th className="text-left text-xs font-bold font-display tracking-widest text-neutral uppercase px-4 py-3">View</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Ref</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Location</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Status</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Size</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Reported</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Reporter</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">View</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -40,16 +40,16 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                         filtered.map((report) => {
                             return (
                                 <tr key={report.id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80">
-                                    <td className="px-4 text-sm text-neutral">{report.reference_number}</td>
-                                    <td className="px-4 text-sm text-neutral">{report.location_text}</td>
-                                    <td className="px-4 text-sm text-neutral"><StatusBadge status={report.status} /></td>
-                                    <td className="px-4 text-sm text-neutral">{report.size} ha</td>
-                                    <td className="px-4 text-sm text-neutral">
+                                    <td className="px-4 text-sm text-text-primary">{report.reference_number}</td>
+                                    <td className="px-4 text-sm text-text-primary">{report.location_text}</td>
+                                    <td className="px-4 text-sm text-text-primary"><StatusBadge status={report.status} /></td>
+                                    <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
+                                    <td className="px-4 text-sm text-text-primary">
                                         {new Date(report.submitted_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
                                         {' | '}
                                         {new Date(report.submitted_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
                                     </td>
-                                    <td className="px-4 text-sm text-neutral">{report.reporter_name}</td>
+                                    <td className="px-4 text-sm text-text-primary">{report.reporter_name}</td>
                                     <td className="px-4 py-3">
                                         <button type="button" onClick={() => router.push(`/admin/${report.reference_number}`)} className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-text-primary/50 hover:bg-smoke-hover hover:text-text-primary transition-colors">
                                             View
