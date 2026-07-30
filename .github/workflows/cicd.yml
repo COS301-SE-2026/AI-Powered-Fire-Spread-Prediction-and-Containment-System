@@ -162,15 +162,20 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Start backend
-        uses: ./.github/actions/start-backend
-        with:
+      - name: Install backend dependencies
+        run: pip install -r app/backend/source/requirements.txt
+      
+      - name: Launch backend
+        env:
           database-url: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
           minio-endpoint: localhost:9000
           minio-access-key: admin
           minio-secret-key: miniosupersecretpassword
           minio-bucket: fire-reports
           jwt-secret: "your-super-secret-key-change-this"
+        run: |
+          cd app/backend/src
+          nohup uvicorn main:app --host 0.0.0.0 --post 8000 & sleep 3
 
       - name: Set up Node
         uses: actions/setup-node@v4
