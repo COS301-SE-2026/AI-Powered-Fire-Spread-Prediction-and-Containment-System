@@ -83,7 +83,10 @@ def build_manifest(csv_path: str, out_path: str, top_n: int = 30, min_ticks: int
 
     events = inspect_fire_events(csv_path, max_gap_km=max_gap_km, max_gap_days=max_gap_days, min_ticks=min_ticks, limit=0)
 
-    selected=events[:top_n]
+    MAXTICKS = 40
+    real_fires = [e for e in events if len(e.ticks) <= MAXTICKS]
+
+    selected=real_fires[:top_n]
 
     rows_written = 0
 
