@@ -5,10 +5,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import os
 import numpy as np
 import pandas as pd
 
-from app.backend.src.ai.features import grid_to_fmatrix, neighbour_features
+from app.backend.src.ai.features import grid_to_fmatrix
+from app.backend.src.ai.inspect_fire import inspect_fire_events
 from app.backend.src.ai.schema import BURNED, BURNING, UNBURNED
 from app.datasets.scripts.fetch_historical_weather import (
     fetch_historical_weather,
@@ -17,10 +19,13 @@ from app.datasets.scripts.fetch_historical_weather import (
 from app.ml.features.fuel_load import process_sentinal2_and_worldcover
 from app.ml.features.terrain import extract_terrain_features
 
+os.environ.setdefault("AWS_NO_SIGN_REQUEST", "YES")
 
 @dataclass
 class RealDatasetConfig:
     hotspots_csv: str = "app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv"
+
+    manifest_csv: str = "app/datasets/raw_data/static_manifest_test.csv"
 
     worldcover_path: str = "app/datasets/raw_data/worldcover.tif"
     b04_path: str = "app/datasets/raw_data/b04.tif"
@@ -36,7 +41,10 @@ class RealDatasetConfig:
 
     # spatiotemporal clustering thresholds grouping pnts into fire events
     cluster_distance_km: float = 5.0
-    cluster_time_gap_days: float = 2.0
+    cluster_time_gap_days: float = 4.0
+    min_ticks: int = 2
+
+    candidate_dilation: int | None = None
 
 
 def _load_hotspots(cfg: RealDatasetConfig) -> pd.DataFrame:
@@ -105,14 +113,18 @@ def _cluster_into_fire_events(df: pd.DataFrame, cfg: RealDatasetConfig) -> pd.Se
                 union(i, j)
 
     roots = [find(i) for i in range(n)]
-    return pd.Series(roots, index=df.index, name="fire_id").astype(str)
+    return pd.Series(roots, index=df.index, name="fire_id").astype(np.int64)
 
+
+def _optional(value) -> str | None:
+    """Manifest blanks read back as '' or NaN; both mean 'stream from S3'."""
+    return value if isinstance(value, str) and value.strip() else None
 
 def _static_features_for_fire(
-    cfg, min_lon, min_lat, max_lon, max_lat
+    cfg, row, min_lon, min_lat, max_lon, max_lat
 ) -> dict[str, np.ndarray]:
     terrain = extract_terrain_features(
-        dem_path=cfg.dem_path,
+        dem_path=row["dem_path"],
         min_lon=min_lon,
         min_lat=min_lat,
         max_lon=max_lon,
@@ -121,10 +133,10 @@ def _static_features_for_fire(
     )
 
     veg = process_sentinal2_and_worldcover(
-        worldcover_map_path=cfg.worldcover_path,
-        b04_path=cfg.bo4_path,
-        b08_path=cfg.bo8_path,
-        b11_path=cfg.b11_path,
+        worldcover_map_path=_optional(row.get("worldcover_path")),
+        b04_path=row["b04_path"],
+        b08_path=row["b08_path"],
+        b11_path=row["b11_path"],
         min_lon=min_lon,
         min_lat=min_lat,
         max_lon=max_lon,
@@ -164,6 +176,18 @@ def _rasterize_points(
     grid[row[valid], col[valid]] = True
     return grid
 
+def candidate_mask(burn: np.ndarray, dilation: int | None) -> np.ndarray:
+    unburned = burn == UNBURNED
+
+    if dilation is None:
+        return unburned
+
+    from scipy.ndimage import binary_dilation
+
+    near_fire = binary_dilation(burn == BURNING, iterations=dilation)
+
+    return unburned & near_fire
+
 
 def load_real_dataset(
     cfg: RealDatasetConfig = RealDatasetConfig(),
@@ -171,63 +195,77 @@ def load_real_dataset(
     """Returns X [N, n_features], y [N], fire_ids [N] same contract as generate_synthetic_dataset(). Candidate rows = UNBURNED cells only"""
 
     df = _load_hotspots(cfg)
-    df["fire_id"] = _cluster_into_fire_events(df, cfg)
 
-    x_parts, y_parts, id_parts = [], [], []
+    manifest = pd.read_csv(cfg.manifest_csv).set_index("fire_id")
 
-    for fire_id, fire_df in df.groupby("fire_id"):
-        fire_df = fire_df.sort_values("datetime")
+    events = inspect_fire_events(
+        cfg.hotspots_csv,
+        max_gap_km=cfg.cluster_distance_km,
+        max_gap_days=cfg.cluster_time_gap_days,
+        min_ticks=cfg.min_ticks,
+        limit=0,
+    )
+
+    x_parts: list[np.ndarray] = []
+    y_parts: list[np.ndarray] = []
+    id_parts: list[np.ndarray] = []
+
+    n_used = 0
+    for event in events:
+        if event.fire_id not in manifest.index:
+            continue
+
+        row = manifest.loc[event.fire_id]
+
+        min_lon = event.min_lon - cfg.bbox_buffer_deg
+        max_lon = event.max_lon + cfg.bbox_buffer_deg
+        min_lat = event.min_lat - cfg.bbox_buffer_deg
+        max_lat = event.max_lat + cfg.bbox_buffer_deg
+
+        in_event = (
+            df["longitude"].between(min_lon, max_lon)
+            & df["latitude"].between(min_lat, max_lat)
+            & df["datetime"].between(pd.Timestamp(event.ticks[0]), pd.Timestamp(event.ticks[-1]))
+        )
+
+        fire_df = df[in_event].sort_values("datetime")
+
         daily = [g for _, g in fire_df.groupby(fire_df["acq_date"])]
         if len(daily) < 2:
             continue
 
-        min_lon = fire_df["longitude"].min() - cfg.bbox_buffer_deg
-        max_lon = fire_df["longitude"].max() + cfg.bbox_buffer_deg
-        min_lat = fire_df["latitude"].min() - cfg.bbox_buffer_deg
-        max_lat = fire_df["latitude"].max() + cfg.bbox_buffer_deg
+        static = _static_features_for_fire(cfg, row, min_lon, min_lat, max_lon, max_lat)
 
-        static = _static_features_for_fire(cfg, min_lon, min_lat, max_lon, max_lat)
-
-        # fetch weather once
-        start_date = fire_df["acq_date"].min()
-        end_date = fire_df["acq_date"].max()
-        center_lat = (min_lat + max_lat) / 2.0
-        center_lon = (min_lon + max_lon) / 2.0
         df_weather = fetch_historical_weather(
-            latitude=center_lat,
-            longitude=center_lon,
-            start_date=start_date,
-            end_date=end_date,
-            location_name=f"fire_{fire_id}",
+            latitude=(min_lat + max_lat) / 2.0,
+            longitude=(min_lon + max_lon) / 2.0,
+            start_date=fire_df["acq_date"].min(),
+            end_date=fire_df["acq_date"].max(),
+            location_name=f"fire_{event.fire_id}",
         )
+
         if df_weather.empty:
             continue
 
         burn = np.zeros(cfg.target_shape, dtype=np.int8)
 
         for i in range(len(daily) - 1):
-            day_t, day_t1 = daily[i], daily[i + 1]
+            day_t, day_t1 = daily[i], daily[i+1]
 
             hotspots_t = _rasterize_points(
                 day_t["latitude"].to_numpy(),
                 day_t["longitude"].to_numpy(),
-                min_lon,
-                min_lat,
-                max_lon,
-                max_lat,
-                cfg.target_shape,
-            )
-            hotspots_t1 = _rasterize_points(
-                day_t1["latitude"].to_numpy(),
-                day_t1["longitude"].to_numpy(),
-                min_lon,
-                min_lat,
-                max_lon,
-                max_lat,
+                min_lon, min_lat, max_lon, max_lat,
                 cfg.target_shape,
             )
 
-            burn[:] = UNBURNED
+            hotspots_t1 = _rasterize_points(
+                day_t1["latitude"].to_numpy(),
+                day_t1["longitude"].to_numpy(),
+                min_lon, min_lat, max_lon, max_lat,
+                cfg.target_shape,
+            )
+
             burn[hotspots_t] = BURNING
 
             weather = get_weather_at_timestamp(
@@ -236,23 +274,27 @@ def load_real_dataset(
                 target_shape=cfg.target_shape,
             )
 
-            nbf = neighbour_features(
-                burn, weather["wind_u"], weather["wind_v"], static["elevation"]
-            )
-
-            unburned = burn == UNBURNED
-
-            ignited_by_t1 = hotspots_t1 & -hotspots_t
+            ignited_by_t1 = hotspots_t1 & ~hotspots_t
 
             x_tick = grid_to_fmatrix(weather, static, burn)
-            mask = unburned.ravel()
+            mask = candidate_mask(burn, cfg.candidate_dilation).ravel()
+
+            if not mask.any():
+                continue
 
             x_parts.append(x_tick[mask])
             y_parts.append(ignited_by_t1.ravel()[mask].astype(np.int8))
-            id_parts.append(np.full(mask.sum(), fire_id, dtype=object))
+            id_parts.append(np.full(int(mask.sum()), int(event.fire_id), dtype=np.int64))
 
             burn[burn == BURNING] = BURNED
             burn[hotspots_t1] = BURNING
+
+        n_used += 1
+
+    if not x_parts:
+        raise RuntimeError(
+            "No usable fires. Check to see if manifest fire_ids match the clustering"
+        )
 
     return (
         np.concatenate(x_parts),
