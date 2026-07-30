@@ -159,7 +159,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install backend dependencies
-        run: pip install -r app/backend/src/requirements.txt
+        run: pip install --only-binary :all: -r app/backend/src/requirements.txt
       
       - name: Launch backend
         env:
