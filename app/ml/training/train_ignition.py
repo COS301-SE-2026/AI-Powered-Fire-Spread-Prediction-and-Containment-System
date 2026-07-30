@@ -32,7 +32,7 @@ def load_dataset(source: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     if source == "synthetic":
         return generate_synthetic_dataset(SynthConfig())
     data = np.load(source)
-    return data["X"], data["y"], data["fire_isds"]
+    return data["X"], data["y"], data["fire_ids"]
 
 
 # Ensures if a fire even is chosen for validation, every row associated with that fire goes to validation set
