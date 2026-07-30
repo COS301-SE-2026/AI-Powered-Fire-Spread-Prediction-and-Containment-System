@@ -6,6 +6,7 @@ from .ignition import IgnitionScorer
 from .schema import UNBURNED
 from .simulation import build_env_data, pick_ignition_points, state_to_burn_state, build_verified_reports_mask
 
+MAXSTEPS = 72
 
 def run_dca(
     weather_grids: dict,
@@ -35,8 +36,10 @@ def run_dca(
 
     history = [state_to_burn_state(model.state)]
 
+    safe_steps = min(n_steps, MAXSTEPS)
+
     with torch.no_grad():
-        for _ in range(n_steps):
+        for _ in range(safe_steps):
             model.compute()
             history.append(state_to_burn_state(model.state))
 

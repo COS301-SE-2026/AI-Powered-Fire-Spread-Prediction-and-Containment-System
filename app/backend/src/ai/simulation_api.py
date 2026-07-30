@@ -130,24 +130,6 @@ def params_to_torch(dca: DCAParams):
         "p_continue": torch.tensor(dca.p_continue),
     }
 
-
-def latlng_to_grid(fire_lat:float, fire_lng: float, center_lat:float, center_lng: float, H:int, W:int, extent_deg: float=0.05) -> tuple[int,int]:
-    min_lat = center_lat - extent_deg / 2
-    max_lat = center_lat + extent_deg / 2
-    min_lng = center_lng - extent_deg / 2
-    max_lng = center_lng + extent_deg / 2
-
-    if not (min_lat <= fire_lat <= max_lat and min_lng <= fire_lng <= max_lng):
-            return None
-
-    row = int((max_lat - fire_lat) / extent_deg * H)
-    col = int((fire_lng - min_lng) / extent_deg * W)
-
-    row = max(0, min(H - 1, row))
-    col = max(0, min(W - 1, col))
-
-    return row,col
-
 def burned_area_radius_m(burned_cells: int, H: int, W: int, extent_deg: float=0.05) -> float:
     if burned_cells <= 0:
         return 0.0
@@ -196,9 +178,6 @@ async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) 
 
     for fire in verified_fires:
         cell = (H // 2, W // 2)
-
-        if cell is None:
-            continue
 
         try:
             history = run_dca(
