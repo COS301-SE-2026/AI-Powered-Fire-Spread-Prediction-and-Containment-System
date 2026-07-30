@@ -5,7 +5,6 @@ import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'luc
 import { FireMap } from '../../components/DynamicFiremap';
 import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
 import { useSimulation } from '../../components/firefighter/useSimulation';
-import { spawn } from 'node:child_process'
 
 export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
@@ -246,15 +245,51 @@ export default function ReportTable() {
                                     </div>
 
                                     {/* Fuel Params */}
+                                    <div className='border-t boarder-carbon-stroke/40 pt-3'>
+                                        <p className='text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2'>
+                                            fuel Conditions
+                                        </p>
+                                        <div className='grid grid-col-2 gap-2'>
+                                            <label className='flex flex-col gap-1'>
+                                                <span className='text-xs text-text-muted'>
+                                                    Fuel Load: {staticParams.fuel_load.toFixed(2)}
+                                                </span>
+                                                <input 
+                                                    type='range'
+                                                    min={0}
+                                                    max={1}
+                                                    step={0.05}
+                                                    value={staticParams.fuel_load}
+                                                    onChange={(e) => setStaticParams({ ...staticParams, fuel_load: Number(e.target.value)})}
+                                                    className='range range-xs w-full' />
+                                            </label>
+                                            <label className='flex flex-col gap-1'>
+                                                <span className='text-xs text-text-muted'>
+                                                    Dryness: {staticParams.dryness.toFixed(2)}
+                                                </span>
+                                                <input 
+                                                    type='range'
+                                                    min={0}
+                                                    max={1}
+                                                    step={0.05}
+                                                    value={staticParams.dryness}
+                                                    onChange={(e) => setStaticParams({ ...staticParams, dryness: Number(e.target.value)})}
+                                                    className='range range-xs w-full' />
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
                     {/* Simulation results */}
                     <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
-                        <SimulationResults/>
+                        <SimulationResults
+                        // Pass live stats so panel can show burning/burned counts per tick
+                        currentStats={currentStats}
+                        allStats={allStats}
+                        status={status}/>
                     </div>
                 </div>
             </div>  
