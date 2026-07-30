@@ -149,19 +149,6 @@ jobs:
           - 9000:9000
         command: server /data
 
-    env:
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-      MINIO_ENDPOINT: localhost:9000
-      MINIO_ACCESS_KEY: admin
-      MINIO_SECRET_KEY: miniosupersecretpassword
-      MINIO_SECURE: "false"
-      MINIO_BUCKET: fire-reports
-      JWT_SECRET: "your-super-secret-key-change-this"
-
-    defaults:
-      run:
-        working-directory: app/frontend/src
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -173,18 +160,26 @@ jobs:
 
       - name: Install backend dependencies
         run: pip install -r app/backend/src/requirements.txt
-
+      
       - name: Launch backend
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+          MINIO_ENDPOINT: localhost:9000
+          MINIO_ACCESS_KEY: admin
+          MINIO_SECRET_KEY: miniosupersecretpassword
+          MINIO_BUCKET: fire-reports
+          JWT_SECRET: "your-super-secret-key-change-this"
         run: |
           cd app/backend/src
-          nohup uvicorn main:app --host 0.0.0.0 --port 8000 & sleep 3
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 & 
+          sleep 3
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: yarn.lock
+          cache-dependency-path: app/frontend/src/yarn.lock
 
       - name: Install frontend dependencies
         run: yarn install
@@ -193,6 +188,7 @@ jobs:
         run: yarn playwright install --with-deps
 
       - name: Run Playwright Tests
+        working-directory: app/frontend/src
         env:
           BACKEND_INTERNAL_URL: "http://localhost:8000"
         run: yarn test --config=testing_config/playwright.config.ts
