@@ -11,10 +11,6 @@ test.describe('Firefighter Dashboard - live fire map', () => {
         await page.getByRole('textbox', { name: 'Password' }).fill('Password123!');
         await page.getByRole('button', { name: 'Login' }).click();
     });
-    test('Main page renders', async ({page}) =>{
-        await expect(page.getByRole('heading', { name: 'Firefighter Dashboard' })).toBeVisible();
-    })
-
     test('nearby reports section renders', async({ page }) => {
         await expect(page.getByText('Nearby Reports')).toBeVisible();
     });

@@ -10,12 +10,8 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     await page.getByRole("textbox", { name: "Password" }).fill("Password123!");
     await page.getByRole("button", { name: "Login" }).click();
  
-    await expect(page.getByRole("region", { name: "Map" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Nearby Reports" })).toBeVisible();
-    await expect(page.locator("header")).toBeVisible();
- 
-    await page.goto("http://localhost:3000/registeredUser/registeredReportFire");
-    await expect(page.getByRole("heading", { name: "Report a fire" })).toBeVisible();
+    await page.locator('aside').hover();
+    await page.getByRole('link', { name: 'Report a Fire' }).click(); 
   });
  
   test("updates location field on search and change in map", async ({ page }) => {

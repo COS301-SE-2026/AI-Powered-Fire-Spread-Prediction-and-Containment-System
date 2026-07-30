@@ -1,4 +1,4 @@
-import { SideBarLayout } from '../../components/demoSidebar';
+import { SideBar } from '../../components/Sidebar';
 import { PageHeader } from '../../components/pageHeader';
 import { ActionCard } from '../../components/firefighter/actionCard';
 import {Siren, CirclePlay, Headset} from 'lucide-react'
@@ -20,7 +20,7 @@ const faqs=[
   const router = useRouter();
   return (
     
-    <SideBarLayout>
+    <SideBar items={null}>
       <div className='flex flex-col p-6'>
         <PageHeader
         title="Help Menu"
@@ -189,6 +189,6 @@ const faqs=[
           </div>
         </div>
       </div>
-    </SideBarLayout>  
+    </SideBar>  
   );
 }
