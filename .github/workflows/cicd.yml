@@ -34,6 +34,11 @@ jobs:
         ports:
           - 9000:9000
         command: server /data
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/ready || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
 
