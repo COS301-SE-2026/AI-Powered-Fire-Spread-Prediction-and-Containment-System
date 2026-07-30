@@ -141,7 +141,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                     <div className="flex flex-col gap-2">
                     {predictions.map((p) => ( 
                         <div key={p.ref} className="flex items-center gap-2">
-                            <span className="text-xs text-text-muted w-8 shrink-0">{p.ref}</span>
+                            <span className="text-xs text-text-muted w-8 shrink-0">{p.ref.slice(0.8)}</span>
                             <div className='flex-1 h-2 rounded-full bg-carbon-stroke overflow-hidden'>
                                 <div className="h-full rounded-full bg-ignite" style={{width: `${(p.burned_cells / maxBurned) * 100}%` }}/> {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
                             </div>
