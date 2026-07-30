@@ -28,6 +28,15 @@ def pick_ignition_points(
     return mask
 
 
+def build_verified_reports_mask(H:int, W:int, ingnition_points: list[tuple[int,int]]) -> np.ndarray:
+    mask = np.zeros((H,W), dtype=bool)
+
+    for row, col in ingnition_points:
+        if 0 <= row < H and 0 <= col < W:
+            mask[row,col] = True
+
+    return mask
+
 def build_env_data(
     weather_grids: dict, static_grids: dict, initial_ignition_mask: np.ndarray
 ) -> dict:

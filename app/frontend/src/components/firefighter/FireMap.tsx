@@ -105,6 +105,36 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         }));
     }, [fires])
 
+    const simulationCircle = useMemo(() => {
+        if(!burnGrid) return [];
+
+        const simCells = burnGrid.filter(
+            cell => cell === 1 || cell === 2
+        ).length;
+
+        if (simCells === 0) return [];
+
+        const cellSize = 30;
+
+        const area = simCells * cellSize * cellSize;
+        const radMeters = Math.sqrt(area / Math.PI);
+        const radiusKm = radMeters / 1000
+
+        return fires
+            .filter(f => f.status.toLowerCase() === "verified")
+            .map(f => 
+                circle(
+                [f.lng, f.lat],
+                radiusKm,
+                {
+                    steps: 64,
+                    units: "kilometers"
+                }
+        )
+    )
+    }, [burnGrid, fires])
+
+
 
     return (
         <Map
@@ -155,6 +185,31 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                       />
                   </Source>
 
+          )}
+
+          {simulationCircle.length > 0 && (
+            <Source id="simulation-circle" type="geojson" data={{type: 'FeatureCollection', features: simulationCircle}}>
+                <Layer
+                    id="simulation-fill"
+                    type="fill"
+                    paint={{
+                        'fill-color': '#ffd54f',
+                        'fill-opacity': 0.18,
+                    }}
+                > 
+                </Layer>
+
+                <Layer
+                    id="simulation-outline"
+                    type="line"
+                    paint={{
+                        'line-color': '#ffc107',
+                        'line-width': 1,
+                        "line-dasharray": [2,2]
+                    }}
+                > 
+                </Layer>
+            </Source>
           )}
 
             {selectedFire && (
