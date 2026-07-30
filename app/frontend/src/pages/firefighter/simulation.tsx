@@ -150,12 +150,6 @@ export default function ReportTable() {
                                         </button>
                                     </div>
                                 )}
-                               
-
-                                <button className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
-                                    <CirclePlay />
-                                    RUN
-                                </button>
                             </div>
 
                             {/* input variables */}
