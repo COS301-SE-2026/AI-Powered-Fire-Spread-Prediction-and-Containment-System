@@ -58,7 +58,7 @@ jobs:
         run: | 
           echo "[run]" > .coveragerc
           echo "relative_files = True" >> .coveragerc
-          coverage run -m pytest tests
+          coverage run --rcfile=.coveragerc -m pytest tests
           coverage xml
 
       - name: Post coverage comment
