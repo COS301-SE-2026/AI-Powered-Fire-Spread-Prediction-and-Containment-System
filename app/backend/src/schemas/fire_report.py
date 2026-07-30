@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
-
 from enums.report_status import ReportStatus
+from pydantic import BaseModel, Field
 
 
 class FireReportCreate(BaseModel):

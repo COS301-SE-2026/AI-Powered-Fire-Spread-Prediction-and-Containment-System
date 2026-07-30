@@ -1,17 +1,16 @@
 import numpy as np
 import pytest
-
+from ai.features import grid_to_fmatrix, neighbour_features, shift
 from ai.schema import (
-    FEATURES,
-    WEATHER_FEATURES,
-    STATIC_FEATURES,
-    NEIGHBOUR_FEATURES,
-    UNBURNED,
     BURNED,
     BURNING,
     DIST_CAP,
+    FEATURES,
+    NEIGHBOUR_FEATURES,
+    STATIC_FEATURES,
+    UNBURNED,
+    WEATHER_FEATURES,
 )
-from ai.features import neighbour_features, grid_to_fmatrix, shift
 
 
 def test_schema_consistancy():

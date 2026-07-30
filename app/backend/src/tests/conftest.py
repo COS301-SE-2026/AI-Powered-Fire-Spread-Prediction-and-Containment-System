@@ -1,16 +1,23 @@
 import os
 import sys
 import uuid
+from pathlib import Path
+import numpy as np
 
 import pytest
+from enums.report_status import ReportStatus
 from fastapi.testclient import TestClient
+from models.reported_fires import FireReports
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# Points to app/backend/src and app/ml — skips the parent conftest
+# that loads the full backend app and requires minio/db dependencies
+root = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(root / "app"))
+sys.path.insert(0, str(root / "app" / "ml"))
 
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
@@ -18,11 +25,13 @@ os.environ.setdefault("SKIP_SEED", "1")
 from auth import hash_password
 from db import Base, get_db
 from main import app
+
 # models for the firefighter dashboard
 from models.containment_lines import ContainmentLines
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
 from models.users import User
+
 # seed data
 from seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
@@ -170,3 +179,73 @@ def make_report(
     db.commit()
     db.refresh(report)
     return report
+
+
+def seed_users_table(db):
+    for data in SEED_USERS:
+        user = User(
+            id=data["id"],
+            name=data["name"],
+            surname=data["surname"],
+            email=data["email"],
+            id_number=data["id_number"],
+            license_number=data["license_number"],
+            hashed_password=hash_password(data["password"]),
+            role=data["role"],
+            is_active=True,
+            is_2fa_enabled=False,
+            totp_secret=None,
+        )
+        db.add(user)
+    db.commit()
+
+
+@pytest.fixture
+def seeded_fire_reports(db):
+    seed_users_table(db)
+    seed_fire_reports(db)
+    return db.query(FireReports).all()
+
+
+# Shared helper function
+@pytest.fixture
+def small_grids():
+    def _make(H=5, W=5):
+        """Generate minimal synthetic grid data for testing physical model inputs.
+
+        Creates uniform weather blowing east and flat terrain dictionaries along with an unburned status matrix of dimensions (H, W).
+
+        Parameters
+        ----------
+        H : int, default 5
+            Height of spatial grid in cells.
+        W : int, default 5
+            Width of spatial grid in cells.
+
+        Returns
+        -------
+        weather : dict of {str: np.ndaray}
+            Dictionary containing uniform meteorological arrays (`wind_u`, `wind_v`, `rel_humidity`, `temperature`)
+        static : dict of {str: np.ndarray}
+            Dictionary containing uniform terrain and fuel feature arrays (`elevation`, `slope`, `aspect_sin`, `aspect_cos`, `fuel_load`, `dryness`)
+        burn : np.ndarray
+            (H, W) array of zeros representing an initially unburned state matrix.
+        """
+        weather = {
+            "wind_u": np.full((H, W), 3.0, np.float32),
+            "wind_v": np.zeros((H, W), np.float32),
+            "rel_humidity": np.full((H, W), 30.0, np.float32),
+            "temperature": np.full((H, W), 25.0, np.float32),
+        }
+        static = {
+            "elevation": np.full((H, W), 500.0, np.float32),
+            "slope": np.zeros((H, W), np.float32),
+            "aspect_sin": np.zeros((H, W), np.float32),
+            "aspect_cos": np.ones((H, W), np.float32),
+            "fuel_load": np.full((H, W), 0.8, np.float32),
+            "dryness": np.full((H, W), 0.6, np.float32),
+        }
+        burn = np.zeros((H, W), np.int8)
+        return weather, static, burn
+
+    return _make

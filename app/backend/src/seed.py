@@ -8,6 +8,7 @@ from enums.role_request_status import RequestStatus
 from enums.user_role import UserRole
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
+
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from models.users import User
 

@@ -4,11 +4,13 @@
 # fire_ids enables group-aware split
 
 from __future__ import annotations
-from dataclasses import dataclass
-import numpy as np
 
-from ai.schema import BURNING, BURNED, UNBURNED
-from ai.features import shift, neighbour_features, grid_to_fmatrix
+from dataclasses import dataclass
+
+import numpy as np
+from ai.features import grid_to_fmatrix, neighbour_features, shift
+from ai.schema import BURNED, BURNING, UNBURNED
+
 
 
 @dataclass

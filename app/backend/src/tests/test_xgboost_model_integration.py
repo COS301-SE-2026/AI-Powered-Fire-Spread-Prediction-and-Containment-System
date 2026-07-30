@@ -1,7 +1,5 @@
 import numpy as np
 import pytest
-
-from ai.schema import FEATURES, SCHEMA_VERSION, BURNING, BURNED, UNBURNED
 from ai import artifact_store
 from ai.ignition import IgnitionScorer
 from training.synthetic_data import (

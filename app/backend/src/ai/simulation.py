@@ -1,5 +1,6 @@
-import torch
 import numpy as np
+import torch
+
 from .ignition import IgnitionScorer
 from .schema import UNBURNED, BURNING, BURNED
 

@@ -1,9 +1,8 @@
 import pytest
 from geoalchemy2.elements import WKTElement
-from models.reported_fires import FireReports
 
 from enums.report_status import ReportStatus
-
+from models.reported_fires import FireReports
 
 
 @pytest.mark.skip(reason="PostGIS not configured for testing yet.")
