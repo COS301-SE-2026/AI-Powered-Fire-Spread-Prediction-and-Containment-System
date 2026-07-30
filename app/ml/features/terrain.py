@@ -4,6 +4,12 @@ import rasterio
 from rasterio.enums import Resampling
 from rasterio.windows import from_bounds
 
+DEMREADENV = dict(
+    AWS_NO_SIGN_REQUEST="YES",
+    GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR",
+    CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.TIF,.tiff",
+)
+
 
 def extract_terrain_features(
     dem_path: str,
@@ -18,7 +24,7 @@ def extract_terrain_features(
 
     H, W = target_shape
 
-    with rasterio.open(dem_path) as src:
+    with rasterio.Env(**DEMREADENV), rasterio.open(dem_path) as src:
         window = from_bounds(
             min_lon, min_lat, max_lon, max_lat, transform=src.transform
         )
