@@ -8,9 +8,8 @@ from models.reported_fires import FireReports
 
 ### GET /api/users/reported-fires ###
 
-
-# test if nothing in db then endpoint returns HTTP 200 OK
-# smoke test and empty-case test
+#test if nothing in db then endpoint returns HTTP 200 OK
+#smoke test and empty-case test
 def test_get_report_empty(client):
     response = client.get("/api/users/reported-fires")
 

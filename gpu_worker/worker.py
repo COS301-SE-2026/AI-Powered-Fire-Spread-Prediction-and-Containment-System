@@ -17,7 +17,7 @@ RESULTS_QUEUE_URL = os.environ["RESULTS_QUEUE_URL"]
 WORKER_ID = os.environ.get("WORKER_ID", "gpu-worker-1")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-log = logging.getLogger(
+logs = logging.getLogger(
     "gpu_worker"
 )  # Logs go to local systemd journal only (journalctl -u fire-worker)
 

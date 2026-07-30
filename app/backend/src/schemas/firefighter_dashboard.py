@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import List
 
+from pydantic import BaseModel, ConfigDict
+
 from enums.fire_danger import FireDanger
 from enums.report_status import ReportStatus
-from pydantic import BaseModel, ConfigDict
 
 
 class NearbyFire(BaseModel):

@@ -6,6 +6,7 @@ from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, Str
 from sqlalchemy.orm import relationship
 
 
+
 class User(Base):
     __tablename__ = "users"
 

@@ -7,6 +7,7 @@ from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, Str
 from sqlalchemy.orm import relationship
 
 
+
 class RoleRequest(Base):
     __tablename__ = "role_requests"
 

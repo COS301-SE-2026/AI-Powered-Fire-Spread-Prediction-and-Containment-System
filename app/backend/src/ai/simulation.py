@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 from .ignition import IgnitionScorer
-from .schema import BURNED, BURNING, UNBURNED
+from .schema import UNBURNED, BURNING, BURNED
 
 
 # p_ignite is the output from the ignition scorer and is a 2D shape [H, W] and one probability per cell

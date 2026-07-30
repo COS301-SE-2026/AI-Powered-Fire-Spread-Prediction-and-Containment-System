@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from schemas.fire_report import FireReportDetailResponse, FireReportMapResponse
 from services.users import fire_report
 from sqlalchemy.orm import Session
+from enums.report_status import ReportStatus
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 

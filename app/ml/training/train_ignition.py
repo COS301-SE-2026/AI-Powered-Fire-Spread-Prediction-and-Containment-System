@@ -19,9 +19,9 @@ for cand in (here.parents[2] / "backend_src", here.parents[2]):
     if cand.is_dir() and str(cand) not in sys.path:
         sys.path.insert(0, str(cand))
 
-from ai import artifact_store
 from ai.schema import FEATURES, SCHEMA_VERSION
-from training.synthetic_data import SynthConfig, generate_synthetic_dataset
+from ai import artifact_store
+from training.synthetic_data import generate_synthetic_dataset, SynthConfig
 
 
 # Load data

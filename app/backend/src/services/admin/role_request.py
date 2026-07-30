@@ -7,7 +7,7 @@ from models.users import User
 from sqlalchemy.orm import Session
 
 
-def get_role_requests(db: Session):
+def get_role_requests(db:Session):
     request = db.query(RoleRequest).all()
     return {"data": request, "total": len(request)}
 
