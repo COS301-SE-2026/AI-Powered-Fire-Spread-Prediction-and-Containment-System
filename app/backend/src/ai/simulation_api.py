@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 import numpy as np
 
 from .dca import run_dca
+import math
 
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -16,6 +17,7 @@ from enums.report_status import ReportStatus
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
+METRES_PER_DEG_LAT = 111_320.0
 
 # Request/Response Schemas
 # TODO: WeatherParams will become read-only once pull weather data
@@ -68,22 +70,22 @@ class SimulationRequest(BaseModel):
     dca: DCAParams = DCAParams()
 
 
-class TickStats(BaseModel):
-    tick: int
-    burning: int
-    burned: int
-    total_cells: int
+class Prediction(BaseModel):
+    ref: str
+    lat: float
+    lng: float
+    history: list[list[int]]
+    burned_cells: int
+    radius_m: float
 
 
 class SimulationResponse(BaseModel):
     # Flattened burn-state grids per tick (list of (H*W) ints in {0=unburned, 1=burning, 2=burned})
     # Frontend reshapes to [H, W] using grid_h/_w
-    history: list[list[int]]
-    grid_h: int
+    predictions: list[Prediction]
+    grid_h:int
     grid_w: int
-    tick_stats: list[TickStats]
     n_steps_run: int
-
 
 # Grid Builders
 
@@ -135,6 +137,9 @@ def latlng_to_grid(fire_lat:float, fire_lng: float, center_lat:float, center_lng
     min_lng = center_lng - extent_deg / 2
     max_lng = center_lng + extent_deg / 2
 
+    if not (min_lat <= fire_lat <= max_lat and min_lng <= fire_lng <= max_lng):
+            return None
+
     row = int((max_lat - fire_lat) / extent_deg * H)
     col = int((fire_lng - min_lng) / extent_deg * W)
 
@@ -142,6 +147,13 @@ def latlng_to_grid(fire_lat:float, fire_lng: float, center_lat:float, center_lng
     col = max(0, min(W - 1, col))
 
     return row,col
+
+def burned_area_radius_m(burned_cells: int, H: int, W: int, extent_deg: float=0.05) -> float:
+    if burned_cells <= 0:
+        return 0.0
+    cell_h_m = (extent_deg / H) * METRES_PER_DEG_LAT
+    cell_w_m = (extent_deg / W) * METRES_PER_DEG_LAT
+    return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
 
 # The endpoint
 @router.post("/simulate", response_model=SimulationResponse)
@@ -168,6 +180,7 @@ async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) 
         HTTPException: Status 500 if underlying DCA model execution fails.
     """
     H, W = req.grid_h, req.grid_w
+    EXTENT_DEG = 0.05
 
     # TODO: Pass req.lat and req.lng into these two functions so they can compute the bounding box and fetch real spatial data.
     weather_grids = build_weather_grids(H, W, req.weather)
@@ -178,50 +191,47 @@ async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) 
         .filter(FireReports.status == ReportStatus.verified)
         .all())
 
-    ignition_points = []
+    predictions: list[Prediction] = []
+    n_steps_run = 0
 
     for fire in verified_fires:
-        row, col = latlng_to_grid(
-            fire.lat,
-            fire.lng,
-            req.lat,
-            req.lng,
-            H,
-            W,
+        cell = (H // 2, W // 2)
+
+        if cell is None:
+            continue
+
+        try:
+            history = run_dca(
+                weather_grids=weather_grids,
+                static_grids=static_grids,
+                n_steps=req.n_steps,
+                ignition_points=[cell],
+                params=params_to_torch(req.dca),
+            )
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}") from exc
+
+        final_grid = history[-1]
+
+        burned_cells = int(
+            ((final_grid == 1) | (final_grid == 2)).sum()
         )
-        ignition_points.append((row,col))
 
-    try:
-        history = run_dca(
-            weather_grids=weather_grids,
-            static_grids=static_grids,
-            n_steps=req.n_steps,
-            ignition_points=ignition_points,
-            params=params_to_torch(req.dca),
-        )
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500, detail=f"Simulation failed: {exc}"
-        ) from exc
-
-    tick_stats: list[TickStats] = []
-    flat_history: list[list[int]] = []
-
-    for t, grid in enumerate(history):
-        flat_history.append(grid.ravel().tolist())
-        tick_stats.append(
-            TickStats(
-                tick=t,
-                burning=int((grid == 1).sum()),
-                burned=int((grid == 2).sum()),
-                total_cells=H * W,
+        predictions.append(
+            Prediction(
+                ref=str(fire.id),
+                lat=fire.lat,
+                lng=fire.lng,
+                history=[g.ravel().tolist() for g in history],
+                burned_cells=burned_cells,
+                radius_m=burned_area_radius_m(burned_cells, H, W, EXTENT_DEG)
             )
         )
+        n_steps_run = len(history)
 
     return SimulationResponse(
-        history=flat_history,
+        predictions=predictions,
         grid_h=H,
         grid_w=W,
-        tick_stats=tick_stats,
-        n_steps_run=len(history),
+        n_steps_run=n_steps_run,
     )

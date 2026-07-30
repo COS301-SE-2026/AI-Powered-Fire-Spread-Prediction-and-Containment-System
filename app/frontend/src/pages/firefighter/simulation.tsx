@@ -17,6 +17,7 @@ export default function ReportTable() {
         status,
         error,
         runSimulation,
+        predictions,
         currentTick,
         seekToTick,
         play,
@@ -24,11 +25,8 @@ export default function ReportTable() {
         autoplay,
         setAutoPlay,
         totalTicks,
-        currentGrid,
-        currentStats,
         gridH,
         gridW,
-        allStats,
         weather,
         setWeather,
         staticParams, 
@@ -111,9 +109,10 @@ export default function ReportTable() {
                                     drawMode={drawMode}
                                     onDrawComplete={handleDrawComplete} 
                                     clearDrawings={clearDrawings}
-                                    burnGrid={currentGrid}
                                     burnGridH={gridH}
-                                    burnGridW={gridW}/>
+                                    burnGridW={gridW}
+                                    predictions={predictions}
+                                    currentTick={currentTick}/>
                             </div>
                         </div>
 
@@ -287,8 +286,8 @@ export default function ReportTable() {
                     <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
                         <SimulationResults
                         // Pass live stats so panel can show burning/burned counts per tick
-                        currentStats={currentStats}
-                        allStats={allStats}
+                        predictions={predictions}
+                        currentTick={currentTick}
                         status={status}/>
                     </div>
                 </div>
