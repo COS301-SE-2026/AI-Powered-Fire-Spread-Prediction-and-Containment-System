@@ -1,6 +1,8 @@
 import {expect,test} from "@playwright/test";
 test('test', async ({ page }) => {
-  await page.goto('/guests/guestsLanding');
+  await page.goto('http://localhost:3000/');
+  await page.getByRole('img', { name: 'Fire Spread Prediction Logo' }).click();
+  await page.getByRole('button', { name: 'Sign in as Guest' }).click();
   //checks the marker
   await expect(page.locator('.relative.inline-flex').first()).toBeVisible();
   //checks the animation
