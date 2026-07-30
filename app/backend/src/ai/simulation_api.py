@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 import numpy as np
 
 from .dca import run_dca
+
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+from db import get_db
+from models.reported_fires import FireReports
+from enums.report_status import ReportStatus
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -123,9 +129,23 @@ def params_to_torch(dca: DCAParams):
     }
 
 
+def latlng_to_grid(fire_lat:float, fire_lng: float, center_lat:float, center_lng: float, H:int, W:int, extent_deg: float=0.05) -> tuple[int,int]:
+    min_lat = center_lat - extent_deg / 2
+    max_lat = center_lat + extent_deg / 2
+    min_lng = center_lng - extent_deg / 2
+    max_lng = center_lng + extent_deg / 2
+
+    row = int((max_lat - fire_lat) / extent_deg * H)
+    col = int((fire_lng - min_lng) / extent_deg * W)
+
+    row = max(0, min(H - 1, row))
+    col = max(0, min(W - 1, col))
+
+    return row,col
+
 # The endpoint
 @router.post("/simulate", response_model=SimulationResponse)
-async def run_simulation(req: SimulationRequest) -> SimulationResponse:
+async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) -> SimulationResponse:
     """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
 
     Frontend sends map-center coordinates and environment parameters. This endpoint builds
@@ -153,12 +173,30 @@ async def run_simulation(req: SimulationRequest) -> SimulationResponse:
     weather_grids = build_weather_grids(H, W, req.weather)
     static_grids = build_static_grids(H, W, req.static)
 
+    verified_fires = (
+        db.query(FireReports.id, func.ST_Y(FireReports.location_geom).label("lat"), func.ST_X(FireReports.location_geom).label("lng"))
+        .filter(FireReports.status == ReportStatus.verified)
+        .all())
+
+    ignition_points = []
+
+    for fire in verified_fires:
+        row, col = latlng_to_grid(
+            fire.lat,
+            fire.lng,
+            req.lat,
+            req.lng,
+            H,
+            W,
+        )
+        ignition_points.append((row,col))
+
     try:
         history = run_dca(
             weather_grids=weather_grids,
             static_grids=static_grids,
             n_steps=req.n_steps,
-            n_ignition_points=req.n_ignition_points,
+            ignition_points=ignition_points,
             params=params_to_torch(req.dca),
         )
     except Exception as exc:
