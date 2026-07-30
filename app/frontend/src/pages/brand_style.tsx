@@ -18,6 +18,9 @@ import { Range } from '../components/brandStyle/componentsRange';
 import { EnvironmentCards, ActionCards, NearbyReport, MapOverlay } from '../components/brandStyle/componentsFirefighter';
 import { Toasts } from '../components/brandStyle/componentsToasts';
 import { StatusBadges } from '../components/brandStyle/componentsStatus';
+import { StatusCard } from '../components/brandStyle/componentReportStatus';
+import { Alerts } from '../components/brandStyle/componentsAlert';
+
 
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FF4904 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
@@ -211,12 +214,16 @@ export default function StyleGuidePage() {
                 <Checkbox />
                 <Range />
                 <StatusBadges />
+                <StatusCard/>
               </div>
 
               <div className="flex flex-col gap-2">
                 <ActionCards />
                 <MapOverlay />
                 <Toasts />
+                <Alerts />
+
+
               </div>
             </div>
           </section>
