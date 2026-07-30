@@ -12,6 +12,10 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from sklearn.neighbors import BallTree
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import coo_matrix
+
 here = Path(__file__).resolve()
 for cand in (here.parents[2] / "backend_src", here.parents[2]):
     if cand.is_dir() and str(cand) not in sys.path:
@@ -40,34 +44,30 @@ def cluster_fire_events(
 ) -> np.ndarray:
     """union-find clustering of point detections into distinct fire events"""
     n = len(detections)
-    parent = np.arange(n)
-
-    def find(i: int) -> int:
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    def union(i: int, j: int) -> None:
-        ri, rj = find(i), find(j)
-        if ri != rj:
-            parent[ri] = rj
-
-    lat = detections["lat"].to_numpy()
-    lon = detections["lon"].to_numpy()
+    lat_rad = np.radians(detections["lat"].to_numpy())
+    lon_rad = np.radians(detections["lon"].to_numpy())
+    coords_rad = np.column_stack([lat_rad, lon_rad])
     ts = detections["timestamp"].to_numpy()
+
+    max_gap_rad = max_gap_km/EARTH_RADIUS_KM
+
+    tree = BallTree(coords_rad, metric="haversine")
+
+    neighbor_indices = tree.query_radius(coords_rad, r=max_gap_rad)
 
     max_gap_ns = np.timedelta64(int(max_gap_days * 86400), "s")
 
-    for i in range(n):
-        j = i + 1
-        while j < n and (ts[j] - ts[i]) <= max_gap_ns:
-            if haversine_km(lat[i], lon[i], lat[j], lon[j]) <= max_gap_km:
-                union(i, j)
-            j += 1
+    rows,cols = [],[]
+    for i, neighbors in enumerate(neighbor_indices):
+        time_diffs = np.abs(ts[neighbors] - ts[i])
+        valid = time_diffs <= max_gap_ns
+        for j in neighbors[valid]:
+            rows.append(i)
+            cols.append(j)
 
-    roots = np.array([find(i) for i in range(n)])
-    _, fire_ids = np.unique(roots, return_inverse=True)
+    adjacency = coo_matrix((np.ones(len(rows)), (rows, cols)), shape=(n,n))
+    _, fire_ids = connected_components(adjacency, directed=False)
+    
     return fire_ids
 
 
@@ -96,8 +96,8 @@ def build_fire_events(
                 detection=grp,
                 min_lon=float(grp["lon"].min() - buf_deg),
                 min_lat=float(grp["lat"].min() - buf_deg),
-                max_lon=float(grp["lon"].min() + buf_deg),
-                max_lat=float(grp["lat"].min() + buf_deg),
+                max_lon=float(grp["lon"].max() + buf_deg),
+                max_lat=float(grp["lat"].max() + buf_deg),
                 ticks=sorted(grp["timestamp"].dt.floor("D").unique()),
             )
         )
@@ -255,6 +255,7 @@ class StaticSourceManifest:
     @classmethod
     def from_csv(cls, path: str | Path) -> "StaticSourceManifest":
         df = pd.read_csv(path)
+        df = df.astype(object).where(pd.notna(df), None)
         return cls(rows={int(r["fire_id"]): r.to_dict() for _, r in df.iterrows()})
 
     def get(self, fire_id: int) -> dict:
@@ -327,8 +328,8 @@ def build_rows_for_fire(
     x_parts, y_parts = [], []
 
     for t_idx, tick in enumerate(event.ticks[:-1]):  # last tick
-        detections_today = event.detections[
-            event.detections["timestamp"].dt.floor("D") == tick
+        detections_today = event.detection[
+            event.detection["timestamp"].dt.floor("D") == tick
         ]
         detected_today_mask = rasterize_tick(detections_today, event, height, width)
 
@@ -347,8 +348,8 @@ def build_rows_for_fire(
             x_grid = grid_to_fmatrix(weather_grids, static_grids, burn_state)
 
             next_tick = event.ticks[t_idx + 1]
-            detections_next = event.detections[
-                event.detections["timestamp"].dt.floor("D") == next_tick
+            detections_next = event.detection[
+                event.detection["timestamp"].dt.floor("D") == next_tick
             ]
             detected_next_mask = rasterize_tick(detections_next, event, height, width)
             ignited_next = (eligible & detected_next_mask).ravel()
@@ -479,7 +480,7 @@ def main() -> None:
     )
 
     events = build_fire_events(detections, fire_ids)
-    manifest = StaticSourceManifest.from_csv(manifest_path, base_dir=base_dir)
+    manifest = StaticSourceManifest.from_csv(manifest_path)
     target_shape = tuple(args.target_shape)
 
     x_all, y_all, fid_all = [], [], []
