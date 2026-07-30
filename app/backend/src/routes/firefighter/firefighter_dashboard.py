@@ -1,14 +1,14 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-
 from db import get_db
+from fastapi import APIRouter, Depends, HTTPException
 from schemas.containment_lines import ContainmentLines, CreateContainmentLine
 from schemas.firefighter_dashboard import DashboardData
 from services.firefighter import containment_lines, firefighter_dashboard
+from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
+
 
 
 # returns nearby fires to location based on the long and lat selected by user or gotten via location aswell as environment variables based on coordinates
@@ -20,7 +20,11 @@ router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 def get_nearby_fires(
     lat: float, lng: float, radius_km: float = 20, db: Session = Depends(get_db)
 ):
-    nearby_fires = firefighter_dashboard.get_nearby_fires(db, lat, lng, radius_km)
+    try:
+        nearby_fires = firefighter_dashboard.get_nearby_fires(db, lat, lng, radius_km)
+
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
 
     try:
         environment_variables = firefighter_dashboard.get_current_environment_vars(
