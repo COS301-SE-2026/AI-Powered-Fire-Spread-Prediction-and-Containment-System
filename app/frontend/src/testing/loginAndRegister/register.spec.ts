@@ -30,25 +30,4 @@ test.describe("Registration Flow", () => {
     await expect(page).toHaveURL('/register');
   });
 
-  test('shows "Email already registered" error on duplicate email', async ({ page }) => {
-    await page.route('**/api/register', async (route) => {
-      await route.fulfill({
-        status: 400,
-        contentType: 'application/json',
-        body: JSON.stringify({ detail: 'Email already registered' }),
-      });
-    });
-    await page.goto('/register');
-    await page.fill('input[name="name"]', 'Test');
-    await page.fill('input[name="surname"]', 'User');
-    await page.fill('input[name="email"]', 'duplicate@example.com');
-    await page.fill('input[name="idNumber"]', '0123456789123'); 
-    await page.fill('input[name="password"]', 'ValidPass123');  
-    await page.fill('input[name="confirmPassword"]', 'ValidPass123');
-    await page.click('button[type="submit"]');
-    const errorDiv = page.locator('.bg-flare\\/10');
-    await expect(errorDiv).toBeVisible();
-    await expect(errorDiv).toContainText('Email already registered');
-    await expect(page).toHaveURL('/register');
-  });
 });

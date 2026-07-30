@@ -5,7 +5,7 @@ import { Flame, Map, House, Settings, MessageCircleWarning, MessagesSquare, LogO
 
 const mainMenuItems = [
     { label: 'Home', href: '/registeredUser/registeredUserLanding', icon: House },
-    { label: 'Report a Fire', href: '../registeredUser/registeredReportFire', icon: Flame },
+    { label: 'Report a Fire', href: '/registeredUser/registeredReportFire', icon: Flame },
     { label: 'Fire Simulation', href: '/registeredUser/registeredUnderConstruction', icon: Map },
     { label: 'Notifications', href: '/registeredUser/registeredUnderConstruction', icon: MessageCircleWarning },
     { label: 'Community', href: '/registeredUser/registeredUnderConstruction', icon: MessagesSquare },

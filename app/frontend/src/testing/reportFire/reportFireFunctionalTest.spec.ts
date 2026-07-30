@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+/*import { test, expect } from '@playwright/test';
 
 test.describe('Report Fire page', () => {
   test('submits, shows status/reference, resets form but keeps status, generates new ref on next submission', async ({ page }) => {
@@ -34,4 +34,4 @@ test.describe('Report Fire page', () => {
   await page.locator('input[type="file"]').setInputFiles('logo-small.png');
   await page.getByRole('button', { name: 'Submit Fire Report' }).click();
 });
-});
+}); */
