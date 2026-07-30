@@ -9,6 +9,7 @@ from rasterio.enums import Resampling
 from rasterio.io import MemoryFile
 from rasterio.merge import merge as rio_merge
 from rasterio.windows import from_bounds
+from rasterio.warp import transform_bounds
 
 # Sen2Cor Scene Classification vals, published in 'scl' asset.
 # Use it to mask pixx\els that would otherwise silently corrupt
@@ -161,8 +162,14 @@ def _read_window_single(
     """Read from single / remote bucket.
     Only fetches the bytes covering the window"""
     with rasterio.open(file_path) as src:
+        if src.crs is not None and src.crs.to_epsg() != 4326:
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = transform_bounds(
+                "EPSG:4326", src.crs, min_lon, min_lat, max_lon, max_lat
+            )
+        else:
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = min_lon, min_lat, max_lon, max_lat 
         window = from_bounds(
-            min_lon, min_lat, max_lon, max_lat, transform=src.transform
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform
         )
         return src.read(1, window=window, out_shape=out_shape, resampling=resampling)
 
