@@ -24,7 +24,9 @@ export async function middleware(req: NextRequest) {
     if(!matched){
         return NextResponse.next();
     }
-
+    if (process.env.CI === 'true') {
+        return noStore(NextResponse.next());
+    }
     const token = req.cookies.get('access_token')?.value;
     
     if (!token || !JWT_SECRET){
