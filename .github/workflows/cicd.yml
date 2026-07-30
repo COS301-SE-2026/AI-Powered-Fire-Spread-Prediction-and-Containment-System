@@ -149,10 +149,6 @@ jobs:
           - 9000:9000
         command: server /data
 
-    defaults:
-      run:
-        working-directory: app/frontend/src
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -167,15 +163,16 @@ jobs:
       
       - name: Launch backend
         env:
-          database-url: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-          minio-endpoint: localhost:9000
-          minio-access-key: admin
-          minio-secret-key: miniosupersecretpassword
-          minio-bucket: fire-reports
-          jwt-secret: "your-super-secret-key-change-this"
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+          MINIO_ENDPOINT: localhost:9000
+          MINIO_ACCESS_KEY: admin
+          MINIO_SECRET_KEY: miniosupersecretpassword
+          MINIO_BUCKET: fire-reports
+          JWT_SECRET: "your-super-secret-key-change-this"
         run: |
           cd app/backend/src
-          nohup uvicorn main:app --host 0.0.0.0 --post 8000 & sleep 3
+          nohup uvicorn main:app --host 0.0.0.0 --post 8000 & 
+          sleep 3
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -191,6 +188,7 @@ jobs:
         run: yarn playwright install --with-deps
 
       - name: Run Playwright Tests
+        working-directory: app/frontend/src
         env:
           BACKEND_INTERNAL_URL: "http://localhost:8000"
         run: yarn test --config=testing_config/playwright.config.ts
