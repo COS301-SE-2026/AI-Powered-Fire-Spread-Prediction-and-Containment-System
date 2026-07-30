@@ -69,10 +69,9 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     });
     await expect(page.locator("text=Report submitted")).toBeVisible();
  
-    await page.waitForTimeout(1500);
     await expect(
       page.locator('input[placeholder*="Drop a pin or type your address"]')
-    ).toBeVisible();
+    ).toBeVisible({timeout:1500});
   });
  
   test("shows error when no location selected", async ({ page }) => {
@@ -99,7 +98,6 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     await searchInput.fill("Pretoria");
     await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
     await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
-    await page.waitForTimeout(500);
  
     const descriptionField = page.locator("textarea");
     await descriptionField.fill("Test fire");
