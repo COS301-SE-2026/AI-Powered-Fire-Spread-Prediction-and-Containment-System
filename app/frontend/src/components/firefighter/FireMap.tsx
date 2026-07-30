@@ -4,6 +4,7 @@ import circle from '@turf/circle';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import { Prediction } from './useSimulation';
 
 interface FireReport{
     ref: string;
@@ -25,9 +26,11 @@ interface MapProps{
     burnGrid?: number[] | null;
     burnGridH?: number;
     burnGridW?: number;
+    predictions?: Prediction[];
+    currentTick?: number;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGrid, burnGridH, burnGridW}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -105,6 +108,30 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         }));
     }, [fires])
 
+    const simulationCircle = useMemo(() => {
+        if (!predictions?.length) return [];
+
+        // ~185 m cells: 0.05 degrees across a 30-cell grid
+        const cellM = (0.05 / 30) * 111320;
+
+        return predictions
+            .map(p => {
+                const grid = p.history[currentTick];
+                if (!grid) return null;
+                const cells = grid.filter(c => c === 1 || c === 2).length;
+                if (cells === 0) return null;
+
+                const radiusKm = Math.sqrt(cells * cellM * cellM / Math.PI) / 1000;
+                return circle([p.lng, p.lat], radiusKm, {
+                    steps: 64,
+                    units: 'kilometers',
+                    properties: { ref: p.ref },
+                });
+            })
+            .filter(Boolean);
+    }, [predictions, currentTick]);
+
+
 
     return (
         <Map
@@ -155,6 +182,31 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                       />
                   </Source>
 
+          )}
+
+          {simulationCircle.length > 0 && (
+            <Source id="simulation-circle" type="geojson" data={{type: 'FeatureCollection', features: simulationCircle}}>
+                <Layer
+                    id="simulation-fill"
+                    type="fill"
+                    paint={{
+                        'fill-color': '#ffd54f',
+                        'fill-opacity': 0.18,
+                    }}
+                > 
+                </Layer>
+
+                <Layer
+                    id="simulation-outline"
+                    type="line"
+                    paint={{
+                        'line-color': '#ffc107',
+                        'line-width': 1,
+                        "line-dasharray": [2,2]
+                    }}
+                > 
+                </Layer>
+            </Source>
           )}
 
             {selectedFire && (
