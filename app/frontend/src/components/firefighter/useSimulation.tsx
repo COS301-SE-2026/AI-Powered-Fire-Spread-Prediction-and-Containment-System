@@ -1,6 +1,7 @@
 // All API communication and playback state for fire simulation
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { SimulationResults } from "./simulationResult"
 
 export interface WeatherParams {
     wind_u: number;
@@ -112,19 +113,19 @@ export function useSimulation() {
         playTimeRef.current = setInterval(() => {
             setCurrentTick((t) => {
                 if (t >= totalTicks-1) {
-                    stopAutoPlay();
-                    setStatus('paused');
                     return t;
                 }
                 return t+1;
             });
+            const next = totalTicks + 1;
+    
         }, PLAYBACK_INTERVAL_MS);
         setStatus('playing');
     },
     [stopAutoPlay]
     );
 
-    useEffect(() => () => stopAutoPlay(), [startAutoPlay]);
+    useEffect(() => () => stopAutoPlay(), [stopAutoPlay]);
 
     // API call
     const runSimulation = useCallback(
@@ -180,7 +181,7 @@ export function useSimulation() {
     const pause = useCallback(() => {
         stopAutoPlay();
         setStatus('paused');
-    }, [stopAutoPlay]);
+    }, [stopAutoPlay, status, result, stopAutoPlay]);
 
     const play = useCallback(() => {
         if (!result) return;
