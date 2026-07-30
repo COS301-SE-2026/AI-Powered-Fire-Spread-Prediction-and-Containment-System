@@ -6,15 +6,16 @@
 # 3. Backend loads by pinned version name or latest (never by whichever file is newest on disk)
 
 from __future__ import annotations
-from datetime import datetime, timezone
-from pathlib import Path
 
 import json
-import uuid
 import os
 import platform
 import shutil
 import subprocess
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
 
 
 def store_root() -> Path:

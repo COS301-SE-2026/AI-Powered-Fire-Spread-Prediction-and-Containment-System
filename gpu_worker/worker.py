@@ -5,9 +5,10 @@ import logging
 import os
 import time
 from pathlib import Path
-from app.backend.src.ai.dca import run_dca
 
 import boto3
+
+from app.backend.src.ai.dca import run_dca
 
 AWS_REGION = os.environ["AWS_REGION"]
 INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
@@ -37,7 +38,7 @@ def run_inference(job: dict) -> dict:
     # Need to put model call here
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
     # Must return a JSON-serializable dict. Needs enough identifying info (min 'job_id' and 'region_id')so backend's results-consumer background task can key result correctly in Valkey
-    
+
     job_id = job["job_id"]
     region_id = job["region_id"]
 
@@ -47,8 +48,8 @@ def run_inference(job: dict) -> dict:
         "rel_humidity": job["weather"]["rel_humidity"],
         "temperature": job["weather"]["temperature"],
     }
-    
-    static_grids ={
+
+    static_grids = {
         "elevation": job["static"]["elevation"],
         "slope": job["static"]["slope"],
         "aspect_sin": job["static"]["aspect_sin"],
@@ -72,7 +73,8 @@ def run_inference(job: dict) -> dict:
         "region_id": region_id,
         "history": [grid.tolist() for grid in history],
     }
-    
+
+
 def touch_heartbeat() -> None:
     HEARTBEAT_FILE.write_text(str(time.time()))
 

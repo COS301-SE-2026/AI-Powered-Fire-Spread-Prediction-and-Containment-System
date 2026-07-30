@@ -1,10 +1,10 @@
+import numpy as np
 import torch
 from pytorchfire import WildfireModel
-import numpy as np
 
 from .ignition import IgnitionScorer
 from .schema import UNBURNED
-from .simulation import pick_ignition_points, build_env_data, state_to_burn_state
+from .simulation import build_env_data, pick_ignition_points, state_to_burn_state
 
 
 def run_dca(

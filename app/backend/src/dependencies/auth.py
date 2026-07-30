@@ -2,14 +2,13 @@
 # Reads cookie, decodes token and either blocks or allows request
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Request
-from jose import JWTError, jwt
-from sqlalchemy.orm import Session
-
 from auth import ALGORITHM, SECRET_KEY
 from db import get_db
 from enums.user_role import UserRole
+from fastapi import Depends, HTTPException, Request
+from jose import JWTError, jwt
 from models.users import User
+from sqlalchemy.orm import Session
 
 
 
