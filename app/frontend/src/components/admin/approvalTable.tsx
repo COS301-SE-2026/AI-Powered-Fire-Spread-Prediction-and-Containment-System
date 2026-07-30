@@ -18,12 +18,12 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
             <table className="table table-pin-rows w-full">
                 <thead>
                     <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">
-                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Name</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Email</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Role</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Date</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">Status</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-neutral uppercase px-4 py-3">View</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">Name</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">Email</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">Role</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">Date</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">Status</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">View</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,10 +38,10 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                             const badge: BadgeStyle = statusBadge[req.status] ?? statusBadge.none;
                             return (
                                 <tr key={req.request_id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-smoke-hover even:bg-carbon-bg/80">
-                                    <td className="px-4 text-sm text-neutral">{req.user.name} {req.user.surname}</td>
-                                    <td className="px-4 text-sm text-neutral">{req.user.email ?? '-'}</td>
-                                    <td className="px-4 text-sm text-neutral capatilize">{req.requested_role}</td>
-                                    <td className="px-4 text-sm text-neutral">
+                                    <td className="px-4 text-sm text-text-primary">{req.user.name} {req.user.surname}</td>
+                                    <td className="px-4 text-sm text-text-primary">{req.user.email ?? '-'}</td>
+                                    <td className="px-4 text-sm text-text-primary capatilize">{req.requested_role}</td>
+                                    <td className="px-4 text-sm text-text-primary">
                                         {new Date(req.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
                                         {' | '}
                                         {new Date(req.created_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
