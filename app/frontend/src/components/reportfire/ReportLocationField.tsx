@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState, useId } from "react";
-import { FormError } from "./ReportFormError";
+import { Alert } from "../Alerts";
 import { MapPin } from "lucide-react";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 
@@ -147,7 +147,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
                     {renderSuggestions(suggestions, handleSuggestionSelect)}
                 </ul>
             )}
-            {error && <FormError message={error} id={errorId} />}
+            {error && <Alert variant="error" message={error} id={errorId} />}
             {searchError && <span className="text-error text-xs mt-1">{searchError}</span>}
         </div>
     );

@@ -1,7 +1,7 @@
 "use client";
 
 import React, {useId} from "react";
-import { FormError } from "./ReportFormError";
+import { Alert } from "../Alerts";
 
 interface DescriptionProps {
     readonly value: string;
@@ -27,7 +27,7 @@ export function DescriptionField({ value, error, onChange }: DescriptionProps) {
                 className="textarea textarea-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite resize-none leading-relaxed"
                 aria-invalid={!!error}
                 aria-describedby={error ? `${id}-error` : undefined} />
-            {error && <FormError message={error} id={`${id}-error`}/>}
+            {error &&  <Alert variant="error" message={error} id={`${id}-error`}/>}
         </div>
     );
 }
