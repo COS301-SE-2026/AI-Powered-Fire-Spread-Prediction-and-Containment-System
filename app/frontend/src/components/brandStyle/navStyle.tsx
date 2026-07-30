@@ -6,7 +6,7 @@ export default function StyleGuideNav() {
       <a href="#colours" className={className}>Colours</a>
       <a href="#typography" className={className}>Typography</a>
       <a href="#logo" className={className}>Logo & Iconography</a>
-      <a href="#componennts" className={className}>UI Components</a>
+      <a href="#components" className={className}>UI Components</a>
       <a href="#accessibility" className={className}>Accessibility</a>
       <a href="#principles" className={className}>Design Principles</a>
     </nav>
