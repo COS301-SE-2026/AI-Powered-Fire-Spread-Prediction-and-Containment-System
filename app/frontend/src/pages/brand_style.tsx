@@ -20,7 +20,7 @@ import { StatusCard } from '../components/brandStyle/componentReportStatus';
 import { Alerts } from '../components/brandStyle/componentsAlert';
 import { Table } from '../components/brandStyle/componentsTable';
 import { SearchBarComponents } from '../components/brandStyle/componentSearchBar';
-
+import LayoutSpacing from "../components/brandStyle/LayoutSpacing";
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FF4904 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
 const secondary: ColourToken = { name: "Secondary - Glow", hex: "#FE8024", usage: "Secondary actions, deep accents", reason: "We chose this colour by staying in the same warm-orange family as Primary rather than introducing a new hue. We call it Glow (the softer light a fire casts outward). Secondary actions doesn't compete for attention.", textColour: "#ffffff"  };
@@ -236,7 +236,13 @@ export default function StyleGuidePage() {
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Design Principles</h2>
             <DesignPrinciples />
           </section>
+          <section id="layout" className="mb-10 scroll-mt-8">
+              <h2 className="mb-8 pb-4 border-b border-carbon-stroke">
+                  Layout & Spacing
+              </h2>
 
+              <LayoutSpacing />
+          </section>
         </div>
       </main>
 
