@@ -162,23 +162,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install backend dependencies
-        working-directory: app/backend/src
-        run: pip install -r requirements.txt
-
       - name: Start backend
-        working-directory: app/backend/src
-        env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-          MINIO_ENDPOINT: localhost:9000
-          MINIO_ACCESS_KEY: admin
-          MINIO_SECRET_KEY: miniosupersecretpassword
-          MINIO_SECURE: "false"
-          MINIO_BUCKET: fire-reports
-          JWT_SECRET_KEY: "your-super-secret-key-change-this"
-        run: |
-          nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
-          npx wait-on http://localhost:8000/health -t 30000
+        uses: ./.github/actions/start-backend
+        with:
+          database-url: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+          minio-endpoint: localhost:9000
+          minio-access-key: admin
+          minio-secret-key: miniosupersecretpassword
+          minio-bucket: fire-reports
+          jwt-secret: "your-super-secret-key-change-this"
 
       - name: Set up Node
         uses: actions/setup-node@v4
