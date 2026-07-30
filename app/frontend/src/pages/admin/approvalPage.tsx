@@ -43,7 +43,7 @@ export default function RoleApprovalPage() {
             if(resp.ok){
                 const updateRequest = await resp.json();
 
-                setRequest(prev => prev.map(req => 
+                setRequest(prev => prev.map(req =>
                     req.request_id === requestId ? updateRequest : req
                 ));
 
@@ -63,7 +63,7 @@ export default function RoleApprovalPage() {
             });
 
             if(resp.ok){
-                setRequest(prev => prev.map(req => 
+                setRequest(prev => prev.map(req =>
                     req.request_id === requestId ? { ...req, status: 'rejected' as RoleStatus } : req
                 ));
                 setSelectedRequest(null);
@@ -82,7 +82,7 @@ export default function RoleApprovalPage() {
             });
 
             if(resp.ok){
-                setRequest(prev => prev.map(req => 
+                setRequest(prev => prev.map(req =>
                     req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
                 ));
                 setSelectedRequest(null)
@@ -108,8 +108,8 @@ export default function RoleApprovalPage() {
             <div className="p-6 flex flex-col h-full w-full">
                 {/* Header + filter */}
                 <header className="mb-6">
-                    <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">Role Approvals</h1>
-                    <p className="text-sm text-neutral/50 font-medium">Manage user role requests</p>
+                    <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">Role Approvals</h1>
+                    <p className="text-sm text-text-primary/50 font-medium">Manage user role requests</p>
                 </header>
 
                 <RoleFilterTabs filter={filter} onChange={setFilter}/>

@@ -7,6 +7,15 @@ function validateEmail(email: string){
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+  const fieldClass = (hasError?: string) => {
+    if (hasError) {
+      return 'input input-error w-full';
+    } else {
+      return 'input input-neutral focus:border-primary w-full';
+    }
+  };
+
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,14 +28,14 @@ export default function Login() {
     const newErrors: { email?: string; password?: string} = {};
     if(!email){
       newErrors.email = 'Email is required';
-    }else if(!validateEmail(email)){ 
+    }else if(!validateEmail(email)){
       newErrors.email = 'Enter a valid email address';
     }
     if (!password) {
       newErrors.password = 'Password is required';
     }else if(password.length < 6){
       newErrors.password = 'Password must be at least 6 characters';
-    } 
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -57,7 +66,7 @@ export default function Login() {
 
       if (data.requires_2fa) {
         router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
-      } 
+      }
 
       const roleRedirects: Record<string, string> = {
         admin: '/admin/adminDashboard',
@@ -78,11 +87,6 @@ export default function Login() {
     router.push('/guests/guestsLanding');
   };
 
-  const fieldClass = (hasError?: string) =>
-    `w-full px-3 py-2 bg-carbon-input border rounded-md text-neutral focus:outline-none focus:ring-1 focus:ring-primary ${
-      hasError ? 'border-flare' : 'border-carbon-stroke'
-    }`
-
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
       <div className="global-atmos">
@@ -102,7 +106,7 @@ export default function Login() {
           />
         </div>
         <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-6 shadow-2xl backdrop-blur-sm">
-          <h2 className="text-2xl font-bold text-neutral text-center mb-6">Welcome back</h2>
+          <h2 className="text-2xl font-bold text-text-primary text-center mb-6">Welcome back</h2>
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <div>
               <label htmlFor="email" className="block text-sm text-white/60 mb-1">Email</label>
@@ -129,10 +133,10 @@ export default function Login() {
               {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
             </div>
             {apiError && <div className="bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">{apiError}</div>}
-            <button type="submit" disabled={isLoading} className="w-full py-2 bg-ember hover:bg-deep text-white font-medium rounded-md transition disabled:opacity-50">
+            <button type="submit" disabled={isLoading} className="w-full btn btn-primary active:scale-90 text-lg">
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
-            <Link href="/register" className="block w-full py-2 text-center border border-carbon-stroke hover:bg-carbon-elevated text-white/90 rounded-md transition">
+            <Link href="/register" className="w-full btn btn-neutral text-lg">
               Register
             </Link>
             <button type="button" onClick={handleGuest} className="w-full py-2 text-white/80 hover:text-white transition">

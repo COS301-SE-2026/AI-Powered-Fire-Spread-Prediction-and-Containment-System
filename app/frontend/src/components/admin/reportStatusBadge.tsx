@@ -8,7 +8,7 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
     const displayStatus = status === 'received' ? 'pending' : status;
-    const { bg = 'bg-carbon-card', text = 'text-neutral/50', border = '' } = statusBadge[displayStatus] ?? {};
+    const { bg = 'bg-carbon-card', text = 'text-text-primary/50', border = '' } = statusBadge[displayStatus] ?? {};
 
     return (
         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${bg} ${text} ${border}`}>

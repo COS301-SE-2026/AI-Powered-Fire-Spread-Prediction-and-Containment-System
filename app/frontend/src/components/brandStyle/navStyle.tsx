@@ -1,4 +1,4 @@
-const className =  "py-2.5 px-4 rounded-lg flex items-center text-sm font-medium tracking-wide text-neutral/80 hover:text-neutral hover:bg-smoke-hover active:scale-[0.98] transition-all";
+const className = "py-2.5 px-4 rounded-lg flex items-center text-sm font-medium tracking-wide text-text-primary/80 hover:text-text-primary hover:bg-smoke-hover active:scale-[0.98] transition-[color,background-color,transform] duration-200";
 
 export default function StyleGuideNav() {
   return (
@@ -6,7 +6,7 @@ export default function StyleGuideNav() {
       <a href="#colours" className={className}>Colours</a>
       <a href="#typography" className={className}>Typography</a>
       <a href="#logo" className={className}>Logo & Iconography</a>
-      <a href="#componennts" className={className}>UI Components</a>
+      <a href="#components" className={className}>UI Components</a>
       <a href="#accessibility" className={className}>Accessibility</a>
       <a href="#principles" className={className}>Design Principles</a>
     </nav>

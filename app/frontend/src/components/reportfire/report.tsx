@@ -5,7 +5,7 @@ import StepIndicator from "./Stepindicator";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
 import { FireMap } from "../DynamicUserMap"
-import { FormError } from "./ReportFormError";
+import { Alert } from "../Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 import type { FireReport } from "../../types/report";
 
@@ -214,7 +214,7 @@ export default function ReportPage() {
 
             <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
               <h4 className = "mb-2">Report status</h4>
-              {form.submitState === "error" && form.submitError && <FormError message={form.submitError} />}
+              {form.submitState === "error" && form.submitError && <Alert variant="error" message={form.submitError} />}
 
               {reports.length == 0 ? (
                 <p className="text-sm text-neutural">No reports submitted yet.</p>

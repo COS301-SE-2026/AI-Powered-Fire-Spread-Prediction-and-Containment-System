@@ -15,7 +15,7 @@ const statusColor = (s: string) => ({
     verified: 'bg-ignite/20 text-flare border border-ignite/40',
     pending: 'bg-torch/20 text-torch border border-torch/35',
     received: 'bg-humidity/20 text-humidity border border-humidity/35',
-}[s] ?? 'bg-carbon-card text-neutral/50');
+}[s] ?? 'bg-carbon-card text-text-primary/50');
 
 export function NearbyReports({nearby_fires}: NearbyFireReports) {
     const fires = nearby_fires ?? [];
