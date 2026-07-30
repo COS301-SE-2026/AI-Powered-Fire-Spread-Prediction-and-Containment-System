@@ -149,6 +149,15 @@ jobs:
           - 9000:9000
         command: server /data
 
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+      MINIO_ENDPOINT: localhost:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: miniosupersecretpassword
+      MINIO_SECURE: "false"
+      MINIO_BUCKET: fire-reports
+      JWT_SECRET: "your-super-secret-key-change-this"
+
     defaults:
       run:
         working-directory: app/frontend/src
@@ -163,19 +172,12 @@ jobs:
           python-version: '3.11'
 
       - name: Install backend dependencies
-        run: pip install -r app/backend/source/requirements.txt
-      
+        run: pip install -r app/backend/src/requirements.txt
+
       - name: Launch backend
-        env:
-          database-url: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-          minio-endpoint: localhost:9000
-          minio-access-key: admin
-          minio-secret-key: miniosupersecretpassword
-          minio-bucket: fire-reports
-          jwt-secret: "your-super-secret-key-change-this"
         run: |
           cd app/backend/src
-          nohup uvicorn main:app --host 0.0.0.0 --post 8000 & sleep 3
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 & sleep 3
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -202,7 +204,6 @@ jobs:
           name: playwright-report
           path: app/frontend/src/playwright-report/
           retention-days: 7
-
   frontend-react-doctor:
     name: React Doctor
     runs-on: ubuntu-latest
