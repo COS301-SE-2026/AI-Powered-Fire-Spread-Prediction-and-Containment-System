@@ -188,7 +188,7 @@ jobs:
       - name: Run Playwright Tests
         env:
           BACKEND_INTERNAL_URL: "http://localhost:8000"
-        run: yarn playwright test --config=testing_config/playwright.config.ts
+        run: yarn test --config=testing_config/playwright.config.ts
 
       - name: Upload Playwright Report
         if: always()
