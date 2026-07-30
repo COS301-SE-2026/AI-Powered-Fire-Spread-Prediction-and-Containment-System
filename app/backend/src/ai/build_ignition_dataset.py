@@ -12,6 +12,10 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from sklearn.neighbors import BallTree
+from scipy.sparse.csgraph import connected_components
+from scipy.sparse import coo_matrix
+
 here = Path(__file__).resolve()
 for cand in (here.parents[2] / "backend_src", here.parents[2]):
     if cand.is_dir() and str(cand) not in sys.path:
@@ -40,34 +44,30 @@ def cluster_fire_events(
 ) -> np.ndarray:
     """union-find clustering of point detections into distinct fire events"""
     n = len(detections)
-    parent = np.arange(n)
-
-    def find(i: int) -> int:
-        while parent[i] != i:
-            parent[i] = parent[parent[i]]
-            i = parent[i]
-        return i
-
-    def union(i: int, j: int) -> None:
-        ri, rj = find(i), find(j)
-        if ri != rj:
-            parent[ri] = rj
-
-    lat = detections["lat"].to_numpy()
-    lon = detections["lon"].to_numpy()
+    lat_rad = np.radians(detections["lat"].to_numpy())
+    lon_rad = np.radians(detections["lon"].to_numpy())
+    coords_rad = np.column_stack([lat_rad, lon_rad])
     ts = detections["timestamp"].to_numpy()
+
+    max_gap_rad = max_gap_km/EARTH_RADIUS_KM
+
+    tree = BallTree(coords_rad, metric="haversine")
+
+    neighbor_indices = tree.query_radius(coords_rad, r=max_gap_rad)
 
     max_gap_ns = np.timedelta64(int(max_gap_days * 86400), "s")
 
-    for i in range(n):
-        j = i + 1
-        while j < n and (ts[j] - ts[i]) <= max_gap_ns:
-            if haversine_km(lat[i], lon[i], lat[j], lon[j]) <= max_gap_km:
-                union(i, j)
-            j += 1
+    rows,cols = [],[]
+    for i, neighbors in enumerate(neighbor_indices):
+        time_diffs = np.abs(ts[neighbors] - ts[i])
+        valid = time_diffs <= max_gap_ns
+        for j in neighbors[valid]:
+            rows.append(i)
+            cols.append(j)
 
-    roots = np.array([find(i) for i in range(n)])
-    _, fire_ids = np.unique(roots, return_inverse=True)
+    adjacency = coo_matrix((np.ones(len(rows)), (rows, cols)), shape=(n,n))
+    _, fire_ids = connected_components(adjacency, directed=False)
+    
     return fire_ids
 
 
