@@ -96,8 +96,8 @@ def build_fire_events(
                 detection=grp,
                 min_lon=float(grp["lon"].min() - buf_deg),
                 min_lat=float(grp["lat"].min() - buf_deg),
-                max_lon=float(grp["lon"].min() + buf_deg),
-                max_lat=float(grp["lat"].min() + buf_deg),
+                max_lon=float(grp["lon"].max() + buf_deg),
+                max_lat=float(grp["lat"].max() + buf_deg),
                 ticks=sorted(grp["timestamp"].dt.floor("D").unique()),
             )
         )
@@ -255,6 +255,7 @@ class StaticSourceManifest:
     @classmethod
     def from_csv(cls, path: str | Path) -> "StaticSourceManifest":
         df = pd.read_csv(path)
+        df = df.astype(object).where(pd.notna(df), None)
         return cls(rows={int(r["fire_id"]): r.to_dict() for _, r in df.iterrows()})
 
     def get(self, fire_id: int) -> dict:
@@ -327,8 +328,8 @@ def build_rows_for_fire(
     x_parts, y_parts = [], []
 
     for t_idx, tick in enumerate(event.ticks[:-1]):  # last tick
-        detections_today = event.detections[
-            event.detections["timestamp"].dt.floor("D") == tick
+        detections_today = event.detection[
+            event.detection["timestamp"].dt.floor("D") == tick
         ]
         detected_today_mask = rasterize_tick(detections_today, event, height, width)
 
@@ -347,8 +348,8 @@ def build_rows_for_fire(
             x_grid = grid_to_fmatrix(weather_grids, static_grids, burn_state)
 
             next_tick = event.ticks[t_idx + 1]
-            detections_next = event.detections[
-                event.detections["timestamp"].dt.floor("D") == next_tick
+            detections_next = event.detection[
+                event.detection["timestamp"].dt.floor("D") == next_tick
             ]
             detected_next_mask = rasterize_tick(detections_next, event, height, width)
             ignited_next = (eligible & detected_next_mask).ravel()
@@ -479,7 +480,7 @@ def main() -> None:
     )
 
     events = build_fire_events(detections, fire_ids)
-    manifest = StaticSourceManifest.from_csv(manifest_path, base_dir=base_dir)
+    manifest = StaticSourceManifest.from_csv(manifest_path)
     target_shape = tuple(args.target_shape)
 
     x_all, y_all, fid_all = [], [], []

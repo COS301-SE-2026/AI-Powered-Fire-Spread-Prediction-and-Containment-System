@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import httpx
+import pandas as pd
 from pystac_client import Client
 
 from .inspect_fire import inspect_fire_events
@@ -27,7 +28,7 @@ def dem_vsis3_path(min_lon: float, min_lat: float, max_lon: float, max_lat: floa
     lat_str = f"{ns}{abs(tile_lat):02d}_00"
     lon_str = f"{ew}{abs(tile_lon):03d}_00"
 
-    tile_name = f"Copernicus_DSM_COG_10_{lat_str}_{lon_str}"
+    tile_name = f"Copernicus_DSM_COG_10_{lat_str}_{lon_str}_DEM"
     path = f"/vsis3/copernicus-dem-30m/{tile_name}/{tile_name}.tif"
 
     # warn if the bbox is to close to a degree boundary as it mightr need a second boundarty
@@ -36,8 +37,12 @@ def dem_vsis3_path(min_lon: float, min_lat: float, max_lon: float, max_lat: floa
 
     return path
 
-def fetch_sent2_fire(fire_id: int, min_lon: float, min_lat: float, max_lon: float, max_lat: float, data_range: str = "2024-01-01/2025-06-01", max_cloud_cover: int = 30) -> dict[str, str] | None:
+def fetch_sent2_fire(fire_id: int, min_lon: float, min_lat: float, max_lon: float, max_lat: float, fire_start, days_before: int = 60, max_cloud_cover: int = 30) -> dict[str, str] | None:
     # find and download the least cloudy sent 2 data covering a fires bbox
+
+    end_date = pd.Timestamp(fire_start) - pd.Timedelta(days=1)
+    start_date = pd.Timestamp(fire_start) - pd.Timedelta(days=days_before)
+    data_range = f"{start_date:%Y-%m-%d}/{end_date:%Y-%m-%d}"
 
     catalog = Client.open("https://earth-search.aws.element84.com/v1")
     search = catalog.search(
@@ -46,7 +51,7 @@ def fetch_sent2_fire(fire_id: int, min_lon: float, min_lat: float, max_lon: floa
         datetime=data_range,
         query={"eo:cloud_cover": {"lt": max_cloud_cover}},
         max_items=1,
-        sortby=[{"field": "properties.eo:cloud_cover", "directions": "asc"}]
+        sortby=[{"field": "properties.eo:cloud_cover", "direction": "asc"}]
     )
 
     items = list(search.items())
@@ -69,5 +74,57 @@ def fetch_sent2_fire(fire_id: int, min_lon: float, min_lat: float, max_lon: floa
             with open(target, "wb") as f:
                 for chunk in r.iter_bytes(8192):
                     f.write(chunk)
-            paths[suffix] = str(target)
+
+        paths[suffix] = str(target)
     return paths
+
+def build_manifest(csv_path: str, out_path: str, top_n: int = 30, min_ticks: int = 2, max_gap_km: float = 5.0, max_gap_days: float = 4.0):
+    OUTPUTDIR.mkdir(parents=True, exist_ok=True)
+
+    events = inspect_fire_events(csv_path, max_gap_km=max_gap_km, max_gap_days=max_gap_days, min_ticks=min_ticks, limit=0)
+
+    selected=events[:top_n]
+
+    rows_written = 0
+
+    with open(out_path, "w", newline="") as fire:
+        writer = csv.writer(fire)
+        writer.writerow(["fire_id", "b04_path", "b08_path", "b11_path", "dem_path", "worldcover_path", "scl_path"])
+
+        for event in selected:
+            fire_start = event.ticks[0]
+            sentinel_paths = fetch_sent2_fire(event.fire_id, event.min_lon, event.min_lat, event.max_lon, event.max_lat, fire_start=fire_start)
+
+            if sentinel_paths is None:
+                continue
+
+            dem_path = dem_vsis3_path(event.min_lon, event.min_lat, event.max_lon, event.max_lat)
+
+            writer.writerow([
+                event.fire_id,
+                sentinel_paths["b04"], sentinel_paths["b08"], sentinel_paths["b11"],
+                dem_path,
+                "",
+                "",
+            ])
+
+            rows_written += 1
+
+    print(f"\n wrote {rows_written}/{len(selected)} manifest rows to {out_path}")
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--csv", required=True)
+    ap.add_argument("--out", default="app/datasets/raw_data/static_manifest.csv")
+    ap.add_argument("--top-n", type=int, default=30)
+    ap.add_argument("--min-ticks", type=int, default=2)
+    ap.add_argument("--max-gap-km", type=float, default=5.0)
+    ap.add_argument("--max-gap-days", type=float, default=4.0)
+    ap.add_argument("--limit", type=int, default=20, help="max fire events to print 0 = all fires")
+    args = ap.parse_args()
+    
+    build_manifest(args.csv, args.out, args.top_n, args.min_ticks, args.max_gap_km, args.max_gap_days)
+
+
+if __name__ == "__main__":
+        main()

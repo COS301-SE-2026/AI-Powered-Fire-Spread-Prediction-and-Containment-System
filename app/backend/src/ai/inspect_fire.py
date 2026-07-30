@@ -46,11 +46,12 @@ def main():
     ap.add_argument("--time-col", default="acq_time")
     ap.add_argument("--max-gap-km", type=float, default=5.0)
     ap.add_argument("--max-gap-days", type=float, default=4.0)
+    ap.add_argument("--min-ticks", type=int, default=2)
     ap.add_argument("--limit", type=int, default=20, help="max fire events to print 0 = all fires")
     args = ap.parse_args()
 
     limit = None if args.limit == 0 else args.limit
-    inspect_fire_events(args.csv, args.lat_col, args.lon_col, args.date_col, args.time_col, args.max_gap_km, args.max_gap_days, limit)
+    inspect_fire_events(args.csv, args.lat_col, args.lon_col, args.date_col, args.time_col, args.max_gap_km, args.max_gap_days, args.min_ticks, limit)
 
 if __name__ == "__main__":
     main()
