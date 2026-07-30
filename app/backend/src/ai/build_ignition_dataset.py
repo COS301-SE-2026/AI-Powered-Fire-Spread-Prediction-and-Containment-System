@@ -536,7 +536,7 @@ def main() -> None:
     np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
 
     meta_path = validate_output_path(out_path.with_suffix(".meta.json"), base_dir)
-    meta_path.write_text(
+    meta_path.write_text( # NOSONAR
         json.dumps(
             {
                 "source_csv": str(csv_path),
