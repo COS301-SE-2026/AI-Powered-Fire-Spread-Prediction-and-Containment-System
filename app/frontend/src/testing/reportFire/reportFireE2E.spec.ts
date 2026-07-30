@@ -20,7 +20,7 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     );
     await searchInput.fill("Pretoria");
     await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
-    await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
     await expect(searchInput).toHaveValue("Pretoria, Gauteng, South Africa");
     await page.waitForTimeout(1000);
  
@@ -34,8 +34,7 @@ test.describe("Report a Fire, Frontend (real API)", () => {
       'input[placeholder*="Drop a pin or type your address"]'
     );
     await searchInput.fill("Pretoria");
-    await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
-    await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
  
     const descriptionField = page.locator("textarea");
     await descriptionField.fill("Test fire from E2E");
@@ -96,7 +95,7 @@ test.describe("Report a Fire, Frontend (real API)", () => {
   test("shows error when photo is missing on desktop", async ({ page }) => {
     const searchInput = page.getByRole('textbox', { name: 'Drop a pin or type your' });
     await searchInput.fill("Pretoria");
-    await page.click('button:has-text("Pretoria, Gauteng, South Africa")');
+    await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
  
     const descriptionField = page.locator("textarea");
     await descriptionField.fill("Test fire");
