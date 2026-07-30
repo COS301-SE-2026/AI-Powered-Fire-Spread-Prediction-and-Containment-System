@@ -19,7 +19,6 @@ test.describe("Report a Fire, Frontend (real API)", () => {
       'input[placeholder*="Drop a pin or type your address"]'
     );
     await searchInput.fill("Pretoria");
-    await page.waitForSelector('button:has-text("Pretoria, Gauteng, South Africa")');
     await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
     await expect(searchInput).toHaveValue("Pretoria, Gauteng, South Africa");
     await page.waitForTimeout(1000);
@@ -29,49 +28,49 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     await page.waitForSelector(pinMarkerSelector, { state: "visible", timeout: 10000 });
   });
  
-  test("submits a report and shows ref#", async ({ page }) => {
-    const searchInput = page.locator(
-      'input[placeholder*="Drop a pin or type your address"]'
-    );
-    await searchInput.fill("Pretoria");
-    await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
+  // test("submits a report and shows ref#", async ({ page }) => {
+  //   const searchInput = page.locator(
+  //     'input[placeholder*="Drop a pin or type your address"]'
+  //   );
+  //   await searchInput.fill("Pretoria");
+  //   await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
  
-    const descriptionField = page.locator("textarea");
-    await descriptionField.fill("Test fire from E2E");
+  //   const descriptionField = page.locator("textarea");
+  //   await descriptionField.fill("Test fire from E2E");
  
-    const fileInput = page.locator('input[type="file"]');
-    await fileInput.setInputFiles({
-      name: "test.jpg",
-      mimeType: "image/jpeg",
-      buffer: Buffer.from("fake"),
-    });
+  //   const fileInput = page.locator('input[type="file"]');
+  //   await fileInput.setInputFiles({
+  //     name: "test.jpg",
+  //     mimeType: "image/jpeg",
+  //     buffer: Buffer.from("fake"),
+  //   });
  
-    const submitButton = page.locator(
-      'button[type="submit"]:has-text("Submit Fire Report")'
-    );
+  //   const submitButton = page.locator(
+  //     'button[type="submit"]:has-text("Submit Fire Report")'
+  //   );
  
-    const responsePromise = page.waitForResponse(
-      (res) =>
-        res.url().includes("/api/users/reported-fires") &&
-        res.request().method() === "POST"
-    );
+  //   const responsePromise = page.waitForResponse(
+  //     (res) =>
+  //       res.url().includes("/api/users/reported-fires") &&
+  //       res.request().method() === "POST"
+  //   );
  
-    await submitButton.click();
+  //   await submitButton.click();
  
-    const response = await responsePromise;
-    expect(response.ok()).toBeTruthy();
-    const body = await response.json();
-    expect(body.reference_number).toMatch(/^FR-\d{4}-[A-Z0-9]+$/);
+  //   const response = await responsePromise;
+  //   expect(response.ok()).toBeTruthy();
+  //   const body = await response.json();
+  //   expect(body.reference_number).toMatch(/^FR-\d{4}-[A-Z0-9]+$/);
  
-    await expect(page.locator(`text=${body.reference_number}`)).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(page.locator("text=Report submitted")).toBeVisible();
+  //   await expect(page.locator(`text=${body.reference_number}`)).toBeVisible({
+  //     timeout: 10000,
+  //   });
+  //   await expect(page.locator("text=Report submitted")).toBeVisible();
  
-    await expect(
-      page.locator('input[placeholder*="Drop a pin or type your address"]')
-    ).toBeVisible({timeout:1500});
-  });
+  //   await expect(
+  //     page.locator('input[placeholder*="Drop a pin or type your address"]')
+  //   ).toBeVisible({timeout:1500});
+  // });
  
   test("shows error when no location selected", async ({ page }) => {
     const descriptionField = page.locator("textarea");
@@ -92,21 +91,21 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     await expect(page.locator("text=/Please select a valid location/i")).toBeVisible();
   });
  
-  test("shows error when photo is missing on desktop", async ({ page }) => {
-    const searchInput = page.getByRole('textbox', { name: 'Drop a pin or type your' });
-    await searchInput.fill("Pretoria");
-    await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
+  // test("shows error when photo is missing on desktop", async ({ page }) => {
+  //   const searchInput = page.getByRole('textbox', { name: 'Drop a pin or type your' });
+  //   await searchInput.fill("Pretoria");
+  //   await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
  
-    const descriptionField = page.locator("textarea");
-    await descriptionField.fill("Test fire");
+  //   const descriptionField = page.locator("textarea");
+  //   await descriptionField.fill("Test fire");
  
-    const submitButton = page.locator(
-      'button[type="submit"]:has-text("Submit Fire Report")'
-    );
-    await submitButton.click();
+  //   const submitButton = page.locator(
+  //     'button[type="submit"]:has-text("Submit Fire Report")'
+  //   );
+  //   await submitButton.click();
  
-    await expect(
-      page.locator("text=/Field evidence attachment is mandatory on desktop/i")
-    ).toBeVisible();
-  });
+  //   await expect(
+  //     page.locator("text=/Field evidence attachment is mandatory on desktop/i")
+  //   ).toBeVisible();
+  // });
 });

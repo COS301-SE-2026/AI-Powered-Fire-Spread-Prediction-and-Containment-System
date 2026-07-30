@@ -61,6 +61,7 @@ jobs:
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          coverage-path: app/backend/src
 
   backend-pylint:
     name: Backend Lint (pylint)
@@ -166,7 +167,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install backend dependencies
-        run: "pip install --only-binary :all: -r app/backend/src/requirements.txt"
+        run: "pip install --only-binary :all: -r app/backend/src/requirements.lock"
       
       - name: Launch backend
         env:
