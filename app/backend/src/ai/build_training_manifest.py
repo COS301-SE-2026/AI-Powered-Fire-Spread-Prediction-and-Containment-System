@@ -10,9 +10,19 @@ from pystac_client import Client
 
 from .inspect_fire import inspect_fire_events
 
-OUTPUTDIR = Path("app/datasets/raw_data")
+PROJECTROOT = Path(__file__).resolve().parents[3]
+DATAROOT = (PROJECTROOT / "datasets").resolve()
+OUTPUTDIR = DATAROOT / "raw_data"
 
 os.environ.setdefault("AWS_NO_SIGN_REQUEST", "YES")
+
+def safe_path(user_path: str | Path, base: Path = DATAROOT) -> Path:
+    candidate = (base / user_path).resolve(strict=False)
+
+    if not candidate.is_relative_to(base):
+        raise ValueError(f"Refusing path {base}: {user_path!r} -> {candidate}")
+    return candidate
+
 
 def dem_vsis3_path(min_lon: float, min_lat: float, max_lon: float, max_lat: float) -> str:
 
@@ -68,7 +78,7 @@ def fetch_sent2_fire(fire_id: int, min_lon: float, min_lat: float, max_lon: floa
             print(f"SKIP Fire ID: {fire_id} | missing asset '{asset_key}' in scene")
             return None
 
-        target = OUTPUTDIR / f"fire_{fire_id}_{suffix}.tif"
+        target = safe_path(f"raw_data/fire_{fire_id}_{suffix}.tif")
         with httpx.stream("GET", item.assets[asset_key].href, follow_redirects=True, timeout=60.0) as r:
             r.raise_for_status()
             with open(target, "wb") as f:
@@ -79,9 +89,14 @@ def fetch_sent2_fire(fire_id: int, min_lon: float, min_lat: float, max_lon: floa
     return paths
 
 def build_manifest(csv_path: str, out_path: str, top_n: int = 30, min_ticks: int = 2, max_gap_km: float = 5.0, max_gap_days: float = 4.0):
-    OUTPUTDIR.mkdir(parents=True, exist_ok=True)
 
-    events = inspect_fire_events(csv_path, max_gap_km=max_gap_km, max_gap_days=max_gap_days, min_ticks=min_ticks, limit=0)
+    
+
+    OUTPUTDIR.mkdir(parents=True, exist_ok=True)
+    safe_csv_path = safe_path(csv_path)
+    safe_out_path = safe_path(out_path)
+    
+    events = inspect_fire_events(safe_csv_path, max_gap_km=max_gap_km, max_gap_days=max_gap_days, min_ticks=min_ticks, limit=0)
 
     MAXTICKS = 40
     real_fires = [e for e in events if len(e.ticks) <= MAXTICKS]
@@ -90,7 +105,7 @@ def build_manifest(csv_path: str, out_path: str, top_n: int = 30, min_ticks: int
 
     rows_written = 0
 
-    with open(out_path, "w", newline="") as fire:
+    with open(safe_out_path, "w", newline="") as fire:
         writer = csv.writer(fire)
         writer.writerow(["fire_id", "b04_path", "b08_path", "b11_path", "dem_path", "worldcover_path", "scl_path"])
 
@@ -118,7 +133,7 @@ def build_manifest(csv_path: str, out_path: str, top_n: int = 30, min_ticks: int
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--csv", required=True)
-    ap.add_argument("--out", default="app/datasets/raw_data/static_manifest.csv")
+    ap.add_argument("--out", default="raw_data/static_manifest.csv")
     ap.add_argument("--top-n", type=int, default=30)
     ap.add_argument("--min-ticks", type=int, default=2)
     ap.add_argument("--max-gap-km", type=float, default=5.0)
