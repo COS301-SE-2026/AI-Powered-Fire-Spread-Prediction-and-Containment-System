@@ -5,6 +5,7 @@ from enums.report_status import ReportStatus
 from pydantic import BaseModel, ConfigDict, Field
 
 
+
 # response structure for the reported fires table
 class FirefighterReportTable(BaseModel):
     ref: str = Field(validation_alias="reference_number")

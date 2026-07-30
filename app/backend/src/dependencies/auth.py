@@ -11,6 +11,7 @@ from models.users import User
 from sqlalchemy.orm import Session
 
 
+
 def extract_token(request: Request) -> Optional[str]:
     token = request.cookies.get("access_token")
     if not token:

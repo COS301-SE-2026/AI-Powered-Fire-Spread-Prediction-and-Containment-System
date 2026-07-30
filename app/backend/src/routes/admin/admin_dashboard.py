@@ -5,6 +5,7 @@ from db import get_db
 from enums.report_status import ReportStatus
 from enums.role_request_status import RequestStatus
 from fastapi import APIRouter, Depends, HTTPException, status
+
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
 from models.users import User
@@ -13,6 +14,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 # from auth import get_current_admin_user
+
 
 
 router = APIRouter(
@@ -31,6 +33,8 @@ def _as_aware(dt):
         return dt.replace(tzinfo=timezone.utc)
 
 
+
+
 def _time_ago(dt) -> str:
     dt = _as_aware(dt)
     if dt is None:
@@ -45,6 +49,7 @@ def _time_ago(dt) -> str:
     if hours < 24:
         return f"{hours} hr ago"
     return f"{hours // 24} day(s) ago"
+
 
 
 @router.get("/summary", response_model=DashboardSummaryResponse)
@@ -94,6 +99,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
                 "_sort_ts": _as_aware(report.submitted_at),
             }
         )
+      
     for rr in recent_role_requests:
         activity_items.append(
             {
@@ -139,3 +145,4 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
         "weekly_incidents": weekly_incidents,
         "system_metrics": system_metrics,
     }
+

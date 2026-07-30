@@ -20,6 +20,8 @@ from routes.guests.guests_dashboard import router as guests_dashboard_router
 from routes.users.fire_reports import router as user_fire_router
 from seed import seed
 from services.storage import ensure_bucket
+from ai.simulation_api import router as simulation_router
+
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
@@ -64,6 +66,7 @@ app.include_router(firefighter_dashboard)
 app.include_router(logout_router)
 app.include_router(image_uploads.router)
 app.include_router(guests_dashboard_router)
+app.include_router(simulation_router)
 
 
 @app.get("/")
@@ -87,3 +90,4 @@ def health_check():
 @app.on_event("startup")
 def startup():
     ensure_bucket()
+    

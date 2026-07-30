@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import Optional
-
-from enums.audit_action import AuditAction
 from pydantic import BaseModel, ConfigDict
+from enums.audit_action import AuditAction
 
 
 class AuditLogResponse(BaseModel):

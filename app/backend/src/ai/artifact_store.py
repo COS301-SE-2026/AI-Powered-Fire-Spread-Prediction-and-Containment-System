@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
+
 def store_root() -> Path:
     root = os.environ.get("FIRE_ARTIFACT_STORE", "./artifact_store")
     p = Path(root)

@@ -6,6 +6,7 @@ from auth import create_access_token, hash_password, verify_password
 from jose import jwt
 
 
+
 def test_password_hashing():
     pw = "SecurePass123"
     hashed = hash_password(pw)

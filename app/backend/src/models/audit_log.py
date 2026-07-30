@@ -1,3 +1,14 @@
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    Enum,
+    Text,
+)
+from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 
 from db import Base
@@ -15,6 +26,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
+from enums.audit_action import AuditAction
+from db import Base
+
 
 class AuditLog(Base):
     __tablename__ = "audit_log"
@@ -24,3 +38,4 @@ class AuditLog(Base):
     action = Column(Enum(AuditAction), nullable=False)
     details = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+

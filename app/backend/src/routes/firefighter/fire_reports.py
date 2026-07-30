@@ -10,6 +10,14 @@ from schemas.firefighter_reports import (
 from services.firefighter import firefighter_reports
 from sqlalchemy.orm import Session
 
+from db import get_db
+from schemas.firefighter_reports import (
+    FirefighterReportTable,
+    ReportList,
+    FirefighterReportModal,
+)
+from services.firefighter import firefighter_reports
+
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
 

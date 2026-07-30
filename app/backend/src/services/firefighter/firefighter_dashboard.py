@@ -10,6 +10,7 @@ from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
 
+
 def calculate_time_ago(
     reported_at: datetime,
 ) -> str:  # return a string for how long ago fire has been reported

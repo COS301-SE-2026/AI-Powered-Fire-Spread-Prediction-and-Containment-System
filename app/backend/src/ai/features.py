@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .schema import BURNING, DIST_CAP, FEATURES, STATIC_FEATURES, WEATHER_FEATURES
+from .schema import FEATURES, WEATHER_FEATURES, STATIC_FEATURES, BURNING, DIST_CAP
 
 
 def shift(a: np.ndarray, dy: int, dx: int, fill=0) -> np.ndarray:

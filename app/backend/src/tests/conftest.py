@@ -47,28 +47,18 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def create_tables():
     """Build db schema in test cluster before tests start"""
     with engine.begin() as conn:
-        # need for spacial columns
+        #  need for spacial columns
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
 
     Base.metadata.create_all(
         bind=engine,
-        tables=[
-            User.__table__,
-            RoleRequest.__table__,
-            FireReports.__table__,
-            ContainmentLines.__table__,
-        ],
+        tables=[User.__table__, RoleRequest.__table__, FireReports.__table__],
     )
     yield
 
     Base.metadata.drop_all(
         bind=engine,
-        tables=[
-            User.__table__,
-            RoleRequest.__table__,
-            FireReports.__table__,
-            ContainmentLines.__table__,
-        ],
+        tables=[User.__table__, RoleRequest.__table__, FireReports.__table__],
     )
 
 
