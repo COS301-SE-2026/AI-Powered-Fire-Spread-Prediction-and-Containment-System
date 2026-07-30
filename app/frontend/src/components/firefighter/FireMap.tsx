@@ -4,6 +4,7 @@ import circle from '@turf/circle';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import { Prediction } from './useSimulation';
 
 interface FireReport{
     ref: string;
@@ -25,9 +26,11 @@ interface MapProps{
     burnGrid?: number[] | null;
     burnGridH?: number;
     burnGridW?: number;
+    predictions?: Prediction[];
+    currentTick?: number;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGrid, burnGridH, burnGridW}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -106,33 +109,27 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
     }, [fires])
 
     const simulationCircle = useMemo(() => {
-        if(!burnGrid) return [];
+        if (!predictions?.length) return [];
 
-        const simCells = burnGrid.filter(
-            cell => cell === 1 || cell === 2
-        ).length;
+        // ~185 m cells: 0.05 degrees across a 30-cell grid
+        const cellM = (0.05 / 30) * 111320;
 
-        if (simCells === 0) return [];
+        return predictions
+            .map(p => {
+                const grid = p.history[currentTick];
+                if (!grid) return null;
+                const cells = grid.filter(c => c === 1 || c === 2).length;
+                if (cells === 0) return null;
 
-        const cellSize = 30;
-
-        const area = simCells * cellSize * cellSize;
-        const radMeters = Math.sqrt(area / Math.PI);
-        const radiusKm = radMeters / 1000
-
-        return fires
-            .filter(f => f.status.toLowerCase() === "verified")
-            .map(f => 
-                circle(
-                [f.lng, f.lat],
-                radiusKm,
-                {
+                const radiusKm = Math.sqrt(cells * cellM * cellM / Math.PI) / 1000;
+                return circle([p.lng, p.lat], radiusKm, {
                     steps: 64,
-                    units: "kilometers"
-                }
-        )
-    )
-    }, [burnGrid, fires])
+                    units: 'kilometers',
+                    properties: { ref: p.ref },
+                });
+            })
+            .filter(Boolean);
+    }, [predictions, currentTick]);
 
 
 
