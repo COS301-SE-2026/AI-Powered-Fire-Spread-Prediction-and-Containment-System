@@ -612,7 +612,11 @@ def seed_users(db):
     for data in SEED_USERS:
         existing = db.query(User).filter(User.id == data["id"]).first()
         if existing:
-            print(f" SKIP {data['email']} (already exists)")
+            if existing.role != data["role"]:
+                existing.role = data["role"]
+                print(f" UPDATE {data['email']} role -> {data['role']}")
+            else:
+                print(f" SKIP {data['email']} (already exists)")
             inserted[data["email"]] = existing
             continue
 
