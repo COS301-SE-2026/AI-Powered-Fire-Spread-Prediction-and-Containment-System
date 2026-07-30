@@ -10,6 +10,7 @@ def inspect_fire_events(
     time_col: str = "acq_time",
     max_gap_km: float = 5.0,
     max_gap_days: float = 4.0,
+    min_ticks: int = 2,
     limit: int | None = 20,
 ) -> list:
     detections = load_detections(csv_path, lat_col, lon_col, date_col, time_col)
@@ -20,15 +21,20 @@ def inspect_fire_events(
 
     print(f"{len(events)} distinct fires")
 
-    to_show = events if limit is None else events[:limit]
+    # get fires that can be used for training
+    usable_fires = [e for e in events if len(e.ticks) >= min_ticks]
+    print(f"{len(usable_fires):,} fires that have more than {min_ticks} ticks")
+
+    usable_fires.sort(key=lambda e: -len(e.ticks))
+    to_show = usable_fires if limit is None else usable_fires[:limit]
 
     for e in to_show:
         print(f"Fire ID = {e.fire_id} " f"bbox({e.min_lon:.3f}, {e.min_lat:.3f})-({e.max_lon:.3f},{e.max_lat:.3f})" f"ticks = {len(e.ticks)}")
 
-    if limit is not None and len(events) > limit:
-        print(f"... ({len(events) - limit} more not shown but you can use --limit to see more)")
+    if limit is not None and len(usable_fires) > limit:
+        print(f"... ({len(usable_fires) - limit} more not shown but you can use --limit to see more)")
 
-    return events
+    return usable_fires
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
