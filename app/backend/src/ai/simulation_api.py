@@ -138,7 +138,7 @@ def burned_area_radius_m(burned_cells: int, H: int, W: int, extent_deg: float=0.
     return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
 
 # The endpoint
-@router.post("/simulate", response_model=SimulationResponse)
+@router.post("/simulate", response_model=SimulationResponse, responses={500 : {"description" : "Internal server error simulation failed"}})
 async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) -> SimulationResponse:
     """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
 
