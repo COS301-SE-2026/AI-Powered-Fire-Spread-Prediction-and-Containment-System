@@ -1,5 +1,3 @@
-import Logo from '../components/brandStyle/Logos';
-import Components from '../components/brandStyle/Components';
 import Accessibility from '../components/brandStyle/Accessability';
 import DesignPrinciples from '../components/brandStyle/DesignPrinciples';
 import StyleGuideNav from "../components/brandStyle/navStyle";
