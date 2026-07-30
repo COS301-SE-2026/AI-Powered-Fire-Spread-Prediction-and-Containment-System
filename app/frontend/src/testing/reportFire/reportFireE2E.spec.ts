@@ -21,7 +21,6 @@ test.describe("Report a Fire, Frontend (real API)", () => {
     await searchInput.fill("Pretoria");
     await page.getByRole('button', { name: 'Pretoria, Gauteng, South' }).click();
     await expect(searchInput).toHaveValue("Pretoria, Gauteng, South Africa");
-    await page.waitForTimeout(1000);
  
     const pinMarkerSelector =
       '.mapboxgl-marker.mapboxgl-marker-anchor-bottom[aria-label="Map marker"]';
