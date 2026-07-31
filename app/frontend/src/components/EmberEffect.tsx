@@ -7,10 +7,10 @@ import React, {useEffect, useRef} from 'react';
 // https://codepen.io/CheneyLin/pen/ZmaxNG
 
 interface EmberFieldProps {
-    density?: number;
+    readonly density?: number;
 }
 
-export default function EmberField({density = 25}: EmberFieldProps) {
+export default function EmberField({density = 25}: Readonly<EmberFieldProps>) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
