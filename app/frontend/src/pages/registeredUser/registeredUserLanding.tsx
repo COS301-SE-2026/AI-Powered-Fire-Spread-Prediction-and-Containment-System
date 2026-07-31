@@ -1,16 +1,16 @@
 import React from 'react';
 import { NearbyReports, useNearbyFires} from '../../components/nearbyReports';
-import { SidebarLayout } from '../../components/users/sidebar';
+import { UserSideBar } from '../../components/users/usersSidebar';
 import { PageHeader } from '../../components/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
 import { SidePanelRight } from '../../components/users/sidePanelRight';
-import { FireMap } from '../../components/DynamicFiremap';
+import { FireMap } from '../../components/DynamicFirefighterMap';
 
 export default function RegisteredUserDashboard (){
     const { userLocation, nearbyFires } = useNearbyFires();
 
     return(
-        <SidebarLayout>
+        <UserSideBar>
             <div className="flex flex-col p-6">
 
                 <PageHeader
@@ -28,6 +28,6 @@ export default function RegisteredUserDashboard (){
                     </SidePanelRight>
                 </div>
             </div>
-        </SidebarLayout> 
+        </UserSideBar>
     );
 }
