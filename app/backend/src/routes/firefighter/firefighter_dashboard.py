@@ -20,7 +20,11 @@ router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 def get_nearby_fires(
     lat: float, lng: float, radius_km: float = 20, db: Session = Depends(get_db)
 ):
-    nearby_fires = firefighter_dashboard.get_nearby_fires(db, lat, lng, radius_km)
+    try:
+        nearby_fires = firefighter_dashboard.get_nearby_fires(db, lat, lng, radius_km)
+
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
 
     try:
         environment_variables = firefighter_dashboard.get_current_environment_vars(

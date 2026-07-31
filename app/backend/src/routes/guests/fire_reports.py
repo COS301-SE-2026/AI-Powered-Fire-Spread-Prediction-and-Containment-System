@@ -4,8 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from db import get_db
-from schemas.fire_report import (FireReportCreate, FireReportDetailResponse,
-                                 FireReportMapResponse)
+from schemas.fire_report import (
+    FireReportCreate,
+    FireReportDetailResponse,
+    FireReportMapResponse,
+)
 from services.users import fire_report
 
 router = APIRouter(prefix="/api/guests", tags=["Guests"])

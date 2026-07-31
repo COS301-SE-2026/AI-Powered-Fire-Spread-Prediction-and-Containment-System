@@ -74,8 +74,7 @@ export default function Login() {
         user: '/registeredUser/registeredUserLanding',
       };
 
-      router.push(roleRedirects[data.role] ?? '/login');
-
+    window.location.href = roleRedirects[data.role] ?? '/login';
     } catch (err: any) {
         setApiError(err.message);
     } finally {

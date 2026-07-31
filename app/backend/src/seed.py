@@ -8,6 +8,7 @@ from enums.role_request_status import RequestStatus
 from enums.user_role import UserRole
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
+
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from models.users import User
 
@@ -612,7 +613,11 @@ def seed_users(db):
     for data in SEED_USERS:
         existing = db.query(User).filter(User.id == data["id"]).first()
         if existing:
-            print(f" SKIP {data['email']} (already exists)")
+            if existing.role != data["role"]:
+                existing.role = data["role"]
+                print(f" UPDATE {data['email']} role -> {data['role']}")
+            else:
+                print(f" SKIP {data['email']} (already exists)")
             inserted[data["email"]] = existing
             continue
 
