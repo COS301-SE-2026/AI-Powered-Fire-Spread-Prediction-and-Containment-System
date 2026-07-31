@@ -50,6 +50,7 @@ services:
         condition: service_healthy
     volumes:
       - ./app/backend/src:/app:Z
+      - ./artifact_store:/app/artifact_store:Z
     ports:
       - "8000:8000"
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
@@ -89,7 +90,7 @@ services:
       - "9001:9001"
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5

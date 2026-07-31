@@ -5,6 +5,7 @@ from geoalchemy2.shape import to_shape
 from pydantic import BaseModel, ConfigDict
 
 
+
 class ContainmentLines(BaseModel):
     id: str
     fire_report_id: str

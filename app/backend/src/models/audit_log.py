@@ -1,12 +1,33 @@
-from datetime import datetime, timezone
-
-from geoalchemy2 import Geometry
-from sqlalchemy import (Column, DateTime, Enum, ForeignKey, Integer, Numeric,
-                        String, Text)
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    ForeignKey,
+    Numeric,
+    Enum,
+    Text,
+)
 from sqlalchemy.orm import relationship
+from datetime import datetime, timezone
 
 from db import Base
 from enums.audit_action import AuditAction
+from geoalchemy2 import Geometry
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+)
+from sqlalchemy.orm import relationship
+
+from enums.audit_action import AuditAction
+from db import Base
 
 
 class AuditLog(Base):
@@ -17,3 +38,4 @@ class AuditLog(Base):
     action = Column(Enum(AuditAction), nullable=False)
     details = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+
