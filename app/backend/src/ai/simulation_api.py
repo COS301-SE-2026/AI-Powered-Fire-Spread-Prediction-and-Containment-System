@@ -2,22 +2,24 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, Field
-import numpy as np
-
-from .dca import run_dca
 import math
 
-from sqlalchemy.orm import Session
+import numpy as np
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
 from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 from db import get_db
-from models.reported_fires import FireReports
 from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
+
+from .dca import run_dca
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
 METRES_PER_DEG_LAT = 111_320.0
+
 
 # Request/Response Schemas
 # TODO: WeatherParams will become read-only once pull weather data
@@ -83,9 +85,10 @@ class SimulationResponse(BaseModel):
     # Flattened burn-state grids per tick (list of (H*W) ints in {0=unburned, 1=burning, 2=burned})
     # Frontend reshapes to [H, W] using grid_h/_w
     predictions: list[Prediction]
-    grid_h:int
+    grid_h: int
     grid_w: int
     n_steps_run: int
+
 
 # Grid Builders
 
@@ -130,16 +133,26 @@ def params_to_torch(dca: DCAParams):
         "p_continue": torch.tensor(dca.p_continue),
     }
 
-def burned_area_radius_m(burned_cells: int, H: int, W: int, extent_deg: float=0.05) -> float:
+
+def burned_area_radius_m(
+    burned_cells: int, H: int, W: int, extent_deg: float = 0.05
+) -> float:
     if burned_cells <= 0:
         return 0.0
     cell_h_m = (extent_deg / H) * METRES_PER_DEG_LAT
     cell_w_m = (extent_deg / W) * METRES_PER_DEG_LAT
     return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
 
+
 # The endpoint
-@router.post("/simulate", response_model=SimulationResponse, responses={500 : {"description" : "Internal server error simulation failed"}})
-async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) -> SimulationResponse:
+@router.post(
+    "/simulate",
+    response_model=SimulationResponse,
+    responses={500: {"description": "Internal server error simulation failed"}},
+)
+async def run_simulation(
+    req: SimulationRequest, db: Session = Depends(get_db)
+) -> SimulationResponse:
     """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
 
     Frontend sends map-center coordinates and environment parameters. This endpoint builds
@@ -169,9 +182,14 @@ async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) 
     static_grids = build_static_grids(H, W, req.static)
 
     verified_fires = (
-        db.query(FireReports.id, func.ST_Y(FireReports.location_geom).label("lat"), func.ST_X(FireReports.location_geom).label("lng"))
+        db.query(
+            FireReports.id,
+            func.ST_Y(FireReports.location_geom).label("lat"),
+            func.ST_X(FireReports.location_geom).label("lng"),
+        )
         .filter(FireReports.status == ReportStatus.verified)
-        .all())
+        .all()
+    )
 
     predictions: list[Prediction] = []
     n_steps_run = 0
@@ -188,13 +206,13 @@ async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) 
                 params=params_to_torch(req.dca),
             )
         except Exception as exc:
-            raise HTTPException(status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}") from exc
+            raise HTTPException(
+                status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}"
+            ) from exc
 
         final_grid = history[-1]
 
-        burned_cells = int(
-            ((final_grid == 1) | (final_grid == 2)).sum()
-        )
+        burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
 
         predictions.append(
             Prediction(
@@ -203,7 +221,7 @@ async def run_simulation(req: SimulationRequest, db: Session = Depends(get_db)) 
                 lng=fire.lng,
                 history=[g.ravel().tolist() for g in history],
                 burned_cells=burned_cells,
-                radius_m=burned_area_radius_m(burned_cells, H, W, EXTENT_DEG)
+                radius_m=burned_area_radius_m(burned_cells, H, W, EXTENT_DEG),
             )
         )
         n_steps_run = len(history)

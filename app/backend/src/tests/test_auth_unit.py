@@ -2,9 +2,9 @@ import os
 from datetime import timedelta
 
 import pytest
-from auth import create_access_token, hash_password, verify_password
 from jose import jwt
 
+from auth import create_access_token, hash_password, verify_password
 
 
 def test_password_hashing():

@@ -4,16 +4,22 @@ from pytorchfire import WildfireModel
 
 from .ignition import IgnitionScorer
 from .schema import UNBURNED
-from .simulation import build_env_data, pick_ignition_points, state_to_burn_state, build_verified_reports_mask
+from .simulation import (
+    build_env_data,
+    build_verified_reports_mask,
+    pick_ignition_points,
+    state_to_burn_state,
+)
 
 MAXSTEPS = 72
+
 
 def run_dca(
     weather_grids: dict,
     static_grids: dict,
     n_steps: int = 100,
-    n_ignition_points: int=1,
-    ignition_points: list[tuple[int,int]] | None = None,
+    n_ignition_points: int = 1,
+    ignition_points: list[tuple[int, int]] | None = None,
     params: dict | None = None,
 ):
 

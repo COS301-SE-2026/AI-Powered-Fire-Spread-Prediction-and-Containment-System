@@ -1,14 +1,15 @@
 from typing import List, Optional
 
-from db import get_db
 from fastapi import APIRouter, Depends, HTTPException, Request
+from sqlalchemy.orm import Session
+
+from db import get_db
 from schemas.fire_report import (
     FireReportCreate,
     FireReportDetailResponse,
     FireReportMapResponse,
 )
 from services.users import fire_report
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/guests", tags=["Guests"])
 

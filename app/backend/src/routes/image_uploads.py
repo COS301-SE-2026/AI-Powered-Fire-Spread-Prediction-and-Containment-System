@@ -1,7 +1,8 @@
 from typing import Annotated, Optional
 
-from dependencies.auth import get_current_user_optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
+
+from dependencies.auth import get_current_user_optional
 from models.users import User
 from services.storage import upload_image
 
