@@ -42,7 +42,8 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 - [Coding Standards Document](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards_v1.pdf)
 - [Testing Policy](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy_v1.pdf)
 - [User Manual](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_User_Manual_v1.pdf)
-- [Brand Styles Guid]
+- [Brand Style Guide](docs/Demo\2/Brand\Style\Guide\Demo2.pdf)
+- [Demo 2 Video]{https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing}
   
 
 # Meet Our Team
