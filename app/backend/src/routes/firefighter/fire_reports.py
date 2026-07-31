@@ -4,8 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db import get_db
-from schemas.firefighter_reports import (FirefighterReportModal,
-                                         FirefighterReportTable, ReportList)
+from schemas.firefighter_reports import (
+    FirefighterReportModal,
+    FirefighterReportTable,
+    ReportList,
+)
 from services.firefighter import firefighter_reports
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
