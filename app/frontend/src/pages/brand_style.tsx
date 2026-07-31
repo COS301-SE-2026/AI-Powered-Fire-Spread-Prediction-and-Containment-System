@@ -20,6 +20,7 @@ import { StatusCard } from '../components/brandStyle/componentReportStatus';
 import { Alerts } from '../components/brandStyle/componentsAlert';
 import { Table } from '../components/brandStyle/componentsTable';
 import { SearchBarComponents } from '../components/brandStyle/componentSearchBar';
+import LayoutSpacing from "../components/brandStyle/LayoutSpacing";
 import { DesignTokenTable } from '../components/brandStyle/StyleTokens';
 
 // brand colours
@@ -242,7 +243,13 @@ export default function StyleGuidePage() {
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Design Principles</h2>
             <DesignPrinciples />
           </section>
+          <section id="layout" className="mb-10 scroll-mt-8">
+              <h2 className="mb-8 pb-4 border-b border-carbon-stroke">
+                  Layout & Spacing
+              </h2>
 
+              <LayoutSpacing />
+          </section>
         </div>
       </main>
 

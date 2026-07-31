@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from enums.user_role import UserRole
 from pydantic import BaseModel
+
+from enums.user_role import UserRole
 
 
 class UserCreate(BaseModel):
