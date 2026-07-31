@@ -5,10 +5,10 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2.functions import ST_Distance, ST_DWithin
 from geoalchemy2.shape import to_shape
 from geoalchemy2.types import Geography
+from models.reported_fires import FireReports
 from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
-from models.reported_fires import FireReports
 
 
 def calculate_time_ago(
