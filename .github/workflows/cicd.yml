@@ -55,12 +55,12 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: "pip install --require-hashes --only-binary :all: -r requirements.txt"
-      
+        run: pip install -r requirements.txt
+
       - name: Run tests
         run: |
           coverage erase
-          pytest --cov=. --cov-report=xml tests 
+          pytest --cov=. --cov-report=xml tests
 
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3 #NOSONAR
@@ -174,7 +174,7 @@ jobs:
 
       - name: Install backend dependencies
         run: "pip install --require-hashes --only-binary :all: -r app/backend/src/requirements.txt"
-      
+
       - name: Launch backend
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -185,7 +185,7 @@ jobs:
           JWT_SECRET: "your-super-secret-key-change-this"
         run: |
           cd app/backend/src
-          nohup uvicorn main:app --host 0.0.0.0 --port 8000 & 
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
           sleep 3
 
       - name: Set up Node
