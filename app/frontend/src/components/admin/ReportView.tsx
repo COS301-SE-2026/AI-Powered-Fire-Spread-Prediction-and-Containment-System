@@ -53,25 +53,25 @@ export function ViewPage({ report_ref }: Readonly<ViewProps>) {
 
     return (
         <div className="p-6 flex flex-col h-full w-full">
-            <header className="mb-6 flex items-start justify-between">
+            <header className="mb-3 flex items-start justify-between">
                 <div>
                     <h1 className='uppercase'>Report {report.reference_number}</h1>
                     <p className='text-text-muted'>Viewing fire report details</p>
                 </div>
 
-                <button type="button" onClick={() => router.back()} className="btn btn-sm rounded-lg">Back</button>
+                <button type="button" onClick={() => router.back()} className="btn btn-sm btn-outline rounded-lg">Back</button>
             </header>
             {/* 2 cols*/}
-            <div className='grid grid-cols-1 lg:grid-cols-12 gap-4 h-full'>
+            <div className='grid grid-cols-1 lg:grid-cols-12 gap-2 h-full'>
                 {/*left*/}
-                <div className='lg:col-span-6 flex flex-col gap-4'>
-                    <div className="relative overflow-hidden h-75 w-full">
+                <div className='lg:col-span-6 flex flex-col gap-3'>
+                    <div className="relative overflow-hidden flex-1 w-full">
                         <ReportMap lat={report.lat} lng={report.lng} />
                     </div>
                     <ReportDetails report={report} />
                 </div>
                 {/*right*/}
-                <div className='lg:col-span-6 flex flex-col gap-4 h-full'>
+                <div className='lg:col-span-6 flex flex-col gap-2 h-full'>
                     <ReportPhoto report={report} />
                     <ReportDescription report={report} />
                     <ReportActions report_ref={report.reference_number} status={report.status} onStatusChange={(updated) => setReport(updated)} />

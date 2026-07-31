@@ -27,10 +27,26 @@ playwright-report/
 .expo-shared/
 
 # Local env files
-.env.*app/frontend/src/.env.local
+.env.*
+app/frontend/src/.env.local
 **/.env.local
 
 .venv/
 .python-version
 
+*.yarn/install-state.gz
 
+
+# minio local storage
+database/minio/
+
+# artifact_store
+artifact_store/ignition/
+
+*.venv
+
+app/datasets/raw_data/*
+
+app/datasets/raw_data/*
+!app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv
+app/datasets/processed/

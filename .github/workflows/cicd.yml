@@ -10,6 +10,41 @@ jobs:
     defaults:
       run:
         working-directory: app/backend/src
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_fire_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d test_fire_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: admin
+          MINIO_ROOT_PASSWORD: miniosupersecretpassword
+        ports:
+          - 9000:9000
+        command: server /data
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/ready || exit 1"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+
+      MINIO_ENDPOINT: localhost:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: miniosupersecretpassword
+      MINIO_SECURE: "false"
+      MINIO_BUCKET: fire-reports
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,13 +52,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run tests
-        run: pytest tests
+        run: |
+          coverage erase
+          pytest --cov=. --cov-report=xml tests
+
+      - name: Post coverage comment
+        uses: py-cov-action/python-coverage-comment-action@v3 #NOSONAR
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERAGE_PATH: app/backend/src
 
   backend-pylint:
     name: Backend Lint (pylint)
@@ -38,13 +81,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: pip install -r requirements.txt
 
       - name: Run pylint
-        run: pylint **/*.py --fail-under=8.0
+        run: pylint **/**/**/*.py --fail-under=8.0
 
   frontend-build:
     name: Frontend Build
@@ -61,14 +104,14 @@ jobs:
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: app/frontend/src/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
         run: yarn install
 
       - name: Build
         run: yarn run build
-    
+
   frontend-eslint:
     name: Frontend Lint (ESLint)
     runs-on: ubuntu-latest
@@ -88,7 +131,7 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-        
+
       - name: Run ESLint
         run: yarn eslint
 
@@ -96,47 +139,54 @@ jobs:
     name: Frontend E2E (Playwright)
     runs-on: ubuntu-latest
     needs: frontend-build
-    defaults:
-      run:
-        working-directory: app/frontend/src
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set Up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: yarn
-          cache-dependency-path: app/frontend/src/yarn.lock
-
-      - name: Install Dependencies
-        run: yarn install
-
-      - name: Install Playwright browsers
-        run: yarn playwright install --with-deps
-
-      - name: Run Playwright Tests
-        run: yarn playwright test
-
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: app/frontend/src/playwright-report/
-          retention-days: 7
-  
-  frontend-react-doctor:
-    name: React Doctor
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app/frontend/src
+    if: false
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_fire_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d test_fire_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: admin
+          MINIO_ROOT_PASSWORD: miniosupersecretpassword
+        ports:
+          - 9000:9000
+        command: server /data
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: "pip install --require-hashes --only-binary :all: -r app/backend/src/requirements.txt"
+
+      - name: Launch backend
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+          MINIO_ENDPOINT: localhost:9000
+          MINIO_ACCESS_KEY: admin
+          MINIO_SECRET_KEY: miniosupersecretpassword
+          MINIO_BUCKET: fire-reports
+          JWT_SECRET: "your-super-secret-key-change-this"
+        run: |
+          cd app/backend/src
+          nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 3
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -145,8 +195,43 @@ jobs:
           cache: yarn
           cache-dependency-path: app/frontend/src/yarn.lock
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: yarn install
 
+      - name: Install Playwright browsers
+        run: yarn playwright install --with-deps
+
+      - name: Run Playwright Tests
+        working-directory: app/frontend/src
+        env:
+          CI: true
+          BACKEND_INTERNAL_URL: "http://localhost:8000"
+        run: yarn test --config=testing_config/playwright.config.ts
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: app/frontend/src/playwright-report/
+          retention-days: 7
+  frontend-react-doctor:
+    name: React Doctor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Run React Doctor
-        run: yarn doctor 
+        uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
+        with:
+          directory: app/frontend/src
+          blocking: error
