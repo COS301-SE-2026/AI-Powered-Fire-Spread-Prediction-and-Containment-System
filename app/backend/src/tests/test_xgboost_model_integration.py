@@ -1,8 +1,5 @@
 import numpy as np
 import pytest
-from ai import artifact_store
-from ai.ignition import IgnitionScorer
-from ai.schema import BURNED, BURNING, FEATURES, SCHEMA_VERSION, UNBURNED
 from ml.training.synthetic_data import (
     SynthConfig,
     generate_synthetic_dataset,
@@ -10,6 +7,10 @@ from ml.training.synthetic_data import (
     make_weather,
 )
 from ml.training.train_ignition import group_split, train
+
+from ai import artifact_store
+from ai.ignition import IgnitionScorer
+from ai.schema import BURNED, BURNING, FEATURES, SCHEMA_VERSION, UNBURNED
 
 
 # Shared fixture. (scope="module" -> Trains once per pytest run)

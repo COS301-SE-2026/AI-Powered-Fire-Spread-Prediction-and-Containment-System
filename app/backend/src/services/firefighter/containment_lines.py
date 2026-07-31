@@ -5,9 +5,10 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2.functions import ST_ClosestPoint, ST_Distance, ST_GeomFromText
 from geoalchemy2.shape import to_shape
 from geoalchemy2.types import Geography
+from sqlalchemy.orm import Session
+
 from models.containment_lines import ContainmentLines
 from models.reported_fires import FireReports
-from sqlalchemy.orm import Session
 
 MAX_RADIUS = 2  # max radius for containement auto-detection of nearby fire
 
