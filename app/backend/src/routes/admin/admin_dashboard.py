@@ -95,6 +95,7 @@ def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
                 "_sort_ts": _as_aware(report.submitted_at),
             }
         )
+
     for rr in recent_role_requests:
         activity_items.append(
             {

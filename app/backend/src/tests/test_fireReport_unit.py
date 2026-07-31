@@ -1,5 +1,4 @@
 # import pytest
-# import re
 # from datetime import datetime
 # from fastapi.testclient import TestClient
 # from unittest.mock import patch, MagicMock
@@ -106,9 +105,9 @@
 #         MockModel.return_value = mock_report
 #         response = client.post("/api/guests/reported-fires", json=valid_payload)
 
-#     ref = response.json()["reference_number"]
-#     year = datetime.now().year
-#     assert re.match(rf"FR-{year}-[A-F0-9]{{6}}", ref)
+# #     ref = response.json()["reference_number"]
+# #     year = datetime.now().year
+# #     assert re.match(rf"FR-{year}-[A-F0-9]{{6}}", ref)
 
 # #test status
 # def test_status(client, mock_db, mock_report):
