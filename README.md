@@ -1,8 +1,14 @@
 # AI-Powered Fire Spread Prediction and Containment System
 
-<img width="1000" height=auto alt="IMG_3845" src="https://github.com/user-attachments/assets/091bb66c-d1be-4a49-a719-d89436be8231" />
+<img width="2000" height="961" alt="logo-dark" src="https://github.com/user-attachments/assets/eb4ccdab-2208-4ab0-b3be-f790434e729b" />
+
+<p align="center">
+  <a href="https://fireaway.csml.co.za/" style="background-color: #0969da; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Visit Fire Away</a>
+</p>
+
 
 AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
+
 
 <h2 align="center">Team: Panic! At The Kernel in collaboration with EPI-USE Africa</h2>
 
@@ -21,13 +27,24 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 
 
 # Documentation
-## Demo 1
-- [System Requirements Specification](docs/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
-- [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
-- [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
-- [Demo 1 Video](https://drive.google.com/file/d/16Z-MCgUCJp-F70VOWNHeQ-Bj-QO6Uusz/view?usp=sharing)
+<details>
+  <summary><h2>Demo 1</h2></summary>
+  
+  * [System Requirements Specification](docs/Demo\1//AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
+  * [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
+  * [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
+  * [Demo 1 Video](https://drive.google.com/file/d/16Z-MCgUCJp-F70VOWNHeQ-Bj-QO6Uusz/view?usp=sharing)
+</details>
 
-
+## Demo 2
+- [System Requirements Specification](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_SRS_v2.pdf)
+- [Software Architecture Specification](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications_v1.pdf)
+- [Coding Standards Document](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards_v1.pdf)
+- [Testing Policy](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy_v1.pdf)
+- [User Manual](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_User_Manual_v1.pdf)
+- [Brand Style Guide](docs/Demo\2/Brand\Style\Guide\Demo2.pdf)
+- [Demo 2 Video]{https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing}
+  
 
 # Meet Our Team
 

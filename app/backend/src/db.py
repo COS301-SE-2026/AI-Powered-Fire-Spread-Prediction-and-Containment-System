@@ -1,14 +1,12 @@
 import os
+
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-DB_HOST = os.environ.get("DB_HOST", "postgres")
-DB_PORT = os.environ.get("DB_PORT", "5432")
-DB_NAME = os.environ.get("POSTGRES_DB", "fireaway_db")
-DB_USER = os.environ.get("POSTGRES_USER", "fireaway_admin")
-DB_PASS = os.environ.get("POSTGRES_PASSWORD", "supersecretpassword")
+load_dotenv()
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -26,5 +24,9 @@ def get_db():
 
 def init_db():
     """Create all tables on startup."""
-    from models import User, RoleRequestDB  
+    from models.containment_lines import ContainmentLines
+    from models.reported_fires import FireReports
+    from models.role_request import RoleRequest
+    from models.users import User
+
     Base.metadata.create_all(bind=engine)
