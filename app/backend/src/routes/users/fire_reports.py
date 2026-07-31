@@ -1,10 +1,10 @@
 from typing import Annotated, List, Optional
 
-from db import get_db
-from schemas.fire_report import FireReportCreate, FireReportDetailResponse, FireReportMapResponse
-from services.users import fire_report
-from dependencies.auth import get_current_user_optional
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy.orm import Session
+
+from db import get_db
+from dependencies.auth import get_current_user_optional
 from models.users import User
 from schemas.fire_report import (
     FireReportCreate,
@@ -12,15 +12,17 @@ from schemas.fire_report import (
     FireReportMapResponse,
 )
 from services.users import fire_report
-from sqlalchemy.orm import Session
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
+
 @router.get("/reported-fires", response_model=List[FireReportMapResponse])
-def get_reported_fires(db: Annotated[Session, Depends(get_db)],
-                       current_user: Annotated[Optional[User], Depends(get_current_user_optional)],
-                       ):
+def get_reported_fires(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[Optional[User], Depends(get_current_user_optional)],
+):
     return fire_report.get_fire_reports(db, current_user.id if current_user else None)
+
 
 @router.post("/reported-fires", response_model=FireReportDetailResponse)
 def create_fire_report(

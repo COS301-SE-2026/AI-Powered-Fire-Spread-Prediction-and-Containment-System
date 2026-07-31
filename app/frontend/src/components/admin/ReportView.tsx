@@ -59,7 +59,7 @@ export function ViewPage({ report_ref }: Readonly<ViewProps>) {
                     <p className='text-text-muted'>Viewing fire report details</p>
                 </div>
 
-                <button type="button" onClick={() => router.back()} className="btn btn-sm rounded-lg">Back</button>
+                <button type="button" onClick={() => router.back()} className="btn btn-sm btn-outline rounded-lg">Back</button>
             </header>
             {/* 2 cols*/}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-2 h-full'>

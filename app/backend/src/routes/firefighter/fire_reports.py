@@ -1,20 +1,13 @@
 from typing import Annotated
 
-from db import get_db
 from fastapi import APIRouter, Depends, HTTPException
-from schemas.firefighter_reports import (
-    FirefighterReportModal,
-    FirefighterReportTable,
-    ReportList,
-)
-from services.firefighter import firefighter_reports
 from sqlalchemy.orm import Session
 
 from db import get_db
 from schemas.firefighter_reports import (
+    FirefighterReportModal,
     FirefighterReportTable,
     ReportList,
-    FirefighterReportModal,
 )
 from services.firefighter import firefighter_reports
 
