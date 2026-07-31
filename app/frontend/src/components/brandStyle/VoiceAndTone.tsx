@@ -1,7 +1,6 @@
 import React from 'react';
 
-export default function VoiceAndToneSection() {
-  const principles = [
+ const principles = [
     {
       label: 'Button Labels',
       value: 'Verb + Result',
@@ -57,6 +56,7 @@ export default function VoiceAndToneSection() {
     },
   ];
 
+export default function VoiceAndToneSection() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
