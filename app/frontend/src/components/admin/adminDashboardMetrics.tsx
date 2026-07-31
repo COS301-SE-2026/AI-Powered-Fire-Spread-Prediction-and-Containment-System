@@ -3,7 +3,7 @@ import React from 'react';
 interface DashboardMetricsProps {
     metrics: {
         active_fires: number;
-        pending_approval: number;
+        pending_approvals: number;
         total_users: number;
         system_status: string;
     }
@@ -26,13 +26,13 @@ export const DashboardMetrics:  React.FC<DashboardMetricsProps> = ({metrics}) =>
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
                     Pending Approvals
                 </span>
-                <div className="text-3xl font-extrabold text-amber-500">
-                    {metrics.pending_approval}
+                <div className="text-3xl font-extrabold text-primary">
+                    {metrics.pending_approvals}
                 </div>
             </div>
 
             <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-                <span className="text-xs font-semibold text-slate-500 ppercase tracking-wider block mb-1">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
                     Total Users
                 </span>
                 <div className="text-3xl font-extrabold text-white">
@@ -40,7 +40,7 @@ export const DashboardMetrics:  React.FC<DashboardMetricsProps> = ({metrics}) =>
                 </div>
             </div>
 
-            <div className="bg-slate-950 border border border-slate-800 p-5 rounded-xl">
+            <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
                     System Status
                 </span>

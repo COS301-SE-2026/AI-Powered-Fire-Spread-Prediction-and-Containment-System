@@ -18,7 +18,7 @@ interface WeeklyData {
 
 interface TopMetricsData {
     active_fires: number;
-    pending_approval: number;
+    pending_approvals: number;
     total_users: number;
     system_status: string;
 }
@@ -152,7 +152,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                             </h2>
                             <div className="divide-y divide-base-300 border-b border-base-300">
                                 {data.activity_log.length === 0 ? (
-                                    <div className="py-4 text-center text-sm text-base-content/50">No recemt activity</div> 
+                                    <div className="py-4 text-center text-sm text-base-content/50">No recemt activity</div>
                                 ) : (
                                     data.activity_log.map((log) => (
                                         <div key={log.id} className="py-3 px-2 flex justify-between items-start space-x-4 my-0.5 hover:bg-base-300 transition-colors">
@@ -182,7 +182,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                                     <div key={data.day} className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end">
                                         <div className="text-[10px] font-mono text-primary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                             {data.count}
-                                         </div>   
+                                         </div>
                                          <div className="w-full bg-primary/80 rounded-t-sm border-t border-x border-primary group-hover:bg-primary transition-colors"
                                          style={{height: `${percentageHeight}%`, minHeight: '4px'}}>
                                     </div>
