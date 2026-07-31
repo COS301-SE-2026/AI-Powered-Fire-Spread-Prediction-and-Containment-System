@@ -1,6 +1,7 @@
 const config = {
   testDir: '../testing',
   testMatch: [
+    '**/admin/**/*.spec.@(js|ts|tsx)',
     '**/reportFire/**/*.spec.@(js|ts|tsx)',
     '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
     '**/firefighter/**/*.spec.@(js|ts|tsx)',

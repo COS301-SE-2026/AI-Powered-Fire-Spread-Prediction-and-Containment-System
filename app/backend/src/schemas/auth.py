@@ -1,7 +1,8 @@
 from typing import Optional
 
-from enums.user_role import UserRole
 from pydantic import BaseModel, EmailStr
+
+from enums.user_role import UserRole
 
 
 class RegisterRequest(BaseModel):

@@ -2,14 +2,15 @@ import os
 import sys
 import uuid
 from pathlib import Path
-import numpy as np
 
+import numpy as np
 import pytest
-from enums.report_status import ReportStatus
 from fastapi.testclient import TestClient
-from models.reported_fires import FireReports
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
