@@ -1,0 +1,19 @@
+[Unit]
+Description=Fire system spread-model worker
+After=network-online.target fire-system-artifacts.service
+Wants=network-online.target
+Requires=fire-system-artifacts.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/fire-system/gpu_worker
+EnvironmentFile=/opt/fire-system/gpu_worker/.env
+ExecStart=/opt/fire-system/gpu_worker/venv/bin/python worker.py
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/tmp /mnt/fire-system-artifacts
+
+[Install]
+WantedBy=multi-user.target
