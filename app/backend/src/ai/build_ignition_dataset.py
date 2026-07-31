@@ -11,10 +11,9 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-
-from sklearn.neighbors import BallTree
-from scipy.sparse.csgraph import connected_components
 from scipy.sparse import coo_matrix
+from scipy.sparse.csgraph import connected_components
+from sklearn.neighbors import BallTree
 
 here = Path(__file__).resolve()
 for cand in (here.parents[2] / "backend_src", here.parents[2]):
@@ -49,7 +48,7 @@ def cluster_fire_events(
     coords_rad = np.column_stack([lat_rad, lon_rad])
     ts = detections["timestamp"].to_numpy()
 
-    max_gap_rad = max_gap_km/EARTH_RADIUS_KM
+    max_gap_rad = max_gap_km / EARTH_RADIUS_KM
 
     tree = BallTree(coords_rad, metric="haversine")
 
@@ -57,7 +56,7 @@ def cluster_fire_events(
 
     max_gap_ns = np.timedelta64(int(max_gap_days * 86400), "s")
 
-    rows,cols = [],[]
+    rows, cols = [], []
     for i, neighbors in enumerate(neighbor_indices):
         time_diffs = np.abs(ts[neighbors] - ts[i])
         valid = time_diffs <= max_gap_ns
@@ -65,9 +64,9 @@ def cluster_fire_events(
             rows.append(i)
             cols.append(j)
 
-    adjacency = coo_matrix((np.ones(len(rows)), (rows, cols)), shape=(n,n))
+    adjacency = coo_matrix((np.ones(len(rows)), (rows, cols)), shape=(n, n))
     _, fire_ids = connected_components(adjacency, directed=False)
-    
+
     return fire_ids
 
 
@@ -411,16 +410,18 @@ def _resolve_within_base(
         )
     return resolved_path, base_dir
 
-def validate_input_path(user_path: str | Path, base_dir: Path| None = None) -> Path:
+
+def validate_input_path(user_path: str | Path, base_dir: Path | None = None) -> Path:
     """validate path about to read from"""
-    resolved_path, _=_resolve_within_base(user_path, base_dir)
+    resolved_path, _ = _resolve_within_base(user_path, base_dir)
     if not resolved_path.is_file():
         raise ValueError(f"input path not exist or isn't a file: '{resolved_path}")
     return resolved_path
 
-def validate_output_path(user_path: str | Path, base_dir: Path| None = None) -> Path:
+
+def validate_output_path(user_path: str | Path, base_dir: Path | None = None) -> Path:
     """validate path about to write to"""
-    resolved_path, _=_resolve_within_base(user_path, base_dir)
+    resolved_path, _ = _resolve_within_base(user_path, base_dir)
     resolved_path.parent.mkdir(parents=True, exist_ok=True)
     return resolved_path
 
@@ -452,13 +453,17 @@ def main() -> None:
     ap.add_argument("--max-gap-km", type=float, default=5.0)
     ap.add_argument("--max-gap-days", type=float, default=4.0)
     ap.add_argument("--out", default="ignition_dataset.npz")
-    ap.add_argument("--base-dir", default=None, help="Dir all --csv/--manifest/--out paths resolved",)
+    ap.add_argument(
+        "--base-dir",
+        default=None,
+        help="Dir all --csv/--manifest/--out paths resolved",
+    )
     args = ap.parse_args()
 
     base_dir = Path(args.base_dir).resolve() if args.base_dir else Path.cwd().resolve()
 
-    csv_path = validate_input_path(args.csv, base_dir)# NOSONAR
-    manifest_path = validate_input_path(args.manifest, base_dir)# NOSONAR
+    csv_path = validate_input_path(args.csv, base_dir)  # NOSONAR
+    manifest_path = validate_input_path(args.manifest, base_dir)  # NOSONAR
 
     if args.weather == "historical":
         weather_provider = OpenMeteoWeatherProvider()
@@ -536,7 +541,7 @@ def main() -> None:
     np.savez_compressed(out_path, X=x_matrix, y=y_vector, fire_ids=fire_ids_out)
 
     meta_path = validate_output_path(out_path.with_suffix(".meta.json"), base_dir)
-    meta_path.write_text( # NOSONAR
+    meta_path.write_text(  # NOSONAR
         json.dumps(
             {
                 "source_csv": str(csv_path),
