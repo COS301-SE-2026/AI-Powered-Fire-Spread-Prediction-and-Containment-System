@@ -13,8 +13,8 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Blue-green deploy to EC2
-              uses: appleboy/ssh-action@dce0646e6d1b67e9af2846905c1e9622b06d9fe5
+            - name: Deploy to EC2
+              uses: appleboy/ssh-action@v1.0.3
               with:
                 host: ${{ secrets.EC2_HOST }}
                 username: ${{ secrets.EC2_USER }}
