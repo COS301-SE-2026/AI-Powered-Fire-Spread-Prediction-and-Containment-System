@@ -21,6 +21,7 @@ import { Alerts } from '../components/brandStyle/componentsAlert';
 import { Table } from '../components/brandStyle/componentsTable';
 import { SearchBarComponents } from '../components/brandStyle/componentSearchBar';
 import { DesignTokenTable } from '../components/brandStyle/StyleTokens';
+import VoiceAndToneSection from '../components/brandStyle/VoiceAndTone';
 
 // brand colours
 const primary: ColourToken = { name: "Primary - Ignite", hex: "#FF4904 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
@@ -239,33 +240,8 @@ export default function StyleGuidePage() {
           </section>
 
           <section id="voice" className="mb-10 scroll-mt-8">
-            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Voice</h2>
-              The voice of the project is a calm expert, who is firm and direct, but not cold. The voice is a trained proffessional who 
-              is familiar with fires and can lead the user throughout the application. The user's time is respected. The confidence should
-              come through without arragance tainting the voice. 
-              Avoid fluff, excessive excitedness and unnecessary jargon. Calmly make your point and make the user feel confident in their
-              decisions that they are making on the platform.
-
-            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Tone</h2>
-                Button Labels:  Use verbs as button lables. 
-                                Name the result that will be achieved once a button is clicked.
-
-                Error Messages:   Do not only say "error" or "something went wrong", expalain clearly what the error is. 
-                                  Do not use scary language where it is not necessary.
-
-                Active-incident errors: During a live fire alert, do not let the user know of anything except the error and how to fix it.
-
-                Empty States: Mention what the space is for, why it is currently empty and what action the user can perform to fill it.
-
-                Context:
-                  Active Fire Alert - Urgent, straight forward, action based.
-                  Prediction and analysis dashboard - Measured, exact, confident but not arrogant. The data should make the decisions
-                  System error - Honest and specific. What is missing and what needs to be done in this situation
-                  Training for the system - Respectful and patient, “stay human”. Acknowledge the dangers without alarming unnecessarily.
-                  Post-incident reports - Fact-based documentation style. The losses are reported here, so it has to be sober and respectful towards victims.
-                  Community-facing - Warm. Show humanity, plain language without unnecessary technical jargon. 
-
-
+            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Voice and Tone</h2>
+            <VoiceAndToneSection />
           </section>
 
           <section id="principles" className="mb-10 scroll-mt-8">
