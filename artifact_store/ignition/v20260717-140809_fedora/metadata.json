@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "features": [
+    "wind_u",
+    "wind_v",
+    "rel_humidity",
+    "temperature",
+    "elevation",
+    "slope",
+    "aspect_sin",
+    "aspect_cos",
+    "fuel_load",
+    "dryness",
+    "n_burning_neighbours",
+    "upwind_burning",
+    "downslope_burning",
+    "dist_to_fire"
+  ],
+  "data_source": "synthetic",
+  "device": "cpu",
+  "seed": 0,
+  "val_fires": [
+    2,
+    3,
+    4,
+    11,
+    23,
+    24,
+    27,
+    34
+  ],
+  "best_iteration": 116,
+  "val_aucpr": 0.8702089600655001,
+  "xgboost_version": "3.3.0",
+  "version": "v20260717-140809_fedora",
+  "hostname": "fedora",
+  "gpu": "none/cpu",
+  "published_utc": "2026-07-17T14:08:09.958396+00:00"
+}
