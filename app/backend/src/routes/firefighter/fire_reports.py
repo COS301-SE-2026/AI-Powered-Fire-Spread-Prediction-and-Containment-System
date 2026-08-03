@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
+from db import get_db
 from schemas.firefighter_reports import (
     FirefighterReportModal,
     FirefighterReportTable,

@@ -41,7 +41,7 @@ services:
       dockerfile: Dockerfile
     container_name: python-backend
     environment:
-      - PYTHONPATH=/app/src:/
+      - PYTHONPATH=/app/src:/app
     restart: unless-stopped
     env_file:
       - .env

@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from app.backend.db import Base
+from db import Base
 from enums.audit_action import AuditAction
 
 
