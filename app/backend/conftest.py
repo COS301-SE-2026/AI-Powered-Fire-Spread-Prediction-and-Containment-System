@@ -1,4 +1,4 @@
-from tests.conftest import (
+from testing.conftest import (
     client,
     create_tables,
     db,
