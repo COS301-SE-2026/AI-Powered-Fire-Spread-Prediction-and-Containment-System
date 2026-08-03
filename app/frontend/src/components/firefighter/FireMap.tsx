@@ -1,8 +1,10 @@
 "use client";
 import 'mapbox-gl/dist/mapbox-gl.css'
-import React, { useEffect, useState, useRef } from 'react';
+import circle from '@turf/circle';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import { Prediction } from './useSimulation';
 
 interface FireReport{
     ref: string;
@@ -21,9 +23,14 @@ interface MapProps{
     drawMode: boolean;
     onDrawComplete: (line: string) => void;
     clearDrawings: number;
+    burnGrid?: number[] | null;
+    burnGridH?: number;
+    burnGridW?: number;
+    predictions?: Prediction[];
+    currentTick?: number;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -93,14 +100,38 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
         setViewState(v => ({...v, longitude: lng, latitude:lat}));
     },[lat,lng]);
 
-    const circleFeatures = fires.filter(f => f.size != null && f.size > 0)
-    .map(f => ({
-        type: 'Feature' as const,
-        geometry: {type : 'Point' as const, coordinates: [f.lng, f.lat]},
-        properties: { radius: f.size*1000 }
-    }));
+    const circleFeatures = useMemo(() => {
+        return fires.filter(f => f.size != null && f.size > 0).map(f => circle([f.lng, f.lat], f.size, {
+            steps: 64,
+            units: 'kilometers',
+            properties: {ref: f.ref}
+        }));
+    }, [fires])
 
-    console.log(fires)
+    const simulationCircle = useMemo(() => {
+        if (!predictions?.length) return [];
+
+        // ~185 m cells: 0.05 degrees across a 30-cell grid
+        const cellM = (0.05 / 30) * 111320;
+
+        return predictions
+            .map(p => {
+                const grid = p.history[currentTick];
+                if (!grid) return null;
+                const cells = grid.filter(c => c === 1 || c === 2).length;
+                if (cells === 0) return null;
+
+                const radiusKm = Math.sqrt(cells * cellM * cellM / Math.PI) / 1000;
+                return circle([p.lng, p.lat], radiusKm, {
+                    steps: 64,
+                    units: 'kilometers',
+                    properties: { ref: p.ref },
+                });
+            })
+            .filter(Boolean);
+    }, [predictions, currentTick]);
+
+
 
     return (
         <Map
@@ -133,27 +164,49 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings}: Map
                   }}
                   >
                       <Layer 
-                          id="fire-radius"
-                          type="circle"
+                          id="fire-radius-fill"
+                          type="fill"
                           paint={{
-                          'circle-color': '#ff4500',
-                          'circle-opacity': 0.25,
-                          'circle-stroke-color': '#ff4500',
-                          'circle-stroke-width': 1,
-                          'circle-radius': [
-                              'interpolate',
-                              ['linear'],
-                              ['zoom'],
-                              0, 0,
-                              8, ['*', ['get', 'radius'], 0.05],
-                              12, ['*', ['get', 'radius'], 0.1],
-                              16, ['*', ['get', 'radius'], 0.2],
-                              20, ['*', ['get', 'radius'], 0.5]
-                          ]
+                            'fill-color': '#ff4500',
+                            'fill-opacity': 0.25,
+                          }}
+                      />
+
+                      <Layer 
+                          id="fire-radius-outline"
+                          type="line"
+                          paint={{
+                            'line-color': '#ff4500',
+                            'line-width': 1,
                           }}
                       />
                   </Source>
 
+          )}
+
+          {simulationCircle.length > 0 && (
+            <Source id="simulation-circle" type="geojson" data={{type: 'FeatureCollection', features: simulationCircle}}>
+                <Layer
+                    id="simulation-fill"
+                    type="fill"
+                    paint={{
+                        'fill-color': '#ffd54f',
+                        'fill-opacity': 0.18,
+                    }}
+                > 
+                </Layer>
+
+                <Layer
+                    id="simulation-outline"
+                    type="line"
+                    paint={{
+                        'line-color': '#ffc107',
+                        'line-width': 1,
+                        "line-dasharray": [2,2]
+                    }}
+                > 
+                </Layer>
+            </Source>
           )}
 
             {selectedFire && (

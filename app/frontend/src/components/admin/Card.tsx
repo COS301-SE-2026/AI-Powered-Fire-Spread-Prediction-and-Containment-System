@@ -7,8 +7,8 @@ interface CardProps {
 
 export function Card({ title, children }: CardProps) {
     return (
-        <div className="card bg-carbon-side/60 border border-carbon-card shadow-xl">
-            <div className="card-body">
+        <div className="card bg-carbon-side/60 border border-carbon-card">
+            <div className="card-body pt-3 mb-2">
                 <h2>{title}</h2>
                 {children}
             </div>

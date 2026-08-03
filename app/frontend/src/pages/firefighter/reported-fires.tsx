@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Report, ReportStatus } from "../../types/firefighter";
-import { SideBarLayout } from '../../components/demoSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
 import { TableSearchBar } from '../../components/firefighter/searchbar';
@@ -30,7 +30,7 @@ export default function ReportTable() {
     useEffect(() => {
         const fetchRequest = async() => {
             const url = debouncedSearch ? `/api/firefighter/reported-fires/search?key=${encodeURIComponent(debouncedSearch)}` : `/api/firefighter/reported-fires`
-            
+
             try{
                 const resp = await fetch(url);
                 if(!resp.ok){
@@ -40,12 +40,12 @@ export default function ReportTable() {
                         console.warn("API unavailiable")
                         setRequest([]);
                     }
-                    
+
                     return;
                 }
                 const data = await resp.json();
                 setRequest(data.data ?? []);
-                
+
             } catch(error){
                     console.error("failed to find value requested", error)
                     setRequest([]);
@@ -53,25 +53,25 @@ export default function ReportTable() {
         };
             fetchRequest();
     }, [debouncedSearch]);
-    
+
 
     return (
-        <SideBarLayout>
+        <FirefighterSideBar>
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
                             <header className="mb-6">
-                                <h1 className="text-page-title font-display font-bold tracking-wider text-neutral uppercase">Reported Fires</h1>
-                                <p className="font-body text-body text-neutral/50">View the reported fires</p>
+                                <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">Reported Fires</h1>
+                                <p className="font-body text-body text-text-primary/50">View the reported fires</p>
                             </header>
                             {/* Header + filter + search */}
                             <div className="flex justify-between items-center">
-                                    <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>  
-                                
+                                    <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>
+
                                     <TableSearchBar value={searchKey} onChange={setSearchKey}/>
                             </div>
 
                             {/* table */}
-                            <ReportsTable requests={request} filter={statusFilter} onView={(req) => console.log(req)}/>       
+                            <ReportsTable requests={request} filter={statusFilter} onView={(req) => console.log(req)}/>
                         </div>
-        </SideBarLayout>
+        </FirefighterSideBar>
     )
 }

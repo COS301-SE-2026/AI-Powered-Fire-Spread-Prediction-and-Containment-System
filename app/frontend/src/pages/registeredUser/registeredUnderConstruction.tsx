@@ -1,10 +1,10 @@
-import { SidebarLayout } from "../../components/users/sidebar";
+import { UserSideBar } from "../../components/users/usersSidebar";
 import { UnderConstruction } from "../../components/underConstruction";
 
 export default function RegisteredUnderConstruction(){
     return(
-        <SidebarLayout>
+        <UserSideBar>
             <UnderConstruction/>
-        </SidebarLayout>
+        </UserSideBar>
     );
 }
