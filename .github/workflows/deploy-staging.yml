@@ -27,8 +27,8 @@ jobs:
                     cp /home/ubuntu/app/app/frontend/src/Dockerfile app/frontend/src/Dockerfile
                     cp /home/ubuntu/app/app/frontend/src/package.json app/frontend/src/package.json
                     cp /home/ubuntu/app/app/frontend/src/tsconfig.json app/frontend/src/tsconfig.json
-                    cp /home/ubuntu/app/docker-compose.yml docker-compose.yml
                     docker compose -p staging -f docker-compose.yml -f docker-compose.staging.yml down
+                    docker rmi staging-frontend staging-backend 2>/dev/null || true
                     docker compose -p staging -f docker-compose.yml -f docker-compose.staging.yml up -d --build
                     docker network disconnect staging_default caddy 2>/dev/null || true
                     docker network connect staging_default caddy
