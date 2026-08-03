@@ -13,7 +13,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from db import Base
+from app.backend.db import Base
 from enums.report_status import ReportStatus
 
 

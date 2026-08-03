@@ -7,7 +7,7 @@ from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from auth import ALGORITHM, SECRET_KEY
-from db import get_db
+from app.backend.db import get_db
 from enums.user_role import UserRole
 from models.users import User
 

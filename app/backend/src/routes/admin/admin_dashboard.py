@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db import get_db
+from app.backend.db import get_db
 from enums.report_status import ReportStatus
 from enums.role_request_status import RequestStatus
 from models.reported_fires import FireReports

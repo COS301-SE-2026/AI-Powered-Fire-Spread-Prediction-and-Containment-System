@@ -23,9 +23,9 @@ sys.path.insert(0, str(root / "app" / "ml"))
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
-from auth import hash_password
-from db import Base, get_db
-from main import app
+from app.backend.auth import hash_password
+from app.backend.db import Base, get_db
+from app.backend.main import app
 
 # models for the firefighter dashboard
 from models.containment_lines import ContainmentLines
@@ -34,7 +34,7 @@ from models.role_request import RoleRequest
 from models.users import User
 
 # seed data
-from seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
+from app.backend.seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"

@@ -10,7 +10,7 @@ Covers every endpoint in app/routers/admin.py:
 
 import uuid
 
-from conftest import make_role_request, make_user
+from app.backend.tests.conftest import make_role_request, make_user
 
 
 # ---------------------------------------------------------------------------

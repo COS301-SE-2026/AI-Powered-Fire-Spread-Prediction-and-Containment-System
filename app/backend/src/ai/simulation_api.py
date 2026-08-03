@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db import get_db
+from app.backend.db import get_db
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
