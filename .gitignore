@@ -50,3 +50,5 @@ app/datasets/raw_data/*
 app/datasets/raw_data/*
 !app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv
 app/datasets/processed/
+
+--out
