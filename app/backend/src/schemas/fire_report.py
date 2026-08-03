@@ -1,40 +1,45 @@
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, Field
+
 from enums.report_status import ReportStatus
 
+
 class FireReportCreate(BaseModel):
-    lat: float = Field(...,ge=-90, le=90)
-    lng: float = Field(...,ge=-180, le=180)
-    location_text:str = Field(..., min_length=3, max_length=255)
-    description:Optional[str] = Field(default=None, max_length=1000)
-    image_url: str  # Stores a minio object_key returned from POST /api/uploads/images. Not a public url, resolved to short-lived presigned url on read
+    lat: float = Field(..., ge=-90, le=90)
+    lng: float = Field(..., ge=-180, le=180)
+    location_text: str = Field(..., min_length=3, max_length=255)
+    description: Optional[str] = Field(default=None, max_length=1000)
+    image_url: Optional[str] = None
     boundary_radius: float = Field(..., gt=0, le=50)
 
+
 class FireReportMapResponse(BaseModel):
-    id:str
-    reference_number:str
+    id: str
+    reference_number: str
     lat: float
     lng: float
-    location_text:str
-    status:ReportStatus
+    location_text: str
+    status: ReportStatus
     boundary_radius: float
     size: float
-    submitted_at:datetime
+    submitted_at: datetime
     reporter_name: Optional[str] = None
 
     class Config:
         from_attributes = True
 
+
 class FireReportDetailResponse(BaseModel):
-    id:str
-    reference_number:str
+    id: str
+    reference_number: str
     lat: float
     lng: float
-    location_text:str
-    description:Optional[str] = None
+    location_text: str
+    description: Optional[str] = None
     image_url: str
-    status:ReportStatus
+    status: ReportStatus
     boundary_radius: float
     size: float
     submitted_at: datetime

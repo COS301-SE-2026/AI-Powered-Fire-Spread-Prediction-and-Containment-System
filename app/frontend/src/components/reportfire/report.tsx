@@ -1,75 +1,129 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import React, { useState, useEffect, useReducer, useRef } from "react";
 import StepIndicator from "./Stepindicator";
-import MapKey from "./Mapkey";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
-
-const FireMap = dynamic(
-  () => import("./Firemap").then((mod) => mod.FireMap),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="flex-1 flex items-center justify-center bg-carbon-side/20 animate-pulse h-full w-full">
-        <span className="text-neutral/40 font-display tracking-widest text-sm uppercase">
-          Loading...
-        </span>
-      </div>
-    ),
-  }
-);
-
-const STEPS = [
-  { label: "Drop a pin on the map" },
-  { label: "Drag boundary ring to show size" },
-  { label: "Add details and submit" },
-];
+import { FireMap } from "../DynamicUserMap"
+import { Alert } from "../Alerts";
+import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
+import type { FireReport } from "../../types/report";
 
 type SubmitState = "idle" | "loading" | "error";
 
+interface FormStateProps {
+  activeStep: number;
+  location: string;
+  boundarySize: number;
+  externalPin: { lng: number; lat: number } | null;
+  mapKey: number;
+  submitState: SubmitState;
+  submitError: string | null;
+}
+
+const initialFormState: FormStateProps = {
+  activeStep: 0,
+  location: LOCATION_PLACEHOLDER,
+  boundarySize: 0.2,
+  externalPin: null,
+  mapKey: 0,
+  submitState: "idle",
+  submitError: null,
+};
+
+interface SetBoundarySizeAction {
+  type: "SET_BOUNDARY_SIZE";
+  value: number;
+}
+
+interface SetLocationAction {
+  type: "SET_LOCATION";
+  address:string;
+  pin: { lng: number; lat: number };
+}
+
+interface SubmitStartAction {
+  type: "SUBMIT_START";
+}
+
+interface SubmitErrorAction {
+  type: "SUBMIT_ERROR";
+  message: string;
+}
+
+interface SubmitSuccessResetAction {
+  type: "SUBMIT_SUCCESS_RESET";
+}
+
+type FormAction = | SetBoundarySizeAction | SetLocationAction | SubmitStartAction | SubmitErrorAction | SubmitSuccessResetAction;
+
+function formReducer(state: FormStateProps, action: FormAction): FormStateProps {
+  switch (action.type) {
+    case "SET_BOUNDARY_SIZE":
+      return {
+        ...state,
+        boundarySize: action.value,
+        activeStep: Math.max(state.activeStep, 1),
+      };
+    case "SET_LOCATION":
+      return {
+        ...state,
+        location: action.address,
+        externalPin: action.pin,
+        activeStep: Math.max(state.activeStep, 1),
+      };
+    case "SUBMIT_START":
+      return {...state, submitState: "loading", submitError: null };
+    case "SUBMIT_ERROR":
+      return {...state, submitState: "error", submitError: action.message };
+    case "SUBMIT_SUCCESS_RESET":
+      return {...initialFormState, mapKey: state.mapKey + 1 };
+    default:
+      return state;
+  }
+}
+
 export default function ReportPage() {
-  const [activeStep, setActiveStep]     = useState(0);
-  const [location, setLocation]         = useState("Click the map to drop a pin");
-  const [boundarySize, setBoundarySize] = useState(200);
-  const [statusIndex, setStatusIndex]   = useState(-1);
-  const [mapKey, setMapKey]             = useState(0);
+  const [form, dispatch] = useReducer(formReducer, initialFormState);
+  const statusIndexRef = useRef(-1);
   const [activeRefNum, setActiveRefNum] = useState("");
-  const [externalPin, setExternalPin]   = useState<{ lng: number; lat: number } | null>(null);
-  const [fireReports, setFireReports]   = useState<any[]>([]);
-  const [submitState, setSubmitState]   = useState<SubmitState>("idle");
-  const [submitError, setSubmitError]   = useState<string | null>(null);
+  const [reports, setReports] = useState<FireReport[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     fetch(`/api/users/reported-fires`)
-      .then(res => res.json())
-      .then(data => setFireReports(data))
-      .catch(err => console.error('Failed to fetch reports', err));
-  }, []);
+        .then((res) => res.json())
+        .then((data: FireReport[]) => {
+          if (cancelled) { return };
+            const sorted = [...data].sort(
+                (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+            );
+            setReports(sorted);
+        })
+        .catch((err) => {
+          if (!cancelled) console.error("Failed to fetch reports", err);
+        });
+      return () => {
+        cancelled = true;
+      };
+  }, [activeRefNum]);
 
   function handleBoundarySizeChange(value: number) {
-    setBoundarySize(value);
-    if (activeStep < 1) setActiveStep(1);
+    dispatch({ type: "SET_BOUNDARY_SIZE", value});
   }
 
-  function handleLocationSelect(loc: { lat: number; lng: number; address: string }) {
-    setLocation(loc.address);
-    setExternalPin({ lng: loc.lng, lat: loc.lat });
-    setActiveStep((prev) => Math.max(prev, 1));
+  function handleLocationSelect(loc: {lat: number; lng: number; address: string} ) {
+    dispatch({ type: "SET_LOCATION", address: loc.address, pin: { lng: loc.lng, lat: loc.lat }});
   }
 
-  function handleLocationSearch(loc: { lat: number; lng: number; address: string }) {
-    setLocation(loc.address);
-    setActiveStep((prev) => Math.max(prev, 1));
-    setExternalPin({ lng: loc.lng, lat: loc.lat });
+  function handleLocationSearch(loc: {lat: number; lng: number; address: string} ) {
+    dispatch({ type: "SET_LOCATION", address: loc.address, pin: { lng: loc.lng, lat: loc.lat }});
   }
 
   async function handleSubmit(data: ReportFormData) {
-    setSubmitState("loading");
-    setSubmitError(null);
+    dispatch({ type: "SUBMIT_START" });
     try {
-      let imageUrl = "";
+      let imageUrl: string | undefined = undefined;
 
       if (data.photo){  // upload image first if one was attatched
         const formData = new FormData();
@@ -95,88 +149,87 @@ export default function ReportPage() {
           location_text: data.location,
           description: data.description,
           image_url: imageUrl,
-          lat: externalPin?.lat ?? 0,
-          lng: externalPin?.lng ?? 0,
-          boundary_radius: boundarySize,
+          lat: form.externalPin?.lat ?? 0,
+          lng: form.externalPin?.lng ?? 0,
+          boundary_radius: form.boundarySize,
         }),
       });
+
+      if (!res.ok) {
+        throw new Error("Failed to submit report");
+      }
+
       const report = await res.json();
       setActiveRefNum(report.reference_number);
-      setStatusIndex(0);
-      setActiveStep(2);
-      setSubmitState("idle");
+      statusIndexRef.current = 0;
+
       setTimeout(() => {
-        setActiveStep(0);
-        setLocation('Click the map to drop a pin');
-        setBoundarySize(2);
-        setExternalPin(null);
-        setMapKey((k) => k + 1);
+        dispatch({ type: "SUBMIT_SUCCESS_RESET" });
       }, 1000);
     } catch (err) {
       console.error('Failed to submit report', err);
-      setSubmitState("error");
-      setSubmitError("Failed to submit report. Please try again.");
+      dispatch({ type: "SUBMIT_ERROR", message: "Failed to submit report. Please try again." });
     }
   }
 
   return (
-      <div className="flex flex-col p-6">
-        <header className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-neutral uppercase">
-              Report a fire
-            </h1>
+      <div className="flex flex-col p-2">
+        <header className="mb-4">
+            <h1 className="uppercase">Report a fire</h1>
             <div className="mt-2">
-              <StepIndicator steps={STEPS} />
+              <StepIndicator />
             </div>
-          </div>
         </header>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
 
           {/* Left Column */}
           <div className="xl:col-span-8 flex flex-col gap-4">
-            <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-[480px]">
-              <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                <span className="font-bold text-m tracking-wide text-neutral/80 uppercase font-display">
+            <div className="rounded-lg bg-carbon-side border border-carbon-stroke flex flex-col overflow-hidden h-150">
+              <div className="p-4 border-b border-carbon-card">
+                <span className="font-display font-bold tracking-wide uppercase text-lg">
                   Live Map
                 </span>
               </div>
-              <div className="flex-1 w-full h-full pt-[53px]">
+              <div className="flex-1 w-full">
                 <FireMap
-                  key={mapKey}
-                  externalPin={externalPin}
+                  key={form.mapKey}
+                  externalPin={form.externalPin}
                   onLocationSelect={handleLocationSelect}
                   onBoundarySizeChange={handleBoundarySizeChange}
-                  fireReports={fireReports}
                 />
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <h2 className="text-xs font-bold tracking-widest text-neutral/50 uppercase mb-3">
-                Map Legend
-              </h2>
-              <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm p-4 shadow-xl">
-                <MapKey />
               </div>
             </div>
           </div>
 
           {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-3" style={{ maxHeight: '100%' }}>
-            <div
-              className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card p-5 shadow-2xl flex flex-col gap-5 overflow-y-auto"
-              style={{ maxHeight: 'calc(480px + 1rem + 155px)' }}
-            >
+          <div className="xl:col-span-4 flex flex-col gap-3">
+            <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
               <ReportDetailsForm
-                location={location}
+                location={form.location}
                 onSubmit={handleSubmit}
                 onLocationSearch={handleLocationSearch}
               />
-              <div className="border-t border-white/5 pt-4">
-                <ReportStatus activeIndex={statusIndex} currentRef={activeRefNum} />
+            </div>
+
+            <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
+              <h4 className = "mb-2">Report status</h4>
+              {form.submitState === "error" && form.submitError && <Alert variant="error" message={form.submitError} />}
+
+              {reports.length == 0 ? (
+                <p className="text-sm text-neutural">No reports submitted yet.</p>
+              ) : (
+                <div className="flex flex-col gap-3 max-h-15 overflow-y-auto">
+                {reports.map((report) => (
+                    <ReportStatus
+                        key={report.id}
+                        status={report.status}
+                        refNumber={report.reference_number}
+                        locationText={report.location_text}
+                    />
+                ))}
               </div>
+              )}
             </div>
           </div>
 

@@ -1,12 +1,32 @@
 import { test, expect } from '@playwright/test';
 
-test('Analytics e2e tests, check visibility of all components', async ({ page }) => {
-  await page.goto('/admin/analytics');
-  await expect(page.getByText('Total Users20')).toBeVisible();
-  await expect(page.getByText('Pending Role Requests7')).toBeVisible();
-  await expect(page.getByText('Total Firefighters5')).toBeVisible();
-  await expect(page.getByText('Total Admins3')).toBeVisible();
+test('test', async ({ page }) => {
+  await page.goto('http://localhost:3000/');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByRole('textbox', { name: 'Email' }).click();
+  await page.getByRole('textbox', { name: 'Email' }).fill('sipho.n@fireaway.co.za');
+  await page.getByRole('textbox', { name: 'Password' }).click();
+  await page.getByRole('textbox', { name: 'Password' }).fill('Password123!');
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.locator('aside').hover();
+  await page.getByRole('link', { name: 'Analytics' }).click();  
+  await expect(page.getByRole('heading', { name: 'Admin Analytics' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Total Users' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pending Role Requests' }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Total Firefighters' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Total Admins' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Pending Role Requests' }).nth(1)).toBeVisible();
+  await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Manage all' })).toBeVisible();
   await page.getByRole('link', { name: 'Manage all' }).click();
   await expect(page.getByRole('heading', { name: 'Role Approvals' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'All' })).toBeVisible();
+  await page.getByRole('button', { name: 'pending' }).click();
+  await expect(page.getByText('pending').nth(1)).toBeVisible();
+  await page.getByRole('button', { name: 'approved' }).click();
+  await expect(page.getByText('approved').nth(1)).toBeVisible();
+  await page.getByRole('button', { name: 'rejected' }).click();
+  await expect(page.getByText('rejected').nth(1)).toBeVisible();
+  await page.getByRole('button', { name: 'revoked' }).click();
+  await expect(page.getByText('revoked').nth(1)).toBeVisible();
 });

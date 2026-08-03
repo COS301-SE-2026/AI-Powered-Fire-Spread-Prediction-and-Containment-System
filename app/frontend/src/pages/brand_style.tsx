@@ -1,5 +1,3 @@
-import Logo from '../components/brandStyle/Logos';
-import Components from '../components/brandStyle/Components';
 import Accessibility from '../components/brandStyle/Accessability';
 import DesignPrinciples from '../components/brandStyle/DesignPrinciples';
 import StyleGuideNav from "../components/brandStyle/navStyle";
@@ -8,9 +6,26 @@ import { ColourCard, ColourToken } from '../components/brandStyle/colourCard';
 import { ColourPairTable, ColourPairRow } from '../components/brandStyle/colourTable';
 import { TypoCard, TypoFamily } from '../components/brandStyle/typoCard';
 import { TypoTable } from '../components/brandStyle/typoTable';
+import { LogoGrid } from '../components/brandStyle/logoGrid';
+import { IconGrid } from '../components/brandStyle/iconGrid';
+import { RulesTable } from '../components/brandStyle/rulesTable';
+import { ButtonComponents } from '../components/brandStyle/componentsButton';
+import { Input } from '../components/brandStyle/componentsInput';
+import { Checkbox } from '../components/brandStyle/componentsCheckbox';
+import { Range } from '../components/brandStyle/componentsRange';
+import { EnvironmentCards, ActionCards, NearbyReport, MapOverlay } from '../components/brandStyle/componentsFirefighter';
+import { Toasts } from '../components/brandStyle/componentsToasts';
+import { StatusBadges } from '../components/brandStyle/componentsStatus';
+import { StatusCard } from '../components/brandStyle/componentReportStatus';
+import { Alerts } from '../components/brandStyle/componentsAlert';
+import { Table } from '../components/brandStyle/componentsTable';
+import { SearchBarComponents } from '../components/brandStyle/componentSearchBar';
+import LayoutSpacing from "../components/brandStyle/LayoutSpacing";
+import { DesignTokenTable } from '../components/brandStyle/StyleTokens';
+import VoiceAndToneSection from '../components/brandStyle/VoiceAndTone';
 
 // brand colours
-const primary: ColourToken = { name: "Primary - Ignite", hex: "#FD5D19 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
+const primary: ColourToken = { name: "Primary - Ignite", hex: "#FF4904 ", usage: "Buttons, links, active states", reason: "We chose this saturated orange because it reminds us of the flames. We call it Ignite (the moment a flame catches). It demands attention, which is exactly the role this colour plays in the interface. The primary colour needs to feel urgent, the same reaction for a real flame.", textColour: "#ffffff" };
 const secondary: ColourToken = { name: "Secondary - Glow", hex: "#FE8024", usage: "Secondary actions, deep accents", reason: "We chose this colour by staying in the same warm-orange family as Primary rather than introducing a new hue. We call it Glow (the softer light a fire casts outward). Secondary actions doesn't compete for attention.", textColour: "#ffffff"  };
 const accent: ColourToken = { name: "Accent - Torch", hex: "#FCBA3E", usage: "Highlights, callouts", reason: "We chose this colour because it needed to be different enough from Primary to draw attention on its own. We call it Torch (the brightest part of a flame). It is used to guide attention the way an actual torch would.", textColour: "#ffffff"  };
 
@@ -18,7 +33,7 @@ const accent: ColourToken = { name: "Accent - Torch", hex: "#FCBA3E", usage: "Hi
 const info: ColourToken = { name: "Info", hex: "#378ADD", usage: "Informational messages, wind data", reason: "We chose this cool blue for informational content. Blue feels calm and doesn't feel alarming.", textColour: "#000000" };
 const success: ColourToken = { name: "Success", hex: "#1D9E75", usage: "Confirmations, humidity data", reason: "We chose green as the one colour with no relationship to fire. It is universally understood as go or good or success across cultures.", textColour: "#000000"  };
 const warning: ColourToken = { name: "Warning", hex: "#FFAA00", usage: "Caution, pending states", reason: "We chose this gold-yellow, visually the step where a flame is smouldering and could still go either way. Warning is less urgent than an error.", textColour: "#000000"  };
-const error: ColourToken = { name: "Error", hex: "#E84500", usage: "Errors, destructive actions", reason: "We chose a dedicated red to represent fire turning dangerous (past urgent into stop). Red is also the most universally understood danger colour, which menase it's a real fire risk.", textColour: "#000000" };
+const error: ColourToken = { name: "Error", hex: "#eb2a2b", usage: "Errors, destructive actions", reason: "We chose a dedicated red to represent fire turning dangerous (past urgent into stop). Red is also the most universally understood danger colour, which menase it's a real fire risk.", textColour: "#000000" };
 
 // surface colors
 const page: ColourToken = { name: "Page - Char", hex: "#080B12", usage: "Page canvas background", reason: "We chose a near-black rather than true black so the background has a very slight warmth, simmilar to the night sky. We called it Char (what's left in the dark once the fire's glow has faded). It is in contrast with the fire colours, the way embers stand out against a dark night.", textColour: "#ffffff" };
@@ -42,7 +57,7 @@ const monoFont: TypoFamily = { font: "font-mono", weight: "font-normal", name: "
 export default function StyleGuidePage() {
   return (
     <div className="min-h-screen bg-base-100 flex">
-    
+
     {/* background */}
       <div className="global-atmos">
         <div className="ga-bloom-primary" />
@@ -96,7 +111,10 @@ export default function StyleGuidePage() {
                 <ColourCard colour={textDisabled} />
                 <ColourCard colour={textInverse} />
               </ColourGroup>
+            </section>
 
+            <section id="colourpairs" className="mb-10 scroll-mt-8">
+              <h3 className="mb-4">Colour Contrast Pairs</h3>
               <ColourPairTable>
                 <ColourPairRow pair={{ label: "Text Primary on Page", fg: textPrimary.hex, bg: page.hex, ratio: 19.6 }} />
                 <ColourPairRow pair={{ label: "Text Muted on Page", fg: textMuted.hex, bg: page.hex, ratio: 8.5 }} />
@@ -109,12 +127,16 @@ export default function StyleGuidePage() {
                 <ColourPairRow pair={{ label: "Success on Page", fg: success.hex, bg: page.hex, ratio: 7.5 }} />
                 <ColourPairRow pair={{ label: "Info on Page", fg: info.hex, bg: page.hex, ratio: 9.5 }} />
 
-
                 <ColourPairRow pair={{ label: "Text Primary on Primary", fg: textPrimary.hex, bg: primary.hex, ratio: 3.1  }} />
                 <ColourPairRow pair={{ label: "Text Primary on Sidebar", fg: textPrimary.hex, bg: sidebar.hex, ratio: 19.1  }} />
                 <ColourPairRow pair={{ label: "Text Primary on Card", fg: textPrimary.hex, bg: card.hex, ratio: 18.3  }} />
                 <ColourPairRow pair={{ label: "Text Primary on Input", fg: textPrimary.hex, bg: input.hex, ratio: 17.3  }} />
                 <ColourPairRow pair={{ label: "Text Primary on Elevated", fg: textPrimary.hex, bg: elevated.hex, ratio: 17.1 }} />
+
+                <ColourPairRow pair={{ label: "Primary on Sidebar", fg: primary.hex, bg: sidebar.hex, ratio: 6.1 }} />
+                <ColourPairRow pair={{ label: "Primary on Card", fg: primary.hex, bg: card.hex, ratio: 5.9 }} />
+                <ColourPairRow pair={{ label: "Primary on Input", fg: primary.hex, bg: input.hex, ratio: 5.5 }} />
+                <ColourPairRow pair={{ label: "Primary on Elevated", fg: primary.hex, bg: elevated.hex, ratio: 5.5 }} />
 
                 <ColourPairRow pair={{ label: "Text Muted on Sidebar", fg: textMuted.hex, bg: sidebar.hex, ratio: 8.5 }} />
                 <ColourPairRow pair={{ label: "Text Muted on Card", fg: textMuted.hex, bg: card.hex, ratio: 8 }} />
@@ -133,7 +155,7 @@ export default function StyleGuidePage() {
 
           <section id="typography" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Typography</h2>
-            
+
             <div className="flex flex-col gap-8">
               <div className="grid grid-cols-3 gap-4">
                 <TypoCard data={displayFont}/>
@@ -146,12 +168,73 @@ export default function StyleGuidePage() {
 
           <section id="logo" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Logo & Iconography</h2>
-            <Logo />
+            <div className="flex flex-col gap-8">
+              <LogoGrid />
+              <IconGrid />
+              <RulesTable title="Sizing and placement rules" variant="default"
+                rules={[
+                  'Place on dark backgrounds (carbon-side or darker)',
+                  'Only show icons when sidebar is collapsed',
+                  'Full logo: minimum width 120px',
+                  'Monograp logo: minimum size 40x40px',
+                ]}
+                />
+              <RulesTable title="Clear-space rules" variant="default"
+                rules={[
+                  "Logo: clear space on all sides equals the height of the logo's flame (1 unit)",
+                  'Logo: clear space gets recalculated whenever it is resized.',
+                  'Icons: minimum 8px padding on all sides when placed inside buttons, cards, or nav items',
+                  'Icons: minimum 4px gap between an icon and adjacent text or another icon',
+                ]}
+                />
+                <RulesTable title="Icons sizing & stroke rules" variant="default"
+                rules={[
+                  'Default icon size: 24x24px, stroke weight 2',
+                  'Small/inline icons: 14-16px, stroke weight 2',
+                  'Navigation icons (sidebar): 20-24px, stroke weight 2',
+                  'Never mix stroke weights within the same view',
+                ]}
+                />
+                <RulesTable title="Don'ts" variant="default"
+                rules={[
+                  "Don't stretch or distort the logo's proportions",
+                  "Don't recolour the logo outside approved variants",
+                  "Don't apply drop shadows, glows, or other effects",
+                  "Don't rotate the logo",
+                ]}
+                />
+
+            </div>
           </section>
 
           <section id="components" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Components</h2>
-            <Components />
+            <ButtonComponents />
+            <Input />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+              <div className="flex flex-col gap-2">
+                <EnvironmentCards />
+                <NearbyReport />
+                <Checkbox />
+                <Range />
+                <StatusBadges />
+                <StatusCard/>
+                <SearchBarComponents/>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <ActionCards />
+                <MapOverlay />
+                <Toasts />
+                <Alerts />
+              </div>
+            </div>
+             <Table/>
+          </section>
+
+          <section id="tokens" className="mb-10 scroll-mt-8">
+            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Design Tokens</h2>
+            <DesignTokenTable/>
           </section>
 
           <section id="accessibility" className="mb-10 scroll-mt-8">
@@ -159,11 +242,22 @@ export default function StyleGuidePage() {
             <Accessibility />
           </section>
 
+          <section id="voice" className="mb-10 scroll-mt-8">
+            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Voice and Tone</h2>
+            <VoiceAndToneSection />
+          </section>
+
           <section id="principles" className="mb-10 scroll-mt-8">
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Design Principles</h2>
             <DesignPrinciples />
           </section>
+          <section id="layout" className="mb-10 scroll-mt-8">
+              <h2 className="mb-8 pb-4 border-b border-carbon-stroke">
+                  Layout & Spacing
+              </h2>
 
+              <LayoutSpacing />
+          </section>
         </div>
       </main>
 
