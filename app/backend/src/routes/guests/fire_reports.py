@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
+from db import get_db
 from schemas.fire_report import (
     FireReportCreate,
     FireReportDetailResponse,

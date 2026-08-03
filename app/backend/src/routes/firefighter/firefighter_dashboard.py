@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
+from db import get_db
 from schemas.containment_lines import ContainmentLines, CreateContainmentLine
 from schemas.firefighter_dashboard import DashboardData
 from services.firefighter import containment_lines, firefighter_dashboard
