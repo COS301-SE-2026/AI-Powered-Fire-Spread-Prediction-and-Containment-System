@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from db import Base
+from app.backend.db import Base
 from enums.role_request_status import RequestStatus
 from enums.user_role import UserRole
 

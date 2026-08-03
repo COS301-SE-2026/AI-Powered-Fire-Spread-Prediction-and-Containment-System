@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from ai.simulation_api import router as simulation_router
-from db import init_db
+from app.backend.db import init_db
 from routes import image_uploads
 from routes.admin import admin_dashboard
 from routes.admin.analytics import router as admin_analytics_router
@@ -20,7 +20,7 @@ from routes.firefighter.firefighter_dashboard import router as firefighter_dashb
 from routes.guests.fire_reports import router as guest_fire_router
 from routes.guests.guests_dashboard import router as guests_dashboard_router
 from routes.users.fire_reports import router as user_fire_router
-from seed import seed
+from app.backend.seed import seed
 from services.storage import ensure_bucket
 
 if os.environ.get("SKIP_DB_INIT") != "1":

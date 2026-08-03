@@ -3,7 +3,7 @@ from typing import Annotated, List, Optional
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 
-from db import get_db
+from app.backend.db import get_db
 from dependencies.auth import get_current_user_optional
 from models.users import User
 from schemas.fire_report import (

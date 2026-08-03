@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from auth import hash_password
-from db import Base, SessionLocal, engine
+from app.backend.auth import hash_password
+from app.backend.db import Base, SessionLocal, engine
 from enums.report_status import ReportStatus
 from enums.role_request_status import RequestStatus
 from enums.user_role import UserRole

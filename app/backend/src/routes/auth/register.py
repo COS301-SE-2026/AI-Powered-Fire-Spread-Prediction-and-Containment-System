@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from db import get_db
+from app.backend.db import get_db
 from schemas.auth import RegisterRequest, Two_FA_Required_Response
 from services.auth.register import register_user
 from services.auth.two_factor import setup_2fa
