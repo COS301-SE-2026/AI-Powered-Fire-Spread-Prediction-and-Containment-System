@@ -49,14 +49,16 @@ services:
       - backend
       - frontend
     ports:
-      - "8080:80"
-      - "8443:443"
+      - "80:80"
+      - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - /home/ubuntu/app/cloudflare-origin.pem:/etc/caddy/cloudflare-origin.pem:ro
       - /home/ubuntu/app/cloudflare-origin.key:/etc/caddy/cloudflare-origin.key:ro
       - caddy_staging_data:/data
       - caddy_staging_config:/config
+    networks:
+      - default
 
   blackboard:
     image: valkey/valkey:8-alpine
