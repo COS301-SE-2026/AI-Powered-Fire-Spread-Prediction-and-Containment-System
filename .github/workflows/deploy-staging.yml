@@ -27,11 +27,8 @@ jobs:
                     cp /home/ubuntu/app/app/frontend/src/Dockerfile app/frontend/src/Dockerfile
                     cp /home/ubuntu/app/app/frontend/src/package.json app/frontend/src/package.json
                     cp /home/ubuntu/app/app/frontend/src/tsconfig.json app/frontend/src/tsconfig.json
-                    cd /home/ubuntu/app/docker-compose.yml docker-compose.yml
-                    sed -i 's/- "5432:5432"/- "127.0.0.1:5433:5432"/' docker-compose.yml
-                    sed -i 's/- "8000:8000"/- "127.0.0.1:8001:8000"/' docker-compose.yml
-                    sed -i 's/- "8080:80"/- "127.0.0.1:8082:80"/' docker-compose.yml
-
+                    cp /home/ubuntu/app/docker-compose.yml docker-compose.yml
+                    docker compose -p staging -f docker-compose.yml -f docker-compose.staging.yml down
                     docker compose -p staging -f docker-compose.yml -f docker-compose.staging.yml up -d --build
                     docker system prune -f
                 
