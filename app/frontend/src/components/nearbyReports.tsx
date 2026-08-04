@@ -38,7 +38,7 @@ export function useNearbyFires() {
     useEffect(() => {
         const fetchController = new AbortController();
         const fetchRequest = async () => {
-            const url = `/api/firefighter/firefighter-dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+            const url = `/api/firefighter/dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
             try{
                 const resp = await fetch(url, {signal: fetchController.signal});
                 if (!resp.ok){

@@ -137,7 +137,7 @@ export default function AdminAnalyticsPage() {
         <Card
           title="Pending Role Requests"
           actions={
-            <Link href="/admin/approvalPage" className="text-sm text-primary hover:underline">
+            <Link href="/admin/approvals" className="text-sm text-primary hover:underline">
               Manage all
             </Link>
           }

@@ -12,7 +12,7 @@ const mainMenuItems = [
 ];
 
 const settingsMenuItem = [
-    { label: 'Settings', href: '/users/registeredUnderConstruction', icon: Settings },
+    { label: 'Settings', href: '/users/under-construction', icon: Settings },
 ];
 
 export function SidebarLayout({ children }: { children?: Readonly<React.ReactNode> }) {
