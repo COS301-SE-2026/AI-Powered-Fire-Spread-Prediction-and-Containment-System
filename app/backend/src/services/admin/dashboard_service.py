@@ -9,11 +9,18 @@ from models.reported_fires import FireReports
 from models.users import User
 from models.role_request import RoleRequest
 
+def as_aware(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
 def calculate_time_ago(
     reported_at: datetime,
 ) -> str:  # return a string for how long ago fire has been reported
-    if reported_at.tzinfo is None:
-        reported_at = reported_at.replace(tzinfo=timezone.utc)
+    reported_at = as_aware(reported_at)
     now = datetime.now(timezone.utc)
     difference = now - reported_at
     minutes = int(difference.total_seconds() // 60)
@@ -82,7 +89,7 @@ def get_recent_activity(db:Session, limit: int = 7) -> list[dict]:
                 "id": f"fire-{report.id}",
                 "message": f"New fire reported - {report.location_text}",
                 "timeAgo": calculate_time_ago(report.submitted_at),
-                "_sort_ts": report.submitted_at,
+                "_sort_ts": as_aware(report.submitted_at),
             }
         )
 
@@ -92,7 +99,7 @@ def get_recent_activity(db:Session, limit: int = 7) -> list[dict]:
                 "id": f"role-{rr.request_id}",
                 "message": f"Role {rr.status.value} - {rr.user_id} ({rr.requested_role.value})",
                 "timeAgo": calculate_time_ago(rr.reviewed_at),
-                "_sort_ts": rr.reviewed_at,
+                "_sort_ts": as_aware(rr.reviewed_at),
             }
         )
 
