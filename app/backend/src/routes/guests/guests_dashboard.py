@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/guests", tags=["Guests"])
 
 
 @router.get(
-    "/dashboard",
+    "/live-map",
     responses={
         500: {"description": "Internal server error while fetching dashboard data"}
     },
