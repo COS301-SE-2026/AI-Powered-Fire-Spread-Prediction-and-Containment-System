@@ -19,6 +19,9 @@ router = APIRouter(
     # dependencies=[Depends(get_current_admin_user)]
 )
 
-@router.get("/summary", response_model=DashboardSummaryResponse)
+@router.get("/summary", response_model=DashboardSummaryResponse, responses={400: {"description": "Could not retrieve dashboard summary"}})
 def get_dashboard_summary(db: Session = Depends(get_db)) -> Any:
-   return dashboard_summary(db)
+    try:
+        return dashboard_summary(db)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Could not retrieve dashboard summary")

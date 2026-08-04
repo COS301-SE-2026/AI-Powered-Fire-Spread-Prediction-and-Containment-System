@@ -8,11 +8,12 @@ from enums.role_request_status import RequestStatus
 from models.reported_fires import FireReports
 from models.users import User
 from models.role_request import RoleRequest
-from schemas.admin_dashboard import DashboardSummaryResponse
 
 def calculate_time_ago(
     reported_at: datetime,
 ) -> str:  # return a string for how long ago fire has been reported
+    if reported_at.tzinfo is None:
+        reported_at = reported_at.replace(tzinfo=timezone.utc)
     now = datetime.now(timezone.utc)
     difference = now - reported_at
     minutes = int(difference.total_seconds() // 60)
@@ -39,12 +40,12 @@ def calculate_time_ago(
 
 def get_top_metrics(db: Session) -> dict:
     active_fires = (
-        db.query(FireReports)
+        db.query(func.count(FireReports.id))
         .filter(FireReports.status == ReportStatus.verified)
         .scalar()
     )
     pending_approvals = (
-        db.query(RoleRequest)
+        db.query(func.count(RoleRequest.request_id))
         .filter(RoleRequest.status == RequestStatus.pending)
         .scalar()
     )
@@ -122,6 +123,8 @@ def get_weekly_incident_counts(db:Session, days: int = 7) -> list[dict]:
             counts_by_day[day_name] += 1
     
     weekly_incidents = [{"day": day, "count": counts_by_day[day]} for day in day_order]
+
+    return weekly_incidents
 
 
 def get_system_metrics(db: Session) -> dict:

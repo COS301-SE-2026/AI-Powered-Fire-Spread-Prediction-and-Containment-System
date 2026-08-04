@@ -14,6 +14,10 @@ from schemas.role_request import RoleRequestResponse, UserSummary
 def get_kpis(db: Session) -> KPIs:
 
     total_users = db.query(User).filter(User.is_active == True).count()
+
+    if not total_users:
+        raise ValueError("Unable to get user metrics")
+
     pending_count = (
         db.query(RoleRequest)
         .filter(RoleRequest.status == RequestStatus.pending)
@@ -38,6 +42,10 @@ def get_kpis(db: Session) -> KPIs:
     )
 
 def get_pending_role_reqs(db: Session, limit: int = 20) -> list[RoleRequestResponse]:
+    if limit <= 0:
+        raise ValueError("limit has to be a positive value")
+
+
     pending_requests = (
         db.query(RoleRequest)
         .filter(RoleRequest.status == RequestStatus.pending)
