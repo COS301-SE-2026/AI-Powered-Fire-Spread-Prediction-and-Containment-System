@@ -36,7 +36,7 @@ services:
     container_name: staging-next-frontend
     build: 
       args:
-        - NEXT_PUBLIC_MAPBOK_TOKEN=${NEXT_PUBLIC_MAPBOK_TOKEN}
+        - NEXT_PUBLIC_MAPBOX_TOKEN=${NEXT_PUBLIC_MAPBOX_TOKEN}
     ports: []
     restart: always
     volumes:
