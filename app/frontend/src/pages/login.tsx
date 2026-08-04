@@ -69,9 +69,9 @@ export default function Login() {
       }
 
       const roleRedirects: Record<string, string> = {
-        admin: '/admin/adminDashboard',
-        firefighter: '/firefighter/firefighter-dashboard',
-        user: '/registeredUser/registeredUserLanding',
+        admin: '/admin/dashboard',
+        firefighter: '/firefighter/dashboard',
+        user: '/users/live-map',
       };
 
     window.location.href = roleRedirects[data.role] ?? '/login';
@@ -83,7 +83,7 @@ export default function Login() {
   };
 
   const handleGuest = () => {
-    router.push('/guests/guestsLanding');
+    router.push('/guests/live-map');
   };
 
   return (
