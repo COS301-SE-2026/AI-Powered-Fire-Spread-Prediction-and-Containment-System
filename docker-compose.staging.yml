@@ -44,6 +44,7 @@ services:
     command: ["yarn", "start"]
     environment:
       NODE_ENV: production
+      BACKEND_INTERNAL_URL: http://staging-python-backend:8001
 
   caddy:
     profiles: ["disabled"]
