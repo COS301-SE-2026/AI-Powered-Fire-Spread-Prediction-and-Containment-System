@@ -16,6 +16,6 @@ test.describe('Authentication Flow', () => {
   test('guest login redirects to dashboard', async ({ page }) => {
     await page.goto('/login');
     await page.getByRole('button', { name: 'Sign in as Guest' }).click();
-    await expect(page).toHaveURL('/guests/guestsLanding');
+    await expect(page).toHaveURL('/guests/live-map');
   });
 });
