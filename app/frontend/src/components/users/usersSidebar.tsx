@@ -5,11 +5,11 @@ import { SideBar, NavLink } from '../Sidebar';
 export function UserItems() {
     return (
         <>
-            <NavLink icon={House} label="Home" href="/registeredUser/registeredUserLanding" />
-            <NavLink icon={Flame} label="Report a Fire" href="../registeredUser/registeredReportFire" />
-            <NavLink icon={Map} label="Fire Simulation" href="/registeredUser/registeredUnderConstruction" />
-            <NavLink icon={MessageCircleWarning} label="Notifications" href="/registeredUser/registeredUnderConstruction" />
-            <NavLink icon={MessagesSquare} label="Community" href="/registeredUser/registeredUnderConstruction" />
+            <NavLink icon={House} label="Home" href="/user/live-map" />
+            <NavLink icon={Flame} label="Report a Fire" href="../user/report-fire"/>
+            <NavLink icon={Map} label="Fire Simulation" href="/user/simulation"/>
+            <NavLink icon={MessageCircleWarning} label="Notifications" href="/user/under-construction" />
+            <NavLink icon={MessagesSquare} label="Community" href="/user/under-construction" />
         </>
     );
 }

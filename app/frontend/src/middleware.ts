@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET_KEY;
 const protectedRoutes: {prefix: string; roles: string[]}[] = [
     {prefix: '/admin', roles: ['admin']},
     {prefix: '/firefighter', roles: ['firefighter']},
-    {prefix: '/registeredUser', roles: ['user']},
+    {prefix: '/users', roles: ['user']},
 ];
 
 function noStore(response: NextResponse): NextResponse{
@@ -51,6 +51,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/admin/:path*', '/firefighter/:path*', '/registeredUser/:path*'],
+    matcher: ['/admin/:path*', '/firefighter/:path*', '/users/:path*'],
 };
 
