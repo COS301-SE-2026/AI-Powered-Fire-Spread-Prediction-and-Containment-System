@@ -1,0 +1,87 @@
+services:
+  postgres:
+    container_name: staging-postgres-db
+    ports:
+      - "127.0.0.1:5433:5432"
+
+  pgadmin:
+    container_name: staging-pgadmin
+    profiles: ["debug"]
+    ports: []
+
+  backend:
+    container_name: staging-python-backend
+    ports: []
+    restart: always
+    volumes:
+      - /app
+    environment:
+      NODE_ENV: production
+      AWS_REGION: ${AWS_REGION}
+      SQS_QUEUE_URL: ${SQS_QUEUE_URL}
+      SQS_GPU_JOB_QUEUE_URL: ${SQS_GPU_JOB_QUEUE_URL}
+      GPU_RESULTS_QUEUE_URL: ${GPU_RESULTS_QUEUE_URL}
+      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
+      WEATHER_API_SECRET_NAME: ${WEATHER_API_SECRET_NAME}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      VALKEY_HOST: staging-blackboard
+      VALKEY_PORT: 6379
+      MINIO_ENDPOINT: staging-minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: fire-images
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+
+  frontend:
+    container_name: staging-next-frontend
+    ports: []
+    restart: always
+    volumes:
+      - /app
+    command: ["yarn", "start"]
+    environment:
+      NODE_ENV: production
+
+  caddy:
+    profiles: ["disabled"]
+    image: caddy:2-alpine
+    container_name: caddy-staging
+    restart: always
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - /home/ubuntu/app/cloudflare-origin.pem:/etc/caddy/cloudflare-origin.pem:ro
+      - /home/ubuntu/app/cloudflare-origin.key:/etc/caddy/cloudflare-origin.key:ro
+      - caddy_staging_data:/data
+      - caddy_staging_config:/config
+    networks:
+      - default
+
+  blackboard:
+    image: valkey/valkey:8-alpine
+    container_name: staging-blackboard
+    restart: always
+    volumes:
+      - valkey_staging_data:/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: staging-minio
+    restart: always
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_staging_data:/data
+
+volumes:
+  caddy_staging_data:
+  caddy_staging_config:
+  valkey_staging_data:
+  minio_staging_data:
