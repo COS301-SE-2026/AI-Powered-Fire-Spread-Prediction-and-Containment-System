@@ -45,7 +45,7 @@
 //             window.localStorage.setItem('auth-token', 'mocked-admin-jwt-token');
 //         });
 
-//         await page.goto('/admin/approvalPage');
+//         await page.goto('/admin/approvals');
 
 //     });
 
