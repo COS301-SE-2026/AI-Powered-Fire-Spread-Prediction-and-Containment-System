@@ -4,21 +4,18 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from ai.simulation_api import router as simulation_router
+from src.ai.simulation_api import router as simulation_router
 from db import init_db
-from routes import image_uploads
+from src.routes import image_uploads
+
 from src.routes.admin import router as admin_router
-from routes.auth.login import router as login_router
-from routes.auth.logout import router as logout_router
-from routes.auth.register import router as register_router
-from routes.auth.two_factor import router as two_factor_router
-from routes.firefighter.fire_reports import router as firefighter_reports
-from routes.firefighter.firefighter_dashboard import router as firefighter_dashboard
-from routes.guests.fire_reports import router as guest_fire_router
-from routes.guests.guests_dashboard import router as guests_dashboard_router
-from routes.users.fire_reports import router as user_fire_router
+from src.routes.firefighter import router as firefighter_router
+from src.routes.users import router as user_router
+from src.routes.guests import router as guest_router
+from src.routes.auth import router as auth_router
+
 from seed import seed
-from services.storage import ensure_bucket
+from src.services.storage import ensure_bucket
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
@@ -49,20 +46,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(user_fire_router)
-app.include_router(admin_roles_router)
-app.include_router(admin_fire_router)
-app.include_router(guest_fire_router)
-app.include_router(register_router)
-app.include_router(login_router)
-app.include_router(two_factor_router)
-app.include_router(admin_analytics_router)
-app.include_router(admin_dashboard.router)
-app.include_router(firefighter_reports)
-app.include_router(firefighter_dashboard)
-app.include_router(logout_router)
+app.include_router(admin_router)
+app.include_router(auth_router)
+app.include_router(firefighter_router)
+app.include_router(user_router)
+app.include_router(guest_router)
 app.include_router(image_uploads.router)
-app.include_router(guests_dashboard_router)
 app.include_router(simulation_router)
 
 
