@@ -12,6 +12,9 @@ from services.admin.analytics_service import analytics_overview
 router = APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
 
 
-@router.get("/overview", response_model=AnalyticsOverviewResponse)
+@router.get("/overview", response_model=AnalyticsOverviewResponse, responses={404: {"description": "Could not retrieve analytics overview"}})
 def get_analytics_overview(db: Annotated[Session, Depends(get_db)]):
-    return analytics_overview(db);
+    try:
+        return analytics_overview(db);
+    except ValueError:
+        raise HTTPException(status_code=404, detail="Could not retrieve analytics overview")
