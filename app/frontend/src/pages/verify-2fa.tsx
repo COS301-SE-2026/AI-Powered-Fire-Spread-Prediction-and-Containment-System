@@ -35,9 +35,9 @@ export default function Verify2FA() {
       });
 
       const roleRedirects: Record<string, string> = {
-        admin: '/admin/adminDashboard',
-        firefighter: '/firefighterDashboard',
-        user: '/registeredUser/registeredUserLanding',
+        admin: '/admin/dashboard',
+        firefighter: 'firefighter/dashboard',
+        user: '/users/live-map',
       };
 
       if (data.role) {
