@@ -12,8 +12,10 @@ requests==2.34.2
 pyjwt==2.13.0
 pydantic==2.13.4
 minio==7.2.20
+pyotp==2.9.0
 
 numpy==2.1.0
+--extra-index-url https://download.pytorch.org/whl/cpu
 torch==2.5.1
 xgboost==3.3.0
 pytorchfire==1.1.1

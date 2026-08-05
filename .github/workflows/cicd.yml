@@ -55,7 +55,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: | 
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Run tests
         run: |
@@ -84,7 +86,9 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: | 
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
 
       - name: Run pylint
         run: pylint **/**/**/*.py --fail-under=8.0
