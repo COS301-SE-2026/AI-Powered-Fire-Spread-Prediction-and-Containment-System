@@ -9,8 +9,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from src.enums.report_status import ReportStatus
+from src.models.reported_fires import FireReports
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -28,10 +28,10 @@ from app.backend.db import Base, get_db
 from app.backend.main import app
 
 # models for the firefighter dashboard
-from models.containment_lines import ContainmentLines
-from models.reported_fires import FireReports
-from models.role_request import RoleRequest
-from models.users import User
+from src.models.containment_lines import ContainmentLines
+from src.models.reported_fires import FireReports
+from src.models.role_request import RoleRequest
+from src.models.users import User
 
 # seed data
 from app.backend.seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
