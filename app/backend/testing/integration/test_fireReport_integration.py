@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 from geoalchemy2.elements import WKTElement
 
-from app.backend.testing.conftest import make_report, make_user
+from conftest import make_report, make_user
 from src.enums.report_status import ReportStatus
 from src.models.reported_fires import FireReports
 
