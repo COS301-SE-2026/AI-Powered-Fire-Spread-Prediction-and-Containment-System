@@ -54,8 +54,6 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
         .all()
     )  # * 1000 because ST_DWithin uses meters not km
 
-    if not request:
-        raise ValueError(f"No fires found within a {radius_km} range from current position")
 
     formatted_result = []
     for fire, distance_m in request:  # distance in meters again
