@@ -1,6 +1,6 @@
 import {test, expect, type Page} from '@playwright/test';
 
-const DASHBOARD_ROUTE = '/registeredUser/registeredUserLanding';
+const DASHBOARD_ROUTE = '/users/live-map';
 const DESKTOP_VIEW = {width: 1200, height: 800};
 
 async function login(page: Page) {
@@ -41,12 +41,12 @@ test.describe('Registered User Landing Page', () => {
 });
 
 const SIDEBAR_LINKS: {label: string; expectedHref: string}[] = [
-    {label: 'Home', expectedHref: '/registeredUser/registeredUserLanding'},
-    {label: 'Report a Fire', expectedHref: '/registeredUser/registeredReportFire'},
-    {label: 'Fire Simulation', expectedHref: '/registeredUser/registeredUnderConstruction'},
-    {label: 'Notifications', expectedHref: '/registeredUser/registeredUnderConstruction'},
-    {label: 'Community', expectedHref: '/registeredUser/registeredUnderConstruction'},
-    {label: 'Settings', expectedHref: '/registeredUser/registeredUnderConstruction'},
+    {label: 'Home', expectedHref: '/users/live-map'},
+    {label: 'Report a Fire', expectedHref: '/users/report-fire'},
+    {label: 'Fire Simulation', expectedHref: '/users/simulation'},
+    {label: 'Notifications', expectedHref: '/users/under-construction'},
+    {label: 'Community', expectedHref: '/users/under-construction'},
+    {label: 'Settings', expectedHref: '/users/under-construction'},
 ];
 
 test.describe('Sidebar menu navigation', () => {

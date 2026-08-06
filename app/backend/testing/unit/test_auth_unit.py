@@ -4,7 +4,7 @@ from datetime import timedelta
 import pytest
 from jose import jwt
 
-from app.backend.auth import create_access_token, hash_password, verify_password
+from auth import create_access_token, hash_password, verify_password
 
 
 def test_password_hashing():
