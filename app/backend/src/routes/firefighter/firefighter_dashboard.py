@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
 # returns nearby fires to location based on the long and lat selected by user or gotten via location aswell as environment variables based on coordinates
 @router.get(
-    "/firefighter-dashboard",
+    "/dashboard",
     response_model=DashboardData,
     responses={404: {"description": "No nearby fires found"}},
 )

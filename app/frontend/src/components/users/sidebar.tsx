@@ -4,15 +4,15 @@ import { useRouter } from 'next/router';
 import { Flame, Map, House, Settings, MessageCircleWarning, MessagesSquare, LogOut } from 'lucide-react';
 
 const mainMenuItems = [
-    { label: 'Home', href: '/registeredUser/registeredUserLanding', icon: House },
-    { label: 'Report a Fire', href: '/registeredUser/registeredReportFire', icon: Flame },
-    { label: 'Fire Simulation', href: '/registeredUser/registeredUnderConstruction', icon: Map },
-    { label: 'Notifications', href: '/registeredUser/registeredUnderConstruction', icon: MessageCircleWarning },
-    { label: 'Community', href: '/registeredUser/registeredUnderConstruction', icon: MessagesSquare },
+    { label: 'Home', href: '/users/', icon: House },
+    { label: 'Report a Fire', href: '/users/report-fire', icon: Flame },
+    { label: 'Fire Simulation', href: '/users/simulation', icon: Map },
+    { label: 'Notifications', href: '/users/under-construction', icon: MessageCircleWarning },
+    { label: 'Community', href: '/users/under-construction', icon: MessagesSquare },
 ];
 
 const settingsMenuItem = [
-    { label: 'Settings', href: '/registeredUser/registeredUnderConstruction', icon: Settings },
+    { label: 'Settings', href: '/users/under-construction', icon: Settings },
 ];
 
 export function SidebarLayout({ children }: { children?: Readonly<React.ReactNode> }) {

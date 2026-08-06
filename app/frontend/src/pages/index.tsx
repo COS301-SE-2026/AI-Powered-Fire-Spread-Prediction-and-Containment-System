@@ -11,7 +11,7 @@ export default function Landing() {
 
   const handleGuest = () => {
     localStorage.setItem('token', 'guest-token-' + Date.now());
-    router.push('/guests/guestsLanding');
+    router.push('/guests/live-map');
   };
 
   return (

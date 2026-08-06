@@ -64,8 +64,8 @@ export default function GuestPublicDashboard() {
 
     const guestNavItems =(
         <>
-            <NavLink icon={Map} label="Live Map" href="/guests/guestsLanding"/>
-            <NavLink icon={CircleAlert} label="Report Fire" href="/guests/guestsReportFire"/>
+            <NavLink icon={Map} label="Live Map" href="/guests/live-map"/>
+            <NavLink icon={CircleAlert} label="Report Fire" href="/guests/report-fire"/>
         </>
       );
 

@@ -10,7 +10,7 @@ export function GuestActions({ onRecenter }: GuestActionsProps) {
   const router = useRouter();
 
   const handleReportFire = () => {
-    router.push('/guests/guestsReportFire');
+    router.push('/guests/live-map');
   };
   return (
     <div className="flex flex-wrap gap-2">

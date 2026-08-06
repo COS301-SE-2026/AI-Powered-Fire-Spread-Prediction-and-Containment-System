@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 import pytest
 from geoalchemy2.elements import WKTElement
 
-from app.backend.tests.conftest import make_report, make_user
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from conftest import make_report, make_user
+from src.enums.report_status import ReportStatus
+from src.models.reported_fires import FireReports
 
 ### GET /api/users/reported-fires ###
 
