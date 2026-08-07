@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
-import { FireMap } from '../../components/DynamicFirefighterMap';
+import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
 import { useSimulation } from '../../components/firefighter/useSimulation';
 
@@ -29,7 +29,7 @@ export default function ReportTable() {
         gridW,
         weather,
         setWeather,
-        staticParams, 
+        staticParams,
         setStaticParams,
         dcaParams,
         setDcaParams,
@@ -94,7 +94,7 @@ export default function ReportTable() {
                                     <p className='text-red-400 text-sm font-mono text-center max-w-xs'>
                                         {error ?? 'Simulation failed. Check the backend is running'}
                                     </p>
-                                    <button 
+                                    <button
                                         onClick={handleRun}
                                         className='btn btn-sm btn-outline text-neutral/70 mt-2'>
                                             Retry
@@ -102,12 +102,12 @@ export default function ReportTable() {
                                 </div>
                             )}
 
-                            <div className="w-full h-full"> 
-                                <FireMap 
-                                    lat={userLocation.lat} 
-                                    lng={userLocation.lng}  
+                            <div className="w-full h-full">
+                                <FireMap
+                                    lat={userLocation.lat}
+                                    lng={userLocation.lng}
                                     drawMode={drawMode}
-                                    onDrawComplete={handleDrawComplete} 
+                                    onDrawComplete={handleDrawComplete}
                                     clearDrawings={clearDrawings}
                                     burnGridH={gridH}
                                     burnGridW={gridW}
@@ -171,13 +171,13 @@ export default function ReportTable() {
                                             </div>
 
                                         <div className="w-full">
-                                            <input 
-                                                type="range" 
-                                                min={0} 
+                                            <input
+                                                type="range"
+                                                min={0}
                                                 max="sliderMax"
                                                 step={1}
-                                                className="range range-xs w-full disabled:opacity-30" 
-                                                value={currentTick} 
+                                                className="range range-xs w-full disabled:opacity-30"
+                                                value={currentTick}
                                                 disabled={!hasResult}
                                                 onChange={(e) => seekToTick(Number(e.target.value))}/>
 
@@ -198,7 +198,7 @@ export default function ReportTable() {
                                         <div className='grid grid-cols-2 gap-2'>
                                             <label className='flex flex-col gap-1'>
                                                 <span className='text-xs text-text-muted'> Wind U (m/s)</span>
-                                                <input 
+                                                <input
                                                     type='number'
                                                     step={0.5}
                                                     value={weather.wind_u}
@@ -207,7 +207,7 @@ export default function ReportTable() {
                                             </label>
                                             <label className='flex flex-col gap-1'>
                                                 <span className='text-xs text-text-muted'>Wind V (m/s)</span>
-                                                <input 
+                                                <input
                                                     type='number'
                                                     step={0.5}
                                                     value={weather.wind_v}
@@ -227,7 +227,7 @@ export default function ReportTable() {
                                             </label>
                                             <label className='flex flex-col gap-1'>
                                                 <span className='text-xs text-text-muted'>Temp (degrees celcius)</span>
-                                                <input 
+                                                <input
                                                     type='number'
                                                     step={1}
                                                     value={weather.temperature}
@@ -247,7 +247,7 @@ export default function ReportTable() {
                                                 <span className='text-xs text-text-muted'>
                                                     Fuel Load: {staticParams.fuel_load.toFixed(2)}
                                                 </span>
-                                                <input 
+                                                <input
                                                     type='range'
                                                     min={0}
                                                     max={1}
@@ -260,7 +260,7 @@ export default function ReportTable() {
                                                 <span className='text-xs text-text-muted'>
                                                     Dryness: {staticParams.dryness.toFixed(2)}
                                                 </span>
-                                                <input 
+                                                <input
                                                     type='range'
                                                     min={0}
                                                     max={1}

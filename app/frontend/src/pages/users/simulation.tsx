@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { UserSideBar } from '../../components/users/usersSidebar';
-import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
+import { NearbyReports, useNearbyFires } from '../../components/shared/nearbyReports';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
-import { FireMap } from '../../components/DynamicFirefighterMap';
+import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 
 export default function GuestPublicDashboard() {
     const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState, useId } from "react";
-import { Alert } from "../Alerts";
+import { Alert } from "../shared/Alerts";
 import { MapPin } from "lucide-react";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Alert } from "../Alerts";
+import { Alert } from "../shared/Alerts";
 import { Paperclip, Check } from "lucide-react";
 
 interface PhotoProps {

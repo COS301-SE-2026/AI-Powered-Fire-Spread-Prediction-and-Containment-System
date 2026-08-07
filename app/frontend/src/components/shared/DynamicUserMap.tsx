@@ -1,7 +1,7 @@
 import dynamic from 'next/dynamic'
 
 export const FireMap = dynamic(
-    () => import('./reportfire/Firemap').then((mod) => mod.FireMap),
+    () => import('../reportfire/Firemap').then((mod) => mod.FireMap),
     {
         ssr: false,
         loading: () => (

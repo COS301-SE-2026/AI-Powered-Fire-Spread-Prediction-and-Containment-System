@@ -5,7 +5,7 @@ import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
-import { FireMap } from '../../components/DynamicFirefighterMap';
+import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
 
 export default function FirefighterDashboard() {
