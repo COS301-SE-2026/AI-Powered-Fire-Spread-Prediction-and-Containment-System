@@ -1,5 +1,4 @@
 import React from 'react';
-import Button from '../Button';
 
 interface SystemAlertsPanelProps {
     isOpen: boolean;
@@ -41,9 +40,9 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
                         <p className='text text-text-primary/70 mb-5'>
                             Severity: ...
                         </p>
-                        <Button className='w-full text-xs'>
+                        <button type="button" className='w-full text-xs'>
                             View on Map
-                        </Button>
+                        </button>
                     </div>
                 </div>
             </div>

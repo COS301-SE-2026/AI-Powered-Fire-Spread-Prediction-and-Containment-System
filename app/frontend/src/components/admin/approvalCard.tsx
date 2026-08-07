@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import Card from '../Card';
-import Button from '../Button';
 
 interface RoleRequest {
   id: string;
@@ -47,33 +46,44 @@ export const AdminApprovalCard: React.FC<AdminApprovalCardProps> = ({ request, o
     }
   };
 
+  let rejectLabel: React.ReactNode;
+  let approveLabel: React.ReactNode;
+
+  if (loading) {
+    rejectLabel = <span className="loading loading-spinner loading-xs" />;
+    approveLabel = <span className="loading loading-spinner loading-xs" />;
+  } else {
+    rejectLabel = 'Reject';
+    approveLabel = 'Approve';
+  }
+
   const cardActionButtons = (
     <>
-      <Button
-        variant="ghost"
+      <button
+        type="button"
+        className="btn btn-ghost h-11 min-h-11 px-4"
         disabled={loading}
         onClick={() => handleRoleAction('reject')}
-        className="h-11 min-h-[44px] px-4"
         data-testid="admin-role-change-reject-btn"
       >
-        {loading ? <span className="loading loading-spinner loading-xs"></span> : 'Reject'}
-      </Button>
-      
-      <Button
-        variant="fire"
+        {rejectLabel}
+      </button>
+
+      <button
+        type="button"
+        className="btn btn-primary h-11 min-h-11 px-4"
         disabled={loading}
         onClick={() => handleRoleAction('approve')}
-        className="h-11 min-h-[44px] px-4"
         data-testid="admin-role-change-approve-btn"
       >
-        {loading ? <span className="loading loading-spinner loading-xs"></span> : 'Approve'}
-      </Button>
+        {approveLabel}
+      </button>
     </>
   );
 
   return (
-    <Card 
-      title={`Request ID: ${request.id.slice(0, 8)}`} 
+    <Card
+      title={`Request ID: ${request.id.slice(0, 8)}`}
       actions={cardActionButtons}
     >
       <div className="flex flex-col space-y-3 font-sans">
