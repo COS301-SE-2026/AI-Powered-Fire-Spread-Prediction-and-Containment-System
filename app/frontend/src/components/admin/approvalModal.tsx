@@ -1,4 +1,4 @@
-import { RoleRequest, UserSummary } from "../../types/admin";
+import { RoleRequest, UserSummary } from "../../types/role-request";
 import { statusBadge } from './statusBadge';
 import { API_BASE_URL } from "../../config/api";
 

@@ -1,7 +1,7 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
 import { StatusBadge } from "../admin/reportStatusBadge";
 import { statusBadge, BadgeStyle } from "../admin/statusBadge";
-import type { RoleStatus } from "../../types/admin";
+import type { RoleStatus } from "../../types/role-request";
 
 export function StatusBadges() {
     return (
