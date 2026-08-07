@@ -1,5 +1,5 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
-import { Alert } from "../Alerts";
+import { Alert } from "../shared/Alerts";
 
 export function Alerts() {
     return (

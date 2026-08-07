@@ -4,8 +4,8 @@ import React, { useState, useEffect, useReducer, useRef } from "react";
 import StepIndicator from "./Stepindicator";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
-import { FireMap } from "../DynamicUserMap"
-import { Alert } from "../Alerts";
+import { FireMap } from "../shared/DynamicUserMap"
+import { Alert } from "../shared/Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 import type { FireReport } from "../../types/report";
 

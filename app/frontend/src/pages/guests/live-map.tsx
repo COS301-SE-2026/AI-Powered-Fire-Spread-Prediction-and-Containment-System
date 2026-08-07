@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState, useRef} from 'react';
-import { SideBar, NavLink } from '../../components/Sidebar';
+import { SideBar, NavLink } from '../../components/layout/Sidebar';
 import dynamic from 'next/dynamic';
 import {Map, Flame, CircleAlert} from 'lucide-react'
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';

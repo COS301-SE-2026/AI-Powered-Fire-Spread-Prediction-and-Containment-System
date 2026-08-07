@@ -1,6 +1,6 @@
 import React from 'react';
 import { Map, Flame, LayoutDashboard, BookAlert } from 'lucide-react';
-import { SideBar, NavLink } from '../Sidebar';
+import { SideBar, NavLink } from '../layout/Sidebar';
 
 export function FirefighterItems() {
     return (
