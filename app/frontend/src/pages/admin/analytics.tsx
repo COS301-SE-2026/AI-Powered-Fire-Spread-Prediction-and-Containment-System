@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Card from '../../components/Card';
+import Card from '../../components/ui/Card';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 interface KPIs {
   total_users: number;
