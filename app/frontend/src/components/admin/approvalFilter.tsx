@@ -1,5 +1,5 @@
 import React from "react";
-import { RoleStatus } from "../../types/admin";
+import { RoleStatus } from "../../types/role-request";
 
 type FilterOption = 'All' | RoleStatus;
 
