@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Card } from "./Card";
 import type { FireReport, ReportStatus } from "../../types/report";
-import Button from "../Button";
 
 interface ReportActionsProps {
     readonly report_ref: string;
@@ -55,14 +54,14 @@ export function ReportActions({ report_ref, status, onStatusChange }: ReportActi
             {status === "verified" && (
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">This report has already been verified. Revoke if report is falsely verified.</p>
-                    <Button variant="red" onClick={handleRevoke} disabled={loading}>{loading ? 'Updating...' : 'Revoke'}</Button>
-                </div>           
+                    <button type="button" className="btn btn-error btn-sm" onClick={handleRevoke} disabled={loading}>{loading ? 'Updating...' : 'Revoke'}</button>
+                </div>
             )}
-            
+
             {status === "rejected" && (
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">This report was rejected. Send to be re-verified.</p>
-                    <Button variant="fire" onClick={handleReVerify} disabled={loading}>{loading ? 'Updating...' : 'Re-verify'}</Button>
+                    <button type="button" className="btn btn-primary btn-sm" onClick={handleReVerify} disabled={loading}>{loading ? 'Updating...' : 'Re-verify'}</button>
                 </div>
             )}
 
@@ -70,8 +69,8 @@ export function ReportActions({ report_ref, status, onStatusChange }: ReportActi
                 <div className="flex flex-col gap-3">
                     <p className="text-text-muted text-sm">Review the fire report. Reject or verify manually.</p>
                     <div className="flex gap-2">
-                        <Button variant="fire" className="flex-1" onClick={handleVerify} disabled={loading}>{loading ? 'Updating...' : 'Verify'}</Button>
-                        <Button variant="red" className="flex-1" onClick={handleReject} disabled={loading}>{loading ? 'Updating...' : 'Reject'}</Button>
+                        <button type="button" className="btn btn-primary btn-sm flex-1" onClick={handleVerify} disabled={loading}>{loading ? 'Updating...' : 'Verify'}</button>
+                        <button type="button" className="btn btn-error btn-sm flex-1" onClick={handleReject} disabled={loading}>{loading ? 'Updating...' : 'Reject'}</button>
                     </div>
                 </div>
             )}
