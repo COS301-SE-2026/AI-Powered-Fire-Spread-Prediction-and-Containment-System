@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '../../components/Card';
-import Badge from '../../components/Badge';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 interface KPIs {
   total_users: number;
@@ -163,7 +162,7 @@ export default function AdminAnalyticsPage() {
                       </td>
                       <td className="py-2 text-white/80">{req.user.email}</td>
                       <td className="py-2">
-                        <Badge label={req.requested_role} state="pending" />
+                        <span className="badge badge-neutral">{req.requested_role}</span>
                       </td>
                       <td className="py-2 text-white/60">
                         {new Date(req.created_at).toLocaleString()}
