@@ -4,7 +4,7 @@ import { SimulationResults } from '../../components/firefighter/simulationResult
 import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
-import { useSimulation } from '../../components/firefighter/useSimulation';
+import { useSimulation } from '../../hooks/useSimulation';
 
 export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
@@ -12,7 +12,7 @@ export default function ReportTable() {
     const [drawMode, setDrawMode] = useState(false);
     const [userLocation] = useState(default_location);
     const [clearDrawings] = useState(0);
-    const handleDrawComplete = useContainmentLine(() => setDrawMode(false));
+    const { submitLine, loading: savingLine, error: lineError } = useContainmentLine(() => setDrawMode(false));
     const {
         status,
         error,
@@ -107,7 +107,7 @@ export default function ReportTable() {
                                     lat={userLocation.lat}
                                     lng={userLocation.lng}
                                     drawMode={drawMode}
-                                    onDrawComplete={handleDrawComplete}
+                                    onDrawComplete={submitLine}
                                     clearDrawings={clearDrawings}
                                     burnGridH={gridH}
                                     burnGridW={gridW}
