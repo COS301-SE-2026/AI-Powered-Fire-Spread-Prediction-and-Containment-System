@@ -1,29 +1,21 @@
 import { useCallback } from 'react';
 import { useFetch } from './useFetch';
-import { useAuthHeaders } from './useAuthHeaders';
 import type { RoleRequestList, RoleAction } from '../types/RoleRequest';
+import { apiCall } from '../lib/api';
 
 export function useRoleRequests() {
-    const headers = useAuthHeaders();
-    const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests', { headers });
+    const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests');
 
     const updateStatus = useCallback(async (requestId: string, action: RoleAction) => {
         try {
-            const resp = await fetch(`/api/admin/role-requests/${requestId}/${action}`, {
-                method: 'PUT',
-            });
-
-            if (!resp.ok) {
-                console.error(`${action} failed:`, await resp.text());
-                return;
-            }
-
+            await apiCall(`/api/admin/role-requests/${requestId}/${action}`, 'PUT');
             await refetch();
-        } catch (err) {
+        } catch (err: unknown) {
             console.error(`Error on ${action} request`, err);
         }
-    }, [refetch, headers]);
-    return { requests: data?.data ?? [],
+    }, [refetch]);
+    return {
+        requests: data?.data ?? [],
         total: data?.total ?? 0,
         loading,
         error,

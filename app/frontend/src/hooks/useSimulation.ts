@@ -1,7 +1,6 @@
 // All API communication and playback state for fire simulation
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useAuthHeaders } from "./useAuthHeaders";
 
 export interface WeatherParams {
     wind_u: number;
@@ -87,7 +86,6 @@ const PLAYBACK_INTERVAL_MS = 300; // ms between ticks during autoplay
 
 // Hook
 export function useSimulation() {
-    const headers = useAuthHeaders();
     const [status, setStatus] = useState<SimulationStatus>('idle');
     const [error, setError] = useState<string | null>(null);
     const [result, setResult] = useState<SimulationResult | null>(null);
@@ -163,7 +161,7 @@ export function useSimulation() {
             try {
                 const res = await fetch(`${API_BASE}/api/simulate`, {
                     method: 'POST',
-                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json' },
                     body: JSON.stringify(body),
                     signal: controller.signal,
                 });
@@ -188,7 +186,7 @@ export function useSimulation() {
                 setStatus('error');
             }
         },
-        [weather, staticParams, dcaParams, autoplay, startAutoPlay, stopAutoPlay, headers]
+        [weather, staticParams, dcaParams, autoplay, startAutoPlay, stopAutoPlay]
     );
 
     // Playback controls

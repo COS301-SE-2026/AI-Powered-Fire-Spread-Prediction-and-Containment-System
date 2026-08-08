@@ -1,17 +1,15 @@
 import { useFetch } from './useFetch';
-import { useAuthHeaders } from './useAuthHeaders';
 import { useDebounce } from './useDebounce';
 import type { ReportList } from '../types/FirefighterReports';
 
 export function useFirefighterReports(searchKey: string) {
-    const headers = useAuthHeaders();
     const debouncedSearch = useDebounce(searchKey, 600); // waits until the user stops typing before firing a request
 
     const url = debouncedSearch
         ? `/api/firefighter/reported-fires/search?key=${encodeURIComponent(debouncedSearch)}`
         : `/api/firefighter/reported-fires`;
 
-    const { data, loading, error, refetch } = useFetch<ReportList>(url, { headers });
+    const { data, loading, error, refetch } = useFetch<ReportList>(url);
 
     return {
         reports: data?.data ?? [],

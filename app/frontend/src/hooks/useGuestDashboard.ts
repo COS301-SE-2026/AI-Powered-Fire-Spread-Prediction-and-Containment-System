@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { EnvironmentVariables, NearbyFire } from '../types/FirefighterDashboard';
-
-interface GuestReport {
-    // fill in with the real shape once you have the backend schema for /api/guests/dashboard
-    [key: string]: unknown;
-}
+import { apiCall } from '../lib/api';
 
 const DEFAULT_LOCATION = { lat: -25.7479, lng: 28.2293 };
 
@@ -24,31 +20,27 @@ export function useGuestDashboard(radiusKm = 20) {
     }, []);
 
     useEffect(() => {
-        const controller = new AbortController();
+        let cancelled = false;
 
         const fetchDashboard = async () => {
             setLoading(true);
             setError(null);
             try {
-                const resp = await fetch(
-                    `/api/guests/dashboard?lat=${location.lat}&lng=${location.lng}&radius_km=${radiusKm}`,
-                    { signal: controller.signal }
-                );
-                if (!resp.ok) throw new Error('Failed to fetch dashboard data');
-                const data = await resp.json();
+                const data = await apiCall(
+                    `/api/guests/dashboard?lat=${location.lat}&lng=${location.lng}&radius_km=${radiusKm}`);
                 setEnvironmentVariables(data.environment_variables ?? null);
                 setReports(data.nearby_reports ?? []);
-            } catch (err) {
-                if (err instanceof Error && err.name === 'AbortError') return;
+            } catch (err: unknown) {
+                if (cancelled) return;
                 console.error('Dashboard fetch error', err);
                 setError(err instanceof Error ? err.message : 'Unknown error');
             } finally {
-                if (!controller.signal.aborted) setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
         fetchDashboard();
-        return () => controller.abort();
+        return () => {cancelled = true;};
     }, [location, radiusKm]);
 
     const recenter = () => {
