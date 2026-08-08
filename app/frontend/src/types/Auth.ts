@@ -1,4 +1,4 @@
-import type { UserRole } from './user';
+import type { UserRole } from './User';
 
 export interface RegisterRequest{
     email: string;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { RoleRequest,RoleStatus } from '../../types/role-request';
+import type { RoleRequest,RoleStatus } from '../../types/RoleRequest';
 import { useRoleRequests } from '../../hooks/useRoleRequests';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';
 import { AdminSideBar } from '../../components/admin/adminSidebar';

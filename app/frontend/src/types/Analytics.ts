@@ -1,4 +1,4 @@
-import type { RoleRequest } from './role-request';
+import type { RoleRequest } from './RoleRequest';
 
 export interface KPIs {
   total_users: number;

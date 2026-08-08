@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useFetch } from './useFetch';
-import type { RoleRequestList, RoleAction } from '../types/role-request';
+import type { RoleRequestList, RoleAction } from '../types/RoleRequest';
 
 export function useRoleRequests() {
     const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests');

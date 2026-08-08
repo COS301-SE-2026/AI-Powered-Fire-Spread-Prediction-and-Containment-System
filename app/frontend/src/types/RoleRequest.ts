@@ -1,4 +1,4 @@
-import type { UserRole } from './user';
+import type { UserRole } from './User';
 
 export type RoleStatus = 'pending' | 'approved' | 'rejected' | 'revoked' | 'none';
 
