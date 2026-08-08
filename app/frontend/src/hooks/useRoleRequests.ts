@@ -1,9 +1,11 @@
 import { useCallback } from 'react';
 import { useFetch } from './useFetch';
+import { useAuthHeaders } from './useAuthHeaders';
 import type { RoleRequestList, RoleAction } from '../types/RoleRequest';
 
 export function useRoleRequests() {
-    const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests');
+    const headers = useAuthHeaders();
+    const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests', { headers });
 
     const updateStatus = useCallback(async (requestId: string, action: RoleAction) => {
         try {
@@ -20,7 +22,7 @@ export function useRoleRequests() {
         } catch (err) {
             console.error(`Error on ${action} request`, err);
         }
-    }, [refetch]);
+    }, [refetch, headers]);
     return { requests: data?.data ?? [],
         total: data?.total ?? 0,
         loading,
