@@ -1,28 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import type { FireReport, ReportStatus } from '../../types/Report';
+import type { ReportStatus } from '../../types/Report';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
 import { SearchBar } from '../../components/admin/searchBar';
+import { useReportedFires } from '../../hooks/useReportedFires';
 
 
 export default function ReportedFiresPage() {
-    const [reports, setReports] = useState<FireReport[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const { reports, loading, error } = useReportedFires();
     const [filter, setFilter] = useState<'All' | ReportStatus>('All');
     const [search, setSearch] = useState('');
-
-    useEffect(() => {
-        fetch('/api/admin/reported-fires')
-        .then(res => {
-            if (!res.ok) throw new Error("Failed to load reports");
-            return res.json();
-        })
-        .then(data => setReports(data))
-        .catch(err => setError(err.message))
-        .finally(() => setLoading(false));
-    }, []);
 
     const filteredReports = reports.filter(report =>
         report.location_text.toLowerCase().includes(search.toLowerCase()) ||
