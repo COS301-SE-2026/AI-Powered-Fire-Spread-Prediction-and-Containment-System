@@ -4,6 +4,7 @@ export function useFetch<T>(url: string, options?: RequestInit) {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [status, setStatus] = useState<number | null>(null);
     const [refetchIndex, setRefetchIndex] = useState(0);
 
     const refetch = useCallback(() => {
@@ -42,5 +43,5 @@ export function useFetch<T>(url: string, options?: RequestInit) {
         return () => controller.abort();
     }, [url, refetchIndex]);
 
-    return { data, loading, error, refetch };
+    return { data, loading, error, status, refetch };
 }
