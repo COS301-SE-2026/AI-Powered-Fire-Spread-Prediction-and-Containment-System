@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Card } from "./Card";
-import type { FireReport } from "../../types/Report";
+import type { FireReportDetailResponse } from "../../types/Report";
 import Image from "next/image";
 
 interface ReportPhotoProps {
-    readonly report: FireReport;
+    readonly report: FireReportDetailResponse;
 }
 
 export function ReportPhoto({ report }: ReportPhotoProps) {
