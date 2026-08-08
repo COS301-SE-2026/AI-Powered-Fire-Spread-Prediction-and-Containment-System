@@ -1,5 +1,5 @@
 import React from "react";
-import { ReportStatus } from "../../types/FirefighterDashboard";
+import { ReportStatus } from "../../types/Report";
 
 type tableStatusFilter = 'all' | ReportStatus;
 

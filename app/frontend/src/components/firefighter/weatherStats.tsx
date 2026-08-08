@@ -1,5 +1,4 @@
 import { Thermometer, Wind, Droplets, Flame} from "lucide-react";
-import { useState } from "react";
 
 interface StatCardProps {
     label: string;
