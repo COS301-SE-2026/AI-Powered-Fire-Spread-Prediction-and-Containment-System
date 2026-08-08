@@ -1,4 +1,4 @@
-import { Report } from "../../types/firefighter"
+import { Report } from "../../types/firefighter-dashboard"
 
 interface fireReport{
     report: Report;
@@ -11,8 +11,8 @@ export function ReportModalTable({ report }: Readonly<fireReport>){
         <button type="button" className="btn btn-soft btn-neutral btn-outline rounded-full" onClick={()=>(document.getElementById('my_modal_2') as HTMLDialogElement | null)?.showModal()}>
             view
         </button>
-        
-        
+
+
         <dialog id="my_modal_2" className="modal">
             <div className="modal-box border border-carbon-stroke rounded-2xl">
                 <div className="flex flex-col">

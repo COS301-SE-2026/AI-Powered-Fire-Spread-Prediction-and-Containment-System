@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Report, ReportStatus } from "../../types/firefighter";
+import { Report, ReportStatus } from "../../types/firefighter-dashboard";
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
