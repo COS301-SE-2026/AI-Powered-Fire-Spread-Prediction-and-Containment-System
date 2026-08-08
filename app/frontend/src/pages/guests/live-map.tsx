@@ -2,11 +2,11 @@
 import React, { useEffect, useState, useRef} from 'react';
 import { SideBar, NavLink } from '../../components/layout/Sidebar';
 import dynamic from 'next/dynamic';
-import {Map, Flame, CircleAlert} from 'lucide-react'
+import {Map, CircleAlert} from 'lucide-react'
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
-import GuestMap,{ GuestMapHandle } from '../../components/guest/GuestMap';
 import { GuestReports } from '../../components/guest/GuestReports';
 import { GuestActions } from '../../components/guest/GuestActions';
+import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 
 const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -21,53 +21,14 @@ const PublicFireMap = dynamic(
 );
 
 export default function GuestPublicDashboard() {
-  const defaultLocation = { lat: -25.7479, lng: 28.2293 };
-  const [location, setLocation] = useState(defaultLocation);
-  const [envData, setEnvData] = useState(null);
-  const [reports, setReports] = useState([]);
+  const { location, environmentVariables, reports, recenter } = useGuestDashboard(20);
 
-  //get user location
-  useEffect(() => {
-      if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-              pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-              () => {}
-          );
-      }
-    }, []);
-    //fetch dashboard data
-    useEffect(()=>{
-        const fetchData= async () =>{
-            try{
-                const resp = await fetch(`/api/guests/dashboard?lat=${location.lat}&lng=${location.lng}&radius_km=20`);
-                if(!resp.ok) throw new Error("Failed to fetch dashboard data");
-                const data= await resp.json();
-                setEnvData(data.environment_variables);
-                setReports(data.nearby_reports);
-            }catch(err){
-                console.error("Dashboard fetch error", err);
-            }
-        };
-        fetchData();
-    },[location]);
-
-    const handleRecenter = () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          () => {}
-        );
-      } else {
-      setLocation({ ...defaultLocation });
-      }
-    };
-
-    const guestNavItems =(
-        <>
-            <NavLink icon={Map} label="Live Map" href="/guests/live-map"/>
-            <NavLink icon={CircleAlert} label="Report Fire" href="/guests/report-fire"/>
-        </>
-      );
+  const guestNavItems =(
+      <>
+          <NavLink icon={Map} label="Live Map" href="/guests/live-map"/>
+          <NavLink icon={CircleAlert} label="Report Fire" href="/guests/report-fire"/>
+      </>
+    );
 
   return (
     <SideBar items={guestNavItems} hideLogout>
@@ -96,10 +57,8 @@ export default function GuestPublicDashboard() {
                 />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <GuestEnvironment data={envData} />
-              <GuestActions
-                onRecenter={handleRecenter}
-              />
+              <GuestEnvironment data={environmentVariables} />
+              <GuestActions onRecenter={recenter} />
               </div>
           </div>
 
