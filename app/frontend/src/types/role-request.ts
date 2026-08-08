@@ -1,5 +1,4 @@
-export type UserRole = 'user' | 'firefighter' | 'admin';
-
+import type { UserRole } from './user';
 export type RoleStatus = 'pending' | 'approved' | 'rejected' | 'revoked' | 'none';
 
 export interface UserSummary{
