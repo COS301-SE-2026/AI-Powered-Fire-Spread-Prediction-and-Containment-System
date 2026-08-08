@@ -1,14 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
-export function useFetch<T>(url: string) {
+export function useFetch<T>(url: string, options?: RequestInit) {
     const [data, setData] = useState<T | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const refetchIndex = useRef(0);
+    const [refetchIndex, setRefetchIndex] = useState(0);
 
     const refetch = useCallback(() => {
-        refetchIndex.current += 1;
-        setLoading(true); // trigger immediately so refetch() calls feel responsive
+        setRefetchIndex((i) => i + 1);
     }, []);
 
     useEffect(() => {
@@ -18,7 +17,7 @@ export function useFetch<T>(url: string) {
             setLoading(true);
             setError(null);
             try {
-                const resp = await fetch(url, { signal: controller.signal });
+                const resp = await fetch(url, { ...options, signal: controller.signal });
                 if (!resp.ok) {
                     throw new Error(`Request failed: ${resp.status}`);
                 }
@@ -41,7 +40,7 @@ export function useFetch<T>(url: string) {
         fetchData();
 
         return () => controller.abort();
-    }, [url, refetchIndex.current]);
+    }, [url, refetchIndex]);
 
     return { data, loading, error, refetch };
 }
