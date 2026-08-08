@@ -3,7 +3,7 @@ import { FirefighterSideBar } from '../../components/firefighter/firefighterSide
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
-import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
+import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../components/firefighter/useSimulation';
 
 export default function ReportTable() {
