@@ -1,5 +1,8 @@
 import type { UserRole } from './user';
+
 export type RoleStatus = 'pending' | 'approved' | 'rejected' | 'revoked' | 'none';
+
+export type RoleAction = 'approve' | 'reject' | 'revoke';
 
 export interface UserSummary{
     id: string;

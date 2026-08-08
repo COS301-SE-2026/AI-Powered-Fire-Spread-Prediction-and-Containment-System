@@ -1,86 +1,33 @@
-import { useState, useEffect } from 'react';
-import type { RoleRequest, RoleStatus } from '../types/role-request';
+import { useCallback } from 'react';
+import { useFetch } from './useFetch';
+import type { RoleRequestList, RoleAction } from '../types/role-request';
 
 export function useRoleRequests() {
-    const [requests, setRequests] = useState<RoleRequest[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests');
 
-
-    useEffect(() => {
-        const fetchRequest = async() => {
-            try{
-                const resp = await fetch(`/api/admin/role-requests`);
-                if (!resp.ok) {
-                    console.warn("API unavailable");
-                    setRequests([])
-                    return;
-                }
-                const data = await resp.json();
-                setRequests(data.data ?? []);
-            }catch (error){
-                console.error("Failed to load role requests", error);
-                setRequests([])
-            }finally{
-                setLoading(false);
-            }
-        }
-        fetchRequest();
-    }, []);
-
-    const approveRequest = async (requestId: string) => {
-        try{
-            const resp = await fetch(`/api/admin/role-requests/${requestId}/approve`, {
-                method: 'PUT'
-            });
-
-            if(resp.ok){
-                const updated = await resp.json();
-
-                setRequests(prev => prev.map(req =>
-                    req.request_id === requestId ? updated : req
-                ));
-            }else{
-                console.error("Approval failed");
-            }
-        }catch(error){
-            console.error("Error approving request");
-        }
-    }
-
-    const rejectRequest = async(requestId: string) => {
-        try{
-            const resp = await fetch(`/api/admin/role-requests/${requestId}/reject`, {
-                method: 'PUT'
-            });
-
-            if(resp.ok){
-                setRequests(prev => prev.map(req =>
-                    req.request_id === requestId ? { ...req, status: 'rejected' as RoleStatus } : req
-                ));
-            }else{
-                console.error("Reject failed:", await resp.text());
-            }
-        }catch(error){
-            console.error("Error rejecting request", error);
-        }
-    };
-
-    const revokeRequest = async(requestId: string) => {
-        try{
-            const resp = await fetch(`/api/admin/role-requests/${requestId}/revoke`, {
+    const updateStatus = useCallback(async (requestId: string, action: RoleAction) => {
+        try {
+            const resp = await fetch(`/api/admin/role-requests/${requestId}/${action}`, {
                 method: 'PUT',
             });
 
-            if(resp.ok){
-                setRequests(prev => prev.map(req =>
-                    req.request_id === requestId ? {...req, status: 'revoked' as RoleStatus} : req
-                ));
-            }else{
-                console.error("Revoke failed:", await resp.text());
+            if (!resp.ok) {
+                console.error(`${action} failed:`, await resp.text());
+                return;
             }
-        }catch(error){
-            console.error("Error revoking request", error);
+
+            await refetch();
+        } catch (err) {
+            console.error(`Error on ${action} request`, err);
         }
+    }, [refetch]);
+    return { requests: data?.data ?? [],
+        total: data?.total ?? 0,
+        loading,
+        error,
+        approveRequest: (id: string) => updateStatus(id, 'approve'),
+        rejectRequest: (id: string) => updateStatus(id, 'reject'),
+        revokeRequest: (id: string) => updateStatus(id, 'revoke'),
+        refetch,
     };
-    return { requests, loading, approveRequest, rejectRequest, revokeRequest };
 }
