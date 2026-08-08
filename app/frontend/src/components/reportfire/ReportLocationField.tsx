@@ -4,11 +4,7 @@ import React, { useCallback, useEffect, useRef, useState, useId } from "react";
 import { Alert } from "../shared/Alerts";
 import { MapPin } from "lucide-react";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
-
-interface GeocodingSuggestion {
-    readonly place_name: string;
-    readonly center: [number, number];
-}
+import { GeocodingSuggestion, useGeoSearch } from "../../hooks/useGeoSearch";
 
 interface LocationSelection {
     readonly lat: number;
@@ -51,23 +47,6 @@ function renderSuggestions( suggestions: GeocodingSuggestion[], onSelect: (s: Ge
     return rows;
 }
 
-async function fetchSuggestions(query: string): Promise<GeocodingSuggestion[]> {
-    const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&autocomplete=true&limit=5&types=address,place,locality,neighborhood,poi`);
-
-    if (!res.ok) {
-        throw new Error(`Geocoding request failed: ${res.status} ${res.statusText}`);
-    }
-
-    const json = await res.json();
-    const features = json.features ?? [];
-    const results: GeocodingSuggestion[] = [];
-    for (const f of features) {
-        results.push({ place_name: f.place_name, center: f.center });
-    }
-    return results;
-}
-
 function handleClick(e: React.MouseEvent<HTMLInputElement>) {
     e.currentTarget.select();
 }
@@ -76,13 +55,14 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     const id = useId();
     const errorId = error ? `${id}-error` : undefined;
 
-    const [suggestions, setSuggestions] = useState<GeocodingSuggestion[]>([]);
+    const { suggestions, isSearching, searchError } = useGeoSearch(value);
     const [showDropdown, setShowDropdown] = useState(false);
-    const [isSearching, setIsSearching] = useState(false);
-    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [dismissed, setDismissed] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
-    const [searchError, setSearchError] = useState<string | null>(null);
 
+    useEffect(() => {
+        setDismissed(false);
+    }, [suggestions]);
 
     useEffect(() => {
         function handleOutside(e: MouseEvent) {
@@ -94,26 +74,6 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
         return () => document.removeEventListener("mousedown", handleOutside);
     }, []);
 
-    const runSearch = useCallback(async (query: string) => {
-        if (query.trim().length < 3) {
-            setSuggestions([]);
-            setShowDropdown(false);
-            return;
-        }
-        setIsSearching(true);
-        setSearchError(null);
-        try {
-            const results = await fetchSuggestions(query);
-            setSuggestions(results);
-            setShowDropdown(results.length > 0);
-        } catch {
-            setSuggestions([]);
-            setSearchError("Search failed. Please try again.");
-        } finally {
-            setIsSearching(false);
-        }
-    }, []);
-
     function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
         if (value === LOCATION_PLACEHOLDER) {
             onChange("");
@@ -121,17 +81,11 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     }
 
     function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-        const val = e.target.value;
-
-        onChange(val);
-
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => runSearch(val), 300);
+        onChange(e.target.value);
     }
 
     function handleSuggestionSelect(s: GeocodingSuggestion) {
-        setSuggestions([]);
-        setShowDropdown(false);
+        setDismissed(true);
         onValidSelect({ lat: s.center[1], lng: s.center[0], address: s.place_name });
     }
     return (
