@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { EnvironmentVariables, EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { LoggedContainmentLine } from './containmentLineCard';
-import { Prediction, SimulationStatus } from './useSimulation';
+import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
+import { useNearbyFires } from '../../hooks/useNearbyFires';
 
 interface SimulationResultsProps {
     predictions?: Prediction[];
@@ -21,52 +22,7 @@ function countStates(grid: number[] | undefined) {
 
 
 export function SimulationResults ({predictions = [], currentTick = 0,status='idle'}: SimulationResultsProps) {
-
-    const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
-    const [userLocation, setUserLocation] = useState(default_location);
-    const [environmentVariables, setEnvironmentVariables] = useState<EnvironmentVariables | null>(null);
-
-    useEffect (() => {
-            if(!navigator.geolocation){ // if user does not allow location return default location on map
-                return;
-            }
-    
-            // if users location permissions accepted set lat and lng to users location 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    setUserLocation({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    });
-                },
-                () => {} // keeps default if there is failure retreiving users location
-            )
-        }, [])
-
-
-    useEffect(() => {
-    
-            const fetchController = new AbortController();
-            const fetchRequest = async () => {
-                const url = `/api/firefighter/dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
-                try{
-                    const resp = await fetch(url, {signal: fetchController.signal});
-                    if (!resp.ok){
-                        
-                        setEnvironmentVariables(null);
-                        return;
-                    }
-                    const data = await resp.json();
-                    setEnvironmentVariables(data.environment_variables ?? null);
-                } catch(error){
-                    if(error.name === 'AbortError') return; // this request is superseded by a newer request
-                    console.error("Was unable to find/retrieve dashboard data", error);
-                    setEnvironmentVariables(null);
-                }
-            };
-            fetchRequest();
-            return () => fetchController.abort(); // this will cancel the fetch if the users location again changes before it is resolved
-        }, [userLocation]);
+    const { environmentVariables } = useNearbyFires();
 
     const totals = predictions.reduce(
         (acc, p) => {
@@ -92,7 +48,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                 </h3>
                 <p className="text-xs text-text-disabled">
                     {status === 'idle' && 'Not yet run'}
-                    {status === 'loading' && 'Running simulation...'}  
+                    {status === 'loading' && 'Running simulation...'}
                     {status === 'playing' && `Tick ${currentTick} - Playing`}
                     {status === 'paused' && `Tick ${currentTick} - Paused`}
                     {status === 'error' && 'Simulation failed'}
@@ -139,7 +95,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                     <p className='text-xs text-text-disabled'>Run the simulation to see spread data</p>
                 ) : (
                     <div className="flex flex-col gap-2">
-                    {predictions.map((p) => ( 
+                    {predictions.map((p) => (
                         <div key={p.ref} className="flex items-center gap-2">
                             <span className="text-xs text-text-muted w-8 shrink-0">{p.ref.slice(0.8)}</span>
                             <div className='flex-1 h-2 rounded-full bg-carbon-stroke overflow-hidden'>
@@ -150,7 +106,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                     ))}
                 </div>
                 )}
-                
+
             </div>
 
             {/* logged containment lines */}
