@@ -1,61 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import Card from '../../components/ui/Card';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
-interface KPIs {
-  total_users: number;
-  pending_role_requests: number;
-  total_firefighters: number;
-  total_admins: number;
-}
-
-interface UserSummary {
-  id: string;
-  name: string;
-  surname: string;
-  email: string;
-  license_number: string | null;
-}
-
-interface PendingRequest {
-  request_id: string;
-  user: UserSummary;
-  requested_role: string;
-  current_role: string;
-  status: string;
-  created_at: string;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
-}
-
-interface AnalyticsData {
-  kpis: KPIs;
-  pending_requests: PendingRequest[];
-}
+import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
 
 export default function AdminAnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch('/api/admin/analytics/overview')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data: AnalyticsData) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching analytics:', err);
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+  const {kpis, pendingRequests, loading, error, refetch } = useAdminAnalytics();
 
   if (loading) {
     return (
@@ -86,7 +36,7 @@ export default function AdminAnalyticsPage() {
     );
   }
 
-  if (!data) {
+  if (!kpis) {
     return (
       <AdminSideBar>
         <div className="p-6">No data available</div>
@@ -95,10 +45,10 @@ export default function AdminAnalyticsPage() {
   }
 
   const kpiCards = [
-    { label: 'Total Users', value: data.kpis.total_users.toString() },
-    { label: 'Pending Role Requests', value: data.kpis.pending_role_requests.toString() },
-    { label: 'Total Firefighters', value: data.kpis.total_firefighters.toString() },
-    { label: 'Total Admins', value: data.kpis.total_admins.toString() },
+    { label: 'Total Users', value: kpis.total_users.toString() },
+    { label: 'Pending Role Requests', value: kpis.pending_role_requests.toString() },
+    { label: 'Total Firefighters', value: kpis.total_firefighters.toString() },
+    { label: 'Total Admins', value: kpis.total_admins.toString() },
   ];
 
   return (
@@ -141,7 +91,7 @@ export default function AdminAnalyticsPage() {
             </Link>
           }
         >
-          {data.pending_requests.length === 0 ? (
+          {pendingRequests.length === 0 ? (
             <p className="text-white/40 text-sm">No pending requests</p>
           ) : (
             <div className="overflow-x-auto">
@@ -155,7 +105,7 @@ export default function AdminAnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.pending_requests.map((req) => (
+                  {pendingRequests.map((req) => (
                     <tr key={req.request_id} className="border-b border-carbon-stroke/50 last:border-0">
                       <td className="py-2 text-text-primary">
                         {req.user.name} {req.user.surname}
