@@ -7,6 +7,9 @@ export function useFetch<T>(url: string, options?: RequestInit) {
     const [status, setStatus] = useState<number | null>(null);
     const [refetchIndex, setRefetchIndex] = useState(0);
 
+    const optionsRef = useRef(options);
+    optionsRef.current = options;
+
     const refetch = useCallback(() => {
         setRefetchIndex((i) => i + 1);
     }, []);
@@ -18,8 +21,11 @@ export function useFetch<T>(url: string, options?: RequestInit) {
             setLoading(true);
             setError(null);
             try {
-                const resp = await fetch(url, { ...options, signal: controller.signal });
+                const resp = await fetch(url, { ...optionsRef.current, credentials: 'include', signal: controller.signal });
+                setStatus(resp.status);
+
                 if (!resp.ok) {
+                    const body = await resp.json().catch(() => null);
                     throw new Error(`Request failed: ${resp.status}`);
                 }
                 const json: T = await resp.json();
