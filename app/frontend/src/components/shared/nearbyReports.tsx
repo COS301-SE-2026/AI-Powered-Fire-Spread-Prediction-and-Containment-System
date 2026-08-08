@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronRight } from "lucide-react";
-import { statusBadge } from "./admin/statusBadge";
-import type { EnvironmentVariables } from "./firefighter/weatherStats";
+import { statusBadge } from "../admin/statusBadge";
+import type { EnvironmentVariables } from "../firefighter/weatherStats";
 
 export interface NearbyFire{
     readonly ref: string;
@@ -23,7 +23,7 @@ export function useNearbyFires() {
             return;
         }
 
-        //if users location permissions accepted set lat and lng to users location 
+        //if users location permissions accepted set lat and lng to users location
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 setUserLocation({
@@ -79,7 +79,7 @@ export function NearbyReports({nearby_fires}: NearbyFireReports) {
     return(
         <div className="h-full overflow-y-auto flex flex-col p-2">
         {fires.map((fire) => {
-            const status= fire.status === 'received' ? 'pending' : fire.status; 
+            const status= fire.status === 'received' ? 'pending' : fire.status;
             const style = statusBadge[status] ?? statusBadge.none;
             return (
                 <div key={fire.ref} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
