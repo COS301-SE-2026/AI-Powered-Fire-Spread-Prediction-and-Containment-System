@@ -1,6 +1,6 @@
 import React from "react";
 import { Card } from "./Card";
-import type { FireReport } from "../../types/report";
+import type { FireReport } from "../../types/Report";
 
 interface ReportDescriptionProps {
     readonly report: FireReport;

@@ -4,7 +4,7 @@ import { ReportDetails } from './reportDetails';
 import { ReportDescription } from './reportDescription';
 import { ReportActions } from './reportActions';
 import { ReportPhoto } from './reportPhoto';
-import type { FireReport } from '../../types/report';
+import type { FireReport } from '../../types/Report';
 
 import dynamic from 'next/dynamic';
 

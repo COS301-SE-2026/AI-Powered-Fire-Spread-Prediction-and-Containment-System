@@ -1,5 +1,5 @@
 import { useFetch } from './useFetch';
-import type { AnalyticsData } from '../types/analytics';
+import type { AnalyticsData } from '../types/Analytics';
 
 export function useAdminAnalytics() {
     const { data, loading, error, refetch } = useFetch<AnalyticsData>('/api/admin/analytics/overview');

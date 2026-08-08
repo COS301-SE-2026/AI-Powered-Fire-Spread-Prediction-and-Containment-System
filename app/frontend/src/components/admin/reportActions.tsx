@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card } from "./Card";
-import type { FireReport, ReportStatus } from "../../types/report";
+import type { FireReport, ReportStatus } from "../../types/Report";
 
 interface ReportActionsProps {
     readonly report_ref: string;

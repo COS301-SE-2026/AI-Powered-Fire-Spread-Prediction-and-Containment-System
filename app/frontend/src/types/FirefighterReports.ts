@@ -1,4 +1,4 @@
-import type { ReportStatus } from './report';
+import type { ReportStatus } from './Report';
 
 export interface FirefighterReportTable {
     ref: string;

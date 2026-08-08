@@ -7,7 +7,7 @@ import ReportStatus from "./Reportstatus";
 import { FireMap } from "../shared/DynamicUserMap"
 import { Alert } from "../shared/Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
-import type { FireReport } from "../../types/report";
+import type { FireReport } from "../../types/Report";
 
 type SubmitState = "idle" | "loading" | "error";
 

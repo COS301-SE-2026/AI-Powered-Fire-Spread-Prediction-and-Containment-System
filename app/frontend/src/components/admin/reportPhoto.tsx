@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Card } from "./Card";
-import type { FireReport } from "../../types/report";
+import type { FireReport } from "../../types/Report";
 import Image from "next/image";
 
 interface ReportPhotoProps {

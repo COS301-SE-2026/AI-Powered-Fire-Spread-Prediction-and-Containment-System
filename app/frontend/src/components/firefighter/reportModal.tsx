@@ -1,4 +1,4 @@
-import { Report } from "../../types/firefighter-dashboard"
+import { Report } from "../../types/FirefighterDashboard"
 
 interface fireReport{
     report: Report;

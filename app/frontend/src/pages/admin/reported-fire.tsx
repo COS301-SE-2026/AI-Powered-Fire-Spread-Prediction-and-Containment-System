@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { FireReport, ReportStatus } from '../../types/report';
+import type { FireReport, ReportStatus } from '../../types/Report';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
@@ -12,7 +12,7 @@ export default function ReportedFiresPage() {
     const [error, setError] = useState<string | null>(null);
     const [filter, setFilter] = useState<'All' | ReportStatus>('All');
     const [search, setSearch] = useState('');
-    
+
     useEffect(() => {
         fetch('/api/admin/reported-fires')
         .then(res => {
@@ -33,7 +33,7 @@ export default function ReportedFiresPage() {
     return(
         <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
-                
+
                 <header className="mb-6">
                     <h1 className="uppercase">Reported Fires</h1>
                     <p className="text-text-muted">Manage and review fire reports</p>
@@ -43,7 +43,7 @@ export default function ReportedFiresPage() {
                     <ReportFilterTabs filter={filter} onChange={setFilter}/>
                     <div className="flex items-center gap-2">
                         <SearchBar value={search} onChange={setSearch} placeholder="Search by location, ref, reporter..."/>
-                    </div> 
+                    </div>
                 </div>
 
                 {error && (

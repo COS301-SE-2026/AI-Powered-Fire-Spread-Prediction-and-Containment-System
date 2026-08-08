@@ -1,5 +1,5 @@
 import React from "react";
-import { FireReport, ReportStatus } from "../../types/report";
+import { FireReport, ReportStatus } from "../../types/Report";
 import { StatusBadge } from "./reportStatusBadge";
 import { useRouter } from 'next/router';
 

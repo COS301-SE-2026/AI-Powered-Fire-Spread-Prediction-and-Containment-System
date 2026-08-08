@@ -1,4 +1,4 @@
-import type { ReportStatus } from './report';
+import type { ReportStatus } from './Report';
 
 export type FireDanger = 'low' | 'medium' | 'high' | 'very high';
 
