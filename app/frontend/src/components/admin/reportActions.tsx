@@ -1,42 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "./Card";
-import type { FireReport, ReportStatus } from "../../types/Report";
+import { useReportStatus } from '../../hooks/useReportStatus';
+import type { FireReportDetailResponse, ReportStatus } from "../../types/Report";
 
 interface ReportActionsProps {
     readonly report_ref: string;
     readonly status: ReportStatus;
-    readonly onStatusChange: (report: FireReport) => void;
+    readonly onStatusChange: (report: FireReportDetailResponse) => void;
 }
 
 export function ReportActions({ report_ref, status, onStatusChange }: ReportActionsProps) {
-    const [error, setError] = useState<string | null>(null);
+    const { updateStatus, loading, error } = useReportStatus();
     const [success, setSuccess] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
 
-    async function statusChange(newStatus: ReportStatus) {
-        setLoading(true);
-        setError(null);
-        setSuccess(null);
-        try{
-            const res = await fetch(`/api/admin/reported-fires/${report_ref}/status?status=${newStatus}`, {
-                method: 'PATCH',
-            });
-            if (!res.ok) throw new Error("Failed to update status");
-            const updated: FireReport = await res.json();
+    useEffect(() => {
+        if (!success) return;
+        const timer = setTimeout(() => setSuccess(null), 3000);
+        return () => clearTimeout(timer);
+    }, [success]);
+
+    const handleChange = async (newStatus: ReportStatus) => {
+        const updated = await updateStatus(report_ref, newStatus);
+        if (updated) {
             onStatusChange(updated);
             setSuccess(`Report successfully updated to ${newStatus}.`);
-            setTimeout(() => setSuccess(null), 3000);
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
         }
-    }
+    };
 
-    const handleVerify = () => statusChange('verified');
-    const handleReject = () => statusChange('rejected');
-    const handleRevoke = () => statusChange('pending');
-    const handleReVerify = () => statusChange('pending');
+    const handleVerify = () => handleChange('verified');
+    const handleReject = () => handleChange('rejected');
+    const handleRevoke = () => handleChange('pending');
+    const handleReVerify = () => handleChange('pending');
 
     return (
         <Card title="Action">
