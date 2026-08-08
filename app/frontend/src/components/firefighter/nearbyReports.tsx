@@ -1,11 +1,6 @@
 import { ChevronRight } from "lucide-react";
+import { NearbyFire } from "../../types/FirefighterDashboard";
 
-interface NearbyFire{
-    readonly location_text: string;
-    readonly distance: number;
-    readonly time_ago: string;
-    readonly status: string;
-}
 
 interface NearbyFireReports{
     readonly nearby_fires: NearbyFire[];

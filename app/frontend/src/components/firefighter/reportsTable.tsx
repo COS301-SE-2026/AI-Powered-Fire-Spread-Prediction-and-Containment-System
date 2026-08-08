@@ -1,12 +1,12 @@
 import React from "react";
-import { Report, ReportStatus } from "../../types/FirefighterDashboard";
+import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
 import { useRouter } from 'next/router';
 import { StatusBadge } from "../admin/reportStatusBadge";
 
 interface ReportsTableProp{
-    readonly requests: Report[];
+    readonly requests: FireReportDetailResponse[];
     readonly filter: 'all' | ReportStatus;
-    readonly onView: (request: Report) => void;
+    readonly onView: (request: FireReportDetailResponse) => void;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
@@ -47,18 +47,18 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         </tr>
                     ) : (
                         filtered.map((req) => {
-                            const formattedDate = dateFormatter.format(new Date(req.reported));
+                            const formattedDate = dateFormatter.format(new Date(req.reporter_name));
 
                             return(
-                                <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
+                                <tr key={req.reference_number} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reference_number}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location_text}</td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.size} ha</td>
                                     <td className="px-4 text-sm text-text-primary">{formattedDate}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter_name}</td>
                                     <td className="px-4 py-3">
-                                        <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
+                                        <button type="button" onClick={() => router.push(`/firefighter/${req.reference_number}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
                                             View
                                         </button>
                                     </td>
