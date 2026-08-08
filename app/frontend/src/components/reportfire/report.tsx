@@ -7,7 +7,7 @@ import ReportStatus from "./Reportstatus";
 import { FireMap } from "../shared/DynamicUserMap"
 import { Alert } from "../shared/Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
-import type { FireReport } from "../../types/Report";
+import type { FireReportMapResponse } from "../../types/Report";
 
 type SubmitState = "idle" | "loading" | "error";
 
@@ -87,13 +87,13 @@ export default function ReportPage() {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
   const statusIndexRef = useRef(-1);
   const [activeRefNum, setActiveRefNum] = useState("");
-  const [reports, setReports] = useState<FireReport[]>([]);
+  const [reports, setReports] = useState<FireReportMapResponse[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/users/reported-fires`)
         .then((res) => res.json())
-        .then((data: FireReport[]) => {
+        .then((data: FireReportMapResponse[]) => {
           if (cancelled) { return };
             const sorted = [...data].sort(
                 (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
