@@ -1,15 +1,8 @@
 import React from 'react';
 import { Thermometer, Wind, Droplets, Flame } from 'lucide-react';
+import type { EnvironmentVariables } from '../../types/FirefighterDashboard';
 
-interface EnvData {
-readonly  temperature?: number;
-readonly  humidity?: number;
-readonly  wind?: number;
-readonly  wind_dir?: number;
-readonly  fire_danger?: string;
-}
-
-export function GuestEnvironment({ data }: {readonly data: EnvData | null }) {
+export function GuestEnvironment({ data }: {readonly data: EnvironmentVariables | null }) {
   if (!data) return <div className="text-xs opacity-50">No environment data</div>;
 
   const { temperature, humidity, wind, wind_dir, fire_danger } = data;
@@ -30,7 +23,13 @@ export function GuestEnvironment({ data }: {readonly data: EnvData | null }) {
   );
 }
 
-function StatCard({ label, value, icon }: any) {
+interface StatCardProps {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+}
+
+function StatCard({ label, value, icon }: StatCardProps) {
   return (
     <div className="flex items-center gap-2 p-3 rounded-lg bg-carbon-side/60 border border-carbon-stroke">
       <div className="text-ignite">{icon}</div>
