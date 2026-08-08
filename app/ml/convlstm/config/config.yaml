@@ -1,0 +1,37 @@
+region:
+  name: south_africa
+  lat_min: -35.0
+  lat_max: -22.0
+  lon_min: 16.0
+  lon_max: 33.0
+  grid_resolution_deg: 0.5
+
+static_rasters:
+  elevation: data/static/elevation.tif
+  slope: data/static/slope.tif
+  aspect: data/static/aspect.tif
+
+fetch:
+  start_year: 1990
+  end_year: 2024
+  chunk_coords: 50
+
+dynamic_variables: [wind_speed_10m, wind_direction_10m, relative_humidity_2m, temperature_2m]
+time_encodings: [hour_sin, hour_cos]
+
+sequence:
+  input_hours: 6
+  substeps_per_hour: 4
+
+tick_minutes: 15
+
+training:
+  hidden_dims: [48, 48]
+  kernel_size: 3
+  tf_p_start: 1.0
+  tf_p_end: 0.25
+  tf_p_anneal_epochs: 50
+  loss: smooth_l1
+  optimizer: adamw
+  grad_clip_norm: 1.0
+  lr_schedule: cosine
