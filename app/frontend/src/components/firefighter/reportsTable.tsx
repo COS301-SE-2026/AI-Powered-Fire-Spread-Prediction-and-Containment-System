@@ -2,11 +2,12 @@ import React from "react";
 import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
 import { useRouter } from 'next/router';
 import { StatusBadge } from "../admin/reportStatusBadge";
+import { FirefighterReportTable } from '../../types/FirefighterReports';
 
 interface ReportsTableProp{
-    readonly requests: FireReportDetailResponse[];
+    readonly requests: FirefighterReportTable[];
     readonly filter: 'all' | ReportStatus;
-    readonly onView: (request: FireReportDetailResponse) => void;
+    readonly onView: (request: FirefighterReportTable) => void;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
@@ -17,6 +18,12 @@ const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
                                 timeZone: "Africa/Johannesburg",
 });
 
+function formatReportDate(dateStr: string | undefined | null): string {
+    if (!dateStr) return "—";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "—";
+    return dateFormatter.format(date);
+}
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
     const filtered = requests.filter(req =>
@@ -47,18 +54,18 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         </tr>
                     ) : (
                         filtered.map((req) => {
-                            const formattedDate = dateFormatter.format(new Date(req.reporter_name));
+                            const formattedDate = formatReportDate(req.reported);
 
                             return(
-                                <tr key={req.reference_number} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reference_number}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location_text}</td>
+                                <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.size} ha</td>
                                     <td className="px-4 text-sm text-text-primary">{formattedDate}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter_name}</td>
+                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>
                                     <td className="px-4 py-3">
-                                        <button type="button" onClick={() => router.push(`/firefighter/${req.reference_number}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
+                                        <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
                                             View
                                         </button>
                                     </td>

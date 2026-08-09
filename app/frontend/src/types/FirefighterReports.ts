@@ -1,5 +1,6 @@
 import type { ReportStatus } from './Report';
 
+
 export interface FirefighterReportTable {
     ref: string;
     location: string;

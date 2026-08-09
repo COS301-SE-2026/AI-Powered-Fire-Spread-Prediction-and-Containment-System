@@ -56,7 +56,7 @@ export function ViewPage({ report_ref }: Readonly<ViewProps>) {
                 <div className='lg:col-span-6 flex flex-col gap-2 h-full'>
                     <ReportPhoto report={report} />
                     <ReportDescription report={report} />
-                    <ReportActions report_ref={report.reference_number} status={report.status} onStatusChange={() => refetch} />
+                    <ReportActions report_ref={report.reference_number} status={report.status} onStatusChange={refetch} />
                 </div>
             </div>
         </div>
