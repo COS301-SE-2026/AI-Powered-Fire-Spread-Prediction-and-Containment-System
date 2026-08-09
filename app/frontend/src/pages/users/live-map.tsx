@@ -1,5 +1,6 @@
 import React from 'react';
-import { NearbyReports, useNearbyFires} from '../../components/shared/nearbyReports';
+import { useNearbyFires } from '../../hooks/useNearbyFires';
+import { NearbyReports} from '../../components/shared/nearbyReports';
 import { UserSideBar } from '../../components/users/usersSidebar';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
