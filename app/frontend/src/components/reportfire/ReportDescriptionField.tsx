@@ -1,7 +1,7 @@
 "use client";
 
 import React, {useId} from "react";
-import { Alert } from "../Alerts";
+import { Alert } from "../shared/Alerts";
 
 interface DescriptionProps {
     readonly value: string;

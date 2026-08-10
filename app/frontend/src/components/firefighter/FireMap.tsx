@@ -4,18 +4,9 @@ import circle from '@turf/circle';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
-import { Prediction } from './useSimulation';
-
-interface FireReport{
-    ref: string;
-    location: string;
-    status: string
-    lat: number;
-    lng: number;
-    size?: number;
-    reported: string;
-    reporter?: string;
-}
+import { Prediction } from '../../hooks/useSimulation';
+import type { FirefighterReportTable } from '../../types/FirefighterReports';
+import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 
 interface MapProps{
     lat: number;
@@ -35,29 +26,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
 
-    const [fires, setFires] = useState<FireReport[]>([]);
+    const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
     const [viewState, setViewState] = useState({longitude: lng, latitude: lat, zoom: 12});
-    const [selectedFire, setSelectedFire] = useState<FireReport | null>(null);
-
-    useEffect(() => {
-        const fetchRequest = async() => {
-            const url = `/api/firefighter/reported-fires`
-
-            try{
-                const resp = await fetch(url);
-                if(!resp.ok){
-                    setFires([]);
-                    return;
-                }
-                const data = await resp.json();
-                setFires(data.data ?? []);
-            }catch(error){
-                console.error("failed to find fires", error)
-                setFires([]);
-            }
-        };
-        fetchRequest();
-    }, [])
+    const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
     const handleDrawCreate = (e: any) => {
         const line = e.features[0];
@@ -131,8 +102,6 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
             .filter(Boolean);
     }, [predictions, currentTick]);
 
-
-
     return (
         <Map
             ref={mapRef}
@@ -155,7 +124,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
 
             {/*Circles around markers*/}
             {circleFeatures.length>0 &&(
-              <Source 
+              <Source
                   id ="fire-circles"
                   type="geojson"
                   data={{
@@ -163,7 +132,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                       features:circleFeatures
                   }}
                   >
-                      <Layer 
+                      <Layer
                           id="fire-radius-fill"
                           type="fill"
                           paint={{
@@ -172,7 +141,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                           }}
                       />
 
-                      <Layer 
+                      <Layer
                           id="fire-radius-outline"
                           type="line"
                           paint={{
@@ -193,7 +162,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                         'fill-color': '#ffd54f',
                         'fill-opacity': 0.18,
                     }}
-                > 
+                >
                 </Layer>
 
                 <Layer
@@ -204,7 +173,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                         'line-width': 1,
                         "line-dasharray": [2,2]
                     }}
-                > 
+                >
                 </Layer>
             </Source>
           )}

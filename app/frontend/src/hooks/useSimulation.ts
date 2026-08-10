@@ -1,7 +1,6 @@
 // All API communication and playback state for fire simulation
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { SimulationResults } from "./simulationResult"
 
 export interface WeatherParams {
     wind_u: number;
@@ -49,7 +48,7 @@ export interface Prediction {
 }
 
 export interface SimulationResult {
-    predictions: Prediction[];   
+    predictions: Prediction[];
     grid_h: number;
     grid_w: number;
     n_steps_run: number;
@@ -100,6 +99,7 @@ export function useSimulation() {
     const [dcaParams, setDcaParams] = useState<DCAParams>(DEFAULT_DCA);
 
     const playTimeRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const abortRef = useRef<AbortController | null>(null);
 
     // Auto-play ticker
     const stopAutoPlay = useCallback(() => {
@@ -119,18 +119,27 @@ export function useSimulation() {
                 return t+1;
             });
             const next = totalTicks + 1;
-    
+
         }, PLAYBACK_INTERVAL_MS);
         setStatus('playing');
     },
     [stopAutoPlay]
     );
 
-    useEffect(() => () => stopAutoPlay(), [stopAutoPlay]);
+    useEffect(() => {
+        return () => {
+            stopAutoPlay();
+            abortRef.current?.abort();
+        };
+    }, [stopAutoPlay]);
 
     // API call
     const runSimulation = useCallback(
         async (lat: number, lng: number, n_steps = 48) => {
+            abortRef.current?.abort();
+            const controller = new AbortController();  // ← declared here
+            abortRef.current = controller;
+
             setStatus('loading');
             setError(null);
             setResult(null);
@@ -152,8 +161,9 @@ export function useSimulation() {
             try {
                 const res = await fetch(`${API_BASE}/api/simulate`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {'Content-Type': 'application/json' },
                     body: JSON.stringify(body),
+                    signal: controller.signal,
                 });
 
                 if (!res.ok) {
@@ -170,19 +180,20 @@ export function useSimulation() {
                     setStatus('paused');
                 }
             } catch (err) {
+                if (err instanceof Error && err.name === 'AbortError') return;
                 const msg = err instanceof Error ? err.message : String(err);
                 setError(msg);
                 setStatus('error');
             }
         },
-        [weather, staticParams, dcaParams, autoplay, startAutoPlay, startAutoPlay]
+        [weather, staticParams, dcaParams, autoplay, startAutoPlay, stopAutoPlay]
     );
 
     // Playback controls
     const pause = useCallback(() => {
         stopAutoPlay();
         setStatus('paused');
-    }, [stopAutoPlay, status, result, stopAutoPlay]);
+    }, [stopAutoPlay]);
 
     const play = useCallback(() => {
         if (!result) return;
@@ -218,7 +229,7 @@ export function useSimulation() {
         totalTicks: result?.n_steps_run ?? 0,
         gridH: result?.grid_h ?? 30,
         gridW: result?.grid_w ?? 30,
-        weather, 
+        weather,
         setWeather,
         staticParams,
         setStaticParams,

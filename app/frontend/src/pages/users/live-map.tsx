@@ -1,10 +1,11 @@
 import React from 'react';
-import { NearbyReports, useNearbyFires} from '../../components/nearbyReports';
+import { useNearbyFires } from '../../hooks/useNearbyFires';
+import { NearbyReports} from '../../components/shared/nearbyReports';
 import { UserSideBar } from '../../components/users/usersSidebar';
-import { PageHeader } from '../../components/pageHeader';
+import { PageHeader } from '../../components/layout/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
 import { SidePanelRight } from '../../components/users/sidePanelRight';
-import { FireMap } from '../../components/DynamicFirefighterMap';
+import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 
 export default function RegisteredUserDashboard (){
     const { userLocation, nearbyFires } = useNearbyFires();

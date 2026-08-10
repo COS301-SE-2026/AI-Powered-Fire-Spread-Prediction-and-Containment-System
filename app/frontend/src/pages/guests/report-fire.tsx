@@ -1,4 +1,4 @@
-import { SideBar, NavLink } from "../../components/Sidebar";
+import { SideBar, NavLink } from "../../components/layout/Sidebar";
 import {Map, CircleAlert} from 'lucide-react'
 import ReportPage from "../../components/reportfire/report";
 

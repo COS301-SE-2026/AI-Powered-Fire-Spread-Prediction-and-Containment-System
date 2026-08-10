@@ -1,6 +1,6 @@
 import React from "react";
 import { FileCheck, Clock, CheckCircle2, XCircle } from "lucide-react";
-import type { ReportStatus } from "../../types/report";
+import type { ReportStatus } from "../../types/Report";
 import { StatusCard } from "../reportfire/StatusCard";
 
 interface StatusProps {

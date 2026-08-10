@@ -1,5 +1,5 @@
 import React from "react";
-import { ReportStatus } from "../../types/report";
+import { ReportStatus } from "../../types/Report";
 
 type FilterOption = 'All' | ReportStatus;
 

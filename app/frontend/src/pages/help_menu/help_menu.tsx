@@ -1,5 +1,5 @@
-import { SideBar } from '../../components/Sidebar';
-import { PageHeader } from '../../components/pageHeader';
+import { SideBar } from '../../components/layout/Sidebar';
+import { PageHeader } from '../../components/layout/pageHeader';
 import { ActionCard } from '../../components/firefighter/actionCard';
 import {Siren, CirclePlay, Headset} from 'lucide-react'
 import { useRouter } from 'next/router';
@@ -19,7 +19,7 @@ const faqs=[
 ]
   const router = useRouter();
   return (
-    
+
     <SideBar items={null}>
       <div className='flex flex-col p-6'>
         <PageHeader
@@ -35,7 +35,7 @@ const faqs=[
     name="tutorial-accordion"
     open
   >
-    
+
     <summary className="collapse-title font-semibold p-4 flex items-center gap-3 cursor-pointer hover:bg-carbon-card/30 rounded-t-lg transition-colors">
       <div className="size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center text-white/60 group-hover:text-ignite group-hover:border-ignite/30 transition-colors shrink-0">
         <CirclePlay />
@@ -151,8 +151,8 @@ const faqs=[
     {/*FAQ's */}
       <div className='px-6 space-y-3'>
         {faqs.map((faq, index)=>(
-          
-          <div 
+
+          <div
           key={faq.id}
           className="group hover:bg-white/5 border border-white/5 rounded-[var(--radius-md)] px-3 py-2.5 transition-colors cursor-pointer">
           <div className="flex items-center justify-between">
@@ -168,7 +168,7 @@ const faqs=[
         <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-white/70 text-sm">
           <div>
             <span className="font-display font-bold uppercase tracking-wide text-white/90 text-xs">
-              <Siren className='w-8 h-8 text-brand-400'/> Emergency Contacts 
+              <Siren className='w-8 h-8 text-brand-400'/> Emergency Contacts
             </span>
             <div className="mt-1 space-y-1">
               <p>
@@ -188,6 +188,6 @@ const faqs=[
           </div>
         </div>
       </div>
-    </SideBar>  
+    </SideBar>
   );
 }

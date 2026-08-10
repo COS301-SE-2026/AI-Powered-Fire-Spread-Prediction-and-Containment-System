@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import React, { useState } from 'react';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
-import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
+import { NearbyReports } from '../../components/shared/nearbyReports';
+import { useNearbyFires  } from '../../hooks/useNearbyFires';
 import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
-import { FireMap } from '../../components/DynamicFirefighterMap';
-import { useContainmentLine } from '../../components/firefighter/useContainmentLine';
+import { FireMap } from '../../components/shared/DynamicFirefighterMap';
+import { useContainmentLine } from '../../hooks/useContainmentLine';
 
 export default function FirefighterDashboard() {
     const [drawMode, setDrawMode] = useState(false);
     const [clearDrawings, setClearDrawings] = useState(0);
     const { userLocation, nearbyFires, environmentVariables }=useNearbyFires();
-
-    const handleDrawComplete = useContainmentLine(() => setDrawMode(false));
+    const { submitLine, loading: savingLine, error: lineError } = useContainmentLine(() => setDrawMode(false));
 
     return(
         <FirefighterSideBar hideLoginRegister>
@@ -36,7 +35,7 @@ export default function FirefighterDashboard() {
                                 <button type="button" onClick={() => setClearDrawings(c => c + 1)} className="text-xs font-medium text-text-primary/60 hover:text-ignite transition-colors">Clear Lines</button>
                             </div>
                             <div className="flex-1 w-full h-full pt-[53px]">
-                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={handleDrawComplete} clearDrawings={clearDrawings}/>
+                                <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={submitLine} clearDrawings={clearDrawings}/>
                             </div>
                             <MapStatsOverlay nearby_fires={nearbyFires}/>
                         </div>
