@@ -1,11 +1,25 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '../../components/ui/Card';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
 
+const dateTimeFormatter = new Intl.DateTimeFormat('en-ZA', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Africa/Johannesburg',
+});
+
 export default function AdminAnalyticsPage() {
   const {kpis, pendingRequests, loading, error, refetch } = useAdminAnalytics();
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUpdatedAt(dateTimeFormatter.format(new Date()));
+  }, []);
 
   if (loading) {
     return (
@@ -115,7 +129,7 @@ export default function AdminAnalyticsPage() {
                         <span className="badge badge-neutral">{req.requested_role}</span>
                       </td>
                       <td className="py-2 text-white/60">
-                        {new Date(req.created_at).toLocaleString()}
+                        {dateTimeFormatter.format(new Date(req.created_at))}
                       </td>
                     </tr>
                   ))}
