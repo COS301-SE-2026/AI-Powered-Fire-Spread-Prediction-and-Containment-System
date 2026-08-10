@@ -19,21 +19,26 @@ export function useFetch<T>(url: string, options?: RequestInit) {
 
     useEffect(() => {
         const controller = new AbortController();
+        let cancelled = false;
 
         const fetchData = async () => {
             setLoading(true);
             setError(null);
             try {
                 const resp = await fetch(url, { ...optionsRef.current, credentials: 'include', signal: controller.signal });
+                if (cancelled) return;
                 setStatus(resp.status);
 
                 if (!resp.ok) {
                     const body = await resp.json().catch(() => null);
+                    if (cancelled) return;
                     throw new Error(body?.detail ||`Request failed: ${resp.status}`);
                 }
                 const json: T = await resp.json();
+                if (cancelled) return;
                 setData(json);
             } catch (err) {
+                if (cancelled) return;
                 if (err instanceof Error && err.name === 'AbortError') {
                     return;
                 }
@@ -41,7 +46,7 @@ export function useFetch<T>(url: string, options?: RequestInit) {
                 setError(err instanceof Error ? err.message : 'Unknown error');
                 setData(null);
             } finally {
-                if (!controller.signal.aborted) {
+                if (!cancelled) {
                     setLoading(false);
                 }
             }
@@ -49,7 +54,10 @@ export function useFetch<T>(url: string, options?: RequestInit) {
 
         fetchData();
 
-        return () => controller.abort();
+        return () => {
+            cancelled = true;
+            controller.abort();
+        }
     }, [url, refetchIndex]);
 
     return { data, loading, error, status, refetch };
