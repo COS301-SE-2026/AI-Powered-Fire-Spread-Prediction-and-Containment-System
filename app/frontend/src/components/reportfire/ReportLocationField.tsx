@@ -57,11 +57,11 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
 
     const { suggestions, isSearching, searchError } = useGeoSearch(value);
     const [dismissed, setDismissed] = useState(false);
+    const [prevValue, setPrevValue] = useState(value);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    const lastValueRef = useRef(value);
-    if (lastValueRef.current !== value) {
-        lastValueRef.current = value;
+    if (value !== prevValue) {
+        setPrevValue(value);
         if (dismissed) setDismissed(false);
     }
 
