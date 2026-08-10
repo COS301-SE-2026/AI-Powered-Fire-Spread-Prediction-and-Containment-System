@@ -8,7 +8,10 @@ export function useFetch<T>(url: string, options?: RequestInit) {
     const [refetchIndex, setRefetchIndex] = useState(0);
 
     const optionsRef = useRef(options);
-    optionsRef.current = options;
+
+    useEffect(() => {
+        optionsRef.current = options;
+    });
 
     const refetch = useCallback(() => {
         setRefetchIndex((i) => i + 1);
@@ -26,7 +29,7 @@ export function useFetch<T>(url: string, options?: RequestInit) {
 
                 if (!resp.ok) {
                     const body = await resp.json().catch(() => null);
-                    throw new Error(`Request failed: ${resp.status}`);
+                    throw new Error(body?.detail ||`Request failed: ${resp.status}`);
                 }
                 const json: T = await resp.json();
                 setData(json);
