@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState, useId } from "react";
+import React, { useEffect, useRef, useState, useId } from "react";
 import { Alert } from "../shared/Alerts";
 import { MapPin } from "lucide-react";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
@@ -56,18 +56,21 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     const errorId = error ? `${id}-error` : undefined;
 
     const { suggestions, isSearching, searchError } = useGeoSearch(value);
-    const [showDropdown, setShowDropdown] = useState(false);
     const [dismissed, setDismissed] = useState(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        setDismissed(false);
-    }, [suggestions]);
+    const lastValueRef = useRef(value);
+    if (lastValueRef.current !== value) {
+        lastValueRef.current = value;
+        if (dismissed) setDismissed(false);
+    }
+
+    const showDropdown = suggestions.length > 0 && !dismissed;
 
     useEffect(() => {
         function handleOutside(e: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-                setShowDropdown(false);
+                setDismissed(false);
             }
         }
         document.addEventListener("mousedown", handleOutside);
