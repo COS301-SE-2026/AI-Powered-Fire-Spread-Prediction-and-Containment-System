@@ -18,11 +18,11 @@ export function NearbyReports({nearby_fires}: NearbyFireReports) {
     }
     return(
         <div className="h-full overflow-y-auto flex flex-col p-2">
-            {fires.map((fire,i) => {
+            {fires.map((fire) => {
                 const status= fire.status === 'received' ? 'pending' : fire.status;
                 const style = statusBadge[status] ?? statusBadge.none;
                 return (
-                    <div key={`${fire.location_text}-${i}`} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
+                    <div key={`${fire.location_text}-${fire.time_ago}-${fire.distance}`} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
                         <div>
                             <p className="font-semibold text-sm">{fire.location_text}</p>
                             <p className="text-xs opacity-50">{fire.distance} km · {fire.time_ago}</p>
