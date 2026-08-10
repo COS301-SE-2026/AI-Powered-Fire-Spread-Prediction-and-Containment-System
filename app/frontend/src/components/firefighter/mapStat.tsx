@@ -1,9 +1,4 @@
-interface NearbyFire{
-    readonly location_text: string;
-    readonly distance: number;
-    readonly time_ago: string;
-    readonly status: string;
-}
+import { NearbyFire } from "../../types/FirefighterDashboard";
 
 interface NearbyFireReports{
     readonly nearby_fires: NearbyFire[];

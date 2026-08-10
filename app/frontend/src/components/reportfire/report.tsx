@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useReducer, useRef } from "react";
+import React, { useState, useReducer, useRef } from "react";
 import StepIndicator from "./Stepindicator";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
-import { FireMap } from "../DynamicUserMap"
-import { Alert } from "../Alerts";
+import { FireMap } from "../shared/DynamicUserMap"
+import { Alert } from "../shared/Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
-import type { FireReport } from "../../types/report";
-
-type SubmitState = "idle" | "loading" | "error";
+import { useUserReports } from "../../hooks/useUserReports";
+import { useSubmitReport } from "../../hooks/useSubmitReport";
 
 interface FormStateProps {
   activeStep: number;
@@ -17,8 +16,6 @@ interface FormStateProps {
   boundarySize: number;
   externalPin: { lng: number; lat: number } | null;
   mapKey: number;
-  submitState: SubmitState;
-  submitError: string | null;
 }
 
 const initialFormState: FormStateProps = {
@@ -27,8 +24,6 @@ const initialFormState: FormStateProps = {
   boundarySize: 0.2,
   externalPin: null,
   mapKey: 0,
-  submitState: "idle",
-  submitError: null,
 };
 
 interface SetBoundarySizeAction {
@@ -42,20 +37,11 @@ interface SetLocationAction {
   pin: { lng: number; lat: number };
 }
 
-interface SubmitStartAction {
-  type: "SUBMIT_START";
+interface ResetAfterSubmitAction {
+  type: "RESET_AFTER_SUBMIT";
 }
 
-interface SubmitErrorAction {
-  type: "SUBMIT_ERROR";
-  message: string;
-}
-
-interface SubmitSuccessResetAction {
-  type: "SUBMIT_SUCCESS_RESET";
-}
-
-type FormAction = | SetBoundarySizeAction | SetLocationAction | SubmitStartAction | SubmitErrorAction | SubmitSuccessResetAction;
+type FormAction = | SetBoundarySizeAction | SetLocationAction | ResetAfterSubmitAction;
 
 function formReducer(state: FormStateProps, action: FormAction): FormStateProps {
   switch (action.type) {
@@ -72,12 +58,8 @@ function formReducer(state: FormStateProps, action: FormAction): FormStateProps 
         externalPin: action.pin,
         activeStep: Math.max(state.activeStep, 1),
       };
-    case "SUBMIT_START":
-      return {...state, submitState: "loading", submitError: null };
-    case "SUBMIT_ERROR":
-      return {...state, submitState: "error", submitError: action.message };
-    case "SUBMIT_SUCCESS_RESET":
-      return {...initialFormState, mapKey: state.mapKey + 1 };
+    case "RESET_AFTER_SUBMIT":
+      return { ...initialFormState, mapKey: state.mapKey + 1 };
     default:
       return state;
   }
@@ -85,28 +67,8 @@ function formReducer(state: FormStateProps, action: FormAction): FormStateProps 
 
 export default function ReportPage() {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
-  const statusIndexRef = useRef(-1);
-  const [activeRefNum, setActiveRefNum] = useState("");
-  const [reports, setReports] = useState<FireReport[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/users/reported-fires`)
-        .then((res) => res.json())
-        .then((data: FireReport[]) => {
-          if (cancelled) { return };
-            const sorted = [...data].sort(
-                (a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
-            );
-            setReports(sorted);
-        })
-        .catch((err) => {
-          if (!cancelled) console.error("Failed to fetch reports", err);
-        });
-      return () => {
-        cancelled = true;
-      };
-  }, [activeRefNum]);
+  const { reports, refetch } = useUserReports();
+  const { submitReport, submitting, error } = useSubmitReport();
 
   function handleBoundarySizeChange(value: number) {
     dispatch({ type: "SET_BOUNDARY_SIZE", value});
@@ -121,55 +83,22 @@ export default function ReportPage() {
   }
 
   async function handleSubmit(data: ReportFormData) {
-    dispatch({ type: "SUBMIT_START" });
-    try {
-      let imageUrl: string | undefined = undefined;
+    const report = await submitReport({
+      location: data.location,
+      description: data.description,
+      photo: data.photo,
+      lat: form.externalPin?.lat ?? 0,
+      lng: form.externalPin?.lng ?? 0,
+      boundaryRadius: form.boundarySize,
+    });
 
-      if (data.photo){  // upload image first if one was attatched
-        const formData = new FormData();
-        formData.append("file", data.photo);
+    if (!report) return;
 
-        const uploadRes = await fetch(`/api/uploads/photo`, {
-          method: "POST",
-          body: formData,
-        });
+    await refetch();
 
-        if (!uploadRes.ok){
-          throw new Error("Image upload failed");
-        }
-
-        const uploadResult = await uploadRes.json();
-        imageUrl = uploadResult.object_key;
-      }
-
-      const res = await fetch(`/api/users/reported-fires`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location_text: data.location,
-          description: data.description,
-          image_url: imageUrl,
-          lat: form.externalPin?.lat ?? 0,
-          lng: form.externalPin?.lng ?? 0,
-          boundary_radius: form.boundarySize,
-        }),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to submit report");
-      }
-
-      const report = await res.json();
-      setActiveRefNum(report.reference_number);
-      statusIndexRef.current = 0;
-
-      setTimeout(() => {
-        dispatch({ type: "SUBMIT_SUCCESS_RESET" });
-      }, 1000);
-    } catch (err) {
-      console.error('Failed to submit report', err);
-      dispatch({ type: "SUBMIT_ERROR", message: "Failed to submit report. Please try again." });
-    }
+    setTimeout(() => {
+      dispatch({ type: "RESET_AFTER_SUBMIT" });
+    }, 1000);
   }
 
   return (
@@ -214,7 +143,7 @@ export default function ReportPage() {
 
             <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
               <h4 className = "mb-2">Report status</h4>
-              {form.submitState === "error" && form.submitError && <Alert variant="error" message={form.submitError} />}
+              {error && <Alert variant="error" message={error} />}
 
               {reports.length == 0 ? (
                 <p className="text-sm text-neutural">No reports submitted yet.</p>

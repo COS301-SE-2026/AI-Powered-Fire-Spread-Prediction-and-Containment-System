@@ -1,6 +1,6 @@
 import React from "react";
 import { statusBadge } from "./statusBadge";
-import type { ReportStatus } from "../../types/report";
+import type { ReportStatus } from "../../types/Report";
 
 interface StatusBadgeProps {
     readonly status: ReportStatus;

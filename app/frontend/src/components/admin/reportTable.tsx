@@ -1,10 +1,10 @@
 import React from "react";
-import { FireReport, ReportStatus } from "../../types/report";
+import { FireReportMapResponse, ReportStatus } from "../../types/Report";
 import { StatusBadge } from "./reportStatusBadge";
 import { useRouter } from 'next/router';
 
 interface FireReportsTableProps {
-    readonly report: FireReport[];
+    readonly report: FireReportMapResponse[];
     readonly filter: 'All' | ReportStatus;
 }
 

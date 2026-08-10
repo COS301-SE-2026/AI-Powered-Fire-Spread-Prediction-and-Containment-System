@@ -1,6 +1,6 @@
 import React from 'react';
 import { Map, LayoutDashboard, ShieldAlert, Flame, TrendingUp, PlusCircle } from 'lucide-react';
-import { SideBar, NavLink } from '../Sidebar';
+import { SideBar, NavLink } from '../layout/Sidebar';
 
 export function AdminItems() {
     return (

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { UserSideBar } from '../../components/users/usersSidebar';
-import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
-import Button from '../../components/Button';
+import { useNearbyFires } from '../../hooks/useNearbyFires';
+import { NearbyReports } from '../../components/shared/nearbyReports';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
-import { FireMap } from '../../components/DynamicFirefighterMap';
+import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 
 export default function GuestPublicDashboard() {
     const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
@@ -24,9 +24,9 @@ export default function GuestPublicDashboard() {
                         </p>
                     </div>
 
-                    <Button onClick={() => setIsAlertsOpen(true)}>
+                    <button type="button" onClick={() => setIsAlertsOpen(true)}>
                         View Alerts
-                    </Button>
+                    </button>
                 </header>
 
                 {/*Grid*/}

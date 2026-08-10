@@ -1,6 +1,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { NearbyReports, useNearbyFires } from '../../components/nearbyReports';
+import { useNearbyFires } from '../../hooks/useNearbyFires';
+import { NearbyReports } from '../../components/shared/nearbyReports';
 
 const PublicFireMap = dynamic(
     () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),

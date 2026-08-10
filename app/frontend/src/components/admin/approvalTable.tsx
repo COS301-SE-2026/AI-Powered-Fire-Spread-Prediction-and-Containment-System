@@ -1,5 +1,5 @@
 import React from "react";
-import { RoleRequest, RoleStatus } from "../../types/admin";
+import { RoleRequest, RoleStatus } from "../../types/RoleRequest";
 import { statusBadge, BadgeStyle } from "./statusBadge";
 
 interface RoleRequestTableProps {

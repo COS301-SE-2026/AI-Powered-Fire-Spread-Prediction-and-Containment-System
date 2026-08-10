@@ -1,12 +1,13 @@
 import React from "react";
-import { Report, ReportStatus } from "../../types/firefighter";
+import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
 import { useRouter } from 'next/router';
 import { StatusBadge } from "../admin/reportStatusBadge";
+import { FirefighterReportTable } from '../../types/FirefighterReports';
 
 interface ReportsTableProp{
-    readonly requests: Report[];
+    readonly requests: FirefighterReportTable[];
     readonly filter: 'all' | ReportStatus;
-    readonly onView: (request: Report) => void;
+    readonly onView: (request: FirefighterReportTable) => void;
 }
 
 const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
@@ -17,6 +18,12 @@ const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
                                 timeZone: "Africa/Johannesburg",
 });
 
+function formatReportDate(dateStr: string | undefined | null): string {
+    if (!dateStr) return "—";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return "—";
+    return dateFormatter.format(date);
+}
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
     const filtered = requests.filter(req =>
@@ -47,7 +54,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         </tr>
                     ) : (
                         filtered.map((req) => {
-                            const formattedDate = dateFormatter.format(new Date(req.reported));
+                            const formattedDate = formatReportDate(req.reported);
 
                             return(
                                 <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
