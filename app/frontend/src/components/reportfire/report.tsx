@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useReducer, useRef } from "react";
+import React, { useState, useReducer, useRef } from "react";
 import StepIndicator from "./Stepindicator";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";
@@ -67,9 +67,6 @@ function formReducer(state: FormStateProps, action: FormAction): FormStateProps 
 
 export default function ReportPage() {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
-  const statusIndexRef = useRef(-1);
-  const [activeRefNum, setActiveRefNum] = useState("");
-
   const { reports, refetch } = useUserReports();
   const { submitReport, submitting, error } = useSubmitReport();
 
@@ -97,8 +94,6 @@ export default function ReportPage() {
 
     if (!report) return;
 
-    setActiveRefNum(report.reference_number);
-    statusIndexRef.current = 0;
     await refetch();
 
     setTimeout(() => {
