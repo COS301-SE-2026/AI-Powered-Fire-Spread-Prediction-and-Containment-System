@@ -28,6 +28,7 @@ export function useGuestDashboard(radiusKm = 20) {
             try {
                 const data = await apiCall(
                     `/api/guests/dashboard?lat=${location.lat}&lng=${location.lng}&radius_km=${radiusKm}`);
+                if (cancelled) return;
                 setEnvironmentVariables(data.environment_variables ?? null);
                 setReports(data.nearby_reports ?? []);
             } catch (err: unknown) {
