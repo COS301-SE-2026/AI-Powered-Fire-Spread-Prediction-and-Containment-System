@@ -16,8 +16,8 @@ export function GuestReports({ reports }: {readonly reports: NearbyFire[] }) {
 
   return (
     <div className="divide-y divide-carbon-stroke">
-      {reports.map((r,i) => (
-        <div key={i} className="flex items-center justify-between px-3 py-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
+      {reports.map((r) => (
+        <div key={`${r.location_text}-${r.time_ago}-${r.distance}`} className="flex items-center justify-between px-3 py-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
           <div>
             <p className="font-semibold text-sm">{r.location_text}</p>
             <p className="text-xs opacity-50">{r.distance.toFixed(1)} km · {r.time_ago}</p>
