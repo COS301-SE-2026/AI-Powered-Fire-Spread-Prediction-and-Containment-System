@@ -54,5 +54,5 @@ export function useNearbyFires() {
         return () => {
             cancelled = true;
         };    }, [userLocation]);
-    return { userLocation, nearbyFires, environmentVariables};
+    return { userLocation, nearbyFires, environmentVariables, loading, error};
 }
