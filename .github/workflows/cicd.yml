@@ -30,7 +30,7 @@ jobs:
       - name: Run unit tests
         run: |
           coverage erase
-          pytest --cov=, --cov-report=xml unit
+          pytest --cov=. --cov-report=xml unit
       
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3
