@@ -66,7 +66,7 @@ jobs:
           PYTHONPATH: ${{ github.workspace }}/app/backend/src:${{ github.workspace }}/app/backend:${{ github.workspace }}
         run: |
           coverage erase
-          pytest --cov=. --cov-report=xml tests
+          pytest --cov=. --cov-report=xml integration unit
 
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3 #NOSONAR
