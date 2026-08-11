@@ -5,7 +5,7 @@ docker-compose -f docker-compose.test.yml up -d
 
 Run tests:
 ```bash
-pytest app/backend/src/tests/
+pytest app/backend/testing
 ```
 
 Shut down and wipe test db completely:
