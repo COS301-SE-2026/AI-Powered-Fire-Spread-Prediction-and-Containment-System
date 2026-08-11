@@ -23,8 +23,15 @@ import pandas as pd
 SCRIPT_DIR = Path(__file__).resolve().parent
 DATASETS_DIR = SCRIPT_DIR.parent
 OUTPUT_DIR = DATASETS_DIR / "processed" / "historical_weather"
+GRID_OUTPUT_DIR = DATASETS_DIR / "processed" / "historical_weather_grid"
 
-
+ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
+HOURLY_VARS = [
+    "temperature_2m",
+    "relative_humidity_2m",
+    "wind_speed_10m",
+    "wind_direction_10m",
+]
 def calculate_wind_components(
     wind_speed: float, wind_dir_deg: float
 ) -> tuple[float, float]:
@@ -49,18 +56,13 @@ def fetch_historical_weather(
     print(f"Fetching historical weather for {location_name} ({latitude}, {longitude})")
     print(f"Period: {start_date} to {end_date}")
 
-    url = "https://archive-api.open-meteo.com/v1/archive"
+    url = ARCHIVE_URL
     params = {
         "latitude": latitude,
         "longitude": longitude,
         "start_date": start_date,
         "end_date": end_date,
-        "hourly": [
-            "temperature_2m",
-            "relative_humidity_2m",
-            "wind_speed_10m",
-            "wind_direction_10m",
-        ],
+        "hourly": HOURLY_VARS
     }
 
     try:
@@ -150,6 +152,121 @@ def get_weather_at_timestamp(
         ),
     }
 
+"""
+Grid fetching stuff below. 
+We need the whole SA mesh over many years rather than just a single point. 
+Functions above are not changed in terms of functionality.
+"""
+
+def calculate_wind_components_vectorized(
+    wind_speed: np.ndarray, wind_dir_deg: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Same formula as above, but vectorized for numpy arrays.
+    """
+    rad = np.radians(wind_dir_deg)
+    # direction from which the wind originates is named
+    wind_u = -wind_speed * np.sin(rad)
+    wind_v = -wind_speed * np.cos(rad)
+    return np.round(wind_u, 4), np.round(wind_v, 4)
+
+def build_sa_grid_coords(resolution_deg: float = 0.5) -> list[tuple[np.ndarray, np.ndarray]]:
+    """
+    Builds a grid of lat/lon coordinates covering South Africa.
+    Returns two 2D arrays: latitudes and longitudes.
+    """
+    # South Africa bounding box
+    lat_min, lat_max = -35.0, -22.0
+    lon_min, lon_max = 16.0, 33.0
+    lats = np.arange(lat_min, lat_max - resolution_deg, -resolution_deg)
+    lons = np.arange(lon_min, lon_max + resolution_deg, resolution_deg)
+    lat_grid, lon_grid = np.meshgrid(lats, lons, indexing='ij')
+    return list(zip(lat_grid.ravel().tolist(), lon_grid.ravel().tolist()))
+
+def fetch_historical_weather_grid_year(
+    coords: list[tuple[float, float]],
+    year: int,
+    chunk_size: int =50,
+    region_name : str ="south_africa",
+)-> pd.Dataframe:
+    start_date, end_date = f"{year}-01-01", f"{year}-12-31"
+    print(f"Fetching historical weather grid for {region_name} ({len(coords)} points) for year {year}") 
+
+    frames = []
+    for i in range(0, len(coords), chunk_size):
+        chunk = coords[i:i + chunk_size]
+        latitudes, longitudes = zip(*chunk)
+        params = {
+            "latitude": latitudes,
+            "longitude": longitudes,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": HOURLY_VARS
+        }
+
+        try:
+            response = httpx.get(ARCHIVE_URL, params=params, timeout=30.0)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            print(f"Failed to fetch weather data for chunk {i // chunk_size + 1}: {e}")
+            continue
+
+
+        points = data if isinstance(data, list) else [data]
+        for (lat, lon), point in zip(chunk, points):
+            hourly = point.get("hourly", {})
+            if not hourly or "time" not in hourly:
+                print(f"No hourly data for ({lat}, {lon}) — skipping")
+                continue
+
+        df = pd.DataFrame(hourly_data)
+        df.rename(
+            columns={
+                "time": "datetime",
+                "temperature_2m": "temperature",
+                "relative_humidity_2m": "relative_humidity",
+                "wind_speed_10m": "wind_speed",
+                "wind_direction_10m": "wind_direction",
+            },
+            inplace=True,
+        )
+        df["wind_u"], df["wind_v"] = calculate_wind_components_vectorized(
+            df["wind_speed"].to_numpy(), df["wind_direction"].to_numpy()
+        )
+        df["dryness"] = np.clip(
+            (100 - df["relative_humidity"] + df["temperature"]) / 100.0, 0.0, 1.0
+        ).round(4)
+        df["latitude"] = lat
+        df["longitude"] = lon
+        frames.append(df)
+
+    if not frames:
+        print("No data fetched for any coordinates.")
+        return pd.DataFrame()
+
+    result = pd.concat(frames, ignore_index=True)
+    GRID_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_file = GRID_OUTPUT_DIR / f"weather_grid_{region_name}_{year}.csv"
+    result.to_csv(out_file, index=False)
+    print(f"Saved {len(result):,} hourly weather records to: {out_file}")
+    return result
+
+def fetch_historical_weather_grid_sa(
+    start_year: int, end_year: int, resolution_deg: float = 0.5
+)-> None:
+"""
+Fetches historical weather data for a grid covering South Africa for a range of years.
+"""
+    coords = build_sa_grid_coords(resolution_deg)
+    print(f"Fetching weather data for {len(coords)} grid points at {resolution_deg}° resolution from {start_year} to {end_year}")
+    for year in range(start_year, end_year + 1):
+        out_file = GRID_OUTPUT_DIR / f"weather_grid_south_africa_{year}.csv"
+        if out_file.exists():
+            print(f"Data for year {year} already exists at {out_file}, skipping.")
+            continue
+        fetch_historical_weather_grid_year(coords, year, region_name="south_africa")
+
 
 if __name__ == "__main__":
     # fetch one year of weather for Pta, SA
@@ -165,3 +282,4 @@ if __name__ == "__main__":
         end_date=END,
         location_name="pretoria",
     )
+    fetch_historical_weather_grid_sa(start_year=2006, end_year=2025)
