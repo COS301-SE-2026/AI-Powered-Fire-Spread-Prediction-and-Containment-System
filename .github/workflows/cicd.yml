@@ -84,6 +84,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: app/backend/requirements*.txt
 
       - name: Install dependencies
         run: | 
@@ -91,7 +93,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run pylint
-        run: PYTHONPATH=src pylint src --fail-under=8.0
+        run: PYTHONPATH=src:. pylint src --fail-under=8.0
 
   # frontend-build:
   #   name: Frontend Build
