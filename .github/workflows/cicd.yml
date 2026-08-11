@@ -4,12 +4,12 @@ on:
   pull_request:
 
 jobs:
-  backend-e2e:
+  backend-testing:
     name: Backend E2E
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app/backend/src
+        working-directory: app/backend/testing
     services:
       postgres:
         image: postgis/postgis:15-3.3
@@ -68,7 +68,7 @@ jobs:
         uses: py-cov-action/python-coverage-comment-action@v3 #NOSONAR
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERAGE_PATH: app/backend/src
+          COVERAGE_PATH: app/backend/testing
 
   backend-pylint:
     name: Backend Lint (pylint)
