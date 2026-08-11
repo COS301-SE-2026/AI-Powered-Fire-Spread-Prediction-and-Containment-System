@@ -63,7 +63,7 @@ jobs:
       - name: Run tests
         working-directory: app/backend/testing
         env:
-          PYTHONPATH: ${{ github.workspace }}/app/backend/src
+          PYTHONPATH: ${{ github.workspace }}/app/backend/src:${{ github.workspace }}/app/backend
         run: |
           coverage erase
           pytest --cov=. --cov-report=xml tests
