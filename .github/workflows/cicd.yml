@@ -65,7 +65,7 @@ jobs:
       - name: Run tests
         working-directory: app/backend/testing
         env:
-          PYTHONPATH: ${{ github.workspace }}/app/backend/src:${{ github.workspace }}/app/backend:${{ github.workspace }}:${{ github.workspace }}/app
+          PYTHONPATH: ${{ github.workspace }}/app/backend/src:${{ github.workspace }}/app/backend:${{ github.workspace }}:${{ github.workspace }}/app:${{ github.workspace }}app/ml
         run: |
           coverage erase
           pytest --cov=. --cov-report=xml integration unit
