@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import { useAuth } from '../hooks/useAuth';
+import { apiCall } from '../lib/api';
+import type { RegisterRequest, Two_FA_Required_Response } from '../types/Auth';
 
 interface RegisterForm {
   name: string;
@@ -36,6 +39,12 @@ const fieldClass = (hasError?: string) =>
     hasError ? 'border-flare' : 'border-carbon-stroke'
   }`;
 
+  const ROLE_REQUEST: Record<string, string> = {
+    admin: '/admin/dashboard',
+    firefighter: '/firefighter/dashboard',
+    user: '/users/live-map'
+  };
+
 export default function Register() {
   const [form, setForm] = useState<RegisterForm>({
     name: '',
@@ -51,6 +60,13 @@ export default function Register() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuth, role, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuth && role) {
+      router.push(ROLE_REQUEST[role] ?? '/');
+    }
+  }, [isAuthLoading, isAuth, role, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -113,22 +129,16 @@ export default function Register() {
     }
     setIsLoading(true);
     try {
-        const res = await fetch(`/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const payload: RegisterRequest = {
           email: form.email,
           password: form.password,
           name: form.name,
           surname: form.surname,
           id_number: form.idNumber,
-          licence_number: form.role === 'Firefighter' ? form.licenceNumber : null,
-          role: form.role,
-        }),
-      });
+          license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
+        };
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+      const data: Two_FA_Required_Response = await apiCall('api/auth/register', 'POST', payload);
 
       if (data.requires_2fa && data.otpauth_url){
         router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}&otpauth_url=${encodeURIComponent(data.otpauth_url)}`);
@@ -136,7 +146,8 @@ export default function Register() {
         setApiError('Unexpected response from server');
       }
     } catch (err: any) {
-      setApiError(err.message);
+      const message = err instanceof Error ? err.message : 'Something went wrong';
+      setApiError(message);
     } finally {
       setIsLoading(false);
     }
