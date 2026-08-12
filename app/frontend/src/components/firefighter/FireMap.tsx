@@ -136,9 +136,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                 <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={() => setSelectedFire(fire)}>
                     <div className="relative flex items-center justify-center size-6">
                         {/* The radar ping animation effect */}
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-ignite opacity-75" />
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
                         {/* The solid core so the marker remains visible */}
-                        <span className="relative inline-flex rounded-full size-3 bg-ignite shadow-lg shadow-black" />
+                        <span className="relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black" />
                     </div>
                 </Marker>
             ))}
@@ -157,8 +157,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                           id="fire-radius-fill"
                           type="fill"
                           paint={{
-                            'fill-color': '#ff4500',
-                            'fill-opacity': 0.25,
+                            'fill-color': '#fcba3e',
+                            'fill-opacity': 0.3,
                           }}
                       />
 
@@ -166,7 +166,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                           id="fire-radius-outline"
                           type="line"
                           paint={{
-                            'line-color': '#ff4500',
+                            'line-color': '#fcba3e',
                             'line-width': 1,
                           }}
                       />
