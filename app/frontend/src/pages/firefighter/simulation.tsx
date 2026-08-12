@@ -205,13 +205,13 @@ export default function ReportTable() {
                                             Target Fire
                                         </p>
                                         <select
-                                            className='select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral w-full'
+                                            className='select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral-content w-full'
                                             value={selectedFireId ?? ''}
                                             onChange={(e) => setSelectedFireId(e.target.value || null)}
                                         >  
                                             <option value="">All verified fires</option>
                                             {fires.filter(f => f.status === 'verified').map(f => (
-                                                <option key={f.ref} value={f.ref}>{f.location ?? f.ref}</option>
+                                                <option key={f.ref} value={f.ref} className='bg-carbon-bg text-neutral'>{f.location ?? f.ref}</option>
                                             ))}
                                         </select>
                                     </div>
