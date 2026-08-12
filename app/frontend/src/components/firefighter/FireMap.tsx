@@ -79,28 +79,49 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         }));
     }, [fires])
 
-    const simulationCircle = useMemo(() => {
-        if (!predictions?.length) return [];
+    const EXTENT_DEG = 0.05;
 
-        // ~185 m cells: 0.05 degrees across a 30-cell grid
-        const cellM = (0.05 / 30) * 111320;
+    const girdFeautures = useMemo(() => {
+        if(!predictions?.length || !burnGridH || !burnGridW) return [];
+        
+        const features = [];
+        const cellLonSize = EXTENT_DEG / burnGridW;
+        const cellLatSize = EXTENT_DEG / burnGridH;
 
-        return predictions
-            .map(p => {
-                const grid = p.history[currentTick];
-                if (!grid) return null;
-                const cells = grid.filter(c => c === 1 || c === 2).length;
-                if (cells === 0) return null;
+        for (const p of predictions){
+            const grid = p.history[currentTick]
+            if(!grid) continue;
 
-                const radiusKm = Math.sqrt(cells * cellM * cellM / Math.PI) / 1000;
-                return circle([p.lng, p.lat], radiusKm, {
-                    steps: 64,
-                    units: 'kilometers',
-                    properties: { ref: p.ref },
-                });
-            })
-            .filter(Boolean);
-    }, [predictions, currentTick]);
+            const minLon = p.lng - EXTENT_DEG / 2;
+            const maxLat = p.lat + EXTENT_DEG / 2;
+
+            for(let row = 0; row < burnGridH; row++){
+                for(let col = 0; col < burnGridW; col++){
+                    const state = grid[row * burnGridW + col];
+                    if(state === 0) continue;
+
+                    const cellMinLon = minLon + col * cellLonSize;
+                    const cellMaxLat = maxLat - row * cellLatSize;
+
+                    features.push({
+                        type: 'Feature',
+                        properties: { ref: p.ref, state},
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [[
+                                [cellMinLon, cellMaxLat - cellLatSize],
+                                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
+                                [cellMinLon + cellLonSize, cellMaxLat],
+                                [cellMinLon, cellMaxLat],
+                                [cellMinLon, cellMaxLat - cellLatSize],
+                            ]],
+                        }
+                    });
+                }
+            }
+        }
+        return features;
+    }, [predictions, currentTick, burnGridH, burnGridW])
 
     return (
         <Map
@@ -153,14 +174,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
 
           )}
 
-          {simulationCircle.length > 0 && (
-            <Source id="simulation-circle" type="geojson" data={{type: 'FeatureCollection', features: simulationCircle}}>
+          {girdFeautures.length > 0 && (
+            <Source id="burn-grid" type="geojson" data={{type: 'FeatureCollection', features: girdFeautures}}>
                 <Layer
-                    id="simulation-fill"
+                    id="burn-grid-fill"
                     type="fill"
                     paint={{
-                        'fill-color': '#ffd54f',
-                        'fill-opacity': 0.18,
+                        'fill-color': ['match', ['get', 'state'], 1, '#ff6b1a', 2, '#46201d', '#000000'], // swap with ignite and torch vals
+                        'fill-opacity': ['match', ['get', 'state'], 1, 0.75, 2, 0.55, 0],
+                        'fill-antialias': true
                     }}
                 >
                 </Layer>
@@ -169,9 +191,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                     id="simulation-outline"
                     type="line"
                     paint={{
-                        'line-color': '#ffc107',
-                        'line-width': 1,
-                        "line-dasharray": [2,2]
+                        'line-color': '#000000',
+                        'line-opacity': 0.15,
+                        'line-width': 0.5,
                     }}
                 >
                 </Layer>
