@@ -15,3 +15,8 @@ export async function apiCall(
   if (!res.ok) throw new Error(data.detail || "Something went wrong");
   return data;
 }
+
+export async function logout() {
+  await apiCall('/api/auth/logout', 'POST');
+  window.location.href = '/login';
+}

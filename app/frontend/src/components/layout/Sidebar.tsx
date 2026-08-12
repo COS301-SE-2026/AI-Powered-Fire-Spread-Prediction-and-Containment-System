@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Settings, LogOut, UserCircle } from 'lucide-react';
+import { logout } from '../../lib/api';
 
 export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label: string; href?: string }>) => {
     const content = (
@@ -85,10 +86,10 @@ export function SideBar({
                     )}
 
                     {!hideLogout && (
-                        <Link href="/"className="p-2 text-text-primary hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+                        <button type="button" onClick={logout} className="p-2 text-text-primary hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
                             <LogOut className="size-6 shrink-0" />
                             <span className="text-sm font-semibold hidden group-hover:inline">Logout</span>
-                        </Link>
+                        </button>
                     )}
                 </div>
             </aside>
