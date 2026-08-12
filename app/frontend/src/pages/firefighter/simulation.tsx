@@ -49,7 +49,7 @@ export default function ReportTable() {
     }
 
     const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-
+    const totalHours = hasResult ? (maxSlider / 2) : 48;
     return (
         <FirefighterSideBar>
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
@@ -174,7 +174,7 @@ export default function ReportTable() {
                                             <input
                                                 type="range"
                                                 min={0}
-                                                max="sliderMax"
+                                                max={maxSlider}
                                                 step={1}
                                                 className="range range-xs w-full disabled:opacity-30"
                                                 value={currentTick}
@@ -182,10 +182,11 @@ export default function ReportTable() {
                                                 onChange={(e) => seekToTick(Number(e.target.value))}/>
 
                                             <div className="flex justify-between px-2.5 mt-2 text-sm">
-                                                <span>{Math.round(maxSlider/4)}h</span>
-                                                <span>{Math.round(maxSlider/2)}h</span>
-                                                <span>{Math.round(maxSlider*3/4)}h</span>
-                                                <span>{maxSlider}h</span>
+                                                <span>0h</span>
+                                                <span>{Math.round(totalHours/4)}h</span>
+                                                <span>{Math.round(totalHours/2)}h</span>
+                                                <span>{Math.round(totalHours*3/4)}h</span>
+                                                <span>{totalHours}h</span>
                                             </div>
                                         </div>
                                     </div>
