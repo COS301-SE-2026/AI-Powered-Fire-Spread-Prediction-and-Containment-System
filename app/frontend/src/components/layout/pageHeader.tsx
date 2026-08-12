@@ -1,30 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 import { Bell, User } from "lucide-react";
 import { useRouter } from "next/router";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotification";
+import { NotificationSidebar } from "./NotificationSidebar";
+import { FireNotification } from "../../types/Notifications";
 
 interface PageHeaderProps {
     title: string;
     subtitle?: string;
     actions?: React.ReactNode;
-    onBellClick: () => void;
 }
 
 const UNREAD_COUNT = 9;
 
-export function PageHeader({title, subtitle, actions, onBellClick }: Readonly<PageHeaderProps>){
+export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps>){
     const { isAuth } = useAuth();
-    const { unreadCount } = useNotifications();
+    const { unreadCount, notifications } = useNotifications();
     const router = useRouter();
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
 
     const count = unreadCount > UNREAD_COUNT ? `${UNREAD_COUNT}+` : unreadCount;
+    const authLabel = isAuth ? 'Profile' : 'Login / Register';
 
     const handleAuthClick = (): void => {
         router.push(isAuth ? '/profile' : '/login');
-    }; 
+    };
 
     return(
+        <>
         <header className="mb-4 flex items-center justify-between">
             <div>
                 <h1 className=" text-text-primary uppercase">
@@ -45,15 +49,17 @@ export function PageHeader({title, subtitle, actions, onBellClick }: Readonly<Pa
                                 {count}
                             </span>
                         )}
-                        <button type="button" onClick={onBellClick} className="btn btn-ghost btn-circle" aria-label="Notifications">
+                        <button type="button" onClick={() => setIsNotifOpen(true)} className="btn btn-ghost btn-circle" aria-label="Notifications">
                             <Bell className="h-5 w-5 text-text-primary" aria-hidden="true" />
                         </button>
                     </div>
                 )}
-                <button type="button" onClick={handleAuthClick} className="btn btn-ghost btn-circle" aria-label="Profile">
+                <button type="button" onClick={handleAuthClick} className="btn btn-ghost btn-circle" aria-label={authLabel}>
                     <User className="h-5 w-5 text-text-primary" aria-hidden="true" />
                 </button>
             </div>
         </header>
+        <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} />
+        </>
     );
 }
