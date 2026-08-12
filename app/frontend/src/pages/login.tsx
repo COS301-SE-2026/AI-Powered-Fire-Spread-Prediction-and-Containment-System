@@ -68,6 +68,7 @@ export default function Login() {
 
       if (data.requires_2fa) {
         router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
+        return;
       }
 
     window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
