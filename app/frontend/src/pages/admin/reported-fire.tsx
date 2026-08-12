@@ -5,7 +5,7 @@ import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
 import { SearchBar } from '../../components/admin/searchBar';
 import { useReportedFires } from '../../hooks/useReportedFires';
-
+import { PageHeader } from '../../components/layout/pageHeader';
 
 export default function ReportedFiresPage() {
     const { reports, loading, error } = useReportedFires();
@@ -22,10 +22,7 @@ export default function ReportedFiresPage() {
         <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
 
-                <header className="mb-6">
-                    <h1 className="uppercase">Reported Fires</h1>
-                    <p className="text-text-muted">Manage and review fire reports</p>
-                </header>
+                <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" />
 
                 <div className="flex items-center justify-between mb-4">
                     <ReportFilterTabs filter={filter} onChange={setFilter}/>

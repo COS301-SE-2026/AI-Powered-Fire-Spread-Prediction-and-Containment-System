@@ -5,6 +5,7 @@ import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics'
 import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 export const AdminDashBoardDetailed: React.FC = () => {
     const { topMetrics, activityLog, weeklyIncidents, systemMetrics, loading, error, isForbidden } = useAdminDashboard();
@@ -76,11 +77,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
         <AdminSideBar hideLoginRegister={true}>
             <div className="w-full space-y-6">
 
-                <div className="border-b border-base-300 pb-3 mb-6">
-                    <h1 className="text-4xl font-bold tracking-tight text-base-content font-display">
-                        FireAway System Dashboard
-                    </h1>
-                </div>
+                <PageHeader title="FireAway System Dashboard" subtitle="Overview of active fires, predictions, and system health" />
 
                 <DashboardMetrics metrics={topMetrics} />
 

@@ -5,6 +5,7 @@ import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'luc
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 export default function ReportTable() {
     const [timeline, setTimeline] = useState(0);
@@ -55,10 +56,7 @@ export default function ReportTable() {
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
 
                 {/*Page header and subtitle*/}
-                <header className="mb-6">
-                    <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">Fire Simulation</h1>
-                    <p className="font-body text-body text-text-primary/50">Simulate fire spread and prevention methods</p>
-                </header>
+                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" />
 
                 <div className="flex flex-row gap-4 min-w-0">
 

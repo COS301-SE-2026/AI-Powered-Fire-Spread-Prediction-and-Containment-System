@@ -4,6 +4,7 @@ import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 export default function GuestPublicDashboard() {
     const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
@@ -14,20 +15,13 @@ export default function GuestPublicDashboard() {
             <div className="flex flex-col p-6 relative h-full overflow-hidden">
 
                 {/*Public View Header*/}
-                <header className="mb-4 flex items-center justify-between">
-                    <div>
-                        <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
-                            Incident Map
-                        </h1>
-                        <p className="text-sm text-text-primary/50 font-medium">
-                            Public Fire Map View
-                        </p>
-                    </div>
-
-                    <button type="button" onClick={() => setIsAlertsOpen(true)}>
-                        View Alerts
-                    </button>
-                </header>
+                <PageHeader title="Incident Map" subtitle="Public Fire Map View"
+                    // actions = {
+                    //     <button type="button" onClick={() => setIsAlertsOpen(true)}>
+                    //         View Alerts
+                    //     </button>
+                    // }
+                />
 
                 {/*Grid*/}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start h-full pb-10">
