@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Card from '../../components/ui/Card';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-ZA', {
   day: 'numeric',
@@ -67,22 +68,16 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminSideBar>
-      <div className="p-6 space-y-6 w-full">
+      <div className="space-y-6 w-full">
 
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
-              Admin Analytics
-            </h1>
-            <p className="text-sm text-text-primary/50">
-              User governance and role management overview
-            </p>
-          </div>
-          <span className="text-sm text-text-primary/40">
-            Updated: {new Date().toLocaleString()}
-          </span>
-        </div>
+          <PageHeader title="Admin Analytics" subtitle="User governance and role management overview"
+            actions={
+              <span className="text-sm text-text-primary/40">
+                Updated: {new Date().toLocaleString()}
+              </span>
+            }
+          />
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

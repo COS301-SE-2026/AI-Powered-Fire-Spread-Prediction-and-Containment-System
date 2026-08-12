@@ -5,6 +5,7 @@ import { ReportDescription } from './reportDescription';
 import { ReportActions } from './reportActions';
 import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 import dynamic from 'next/dynamic';
 
@@ -36,11 +37,7 @@ export function ViewPage({ report_ref }: Readonly<ViewProps>) {
     return (
         <div className="p-6 flex flex-col h-full w-full">
             <header className="mb-3 flex items-start justify-between">
-                <div>
-                    <h1 className='uppercase'>Report {report.reference_number}</h1>
-                    <p className='text-text-muted'>Viewing fire report details</p>
-                </div>
-
+                <PageHeader title="Report {report.reference_number}" subtitle="Viewing fire report details" />
                 <button type="button" onClick={() => router.back()} className="btn btn-sm btn-outline rounded-lg">Back</button>
             </header>
             {/* 2 cols*/}
