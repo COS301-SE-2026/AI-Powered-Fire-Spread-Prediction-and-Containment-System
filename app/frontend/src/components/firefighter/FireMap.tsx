@@ -142,7 +142,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
            {fires.map((fire) => (
-                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={() => {setSelectedFire(fire); onSelectFire?.(fire.ref); }}>
+                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={(e) => {e.originalEvent.stopPropagation(); setSelectedFire(fire); onSelectFire?.(fire.ref); }}>
                     <div className="relative flex items-center justify-center size-6">
                         {/* The radar ping animation effect */}
                         <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`} />
@@ -210,13 +210,21 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
           )}
 
             {selectedFire && (
-                <Popup longitude={selectedFire.lng} latitude={selectedFire.lat} onClose={() => setSelectedFire(null)}>
-                    <div>
-                        <h3>{selectedFire.location}</h3>
-                        <p>Status: {selectedFire.status}</p>
-                        <p>Submitted: {new Date(selectedFire.reported).toLocaleString()}</p>
+                <Popup longitude={selectedFire.lng} latitude={selectedFire.lat} onClose={() => setSelectedFire(null)} className='carbon-popup'>
+                    <div className='p-1'>
+                        <h3 className='font-display font-bold text-sm uppercase tracking-wide text-ignite'>
+                            {selectedFire.location}
+                        </h3>
+                        <p className='text-xs text-text-muted mt-1'>
+                            Status: <span className='text-neutral-content'>{selectedFire.status}</span>
+                        </p>
+                        <p className='text-xs text-text-muted'>
+                            Submitted: <span className='text-neutral-content'>{new Date(selectedFire.reported).toLocaleString()}</span>
+                        </p>
                         {selectedFire.size && (
-                            <p>Radius: {selectedFire.size} m</p>
+                            <p className='text-xs text-text-muted'>
+                                Radius: <span className='text-neutral-content'>{selectedFire.size} km</span>
+                            </p>
                         )}
                     </div>
                 </Popup>
