@@ -39,6 +39,8 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
     const hasResult = predictions.length > 0;
     const maxBurned = Math.max(...predictions.map(p => p.burned_cells), 1);
 
+    const upperBoundSpread = 15.0; // in km
+
     return (
         <div className="w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto">
             {/* Simulation header */}
@@ -109,16 +111,26 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                                 }
                             }
 
-                            const maxGrid = p.history[p.history.length - 1]
-                            let maxCells = 0;
-
-                            if(maxGrid){
-                                for(const cell of maxGrid){
-                                    if(cell === 1 || cell === 2) maxCells++;
+                            const initialGrid = p.history[0];
+                            let initialCells = 0;
+                            if(initialGrid){
+                                for (const cell of initialGrid){
+                                    if(cell === 1 || cell == 2) initialCells++;
                                 }
                             }
 
-                            const barWidth = maxCells > 0 ? Math.min((affectedCells / maxCells) * 100, 100) : 0;
+                            let currRadius = 0; // in km
+                            if(initialCells > 0){
+                                const initialSquareMeters = Math.PI * Math.pow(p.radius_m, 2);
+                                const areaPerCell = initialSquareMeters / initialCells;
+                                const currentSquareMeters = affectedCells * areaPerCell;
+
+                                const currentRadius = Math.sqrt(currentSquareMeters / Math.PI); // in meters
+                                currRadius = currentRadius / 1000; // convert to km 
+                            }
+
+
+                            const barWidth = Math.min((currRadius / upperBoundSpread) * 100, 100); 
 
                             return (
                                 <div key={hour} className="flex items-center gap-2">
@@ -126,7 +138,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                                     <div className='flex-1 h-2 rounded-full bg-carbon-stroke overflow-hidden'>
                                         <div className="h-full rounded-full bg-ignite" style={{width: `${barWidth}%`}}/> {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
                                         </div>
-                                    <span className="text-xs text-text-primary shrink-0">{(p.radius_m / 1000).toFixed(1)} km</span>
+                                    <span className="text-xs text-text-primary shrink-0">{currRadius.toFixed(1)}/{upperBoundSpread} km</span>
                                 </div>
                             )
                         })}
