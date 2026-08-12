@@ -66,7 +66,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                         </span>
                     </div>
                     <div className='flex flex-col'>
-                        <span className='text-xs text-text-muted uppercase'>Burning</span>
+                        <span className='text-xs text-text-muted uppercase'>Burned</span>
                         <span className='text-sm font-semibold text-green-500/70'>
                             {totals.burned}
                                 cells
@@ -95,15 +95,41 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                     <p className='text-xs text-text-disabled'>Run the simulation to see spread data</p>
                 ) : (
                     <div className="flex flex-col gap-2">
-                    {predictions.map((p) => (
-                        <div key={p.ref} className="flex items-center gap-2">
-                            <span className="text-xs text-text-muted w-8 shrink-0">{p.ref.slice(0.8)}</span>
-                            <div className='flex-1 h-2 rounded-full bg-carbon-stroke overflow-hidden'>
-                                <div className="h-full rounded-full bg-ignite" style={{width: `${(p.burned_cells / maxBurned) * 100}%` }}/> {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
-                            </div>
-                            <span className="text-xs text-text-primary shrink-0">{(p.radius_m / 1000).toFixed(1)} km</span>
-                        </div>
-                    ))}
+                        {[1, 3, 6, 12, 24, 48, 72].map((hour) => {
+                            const p = predictions[0];
+                            const tickHour = hour * 2;
+
+                            const realTick = Math.min(tickHour, p.history.length - 1);
+                            const grid = p.history[realTick];
+
+                            let affectedCells = 0;
+                            if(grid) {
+                                for(const cell of grid){
+                                    if(cell === 1 || cell == 2) affectedCells++;
+                                }
+                            }
+
+                            const maxGrid = p.history[p.history.length - 1]
+                            let maxCells = 0;
+
+                            if(maxGrid){
+                                for(const cell of maxGrid){
+                                    if(cell === 1 || cell === 2) maxCells++;
+                                }
+                            }
+
+                            const barWidth = maxCells > 0 ? Math.min((affectedCells / maxCells) * 100, 100) : 0;
+
+                            return (
+                                <div key={hour} className="flex items-center gap-2">
+                                    <span className="text-xs text-text-muted w-8 shrink-0">{hour}h</span>
+                                    <div className='flex-1 h-2 rounded-full bg-carbon-stroke overflow-hidden'>
+                                        <div className="h-full rounded-full bg-ignite" style={{width: `${barWidth}%`}}/> {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
+                                        </div>
+                                    <span className="text-xs text-text-primary shrink-0">{(p.radius_m / 1000).toFixed(1)} km</span>
+                                </div>
+                            )
+                        })}
                 </div>
                 )}
 
