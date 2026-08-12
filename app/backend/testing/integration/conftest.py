@@ -208,7 +208,6 @@ def seeded_fire_reports(db):
     return db.query(FireReports).all()
 
 
-# Shared helper function
 @pytest.fixture
 def small_grids():
     def _make(H=5, W=5):

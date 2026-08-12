@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
 
-from src.ai.features import grid_to_fmatrix, neighbour_features, shift
-from src.ai.schema import (
+from ai.features import grid_to_fmatrix, neighbour_features, shift
+from ai.schema import (
     BURNED,
     BURNING,
     DIST_CAP,
