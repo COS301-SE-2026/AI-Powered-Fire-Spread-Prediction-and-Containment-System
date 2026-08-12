@@ -19,9 +19,11 @@ interface MapProps{
     burnGridW?: number;
     predictions?: Prediction[];
     currentTick?: number;
+    selectedFireId?: string | null;
+    onSelectFire?: (ref: string) => void;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0, selectedFireId, onSelectFire}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -79,6 +81,13 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         }));
     }, [fires])
 
+    useEffect(() => {
+        if(!selectedFireId) return;
+        const fire = fires.find(f => f.ref === selectedFireId);
+        if(!fire) return;
+        setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 13)}))
+    }, [selectedFireId, fires])
+
     const EXTENT_DEG = 0.05;
 
     const girdFeautures = useMemo(() => {
@@ -133,12 +142,12 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
         >
            {fires.map((fire) => (
-                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={() => setSelectedFire(fire)}>
+                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={() => {setSelectedFire(fire); onSelectFire?.(fire.ref); }}>
                     <div className="relative flex items-center justify-center size-6">
                         {/* The radar ping animation effect */}
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75" />
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`} />
                         {/* The solid core so the marker remains visible */}
-                        <span className="relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black" />
+                        <span className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`} />
                     </div>
                 </Marker>
             ))}
