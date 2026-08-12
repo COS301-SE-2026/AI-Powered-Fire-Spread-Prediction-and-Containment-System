@@ -5,8 +5,13 @@ import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'luc
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
+import { useFireReport } from '../../hooks/useFireReport';
+import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 
 export default function ReportTable() {
+    const { reports: fires} = useFirefighterReports('');
+    const [selectedFireId, setSelectedFireId] = useState(null);
+    const selectedFire = fires.find(f => f.ref === selectedFireId) ?? null;
     const [timeline, setTimeline] = useState(0);
     const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
     const [drawMode, setDrawMode] = useState(false);
@@ -40,7 +45,8 @@ export default function ReportTable() {
     const hasResult = totalTicks > 0;
 
     function handleRun() {
-        runSimulation(userLocation.lat, userLocation.lng, 48);  // n_steps = 2 ticks per hour x 24h
+        const target = selectedFire ?? userLocation;
+        runSimulation(target.lat, target.lng, 48, selectedFireId);
     }
 
     function handleReset(){
@@ -112,7 +118,9 @@ export default function ReportTable() {
                                     burnGridH={gridH}
                                     burnGridW={gridW}
                                     predictions={predictions}
-                                    currentTick={currentTick}/>
+                                    currentTick={currentTick}
+                                    selectedFireId={selectedFireId}
+                                    onSelectFire={setSelectedFireId}/>
                             </div>
                         </div>
 
@@ -189,6 +197,23 @@ export default function ReportTable() {
                                                 <span>{totalHours}h</span>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* Select a fire to run simulation on */}
+                                    <div className='border-t border-carbon-stroke/40 pt-3'>
+                                        <p className='text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2'>
+                                            Target Fire
+                                        </p>
+                                        <select
+                                            className='select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral w-full'
+                                            value={selectedFireId ?? ''}
+                                            onChange={(e) => setSelectedFireId(e.target.value || null)}
+                                        >  
+                                            <option value="">All verified fires</option>
+                                            {fires.filter(f => f.status === 'verified').map(f => (
+                                                <option key={f.ref} value={f.ref}>{f.location ?? f.ref}</option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                     {/* Weather inputs */}
