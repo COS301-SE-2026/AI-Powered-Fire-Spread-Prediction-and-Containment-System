@@ -6,6 +6,7 @@ export type FireNotification = Readonly <{
     fireLocation: string;
     distance: number;
     type: NotificationType;
+    severity: NotificationSeverity;
     mapDeepLink: string;
     time: string;
     read: boolean;
