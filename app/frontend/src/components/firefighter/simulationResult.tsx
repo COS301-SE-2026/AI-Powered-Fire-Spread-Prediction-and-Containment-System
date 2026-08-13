@@ -42,13 +42,13 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
     const upperBoundSpread = 15.0; // in km
 
     return (
-        <div className="w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto">
+        <div className='w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto'>
             {/* Simulation header */}
             <div>
-                <h3 className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+                <h3 className='text-xs uppercase tracking-widest text-text-muted font-semibold'>
                     Simulation - time area
                 </h3>
-                <p className="text-xs text-text-disabled">
+                <p className='text-xs text-text-disabled'>
                     {status === 'idle' && 'Not yet run'}
                     {status === 'loading' && 'Running simulation...'}
                     {status === 'playing' && `Tick ${currentTick} - Playing`}
@@ -86,17 +86,17 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
 
             {/* Weather conditions */}
             <div>
-                <p className="text-sm uppercase py-2">weather inputs</p>
+                <p className='text-sm uppercase py-2'>weather inputs</p>
                 <EnvironmentWidgets variables={environmentVariables}/>
             </div>
 
             {/* simulation results */}
             <div>
-                <p className="text-sm uppercase py-2">predicted spread area</p>
+                <p className='text-sm uppercase py-2'>predicted spread area</p>
                 {!hasResult ? (
                     <p className='text-xs text-text-disabled'>Run the simulation to see spread data</p>
                 ) : (
-                    <div className="flex flex-col gap-2">
+                    <div className='flex flex-col gap-2'>
                         {[1, 3, 6, 12, 24, 48, 72].map((hour) => {
                             const p = predictions[0];
                             const tickHour = hour * 2;
@@ -133,12 +133,12 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
                             const barWidth = Math.min((currRadius / upperBoundSpread) * 100, 100); 
 
                             return (
-                                <div key={hour} className="flex items-center gap-2">
-                                    <span className="text-xs text-text-muted w-8 shrink-0">{hour}h</span>
+                                <div key={hour} className='flex items-center gap-2'>
+                                    <span className='text-xs text-text-muted w-8 shrink-0'>{hour}h</span>
                                     <div className='flex-1 h-2 rounded-full bg-carbon-stroke overflow-hidden'>
-                                        <div className="h-full rounded-full bg-ignite" style={{width: `${barWidth}%`}}/> {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
+                                        <div className='h-full rounded-full bg-ignite' style={{width: `${barWidth}%`}}/> {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
                                         </div>
-                                    <span className="text-xs text-text-primary shrink-0">{currRadius.toFixed(1)}/{upperBoundSpread} km</span>
+                                    <span className='text-xs text-text-primary shrink-0'>{currRadius.toFixed(1)}/{upperBoundSpread} km</span>
                                 </div>
                             )
                         })}
@@ -149,7 +149,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
 
             {/* logged containment lines */}
             <div>
-                <p className="text-sm uppercase py-2">containment lines logged</p>
+                <p className='text-sm uppercase py-2'>containment lines logged</p>
                 <LoggedContainmentLine/>
             </div>
         </div>

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import circle from '@turf/circle';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
@@ -139,11 +139,11 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
             {...viewState}
             onMove={evt => setViewState(evt.viewState)}
             style={{ width: '100%', height: '100%' }}
-            mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+            mapStyle='mapbox://styles/mapbox/navigation-night-v1'
         >
            {fires.map((fire) => (
-                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor="center" onClick={(e) => {e.originalEvent.stopPropagation(); setSelectedFire(fire); onSelectFire?.(fire.ref); }}>
-                    <div className="relative flex items-center justify-center size-6">
+                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor='center' onClick={(e) => {e.originalEvent.stopPropagation(); setSelectedFire(fire); onSelectFire?.(fire.ref); }}>
+                    <div className='relative flex items-center justify-center size-6'>
                         {/* The radar ping animation effect */}
                         <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`} />
                         {/* The solid core so the marker remains visible */}
@@ -155,16 +155,16 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
             {/*Circles around markers*/}
             {circleFeatures.length>0 &&(
               <Source
-                  id ="fire-circles"
-                  type="geojson"
+                  id ='fire-circles'
+                  type='geojson'
                   data={{
                       type:'FeatureCollection',
                       features:circleFeatures
                   }}
                   >
                       <Layer
-                          id="fire-radius-fill"
-                          type="fill"
+                          id='fire-radius-fill'
+                          type='fill'
                           paint={{
                             'fill-color': '#fcba3e',
                             'fill-opacity': 0.3,
@@ -172,8 +172,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                       />
 
                       <Layer
-                          id="fire-radius-outline"
-                          type="line"
+                          id='fire-radius-outline'
+                          type='line'
                           paint={{
                             'line-color': '#fcba3e',
                             'line-width': 1,
@@ -184,10 +184,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
           )}
 
           {girdFeautures.length > 0 && (
-            <Source id="burn-grid" type="geojson" data={{type: 'FeatureCollection', features: girdFeautures}}>
+            <Source id='burn-grid' type='geojson' data={{type: 'FeatureCollection', features: girdFeautures}}>
                 <Layer
-                    id="burn-grid-fill"
-                    type="fill"
+                    id='burn-grid-fill'
+                    type='fill'
                     paint={{
                         'fill-color': ['match', ['get', 'state'], 1, '#ff6b1a', 2, '#46201d', '#000000'], // swap with ignite and torch vals
                         'fill-opacity': ['match', ['get', 'state'], 1, 0.75, 2, 0.55, 0],
@@ -197,8 +197,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                 </Layer>
 
                 <Layer
-                    id="simulation-outline"
-                    type="line"
+                    id='simulation-outline'
+                    type='line'
                     paint={{
                         'line-color': '#000000',
                         'line-opacity': 0.15,
