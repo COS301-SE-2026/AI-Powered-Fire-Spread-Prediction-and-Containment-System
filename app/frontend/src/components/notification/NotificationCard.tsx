@@ -2,6 +2,7 @@ import { Bell, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import type { FireNotification } from '../../types/Notifications';
 import { NotificationBadge } from './StatusBadge';
+import { FormatDate } from '../shared/FormatDate';
 
 interface NotificationCardProps {
     readonly notification: FireNotification;
@@ -33,7 +34,7 @@ export function NotificationCard({ notification, onRead }: NotificationCardProps
                 <div>
                     <h3 className="text-sm font-semibold text-text-primary">{headline}</h3>
                     <p className="text-sm text-text-muted">{fireLocation}</p>
-                    <p className="text-xs text-text-muted">{distance} km | {time}</p>
+                    <p className="text-xs text-text-muted">{distance} km | {FormatDate(time)}</p>
                 </div>
             </div>
             <NotificationBadge severity={severity} />

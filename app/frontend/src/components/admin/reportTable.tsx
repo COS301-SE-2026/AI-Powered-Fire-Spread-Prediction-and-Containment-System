@@ -2,6 +2,7 @@ import React from "react";
 import { FireReportMapResponse, ReportStatus } from "../../types/Report";
 import { StatusBadge } from "./reportStatusBadge";
 import { useRouter } from 'next/router';
+import { FormatDate } from "../shared/FormatDate";
 
 interface FireReportsTableProps {
     readonly report: FireReportMapResponse[];
@@ -45,9 +46,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                                     <td className="px-4 text-sm text-text-primary"><StatusBadge status={report.status} /></td>
                                     <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
                                     <td className="px-4 text-sm text-text-primary">
-                                        {new Date(report.submitted_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
-                                        {' | '}
-                                        {new Date(report.submitted_at).toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' })}
+                                        {FormatDate(report.submitted_at)}
                                     </td>
                                     <td className="px-4 text-sm text-text-primary">{report.reporter_name}</td>
                                     <td className="px-4 py-3">
