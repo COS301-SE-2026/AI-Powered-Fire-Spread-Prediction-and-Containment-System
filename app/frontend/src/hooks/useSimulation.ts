@@ -29,6 +29,7 @@ export interface DCAParams {
 export interface SimulationRequest {
     lat: number;
     lng: number;
+    fire_id?: string | null;
     grid_h?: number;
     grid_w?: number;
     n_steps?: number;
@@ -135,7 +136,7 @@ export function useSimulation() {
 
     // API call
     const runSimulation = useCallback(
-        async (lat: number, lng: number, n_steps = 48) => {
+        async (lat: number, lng: number, n_steps = 48, fireId: string | null = null) => {
             abortRef.current?.abort();
             const controller = new AbortController();  // ← declared here
             abortRef.current = controller;
@@ -149,6 +150,7 @@ export function useSimulation() {
             const body: SimulationRequest = {
                 lat,
                 lng,
+                fire_id: fireId,
                 grid_h: 30,
                 grid_w: 30,
                 n_steps,
