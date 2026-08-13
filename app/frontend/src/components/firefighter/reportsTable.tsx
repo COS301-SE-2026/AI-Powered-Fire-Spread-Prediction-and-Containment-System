@@ -3,26 +3,12 @@ import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
 import { useRouter } from 'next/router';
 import { StatusBadge } from "../admin/reportStatusBadge";
 import { FirefighterReportTable } from '../../types/FirefighterReports';
+import { FormatDate } from "../shared/FormatDate";
 
 interface ReportsTableProp{
     readonly requests: FirefighterReportTable[];
     readonly filter: 'all' | ReportStatus;
     readonly onView: (request: FirefighterReportTable) => void;
-}
-
-const dateFormatter = new Intl.DateTimeFormat('en-ZA', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZone: "Africa/Johannesburg",
-});
-
-function formatReportDate(dateStr: string | undefined | null): string {
-    if (!dateStr) return "—";
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) return "—";
-    return dateFormatter.format(date);
 }
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
@@ -54,10 +40,10 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         </tr>
                     ) : (
                         filtered.map((req) => {
-                            const formattedDate = formatReportDate(req.reported);
+                            const formattedDate = FormatDate(req.reported);
 
                             return(
-                                <tr key={req.ref} className="hover:bg-[var(--color-surface-hover)] even:bg-carbon-bg/80">
+                                <tr key={req.ref} className="hover:bg-(--color-surface-hover) even:bg-carbon-bg/80">
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
                                     <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
