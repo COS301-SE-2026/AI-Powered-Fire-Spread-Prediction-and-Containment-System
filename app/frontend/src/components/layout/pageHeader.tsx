@@ -42,24 +42,24 @@ export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps
             </div>
             <div className="flex flex-col items-end gap-2">
                 {actions}
-                <div className="flex items-center gap-2">
                     {isAuth && (
-                        <div className="indicator">
-                            {unreadCount > 0 && (
-                                <span className="indicator-item badge badge-primary badge-xs w-5 h-5 min-w-5 p-2 rounded-full flex items-center justify-center text-text-primary">
-                                    {count}
-                                </span>
-                            )}
-                            <button type="button" onClick={() => setIsNotifOpen(true)} className="btn btn-ghost btn-circle" aria-label="Notifications">
-                                <Bell className="h-5 w-5 text-text-primary" aria-hidden="true" />
+                        <div className="flex items-center gap-2">
+                            <div className="indicator">
+                                {unreadCount > 0 && (
+                                    <span className="indicator-item badge badge-primary badge-xs w-5 h-5 min-w-5 p-2 rounded-full flex items-center justify-center text-text-primary">
+                                        {count}
+                                    </span>
+                                )}
+                                <button type="button" onClick={() => setIsNotifOpen(true)} className="btn btn-ghost btn-circle" aria-label="Notifications">
+                                    <Bell className="h-5 w-5 text-text-primary" aria-hidden="true" />
+                                </button>
+                            </div>
+                            <button type="button" onClick={handleAuthClick} className="btn btn-ghost btn-circle" aria-label={authLabel}>
+                                <User className="h-5 w-5 text-text-primary" aria-hidden="true" />
                             </button>
                         </div>
                     )}
-                    <button type="button" onClick={handleAuthClick} className="btn btn-ghost btn-circle" aria-label={authLabel}>
-                        <User className="h-5 w-5 text-text-primary" aria-hidden="true" />
-                    </button>
                 </div>
-            </div>
         </header>
         <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} />
         </>
