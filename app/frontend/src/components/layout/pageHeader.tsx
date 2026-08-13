@@ -3,8 +3,7 @@ import { Bell, User } from "lucide-react";
 import { useRouter } from "next/router";
 import { useAuth } from "../../hooks/useAuth";
 import { useNotifications } from "../../hooks/useNotification";
-import { NotificationSidebar } from "./NotificationSidebar";
-import { FireNotification } from "../../types/Notifications";
+import { NotificationSidebar } from "../notification/NotificationSidebar";
 
 interface PageHeaderProps {
     title: string;
@@ -16,7 +15,7 @@ const UNREAD_COUNT = 9;
 
 export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps>){
     const { isAuth } = useAuth();
-    const { unreadCount, notifications } = useNotifications();
+    const { unreadCount, notifications, markAsRead } = useNotifications();
     const router = useRouter();
     const [isNotifOpen, setIsNotifOpen] = useState(false);
 
@@ -61,7 +60,7 @@ export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps
                     )}
                 </div>
         </header>
-        <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} />
+        <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onRead={markAsRead}/>
         </>
     );
 }
