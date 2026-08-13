@@ -58,22 +58,22 @@ export default function ReportTable() {
     const totalHours = hasResult ? (maxSlider / 2) : 48;
     return (
         <FirefighterSideBar>
-            <div className="p-4 flex flex-col h-full w-full gap-y-3">
+            <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
                 {/*Page header and subtitle*/}
-                <header className="mb-6">
-                    <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">Fire Simulation</h1>
-                    <p className="font-body text-body text-text-primary/50">Simulate fire spread and prevention methods</p>
+                <header className='mb-6'>
+                    <h1 className='text-page-title font-display font-bold tracking-wider text-text-primary uppercase'>Fire Simulation</h1>
+                    <p className='font-body text-body text-text-primary/50'>Simulate fire spread and prevention methods</p>
                 </header>
 
-                <div className="flex flex-row gap-4 min-w-0">
+                <div className='flex flex-row gap-4 min-w-0'>
 
                     {/* left side of page: map + controls and buttons*/}
-                    <div className="basis-3/4 flex flex-col gap-4">
+                    <div className='basis-3/4 flex flex-col gap-4'>
                         {/* Fire Map */}
-                        <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative">
-                            <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                                <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">LIVE FIRE MAP</span>
+                        <div className='rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative'>
+                            <div className='p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60'>
+                                <span className='font-bold text-lg tracking-wide text-neutral/80 uppercase'>LIVE FIRE MAP</span>
 
                                 {/* Live tick badge */}
                                 {hasResult && (
@@ -108,7 +108,7 @@ export default function ReportTable() {
                                 </div>
                             )}
 
-                            <div className="w-full h-full">
+                            <div className='w-full h-full'>
                                 <FireMap
                                     lat={userLocation.lat}
                                     lng={userLocation.lng}
@@ -125,10 +125,10 @@ export default function ReportTable() {
                         </div>
 
                         {/* simulation vars and buttons */}
-                        <div className="flex gap-2 items-stretched">
+                        <div className='flex gap-2 items-stretched'>
                             {/* buttons to start simulation or draw page */}
-                            <div className="flex flex-col gap-6 shrink-0 h-auto justify-between">
-                                <button type="button" onClick={() => setDrawMode(true)} className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1">
+                            <div className='flex flex-col gap-6 shrink-0 h-auto justify-between'>
+                                <button type='button' onClick={() => setDrawMode(true)} className='btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1'>
                                     <Pencil size={28}/>
                                     Draw Containment
                                 </button>
@@ -161,35 +161,35 @@ export default function ReportTable() {
                             </div>
 
                             {/* input variables */}
-                            <div className="border border-carbon-stroke w-full rounded-2xl bg-carbon-side">
-                                <div className="flex flex-col gap-3 p-2">
-                                    <p className="text-sm uppercase tracking-wide text-text-muted font-semibold">Simulation Timeline</p>
+                            <div className='border border-carbon-stroke w-full rounded-2xl bg-carbon-side'>
+                                <div className='flex flex-col gap-3 p-2'>
+                                    <p className='text-sm uppercase tracking-wide text-text-muted font-semibold'>Simulation Timeline</p>
 
                                         {/* Timeline slider */}
-                                        <div className="flex flex-col gap-1 p-2">
-                                            <div className="flex flex-row items-center justify-between">
-                                                <span className="text-sm text-text-muted p-1">
+                                        <div className='flex flex-col gap-1 p-2'>
+                                            <div className='flex flex-row items-center justify-between'>
+                                                <span className='text-sm text-text-muted p-1'>
                                                     {hasResult ? `Tick ${currentTick} of ${totalTicks-1}` : 'Not yet run'}
                                                 </span>
                                                 {/* Auto Update Checkbox */}
-                                                <label className="flex gap-1 p-2">
-                                                    <span className="text-sm text-text-muted">Auto Play:</span>
-                                                    <input type="checkbox" checked={autoplay} onChange={(e) => setAutoPlay(e.target.checked)} className="checkbox checkbox-sm rounded-lg" />
+                                                <label className='flex gap-1 p-2'>
+                                                    <span className='text-sm text-text-muted'>Auto Play:</span>
+                                                    <input type='checkbox' checked={autoplay} onChange={(e) => setAutoPlay(e.target.checked)} className='checkbox checkbox-sm rounded-lg' />
                                                 </label>
                                             </div>
 
-                                        <div className="w-full">
+                                        <div className='w-full'>
                                             <input
-                                                type="range"
+                                                type='range'
                                                 min={0}
                                                 max={maxSlider}
                                                 step={1}
-                                                className="range range-xs w-full disabled:opacity-30"
+                                                className='range range-xs w-full disabled:opacity-30'
                                                 value={currentTick}
                                                 disabled={!hasResult}
                                                 onChange={(e) => seekToTick(Number(e.target.value))}/>
 
-                                            <div className="flex justify-between px-2.5 mt-2 text-sm">
+                                            <div className='flex justify-between px-2.5 mt-2 text-sm'>
                                                 <span>0h</span>
                                                 <span>{Math.round(totalHours/4)}h</span>
                                                 <span>{Math.round(totalHours/2)}h</span>
@@ -209,7 +209,7 @@ export default function ReportTable() {
                                             value={selectedFireId ?? ''}
                                             onChange={(e) => setSelectedFireId(e.target.value || null)}
                                         >  
-                                            <option value="">All verified fires</option>
+                                            <option value=''>All verified fires</option>
                                             {fires.filter(f => f.status === 'verified').map(f => (
                                                 <option key={f.ref} value={f.ref} className='bg-carbon-bg text-neutral'>{f.location ?? f.ref}</option>
                                             ))}
@@ -303,7 +303,7 @@ export default function ReportTable() {
                     </div>
 
                     {/* Simulation results */}
-                    <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
+                    <div className='basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto'>
                         <SimulationResults
                         // Pass live stats so panel can show burning/burned counts per tick
                         predictions={predictions}
