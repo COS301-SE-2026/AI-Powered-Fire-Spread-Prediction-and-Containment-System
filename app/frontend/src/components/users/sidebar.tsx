@@ -109,3 +109,7 @@ export function SidebarLayout({ children }: { children?: Readonly<React.ReactNod
         </div>
     );
 }
+
+SidebarLayout.defaultProps = {
+    children: undefined
+};

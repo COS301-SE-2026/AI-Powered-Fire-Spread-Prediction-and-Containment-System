@@ -23,3 +23,7 @@ export function ActionCard({title, description, icon, onClick}: ActionCardProps)
             </div>
         </button>
 }
+
+ActionCard.defaultProps = {
+    onClick: undefined
+};

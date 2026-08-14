@@ -227,3 +227,13 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         </Map>
     );
 }
+
+FireMap.defaultProps = {
+    burnGrid: undefined,
+    burnGridH: undefined,
+    burnGridW: undefined,
+    predictions: undefined,
+    currentTick: undefined,
+    selectedFireId: undefined,
+    onSelectFire: undefined
+};

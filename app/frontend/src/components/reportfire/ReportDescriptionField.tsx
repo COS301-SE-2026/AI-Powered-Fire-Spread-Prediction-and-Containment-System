@@ -31,3 +31,7 @@ export function DescriptionField({ value, error, onChange }: DescriptionProps) {
         </div>
     );
 }
+
+DescriptionField.defaultProps = {
+    error: undefined
+};

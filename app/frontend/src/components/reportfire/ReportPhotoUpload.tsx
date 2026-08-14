@@ -63,3 +63,7 @@ export function PhotoField({ value, error, onChange }: PhotoProps) {
         </div>
     );
 }
+
+PhotoField.defaultProps = {
+    error: undefined
+};

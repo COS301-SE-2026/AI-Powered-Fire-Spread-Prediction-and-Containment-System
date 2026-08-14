@@ -107,3 +107,7 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
         </div>
     );
 }
+
+LocationField.defaultProps = {
+    error: undefined
+};
