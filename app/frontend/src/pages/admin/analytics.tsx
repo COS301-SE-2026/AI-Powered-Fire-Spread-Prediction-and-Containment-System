@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '../../components/ui/Card';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-ZA', {

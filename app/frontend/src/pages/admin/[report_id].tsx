@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { AdminSideBar } from '../../components/admin/adminSidebar'; 
+import { AdminSideBar } from '../../components/admin/AdminSideBar'; 
 import { ViewPage } from '../../components/admin/ReportView';
 
 export default function View() {

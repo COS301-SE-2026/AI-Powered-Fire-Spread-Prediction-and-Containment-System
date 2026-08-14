@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { ReportStatus } from '../../types/Report';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { FireReportsTable } from '../../components/admin/reportTable';
 import { SearchBar } from '../../components/admin/searchBar';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { RoleRequest,RoleStatus } from '../../types/RoleRequest';
 import { useRoleRequests } from '../../hooks/useRoleRequests';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { RoleFilterTabs } from '../../components/admin/approvalFilter';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
 
