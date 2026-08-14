@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from 'react';
 import { EnvironmentWidgets } from "./weatherStats";
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
@@ -37,8 +36,6 @@ export function SimulationResults({predictions = [], currentTick = 0,status='idl
     );
 
     const hasResult = predictions.length > 0;
-    const maxBurned = Math.max(...predictions.map(p => p.burned_cells), 1);
-
     const upperBoundSpread = 15.0; // in km
 
     return (
@@ -159,5 +156,5 @@ export function SimulationResults({predictions = [], currentTick = 0,status='idl
 SimulationResults.defaultProps = {
     predictions: undefined,
     currentTick: undefined,
-    ststus: undefined
+    status: undefined
 };
