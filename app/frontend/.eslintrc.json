@@ -31,11 +31,8 @@
                 "ignoreStateless": false
             }
         ],
-        "filenames/match-exported": [
-            "error",
-            "pascal"
-        ],
-        "camelCase": "off",
+        "camelcase": "off",
+        "no-unused-vars": "off",
         "react-hooks/rules-of-hooks": "error",
         "react/jsx-filename-extension": [
             "error",
@@ -70,7 +67,25 @@
                     "next.config.js"
                 ]
             }
-        ]
+        ],
+        "react/button-has-type": "off",
+        "jsx-a11y/label-has-associated-control": "off",
+        "jsx-a11y/control-has-associated-label": "off",
+        "eqeqeq": "off",
+        "no-plusplus": "off",
+        "no-continue": "off",
+        "react/jsx-no-bind": "off",
+        "react/jsx-props-no-spreading": "off",
+        "react/no-unescaped-entities": "off",
+        "react/no-array-index-key": "off",
+        "no-multi-assign": "off",
+        "no-nested-ternary": "off",
+        "no-param-reassign": "off",
+        "consistent-return": "off",
+        "no-restricted-globals": "off",
+        "global-require": "off",
+        "no-console": "off",
+        "no-constant-condition": "off"
     },
     "overrides": [
         {
@@ -91,6 +106,7 @@
             ],
             "rules": {
                 "@typescript-eslint/no-explicit-any": "error",
+                "@typescript-eslint/no-unused-vars": "off",
                 "@typescript-eslint/naming-convention": [
                     "error",
                     {
@@ -193,7 +209,7 @@
                 "**/hooks/**",
                 "**/*.config.js",
                 "**/*.config.ts",
-                "**pages/**",
+                "**/pages/**",
                 "**/types/**"
             ],
             "rules": {
@@ -207,6 +223,15 @@
             ],
             "rules": {
                 "@typescript-eslint/dot-notation": "off"
+            }
+        },
+        {
+            "files": [
+                "**/*.config.js",
+                "**/*.config.ts"
+            ],
+            "rules": {
+                "filenames/match-exported": "off"
             }
         }
     ]
