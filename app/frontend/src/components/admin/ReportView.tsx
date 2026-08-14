@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import { ReportDetails } from './reportDetails';
 import { ReportDescription } from './reportDescription';
 import { ReportActions } from './reportActions';
 import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 
-import dynamic from 'next/dynamic';
 
     const ReportMap = dynamic(
         () => import('./reportMapCard').then(mod => mod.ReportMap),
@@ -43,16 +43,16 @@ export function ViewPage({ report_ref }: Readonly<ViewProps>) {
 
                 <button type="button" onClick={() => router.back()} className="btn btn-sm btn-outline rounded-lg">Back</button>
             </header>
-            {/* 2 cols*/}
+            {/* 2 cols */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-2 h-full'>
-                {/*left*/}
+                {/* left */}
                 <div className='lg:col-span-6 flex flex-col gap-3'>
                     <div className="relative overflow-hidden flex-1 w-full">
                         <ReportMap lat={report.lat} lng={report.lng} />
                     </div>
                     <ReportDetails report={report} />
                 </div>
-                {/*right*/}
+                {/* right */}
                 <div className='lg:col-span-6 flex flex-col gap-2 h-full'>
                     <ReportPhoto report={report} />
                     <ReportDescription report={report} />

@@ -16,9 +16,8 @@ const mock_data: LoggedLine[] = [
     { line: "Line C", direction: "South Perimeter", info: "Logged 1 hr ago · 210m" },
 ];
 
-export function LoggedContainmentLine ({card_data = mock_data}: CardListProp) {
-    return(
-        <div className="flex flex-col gap-1 p-1">
+export function LoggedContainmentLine({card_data = mock_data}: CardListProp) {
+  return <div className="flex flex-col gap-1 p-1">
             {card_data.map((items) =>(
                 <div key={items.line} className="flex items-center justify-between gap-1 p-1 border border-carbon-stroke rounded-xl">
                     <div className="flex items-center gap-2">
@@ -35,5 +34,4 @@ export function LoggedContainmentLine ({card_data = mock_data}: CardListProp) {
                 </div>
             ))}
         </div>
-    );
 }

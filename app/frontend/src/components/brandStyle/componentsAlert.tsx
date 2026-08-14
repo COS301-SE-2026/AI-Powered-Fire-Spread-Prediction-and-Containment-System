@@ -2,8 +2,7 @@ import { ComponentsGroup, Labled } from "./componentsGroup";
 import { Alert } from "../shared/Alerts";
 
 export function Alerts() {
-    return (
-        <ComponentsGroup title="Allert variants">
+  return <ComponentsGroup title="Allert variants">
             <div className="flex flex-col gap-3 w-full max-w-sm">
                 <Labled caption="success">
                     <Alert variant="success" message="Fire report submitted successfully."/>
@@ -19,5 +18,4 @@ export function Alerts() {
                 </Labled>
             </div>
         </ComponentsGroup>
-    );
 }

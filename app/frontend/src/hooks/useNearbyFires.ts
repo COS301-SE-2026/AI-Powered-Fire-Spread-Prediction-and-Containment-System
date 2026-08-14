@@ -16,7 +16,7 @@ export function useNearbyFires() {
             return;
         }
 
-        //if users location permissions accepted set lat and lng to users location
+        // if users location permissions accepted set lat and lng to users location
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 setUserLocation({

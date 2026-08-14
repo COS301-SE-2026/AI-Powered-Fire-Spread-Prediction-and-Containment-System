@@ -11,13 +11,11 @@ interface RoleFilterTabsProps {
 const filters: FilterOption[] = ['All', 'pending', 'approved', 'rejected', 'revoked'];
 
 export function RoleFilterTabs({ filter, onChange }: RoleFilterTabsProps) {
-    return(
-        <div className="flex gap-2 mb-4">
+  return <div className="flex gap-2 mb-4">
             {filters.map((fil) => (
                 <button type="button" key={fil} onClick={() => onChange(fil)} className={`text-xs font-semibold px-4 py-1.5 rounded-full border transition-colors capitalize ${filter === fil ? 'bg-ignite/20 text-flare border-ignite/30' : 'border-carbon-card text-text-primary/50 hover:bg-smoke-hover'}`}>
                     {fil}
                 </button>
             ))}
         </div>
-    );
 }

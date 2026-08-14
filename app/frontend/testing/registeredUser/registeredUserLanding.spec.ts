@@ -22,7 +22,7 @@ test.describe('Registered User Landing Page', () => {
         await expect(page.getByRole('heading', {name: 'Welcome'})).toBeVisible();
         await expect(page.getByText('Public Fire Map View')).toBeVisible();
     });
-/*Taken out because these tests are janky (similarly for guests landing)
+/* Taken out because these tests are janky (similarly for guests landing)
     test('Shows loading state before map initializes, then map renders', async({page}) => {
         const loadingText = page.getByText('Initializing Map');
 

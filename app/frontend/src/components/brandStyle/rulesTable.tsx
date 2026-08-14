@@ -19,8 +19,7 @@ interface TableProps {
 }
 
 export function RulesTable({ title, rules, variant }: Readonly<TableProps>) {
-    return (
-        <div className="overflow-hidden border border-carbon-stroke">
+  return <div className="overflow-hidden border border-carbon-stroke">
             <div className="border-b border-carbon-stroke bg-carbon-input px-4 py-3">
                 <p className="font-mono text-xs font-semibold uppercase tracking-widest text-smoke">{title}</p>
             </div>
@@ -28,5 +27,4 @@ export function RulesTable({ title, rules, variant }: Readonly<TableProps>) {
                 <Row key={rule} variant={variant} rule={rule} />
             ))}
         </div>
-    );
 }

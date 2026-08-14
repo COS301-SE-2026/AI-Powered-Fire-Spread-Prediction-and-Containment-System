@@ -1,8 +1,7 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
 
 export function Checkbox() {
-    return (
-        <ComponentsGroup title="Checkbox States">
+  return <ComponentsGroup title="Checkbox States">
             <div className="flex flex-wrap tiems-center gap-24">
                 <Labled caption="unchecked">
                     <input type="checkbox" aria-label="Unchecked checkbox example" className="checkbox checkbox-sm rounded-lg" />
@@ -15,5 +14,4 @@ export function Checkbox() {
                 </Labled>
             </div>
         </ComponentsGroup>
-    );
 }

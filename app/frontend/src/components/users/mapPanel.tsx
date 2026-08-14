@@ -19,7 +19,7 @@ interface MapPanelProps{
     height?: keyof typeof HEIGHT_CLASSES;   // Panel height preset. Defaults to lg
 }
 
-export function MapPanel({children, colSpan=8, height='lg'}: Readonly<MapPanelProps>){
+export function MapPanel({children, colSpan=8, height='lg'}: Readonly<MapPanelProps>) {
     const colSpanClass = COL_SPAN_CLASSES[colSpan] ?? COL_SPAN_CLASSES[8];
     const heightClass = HEIGHT_CLASSES[height] ?? HEIGHT_CLASSES.lg;
 

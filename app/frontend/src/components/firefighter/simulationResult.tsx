@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { EnvironmentVariables, EnvironmentWidgets } from '../../components/firefighter/weatherStats';
+import { EnvironmentVariables, EnvironmentWidgets } from "./weatherStats";
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
@@ -12,7 +12,7 @@ interface SimulationResultsProps {
 
 function countStates(grid: number[] | undefined) {
     if (!grid) return {burning: 0, burned: 0, unburned: 0, total: 0}
-    let burning = 0, burned = 0;
+    let burning = 0; let burned = 0;
     for (const cell of grid){
         if (cell == 1) burning++;
         else if(cell == 2) burned++;
@@ -21,7 +21,7 @@ function countStates(grid: number[] | undefined) {
 }
 
 
-export function SimulationResults ({predictions = [], currentTick = 0,status='idle'}: SimulationResultsProps) {
+export function SimulationResults({predictions = [], currentTick = 0,status='idle'}: SimulationResultsProps) {
     const { environmentVariables } = useNearbyFires();
 
     const totals = predictions.reduce(
@@ -121,7 +121,7 @@ export function SimulationResults ({predictions = [], currentTick = 0,status='id
 
                             let currRadius = 0; // in km
                             if(initialCells > 0){
-                                const initialSquareMeters = Math.PI * Math.pow(p.radius_m, 2);
+                                const initialSquareMeters = Math.PI * p.radius_m**2;
                                 const areaPerCell = initialSquareMeters / initialCells;
                                 const currentSquareMeters = affectedCells * areaPerCell;
 

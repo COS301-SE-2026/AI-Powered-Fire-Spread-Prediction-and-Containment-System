@@ -1,15 +1,15 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
-import { NearbyReports } from '../../components/shared/nearbyReports';
+import { NearbyReports } from "../shared/nearbyReports";
 
 const PublicFireMap = dynamic(
-    () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
+    () => import("../firefighter/FireMap").then((mod) => mod.FireMap),
     {
         ssr: false,
         loading: () => (
             <div className="flex-1 flex items-center justify-center h-full w-full">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
+                <span className="loading loading-spinner loading-lg text-primary" />
             </div>
         )
     }
@@ -20,7 +20,7 @@ export default function MapView() {
     return (
         <div className="flex flex-col p-6">
 
-            {/*Public View Header*/}
+            {/* Public View Header */}
             <header className="mb-4 flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
@@ -32,11 +32,11 @@ export default function MapView() {
                 </div>
             </header>
 
-            {/*Grid*/}
+            {/* Grid */}
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                 <div className="xl:col-span-8 flex flex-col gap-6">
 
-                    {/*Map*/}
+                    {/* Map */}
                     <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[40rem] w-full shadow-md">
                         <PublicFireMap lat={userLocation.lat} lng={userLocation.lng} drawMode={false} onDrawComplete={() => {}} clearDrawings={0}/>
                     </div>

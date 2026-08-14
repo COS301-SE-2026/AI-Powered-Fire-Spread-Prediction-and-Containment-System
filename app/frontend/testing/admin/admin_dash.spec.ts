@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+
 async function login(page: Page) {
     await page.goto("http://localhost:3000/");
     await page.getByRole("button", { name: "Login" }).click();

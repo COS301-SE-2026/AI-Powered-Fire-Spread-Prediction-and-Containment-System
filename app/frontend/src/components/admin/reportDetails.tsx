@@ -8,8 +8,7 @@ interface ReportDetailsProps {
 }
 
 export function ReportDetails({ report }: ReportDetailsProps) {
-    return (
-        <Card title="Report Details">
+  return <Card title="Report Details">
             <div className="flex flex-col gap-3">
                 <div className="flex justify-between">
                     <span className="text-text-muted text-sm">Reference</span>
@@ -41,5 +40,4 @@ export function ReportDetails({ report }: ReportDetailsProps) {
                 </div>
             </div>
         </Card>
-    );
 }

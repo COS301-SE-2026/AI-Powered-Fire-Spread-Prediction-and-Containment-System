@@ -3,8 +3,7 @@ import ReportStatus from "../reportfire/Reportstatus";
 
 
 export function StatusCard() {
-    return (
-        <ComponentsGroup title="Report Status Card">
+  return <ComponentsGroup title="Report Status Card">
             <div className="flex flex-col gap-3 w-80">
                 <Labled caption="received">
                     <ReportStatus status="received" refNumber="FR-1042" locationText="Moreleta Park" />
@@ -20,5 +19,4 @@ export function StatusCard() {
                 </Labled>
             </div>
         </ComponentsGroup>
-    );
 }

@@ -7,8 +7,7 @@ interface LogoCardProps {
 }
 
 export function LogoCard({ src, filename, note, imgHeight, bg = "bg-carbon-side" }: Readonly<LogoCardProps>) {
-    return (
-        <div className="overflow-hidden rounded-md border border-carbon-stroke">
+  return <div className="overflow-hidden rounded-md border border-carbon-stroke">
             <div className={`flex h-40 items-center justify-center bg-carbon-side overflow-hidden ${bg}`}>
                 <img src={src} alt={filename} className={`${imgHeight} object-contain`}/>
             </div>
@@ -17,5 +16,4 @@ export function LogoCard({ src, filename, note, imgHeight, bg = "bg-carbon-side"
                 <p className="font-mono text-sm text-smoke">{note}</p>
             </div>
         </div>
-    );
 }

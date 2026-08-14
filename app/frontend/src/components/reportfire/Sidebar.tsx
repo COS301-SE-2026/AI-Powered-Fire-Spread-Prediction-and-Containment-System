@@ -2,12 +2,11 @@ import React from 'react';
 import { BookAlert, Map, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 
 export function SidebarLayout({ children }: { children?: React.ReactNode }) {
-    return (
-        <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialiased relative z-0">
+  return <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialiased relative z-0">
             {/* Atmospheric Background Blooms */}
             <div className="global-atmos">
-                <div className="ga-bloom-primary"></div>
-                <div className="ga-bloom-secondary"></div>
+                <div className="ga-bloom-primary" />
+                <div className="ga-bloom-secondary" />
             </div>
 
             <aside className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-[92px] hover:w-64 shrink-0 shadow-2xl shadow-black/50">
@@ -71,5 +70,4 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
                 </main>
             </div>
         </div>
-    );
 }

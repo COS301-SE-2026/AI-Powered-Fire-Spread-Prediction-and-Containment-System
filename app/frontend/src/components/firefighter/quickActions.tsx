@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { ActionCard } from './actionCard';
 import { FileWarning, PenLine, TrendingUp, ClipboardPlus} from 'lucide-react'
 import { useRouter } from 'next/router';
+import { ActionCard } from './actionCard';
 
 interface QuickActionsProps {
     readonly onStartDraw: () => void;
 }
 
-export function QuickActions({onStartDraw}: QuickActionsProps){
+export function QuickActions({onStartDraw}: QuickActionsProps) {
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
 

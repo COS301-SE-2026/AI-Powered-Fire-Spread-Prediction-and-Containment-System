@@ -8,8 +8,7 @@ interface StatCardProps {
 }
 
 export function StatCard({label, value, icon, iconColor = "bg-base-100"}: Readonly<StatCardProps>) {
-    return(
-        <div className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke w-full h-full">
+  return <div className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke w-full h-full">
             {/* Icon wrapper */}
             <div className={`size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center shrink-0 ${iconColor}`}>
                 {icon}
@@ -21,7 +20,6 @@ export function StatCard({label, value, icon, iconColor = "bg-base-100"}: Readon
                 <span className="text-xs text-text-primary/50 font-medium mt-0.5">{label}</span>
             </div>
         </div>
-    );
 }
 
 export interface EnvironmentVariables{
@@ -66,7 +64,7 @@ function WindDirection(degree: number): string {
     }
 }
 
-export function EnvironmentWidgets ({variables}: EnvironmentWidgetsProp) {
+export function EnvironmentWidgets({variables}: EnvironmentWidgetsProp) {
     if(!variables){
         return(
             <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full">

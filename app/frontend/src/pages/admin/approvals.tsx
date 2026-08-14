@@ -30,7 +30,7 @@ export default function RoleApprovalPage() {
         return (
             <AdminSideBar>
                 <div className="p-6 flex justify-center items-center min-h-[60vh]">
-                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                    <span className="loading loading-spinner loading-lg text-primary" />
                 </div>
             </AdminSideBar>
         );

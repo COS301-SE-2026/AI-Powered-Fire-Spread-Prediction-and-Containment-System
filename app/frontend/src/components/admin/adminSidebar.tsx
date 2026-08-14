@@ -3,8 +3,7 @@ import { Map, LayoutDashboard, ShieldAlert, Flame, TrendingUp, PlusCircle } from
 import { SideBar, NavLink } from '../layout/Sidebar';
 
 export function AdminItems() {
-    return (
-        <>
+  return <>
             <NavLink icon={LayoutDashboard} label="Admin Dashboard" href="/admin/dashboard" />
             <NavLink icon={TrendingUp} label="Analytics" href="/admin/analytics" />
             <NavLink icon={Map} label="Live Map" href="/admin/live-map" />
@@ -12,7 +11,6 @@ export function AdminItems() {
             <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvals" />
             <NavLink icon={Flame} label="Reported Fires" href="/admin/reported-fire" />
         </>
-    );
 }
 
 export function AdminSideBar({
@@ -24,7 +22,5 @@ export function AdminSideBar({
     hideLogout?: boolean;
     hideLoginRegister?: boolean;
 }>) {
-    return(
-        <SideBar items={<AdminItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
-    );
+  return <SideBar items={<AdminItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
 }

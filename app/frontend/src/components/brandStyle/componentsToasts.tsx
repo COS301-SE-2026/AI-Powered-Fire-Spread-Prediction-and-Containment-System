@@ -1,8 +1,7 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
 
 export function Toasts() {
-    return (
-        <ComponentsGroup title="Toast Positioning">
+  return <ComponentsGroup title="Toast Positioning">
             <div className="flex flex-wrap gap-6">
                 <Labled caption="top-end">
                     <div
@@ -31,5 +30,4 @@ export function Toasts() {
                 </Labled>
             </div>
         </ComponentsGroup>
-    );
 }

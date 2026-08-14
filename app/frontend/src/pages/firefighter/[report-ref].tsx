@@ -4,7 +4,7 @@ import { ViewPage } from '../../components/admin/ReportView';
 
 export default function View() {
     const router = useRouter();
-    const { ['report-ref']: reportRef } = router.query;
+    const { 'report-ref': reportRef } = router.query;
     if (!reportRef) return null;
 
     return (

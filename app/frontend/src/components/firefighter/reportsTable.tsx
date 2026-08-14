@@ -1,6 +1,6 @@
 import React from "react";
-import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
 import { useRouter } from 'next/router';
+import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
 import { StatusBadge } from "../admin/reportStatusBadge";
 import { FirefighterReportTable } from '../../types/FirefighterReports';
 
@@ -42,7 +42,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Size</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reported</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reporter</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase"></th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase" />
                     </tr>
                 </thead>
                 <tbody>

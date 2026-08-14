@@ -32,3 +32,7 @@ export function Alert({ variant, message, id }: AlertsProps) {
         </div>
     );
 }
+
+Alert.defaultProps ={
+    readonly: undefined
+};
