@@ -1,9 +1,10 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
-import { NearbyReports } from "../nearbyReports";
+import { NearbyReports } from "../firefighter/nearbyReports";
 import { StatCard } from "../firefighter/weatherStats";
 import { ActionCard } from "../firefighter/actionCard";
 import { Wind, Thermometer, Flame, Droplets, FileWarning, PenLine, TrendingUp, ClipboardPlus } from "lucide-react";
 import { MapStatsOverlay } from "../firefighter/mapStat";
+import { NearbyFire } from "../../types/FirefighterDashboard"
 
 export function EnvironmentCards() {
     return (
@@ -33,10 +34,10 @@ export function ActionCards() {
     );
 }
 
-const dummyFires = [
-        { ref: "FR-1042", location_text: "Moreleta Park", distance: 2.4, time_ago: "10 min ago", status: "verified" },
-        { ref: "FR-1043", location_text: "Faerie Glen", distance: 5.1, time_ago: "32 min ago", status: "pending" },
-        { ref: "FR-1044", location_text: "Silver Lakes", distance: 8.7, time_ago: "1 hr ago", status: "received" },
+const dummyFires: NearbyFire[] = [
+        {  location_text: "Moreleta Park", distance: 2.4, time_ago: "10 min ago", status: "verified" },
+        {  location_text: "Faerie Glen", distance: 5.1, time_ago: "32 min ago", status: "pending" },
+        {  location_text: "Silver Lakes", distance: 8.7, time_ago: "1 hr ago", status: "received" },
     ];
 
 export function NearbyReport(){
