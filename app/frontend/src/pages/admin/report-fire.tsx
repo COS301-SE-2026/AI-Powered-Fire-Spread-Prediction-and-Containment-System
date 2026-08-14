@@ -1,5 +1,5 @@
 import { AdminSideBar } from '../../components/admin/adminSidebar';
-import ReportPage from '../../components/reportfire/report';
+import ReportPage from '../../components/reportfire/ReportPage';
 
 export default function AdminReportFire() {
     return (

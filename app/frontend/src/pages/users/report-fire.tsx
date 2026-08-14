@@ -1,5 +1,5 @@
 import { UserSideBar } from "../../components/users/usersSidebar";
-import ReportPage from "../../components/reportfire/report";
+import ReportPage from "../../components/reportfire/ReportPage";
 
 export default function RegisteredReportFire(){
     return(
