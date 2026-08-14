@@ -1,6 +1,5 @@
 import { RoleRequest, UserSummary } from "../../types/RoleRequest";
 import { statusBadge } from './statusBadge';
-import { API_BASE_URL } from "../../config/api";
 
 interface RoleApprovalModalProps {
     request: RoleRequest;

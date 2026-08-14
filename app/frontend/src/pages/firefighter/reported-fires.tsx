@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ReportStatus } from "../../types/Report";
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { EnvironmentVariables, EnvironmentWidgets } from "./weatherStats";
+import { EnvironmentWidgets } from "./weatherStats";
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';

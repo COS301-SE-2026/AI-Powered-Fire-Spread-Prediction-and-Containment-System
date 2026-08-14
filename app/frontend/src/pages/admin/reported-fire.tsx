@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import type { ReportStatus } from '../../types/Report';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
