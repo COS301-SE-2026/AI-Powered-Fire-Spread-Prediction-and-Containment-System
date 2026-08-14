@@ -5,7 +5,6 @@ import { SimulationResults } from '../../components/firefighter/simulationResult
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
-import { useFireReport } from '../../hooks/useFireReport';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 
 export default function ReportTable() {

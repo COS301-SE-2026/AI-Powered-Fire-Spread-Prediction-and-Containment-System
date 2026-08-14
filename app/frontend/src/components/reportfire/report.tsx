@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useReducer, useRef } from "react";
+import React, { useReducer } from "react";
 import StepIndicator from "./Stepindicator";
 import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
 import ReportStatus from "./Reportstatus";

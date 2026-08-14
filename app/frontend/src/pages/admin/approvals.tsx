@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { RoleRequest,RoleStatus } from '../../types/RoleRequest';
 import { useRoleRequests } from '../../hooks/useRoleRequests';
 import { RoleApprovalModal } from '../../components/admin/approvalModal';

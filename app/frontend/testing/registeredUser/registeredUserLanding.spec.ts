@@ -1,6 +1,5 @@
 import {test, expect, type Page} from '@playwright/test';
 
-const DASHBOARD_ROUTE = '/users/live-map';
 const DESKTOP_VIEW = {width: 1200, height: 800};
 
 async function login(page: Page) {

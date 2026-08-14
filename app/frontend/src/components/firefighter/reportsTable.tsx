@@ -1,6 +1,6 @@
 import React from "react";
 import { useRouter } from 'next/router';
-import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
+import { ReportStatus } from "../../types/Report";
 import { StatusBadge } from "../admin/reportStatusBadge";
 import { FirefighterReportTable } from '../../types/FirefighterReports';
 
