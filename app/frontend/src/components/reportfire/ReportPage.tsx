@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useReducer } from "react";
-import StepIndicator from "./Stepindicator";
-import ReportDetailsForm, { type ReportFormData } from "./Reportdetailsform";
-import ReportStatus from "./Reportstatus";
+import StepIndicator from "./StepIndicator";
+import ReportDetailsForm, { type ReportFormData } from "./ReportDetailsForm";
+import ReportStatus from "./ReportStatus";
 import { FireMap } from "../shared/DynamicUserMap"
 import { Alert } from "../shared/Alerts";
-import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
+import { LOCATION_PLACEHOLDER } from "./ReportDetailsForm";
 import { useUserReports } from "../../hooks/useUserReports";
 import { useSubmitReport } from "../../hooks/useSubmitReport";
 

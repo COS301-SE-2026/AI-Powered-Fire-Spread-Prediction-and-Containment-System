@@ -10,7 +10,7 @@ interface EmberFieldProps {
     readonly density?: number;
 }
 
-export default function EmberField({density = 25}: Readonly<EmberFieldProps>) {
+export default function EmberEffect({density = 25}: Readonly<EmberFieldProps>) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {

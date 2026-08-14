@@ -1,5 +1,5 @@
 import { ComponentsGroup, Labled } from "./componentsGroup";
-import ReportStatus from "../reportfire/Reportstatus";
+import ReportStatus from "../reportfire/ReportStatus";
 
 
 export function StatusCard() {
