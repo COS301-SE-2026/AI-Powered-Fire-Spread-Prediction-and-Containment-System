@@ -179,6 +179,27 @@ jobs:
       - name: Run ESLint
         run: yarn eslint
 
+  frontend-react-doctor:
+    name: React Doctor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run React Doctor
+        uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
+        with:
+          directory: app/frontend/src
+          blocking: error
+
   # frontend-e2e:
   #   name: Frontend E2E (Playwright)
   #   runs-on: ubuntu-latest
@@ -258,24 +279,5 @@ jobs:
   #         name: playwright-report
   #         path: app/frontend/src/playwright-report/
   #         retention-days: 7
-  
-  # frontend-react-doctor:
-  #   name: React Doctor
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     pull-requests: write
-  #     issues: write
-  #     statuses: write
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
-
-  #     - name: Run React Doctor
-  #       uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
-  #       with:
-  #         directory: app/frontend/src
-  #         blocking: error
+ 
