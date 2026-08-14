@@ -1,6 +1,6 @@
 import React from 'react';
 import { Map, LayoutDashboard, ShieldAlert, Flame, TrendingUp, PlusCircle } from 'lucide-react';
-import { SideBar, NavLink } from '../layout/Sidebar';
+import { NavLink } from '../layout/Sidebar';
 
 export function AdminItems() {
   return <>
@@ -11,16 +11,4 @@ export function AdminItems() {
             <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvals" />
             <NavLink icon={Flame} label="Reported Fires" href="/admin/reported-fire" />
         </>
-}
-
-export function AdminSideBar({
-    children,
-    hideLogout = false,
-    hideLoginRegister = false,
-}: Readonly<{
-    children?: React.ReactNode;
-    hideLogout?: boolean;
-    hideLoginRegister?: boolean;
-}>) {
-  return <SideBar items={<AdminItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
 }

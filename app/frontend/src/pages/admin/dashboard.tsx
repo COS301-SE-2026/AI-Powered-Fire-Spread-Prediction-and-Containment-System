@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
 import {DashboardMetrics} from '../../components/admin/adminDashboardMetrics';
 import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 
 
 interface ActivityItem {
