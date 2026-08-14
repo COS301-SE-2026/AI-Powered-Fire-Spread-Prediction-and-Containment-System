@@ -5,11 +5,9 @@ interface SystemAlertsPanelProps {
     onClose: () => void;
 }
 
-export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, onClose}) => {
-
-    return (
+export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, onClose}) => (
         <>
-            {/*for mobile when panel open*/}
+            {/* for mobile when panel open */}
             { isOpen && (
                 <button type='button' className='fixed inset-0 bg-black/50 z-40 md:hidden w-full h-full cursor-default border-none outline-none' onClick={onClose} aria-label='Close alerts panel' />
             )}
@@ -26,7 +24,7 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
                 </div>
 
                 <div className='p-6 overflow-y-auto flex-1 flex flex-col gap-4'>
-                    {/*place for notifications*/}
+                    {/* place for notifications */}
                     <div className='bg-carbon-card p-4 rounded-xl border border-red-500/30'>
                         <h3 className='text-red-500 font-bold mb-5'>
                             Verified Fire Alert
@@ -48,4 +46,3 @@ export const SystemAlertsPanel: React.FC<SystemAlertsPanelProps> = ({ isOpen, on
             </div>
         </>
     );
-};

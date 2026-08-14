@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Alert } from "../shared/Alerts";
 import { Paperclip, Check } from "lucide-react";
+import { Alert } from "../shared/Alerts";
 
 interface PhotoProps {
     readonly value: File | null;

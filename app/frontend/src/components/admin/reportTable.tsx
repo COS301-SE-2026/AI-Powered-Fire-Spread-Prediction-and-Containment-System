@@ -1,7 +1,7 @@
 import React from "react";
+import { useRouter } from 'next/router';
 import { FireReportMapResponse, ReportStatus } from "../../types/Report";
 import { StatusBadge } from "./reportStatusBadge";
-import { useRouter } from 'next/router';
 
 interface FireReportsTableProps {
     readonly report: FireReportMapResponse[];
@@ -37,8 +37,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                             </td>
                         </tr>
                     ) : (
-                        filtered.map((report) => {
-                            return (
+                        filtered.map((report) => (
                                 <tr key={report.id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80">
                                     <td className="px-4 text-sm text-text-primary">{report.reference_number}</td>
                                     <td className="px-4 text-sm text-text-primary">{report.location_text}</td>
@@ -56,8 +55,7 @@ export function FireReportsTable({ report, filter }: FireReportsTableProps) {
                                         </button>
                                     </td>
                                 </tr>
-                            );
-                        })
+                            ))
                     )}
                 </tbody>
             </table>

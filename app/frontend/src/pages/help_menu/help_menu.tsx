@@ -1,8 +1,9 @@
+import {Siren, CirclePlay, Headset} from 'lucide-react'
+import { useRouter } from 'next/router';
 import { SideBar } from '../../components/layout/Sidebar';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { ActionCard } from '../../components/firefighter/actionCard';
-import {Siren, CirclePlay, Headset} from 'lucide-react'
-import { useRouter } from 'next/router';
+
 export default function HelpPage() {
 const faqs=[
   {id:"1",q:"What exactly do I need to include when reporting a fire?",a:"For the prediction model to be useful, please provide: (1) The exact GPS location (drop a pin or enable location services), (2) a recent photo or video showing the smoke column or flame front, (3) an estimate of the size (e.g., small bush, large field), and (4) whether structures or dwellings are immediately threatened."},
@@ -25,11 +26,10 @@ const faqs=[
         <PageHeader
         title="Help Menu"
         subtitle='Find answers, tutorials and support resources for the Fire Away system'
-        >
-        </PageHeader>
+         />
       </div>
 <div className="flex flex-col p-6 gap-3  ">
-  {/* Tutorials*/}
+  {/* Tutorials */}
   <details
     className="collapse bg-carbon-bg border border-carbon-card rounded-lg transition-all group"
     name="tutorial-accordion"
@@ -141,14 +141,14 @@ const faqs=[
     </div>
   </details>
 
-  {/*Help center (I put the fire department link only) */}
+  {/* Help center (I put the fire department link only) */}
         <ActionCard
       title='Help Center'
       description='Need professional suppport?'
-      icon={<Headset></Headset>}
+      icon={<Headset />}
       onClick={()=>router.push("https://www.fireservices.gov.za/Pages/Home.aspx")}/>
   </div>
-    {/*FAQ's */}
+    {/* FAQ's */}
       <div className='px-6 space-y-3'>
         {faqs.map((faq, index)=>(
 

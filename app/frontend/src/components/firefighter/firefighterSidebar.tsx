@@ -3,14 +3,12 @@ import { Map, Flame, LayoutDashboard, BookAlert } from 'lucide-react';
 import { SideBar, NavLink } from '../layout/Sidebar';
 
 export function FirefighterItems() {
-    return (
-        <>
+  return <>
             <NavLink icon={LayoutDashboard} label="Firefighter Dashboard" href="/firefighter/dashboard" />
             <NavLink icon={BookAlert} label="Reported Fires" href="/firefighter/reported-fires" />
             <NavLink icon={Flame} label="Report a Fire" href="/firefighter/report-fire" />
             <NavLink icon={Map} label="Fire Simulation AI" href="/firefighter/simulation" />
         </>
-    );
 }
 
 export function FirefighterSideBar({
@@ -22,7 +20,5 @@ export function FirefighterSideBar({
     hideLogout?: boolean;
     hideLoginRegister?: boolean;
 }>) {
-    return(
-        <SideBar items={<FirefighterItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
-    );
+  return <SideBar items={<FirefighterItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
 }

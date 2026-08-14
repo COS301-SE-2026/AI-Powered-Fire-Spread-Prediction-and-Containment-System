@@ -4,8 +4,7 @@ import { statusBadge, BadgeStyle } from "../admin/statusBadge";
 import type { RoleStatus } from "../../types/RoleRequest";
 
 export function StatusBadges() {
-    return (
-        <>
+  return <>
             <ComponentsGroup title="Report Status Badge">
                 <div className="flex flex-wrap items-center gap-22">
                     <Labled caption="pending"><StatusBadge status="pending" /></Labled>
@@ -23,7 +22,6 @@ export function StatusBadges() {
                 </div>
             </ComponentsGroup>
         </>
-    );
 }
 type RoleBadgeProps = Readonly<{ status: RoleStatus }>;
 

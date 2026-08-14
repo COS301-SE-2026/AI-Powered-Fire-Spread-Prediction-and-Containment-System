@@ -1,7 +1,7 @@
 import React, { useState } from "react";
+import Image from "next/image";
 import { Card } from "./Card";
 import type { FireReportDetailResponse } from "../../types/Report";
-import Image from "next/image";
 
 interface ReportPhotoProps {
     readonly report: FireReportDetailResponse;

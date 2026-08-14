@@ -10,16 +10,16 @@ export interface ColourPair {
 function Rating(ratio: number): string {
     if (ratio>=7){
         return "AAA";
-    }else if (ratio >= 4.5) {
+    }if (ratio >= 4.5) {
         return "AA";
-    } else if (ratio >= 3){
+    } if (ratio >= 3){
         return "AA (large text only)";
-    } else {
+    } 
         return "Fail";
-    }
+    
 }
 
-export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>){
+export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>) {
     const rating = Rating(pair.ratio);
     return(
         <tr className="border-t border-carbon-stroke">
@@ -34,8 +34,7 @@ export function ColourPairRow({ pair }: Readonly<{ pair: ColourPair}>){
 }
 
 export function ColourPairTable({ children }: Readonly<{ children: ReactNode }>) {
-    return (
-        <div className="overflow-x-auto border border-carbon-stroke">
+  return <div className="overflow-x-auto border border-carbon-stroke">
             <table className="table border-collapse">
                 <thead>
                     <tr className="text-text-muted text-xs uppercase tracking-wide">
@@ -48,5 +47,4 @@ export function ColourPairTable({ children }: Readonly<{ children: ReactNode }>)
                 <tbody>{children}</tbody>
             </table>
         </div>
-    )
 }

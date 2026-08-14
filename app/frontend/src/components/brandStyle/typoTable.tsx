@@ -20,8 +20,7 @@ const label: TypoScale = { label: "Label", token: "--text-label", size: "0.8rem"
 const caption: TypoScale = { label: "Caption", token: "--text-caption", size: "0.75rem", sizeValue: "text-caption", font: "font-mono", weightName: "font-normal", family: "Fira Code", weight: "400", lineHeight: "1.5", letterSpace: "normal", sample: "1.2 km · 8 min ago" };
 
 function TableRow({ data }: Readonly<{ data: TypoScale }>) {
-  return (
-    <tr className="border-t border-carbon-stroke">
+  return <tr className="border-t border-carbon-stroke">
       <td className="font-mono text-xs font-semibold uppercase tracking-wide text-base-content/60">{data.label}</td>
       <td className="font-mono text-xs text-base-content/60">{data.token}</td>
       <td className= "text-base-content/60">{data.family}</td>
@@ -31,12 +30,10 @@ function TableRow({ data }: Readonly<{ data: TypoScale }>) {
       <td className="text-base-content/60">{data.letterSpace}</td>
       <td className={` ${data.font} ${data.sizeValue} ${data.weightName}`}>{data.sample}</td>
     </tr>
-  );
 }
 
 export function TypoTable() {
-  return (
-    <div className="overflow-x-auto border border-carbon-stroke">
+  return <div className="overflow-x-auto border border-carbon-stroke">
       <table className="table border-collapse">
         <thead>
           <tr>
@@ -60,5 +57,4 @@ export function TypoTable() {
         </tbody>
       </table>
     </div>
-  )
 }

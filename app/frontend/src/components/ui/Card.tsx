@@ -27,3 +27,8 @@ export default function Card({ title, children, actions }: CardProps) {
     </div>
   );
 }
+
+Card.defaultProps = {
+  title: undefined,
+  actions: undefined,
+};

@@ -1,15 +1,17 @@
 'use client'
+
 import React,{useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
 import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
+
 interface Report{
     id: string;
     lat:number;
     lng:number;
     location_text:string;
     status:string;
-    boundary_radius?:number;//will probably change later on
-    //future fields
+    boundary_radius?:number;// will probably change later on
+    // future fields
 }
 export interface GuestMapProps{
     reports:Report[];
@@ -72,7 +74,7 @@ useImperativeHandle(ref, () => ({
             mapStyle="mapbox://styles/mapbox/navigation-night-v1"
 
         >
-        {/*Markers*/}
+        {/* Markers */}
             {reports.map(report => (
                     <Marker key={report.id} longitude={report.lng} latitude={report.lat} anchor="center" onClick={() => setSelected(report)}>
                     <div className="relative flex items-center justify-center size-6">
@@ -81,7 +83,7 @@ useImperativeHandle(ref, () => ({
                     </div>
                     </Marker>
                 ))}
-        {/*Circles around fire markers*/}
+        {/* Circles around fire markers */}
             {circleFeatures.length>=0 &&(
                 <Source 
                     id ="guest-fire-circles"

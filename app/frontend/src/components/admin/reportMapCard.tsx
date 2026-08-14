@@ -10,8 +10,7 @@ interface ReportMapProps {
 }
 
 export function ReportMap({ lat, lng }: ReportMapProps) {
-    return (
-        <div className="flex flex-col gap-2 h-full">   
+  return <div className="flex flex-col gap-2 h-full">   
             <h2>Fire Report Location</h2>  
             <div className="relative rounded-xl overflow-hidden flex-1 min-h-100"> 
                 <Map
@@ -29,5 +28,4 @@ export function ReportMap({ lat, lng }: ReportMapProps) {
                 </Map>
             </div>
         </div>
-    );
 }

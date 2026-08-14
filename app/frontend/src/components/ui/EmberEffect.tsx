@@ -19,11 +19,11 @@ export default function EmberField({density = 25}: Readonly<EmberFieldProps>) {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        let ww = canvas.width = canvas.offsetWidth;
-        let wh = canvas.height = canvas.offsetHeight;
+        const ww = canvas.width = canvas.offsetWidth;
+        const wh = canvas.height = canvas.offsetHeight;
 
         function between(min: number, max: number) {
-            return Math.random() * (max - min) + min; //NOSONAR
+            return Math.random() * (max - min) + min; // NOSONAR
         }
 
         interface Particle {
@@ -45,17 +45,17 @@ export default function EmberField({density = 25}: Readonly<EmberFieldProps>) {
                 p.x = between(ww * 0.1, ww * 0.9);
                 p.y = between(wh * 0.9, wh * 1);
 
-                p.size = Math.random() * 2.5; //NOSONAR
+                p.size = Math.random() * 2.5; // NOSONAR
 
-                p.vx = Math.random() * 1 - 0.5; //NOSONAR
+                p.vx = Math.random() * 1 - 0.5; // NOSONAR
                 p.vy = between(-0.5, -0.75);
 
-                p.g = -0.001 * Math.random() * 10; //NOSONAR
+                p.g = -0.001 * Math.random() * 10; // NOSONAR
 
                 p.life = between(wh / 2, wh);
 
                 const colors = ['#FF4904', '#fe8024', '#fcba3e'];
-                p.color = colors[Math.floor(Math.random() * colors.length)]; //NOSONAR
+                p.color = colors[Math.floor(Math.random() * colors.length)]; // NOSONAR
             };
             setup();
             p.reset = setup;

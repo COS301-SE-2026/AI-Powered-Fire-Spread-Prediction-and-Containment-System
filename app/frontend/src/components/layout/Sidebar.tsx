@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Settings, LogOut, UserCircle } from 'lucide-react';
 
-export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label: string; href?: string }>) => {
+export function NavLink({ icon: Icon, label, href }: Readonly<{ icon: any; label: string; href?: string }>) {
     const content = (
         <>
             <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all" />
@@ -24,7 +24,7 @@ export const NavLink = ({ icon: Icon, label, href }: Readonly<{ icon: any; label
             {content}
         </button>
     );
-};
+}
 
 export function SideBar({
     items,
@@ -37,12 +37,11 @@ export function SideBar({
     hideLogout?: boolean;
     hideLoginRegister?: boolean;
 }>) {
-    return(
-        <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialised realtive z-0">
-            {/* background*/}
+  return <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialised realtive z-0">
+            {/* background */}
             <div className="global-atmos">
-                <div className="ga-bloom-primary"></div>
-                <div className="ga-bloom-secondary"></div>
+                <div className="ga-bloom-primary" />
+                <div className="ga-bloom-secondary" />
             </div>
 
             <aside className="hidden lg:flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen sticky top-0 z-40 transition-all duration-300 ease-in-out group w-23 hover:w-64 shrink-0 shadow-2xl shadow-black/50">
@@ -99,5 +98,4 @@ export function SideBar({
                 </main>
             </div>
         </div>
-    );
 }

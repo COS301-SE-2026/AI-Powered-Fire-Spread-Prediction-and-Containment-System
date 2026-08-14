@@ -2,8 +2,7 @@ import { LayoutDashboard, Flame, Map, BookAlert, ShieldAlert, Settings, Wind, Th
 import { IconCard } from './iconCard';
 
 export function IconGrid() {
-    return (
-        <div className="overflow-hidden rounded-md border border-carbon-stroke">
+  return <div className="overflow-hidden rounded-md border border-carbon-stroke">
             <div className="border-b border-carbon-stroke px-4 py-3">
                 <p className="font-mono text-xs font-semibold uppercase tracking-widest text-smoke">
                     Icon Library - Lucide React
@@ -42,5 +41,4 @@ export function IconGrid() {
                 <IconCard Icon={Info} name="Info" usage="Tooltip / help text" />
             </div>
         </div>
-    );
 }

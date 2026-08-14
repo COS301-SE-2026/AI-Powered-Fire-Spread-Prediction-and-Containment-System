@@ -10,9 +10,9 @@ function validateEmail(email: string){
   const fieldClass = (hasError?: string) => {
     if (hasError) {
       return 'input input-error w-full';
-    } else {
+    } 
       return 'input input-neutral focus:border-primary w-full';
-    }
+    
   };
 
 

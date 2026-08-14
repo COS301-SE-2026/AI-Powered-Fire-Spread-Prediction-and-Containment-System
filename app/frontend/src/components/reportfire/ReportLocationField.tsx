@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useId } from "react";
-import { Alert } from "../shared/Alerts";
 import { MapPin } from "lucide-react";
+import { Alert } from "../shared/Alerts";
 import { LOCATION_PLACEHOLDER } from "./Reportdetailsform";
 import { GeocodingSuggestion, useGeoSearch } from "../../hooks/useGeoSearch";
 
@@ -25,18 +25,16 @@ interface SuggestionRowProps {
 }
 
 function SuggestionPin() {
-    return <MapPin size={12} className="mt-0.5 shrink-0 text-ignite/70" />;
+  return <MapPin size={12} className="mt-0.5 shrink-0 text-ignite/70" />
 }
 
 function SuggestionRow({ suggestion, onSelect }: SuggestionRowProps) {
-    return (
-        <li>
+  return <li>
             <button type="button" onMouseDown={(e) => { e.preventDefault(); onSelect(suggestion)}} className="flex items-start gap-2.5">
                 <SuggestionPin />
                 <span className="leading-snug">{suggestion.place_name}</span>
             </button>
         </li>
-    );
 }
 
 function renderSuggestions( suggestions: GeocodingSuggestion[], onSelect: (s: GeocodingSuggestion) => void): React.ReactNode[] {

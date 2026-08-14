@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
 import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
-import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
@@ -60,7 +60,7 @@ export default function ReportTable() {
         <FirefighterSideBar>
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
-                {/*Page header and subtitle*/}
+                {/* Page header and subtitle */}
                 <header className='mb-6'>
                     <h1 className='text-page-title font-display font-bold tracking-wider text-text-primary uppercase'>Fire Simulation</h1>
                     <p className='font-body text-body text-text-primary/50'>Simulate fire spread and prevention methods</p>
@@ -68,7 +68,7 @@ export default function ReportTable() {
 
                 <div className='flex flex-row gap-4 min-w-0'>
 
-                    {/* left side of page: map + controls and buttons*/}
+                    {/* left side of page: map + controls and buttons */}
                     <div className='basis-3/4 flex flex-col gap-4'>
                         {/* Fire Map */}
                         <div className='rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative'>

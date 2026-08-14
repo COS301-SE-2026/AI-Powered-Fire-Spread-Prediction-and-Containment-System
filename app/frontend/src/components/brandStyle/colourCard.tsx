@@ -39,14 +39,13 @@ function HSL(hex: string): string{
         } else {
             h = (r - g)/d+4;
         }
-        h = h/6;
+        h /=6;
     }
     return `hsl(${Math.round(h * 360)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%)`;
 }
 
 export function ColourCard({ colour }: Readonly<{ colour: ColourToken }>) {
-    return(
-        <div className="card bg-cabon-card border border-carbon-stroke overflow-hidden">
+  return <div className="card bg-cabon-card border border-carbon-stroke overflow-hidden">
             <div className="relative h-28 flex" style={{ backgroundColor: colour.hex }}>
                 <div className="absolute bottom-3 right-3 flex flex-col items-end font-mono text-xs leading-tight" style={{ color: colour.textColour }}>
                     <p>{colour.hex}</p>
@@ -60,5 +59,4 @@ export function ColourCard({ colour }: Readonly<{ colour: ColourToken }>) {
                 <p className="text-xs text-text-muted italic leading-relaxed">{colour.reason}</p>
             </div>
         </div>
-    );
 }

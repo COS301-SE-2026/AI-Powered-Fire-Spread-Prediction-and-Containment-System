@@ -29,7 +29,7 @@ export default function ReportTable() {
 
                 {loading ? (
                     <div className="flex justify-center items-center min-h-[40vh]">
-                        <span className="loading loading-spinner loading-lg text-primary"></span>
+                        <span className="loading loading-spinner loading-lg text-primary" />
                     </div>
                 ) : (
                 <ReportsTable requests={reports} filter={statusFilter} onView={(req) => console.log(req)}/>

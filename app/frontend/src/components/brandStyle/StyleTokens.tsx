@@ -44,7 +44,7 @@ const tokens: TokenItem[] = [
   { category: "Shadow", token: "--depth", value: "0", usage: "Base flat surface elevation" },
   { category: "Shadow", token: "border-carbon-stroke", value: "1px solid #1E2436", usage: "Primary surface elevation technique (stroke-based separation)" },
 
-  //not really used yet
+  // not really used yet
 //   { category: "Breakpoint", token: "sm", value: "640px", usage: "Mobile landscape / small tablets" },
 //   { category: "Breakpoint", token: "md", value: "768px", usage: "Standard tablets" },
 //   { category: "Breakpoint", token: "lg", value: "1024px", usage: "Laptops / small desktops" },
@@ -52,8 +52,7 @@ const tokens: TokenItem[] = [
 ];
 
 export function DesignTokenTable() {
-    return(
-        <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-150">
+  return <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-150">
       <table className="table table-pin-rows w-full">
         <thead>
           <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">
@@ -83,5 +82,4 @@ export function DesignTokenTable() {
         </tbody>
       </table>
     </div>
-  );
 }

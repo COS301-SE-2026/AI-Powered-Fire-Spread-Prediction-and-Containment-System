@@ -2,6 +2,7 @@
 // Once proper db is setup, the proper endpoints will be subbed in
 
 import {test, expect, Page} from '@playwright/test';
+
 async function login(page: Page) {
     await page.goto("http://localhost:3000/");
     await page.getByRole("button", { name: "Login" }).click();

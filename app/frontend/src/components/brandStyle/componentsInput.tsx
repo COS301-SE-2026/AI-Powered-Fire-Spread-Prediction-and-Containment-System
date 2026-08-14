@@ -1,8 +1,7 @@
 import { ComponentsGroup, Labled } from "./componentsGroup"
 
 export function Input() {
-    return (
-        <ComponentsGroup title="Input States">
+  return <ComponentsGroup title="Input States">
             <div className="flex flex-wrap justify-start items-start gap-4">
                 <Labled caption="default">
                     <div>
@@ -31,5 +30,4 @@ export function Input() {
                 </Labled>
             </div>
         </ComponentsGroup>
-    );
 }

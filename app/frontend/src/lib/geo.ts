@@ -3,7 +3,7 @@ import type { Feature, Polygon } from 'geojson'
 export function makeCircle(centerLng: number, centerLat: number, radiusKm: number, steps = 80): Feature<Polygon> {
   const coords: [number, number][] = [];
   
-  //degrees = radius_in_km/111.32
+  // degrees = radius_in_km/111.32
   const latRadius = radiusKm / 111.32;
   const lngRadius = radiusKm / (111.32 * Math.cos((centerLat * Math.PI) / 180));
   for (let i = 0; i <= steps; i++) {
@@ -20,7 +20,7 @@ export function getRimPos(centerLng: number, centerLat: number, radiusKm: number
 
 // real world distances between lat and lng 
 export function realKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371; //earths average radius
+  const R = 6371; // earths average radius
   const differenceLat = (lat2 - lat1) * Math.PI / 180;
   const differenceLng = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(differenceLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(differenceLng / 2) ** 2;
@@ -30,7 +30,7 @@ export function realKm(lat1: number, lng1: number, lat2: number, lng2: number): 
 export function output(km: number): string {
   if (km < 1) {
     return `${Math.round(km * 1000)} m`;
-  } else {
+  } 
     return `${km.toFixed(1)} km`;
-  }
+  
 }

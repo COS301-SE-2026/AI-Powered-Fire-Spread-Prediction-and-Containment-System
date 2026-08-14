@@ -9,8 +9,7 @@ interface DashboardMetricsProps {
     }
 }
 
-export const DashboardMetrics:  React.FC<DashboardMetricsProps> = ({metrics}) => {
-    return (
+export const DashboardMetrics:  React.FC<DashboardMetricsProps> = ({metrics}) => (
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
             <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
@@ -50,4 +49,3 @@ export const DashboardMetrics:  React.FC<DashboardMetricsProps> = ({metrics}) =>
             </div>
         </section>
     );
-};

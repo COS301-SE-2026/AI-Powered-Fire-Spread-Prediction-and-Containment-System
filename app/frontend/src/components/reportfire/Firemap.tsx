@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import mapboxgl from 'mapbox-gl';
-const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
+import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import 'mapbox-gl/dist/mapbox-gl.css';
+
+const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
 
 interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
@@ -129,7 +130,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     onBoundarySizeChangeRef.current = onBoundarySizeChange;
   }, [onBoundarySizeChange]);
 
-  //pin from search
+  // pin from search
   useEffect(() => {
     if (!externalPin) return;
     const { lng, lat } = externalPin;
@@ -148,7 +149,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     return () => { pinMarkerRef.current?.remove(); };
   }, [markerPos]);
 
-  //rim marker
+  // rim marker
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
     rimMarkerRef.current?.remove();
@@ -187,7 +188,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     };
   }, [markerPos]);
 
-  //map click
+  // map click
   const handleMapClick = useCallback(async (e: any) => {
     if (isDragging.current) return;
     if (Date.now() - dragEndTime.current < 300) return;

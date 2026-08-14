@@ -13,7 +13,7 @@ export default function GuestPublicDashboard() {
         <UserSideBar>
             <div className="flex flex-col p-6 relative h-full overflow-hidden">
 
-                {/*Public View Header*/}
+                {/* Public View Header */}
                 <header className="mb-4 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
@@ -29,11 +29,11 @@ export default function GuestPublicDashboard() {
                     </button>
                 </header>
 
-                {/*Grid*/}
+                {/* Grid */}
                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start h-full pb-10">
                     <div className="xl:col-span-8 flex flex-col gap-6 h-full">
 
-                        {/*Map*/}
+                        {/* Map */}
                         <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
                             <FireMap lat={userLocation.lat} lng={userLocation.lng} drawMode={false} onDrawComplete={() => {}} clearDrawings={0} />
                         </div>

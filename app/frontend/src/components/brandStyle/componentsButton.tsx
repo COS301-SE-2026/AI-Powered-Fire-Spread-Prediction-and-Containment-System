@@ -1,9 +1,8 @@
-import { ComponentsGroup, Labled } from "./componentsGroup";
 import { Pencil, CirclePlay, Flame, LocateFixed } from "lucide-react";
+import { ComponentsGroup, Labled } from "./componentsGroup";
 
 export function ButtonComponents() {
-    return (
-        <>
+  return <>
             <ComponentsGroup title="Button Varients">
                 <div className ="flex flex-wrap justify-start items-center gap-8">
                     <button type="button" className="btn btn-primary text-lg">Primary</button>
@@ -85,5 +84,4 @@ export function ButtonComponents() {
             </ComponentsGroup>
 
         </>
-    );
 }

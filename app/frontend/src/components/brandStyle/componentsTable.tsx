@@ -2,8 +2,7 @@ import { ComponentsGroup } from "./componentsGroup";
 import { StatusBadge } from "../admin/reportStatusBadge";
 
 export function Table() {
-    return (
-        <ComponentsGroup title="Fire Reports Table">
+  return <ComponentsGroup title="Fire Reports Table">
             <div className="overflow-x-auto rounded-2xl border border-carbon-stroke w-full max-h-150">
                 <table className="table table-pin-rows w-full">
                     <thead>
@@ -48,5 +47,4 @@ export function Table() {
                 </table>
             </div>
         </ComponentsGroup>
-    );
 }

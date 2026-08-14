@@ -127,12 +127,10 @@ export function useSimulation() {
     [stopAutoPlay]
     );
 
-    useEffect(() => {
-        return () => {
+    useEffect(() => () => {
             stopAutoPlay();
             abortRef.current?.abort();
-        };
-    }, [stopAutoPlay]);
+        }, [stopAutoPlay]);
 
     // API call
     const runSimulation = useCallback(

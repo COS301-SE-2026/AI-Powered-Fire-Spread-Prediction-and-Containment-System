@@ -1,4 +1,5 @@
 'use client';
+
 import 'mapbox-gl/dist/mapbox-gl.css'
 import circle from '@turf/circle';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
@@ -57,11 +58,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
 
             map.off('draw.create', handleDrawCreate);
             map.on('draw.create', handleDrawCreate);
-        }else{
-            if(drawRef.current){
+        }else if(drawRef.current){
                 drawRef.current.changeMode('simple_select');
             }
-        }
     }, [drawMode]);
 
     useEffect(() => {
@@ -73,13 +72,11 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         setViewState(v => ({...v, longitude: lng, latitude:lat}));
     },[lat,lng]);
 
-    const circleFeatures = useMemo(() => {
-        return fires.filter(f => f.size != null && f.size > 0).map(f => circle([f.lng, f.lat], f.size, {
+    const circleFeatures = useMemo(() => fires.filter(f => f.size != null && f.size > 0).map(f => circle([f.lng, f.lat], f.size, {
             steps: 64,
             units: 'kilometers',
             properties: {ref: f.ref}
-        }));
-    }, [fires])
+        })), [fires])
 
     useEffect(() => {
         if(!selectedFireId) return;
@@ -152,7 +149,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                 </Marker>
             ))}
 
-            {/*Circles around markers*/}
+            {/* Circles around markers */}
             {circleFeatures.length>0 &&(
               <Source
                   id ='fire-circles'
@@ -193,8 +190,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                         'fill-opacity': ['match', ['get', 'state'], 1, 0.75, 2, 0.55, 0],
                         'fill-antialias': true
                     }}
-                >
-                </Layer>
+                 />
 
                 <Layer
                     id='simulation-outline'
@@ -204,8 +200,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                         'line-opacity': 0.15,
                         'line-width': 0.5,
                     }}
-                >
-                </Layer>
+                 />
             </Source>
           )}
 

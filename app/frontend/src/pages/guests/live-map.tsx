@@ -1,8 +1,9 @@
 'use client';
+
 import React, { useEffect, useState, useRef} from 'react';
-import { SideBar, NavLink } from '../../components/layout/Sidebar';
 import dynamic from 'next/dynamic';
 import {Map, CircleAlert} from 'lucide-react'
+import { SideBar, NavLink } from '../../components/layout/Sidebar';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 import { GuestReports } from '../../components/guest/GuestReports';
 import { GuestActions } from '../../components/guest/GuestActions';
@@ -14,7 +15,7 @@ const PublicFireMap = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex-1 flex items-center justify-center h-full w-full">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+        <span className="loading loading-spinner loading-lg text-primary" />
       </div>
     )
   }

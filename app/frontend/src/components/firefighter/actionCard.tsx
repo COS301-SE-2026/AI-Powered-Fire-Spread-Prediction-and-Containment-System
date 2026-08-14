@@ -7,9 +7,8 @@ interface ActionCardProps {
     onClick?: () => void;
 }
 
-export function ActionCard({title, description, icon, onClick}: ActionCardProps){
-    return(
-        <button
+export function ActionCard({title, description, icon, onClick}: ActionCardProps) {
+  return <button
             onClick={onClick} className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke hover:border-ignite hover:bg-smoke-hover active:scale-[0.98] transition-all text-left w-full h-full group"
         >
             {/* Icon wrapper */}
@@ -23,5 +22,4 @@ export function ActionCard({title, description, icon, onClick}: ActionCardProps)
                 <span className="text-xs text-text-primary/50 font-medium mt-0.5">{description}</span>
             </div>
         </button>
-    );
 }
