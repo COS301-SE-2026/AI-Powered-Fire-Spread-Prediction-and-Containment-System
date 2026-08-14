@@ -155,3 +155,9 @@ export function SimulationResults({predictions = [], currentTick = 0,status='idl
         </div>
     );
 }
+
+SimulationResults.defaultProps = {
+    predictions: undefined,
+    currentTick: undefined,
+    ststus: undefined
+};

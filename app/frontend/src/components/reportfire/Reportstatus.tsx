@@ -41,3 +41,7 @@ export default function ReportStatus({ status, refNumber, locationText }: Status
         <StatusCard label={label} detail={detail} Icon={Icon} color={color} refNumber={refNumber} locationText={locationText}/>
     );
 }
+
+ReportStatus.defaultProps = {
+    locationText: undefined
+};

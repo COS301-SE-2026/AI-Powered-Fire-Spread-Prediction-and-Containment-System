@@ -71,3 +71,7 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
             </div>
         </div>
 }
+
+SidebarLayout.defaultProps = {
+    children: undefined
+};

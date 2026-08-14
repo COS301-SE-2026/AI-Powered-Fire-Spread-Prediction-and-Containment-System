@@ -104,3 +104,9 @@ export default function ReportDetailsForm({ location = "", onSubmit, onLocationS
         </form>
     );
 }
+
+ReportDetailsForm.defaultProps = {
+    location: undefined,
+    onSubmit: undefined,
+    onLocationSearch: undefined
+};

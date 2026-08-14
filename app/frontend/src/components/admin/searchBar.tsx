@@ -13,3 +13,7 @@ export function SearchBar({value, onChange, placeholder ="Search..."}: SearchBar
             <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
         </div>
 }
+
+SearchBar.defaultProps = {
+    placeholder: undefined
+};
