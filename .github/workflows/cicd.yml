@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app/frontend/src
+        working-directory: app/frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4
