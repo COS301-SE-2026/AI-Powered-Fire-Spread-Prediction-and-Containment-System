@@ -31,6 +31,12 @@
                 "ignoreStateless": false
             }
         ],
+        "react/require-default-props": [
+            "error",
+            {
+                "functions": "defaultArguments"
+            }
+        ],
         "camelcase": "off",
         "no-unused-vars": "off",
         "react-hooks/rules-of-hooks": "error",
@@ -165,7 +171,8 @@
                     {
                         "selector": "parameter",
                         "format": [
-                            "camelCase"
+                            "camelCase",
+                            "PascalCase"
                         ],
                         "leadingUnderscore": "allow"
                     },

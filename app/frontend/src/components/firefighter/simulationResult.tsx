@@ -1,4 +1,4 @@
-import { EnvironmentWidgets } from "./weatherStats";
+import { EnvironmentWidgets } from "./EnvironmentWidgets";
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
@@ -153,8 +153,3 @@ export function SimulationResults({predictions = [], currentTick = 0,status='idl
     );
 }
 
-SimulationResults.defaultProps = {
-    predictions: undefined,
-    currentTick: undefined,
-    status: undefined
-};

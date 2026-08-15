@@ -1,6 +1,6 @@
 import React from 'react';
-import { Map, Flame, House, MessageCircleWarning, MessagesSquare} from 'lucide-react';
-import { SideBar, NavLink } from '../layout/Sidebar';
+import { Map, Flame, House, MessageCircleWarning, MessagesSquare } from 'lucide-react';
+import{ NavLink } from '../layout/NavLink';
 
 export function UserItems() {
   return <>
@@ -10,16 +10,4 @@ export function UserItems() {
             <NavLink icon={MessageCircleWarning} label="Notifications" href="/users/under-construction" />
             <NavLink icon={MessagesSquare} label="Community" href="/users/under-construction" />
         </>
-}
-
-export function UserSideBar({
-    children,
-    hideLogout = false,
-    hideLoginRegister = false,
-}: Readonly<{
-    children?: React.ReactNode;
-    hideLogout?: boolean;
-    hideLoginRegister?: boolean;
-}>) {
-  return <SideBar items={<UserItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
 }

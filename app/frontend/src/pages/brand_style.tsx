@@ -1,4 +1,4 @@
-import Accessibility from '../components/brandStyle/AccessabilitySection';
+import Accessibility from '../components/brandStyle/AccessibilitySection';
 import DesignPrinciples from '../components/brandStyle/DesignPrinciplesSection';
 import StyleGuideNav from "../components/brandStyle/StyleGuideNav";
 import { ColourGroup } from '../components/brandStyle/colourGroup';

@@ -1,7 +1,7 @@
 import { Wind, Thermometer, Flame, Droplets, FileWarning, PenLine, TrendingUp, ClipboardPlus } from "lucide-react";
 import { ComponentsGroup, Labled } from "./componentsGroup";
 import { NearbyReports } from "../firefighter/nearbyReports";
-import { StatCard } from "../firefighter/weatherStats";
+import { StatCard } from "../firefighter/StatCard";
 import { ActionCard } from "../firefighter/actionCard";
 import { MapStatsOverlay } from "../firefighter/mapStat";
 import { NearbyFire } from "../../types/FirefighterDashboard"
@@ -40,7 +40,7 @@ export function NearbyReport() {
   return <div className="flex flex-wrap items-start gap-27">
             <ComponentsGroup title="Nearby Reports Panel">
                 <div className="w-96 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-stroke overflow-y-auto max-h-64">
-                    <NearbyReports nearby_fires={dummyFires} />
+                    <NearbyReports nearbyFires={dummyFires} />
                 </div>
             </ComponentsGroup>
         </div>
@@ -51,7 +51,7 @@ export function MapOverlay() {
             <div className="flex flex-wrap gap-2">
                 <Labled caption="with data">
                     <div className="relative w-72 h-96 bg-carbon-side/40 rounded-lg border border-carbon-stroke overflow-hidden">
-                        <MapStatsOverlay nearby_fires={dummyFires} />
+                        <MapStatsOverlay nearbyFires={dummyFires} />
                     </div>
                 </Labled>
             </div>

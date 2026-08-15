@@ -10,7 +10,7 @@ interface PhotoProps {
     readonly onChange: (file: File | null) => void;
 }
 
-export function PhotoField({ value, error, onChange }: PhotoProps) {
+export function PhotoField({ value, error = "", onChange }: PhotoProps) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -63,7 +63,3 @@ export function PhotoField({ value, error, onChange }: PhotoProps) {
         </div>
     );
 }
-
-PhotoField.defaultProps = {
-    error: undefined
-};

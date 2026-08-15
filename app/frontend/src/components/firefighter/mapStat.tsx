@@ -1,11 +1,11 @@
 import { NearbyFire } from "../../types/FirefighterDashboard";
 
 interface NearbyFireReports{
-    readonly nearby_fires: NearbyFire[];
+    readonly nearbyFires: NearbyFire[];
 }
 
-export function MapStatsOverlay({nearby_fires}: NearbyFireReports) {
-    if(nearby_fires.length === 0){
+export function MapStatsOverlay({nearbyFires}: NearbyFireReports) {
+    if(nearbyFires.length === 0){
         return(
             <div className="absolute top-16 left-4 z-10 flex flex-col gap-2">
             {/* Active fires */}
@@ -32,9 +32,9 @@ export function MapStatsOverlay({nearby_fires}: NearbyFireReports) {
         )
     }
 
-    const activeFires = nearby_fires.filter(fire => fire.status === 'verified').length;
-    const unverifiedFires = nearby_fires.filter(fire => fire.status === 'pending' || fire.status === 'received').length;
-    const nearestFire = nearby_fires[0].distance;
+    const activeFires = nearbyFires.filter(fire => fire.status === 'verified').length;
+    const unverifiedFires = nearbyFires.filter(fire => fire.status === 'pending' || fire.status === 'received').length;
+    const nearestFire = nearbyFires[0].distance;
 
     return(
         <div className="absolute top-16 left-4 z-10 flex flex-col gap-2">

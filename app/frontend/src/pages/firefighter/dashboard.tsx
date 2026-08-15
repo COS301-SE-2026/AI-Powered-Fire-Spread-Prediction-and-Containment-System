@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { useNearbyFires  } from '../../hooks/useNearbyFires';
-import { EnvironmentWidgets } from '../../components/firefighter/weatherStats';
+import { EnvironmentWidgets } from '../../components/firefighter/EnvironmentWidgets';
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
@@ -37,7 +37,7 @@ export default function FirefighterDashboard() {
                             <div className="flex-1 w-full h-full pt-[53px]">
                                 <FireMap lat={userLocation.lat} lng={userLocation.lng}  drawMode={drawMode} onDrawComplete={submitLine} clearDrawings={clearDrawings}/>
                             </div>
-                            <MapStatsOverlay nearby_fires={nearbyFires}/>
+                            <MapStatsOverlay nearbyFires={nearbyFires}/>
                         </div>
                         <div className="grid grid-cols-2 gap-2 shrink-0">
                             <div className="flex flex-col">
@@ -61,7 +61,7 @@ export default function FirefighterDashboard() {
                             Nearby Reports
                         </h2>
                         <div className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto" style={{ maxHeight: 'calc(480px + 2rem + 220px)' }}>
-                            <NearbyReports nearby_fires={nearbyFires}/>
+                            <NearbyReports nearbyFires={nearbyFires}/>
                         </div>
                     </div>
                 </div>

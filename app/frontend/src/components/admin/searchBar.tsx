@@ -14,6 +14,3 @@ export function SearchBar({value, onChange, placeholder ="Search..."}: SearchBar
         </div>
 }
 
-SearchBar.defaultProps = {
-    placeholder: undefined
-};

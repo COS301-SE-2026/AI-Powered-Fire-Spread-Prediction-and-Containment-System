@@ -11,7 +11,7 @@ interface AlertsProps {
     readonly id?: string;
 }
 
-export function Alert({ variant, message, id }: AlertsProps) {
+export function Alert({ variant, message, id = undefined }: AlertsProps) {
     let className = "alert-info";
     let Icon: LucideIcon = Info;
 
@@ -32,7 +32,3 @@ export function Alert({ variant, message, id }: AlertsProps) {
         </div>
     );
 }
-
-Alert.defaultProps ={
-    id: undefined
-};

@@ -1,8 +1,8 @@
 import React from 'react';
 import { SideBar } from '../layout/SideBar';
-import { AdminItems } from './AdminItems';
+import { UserItems } from './UserItems';
 
-export function AdminSideBar({
+export function UserSideBar({
     children,
     hideLogout = false,
     hideLoginRegister = false,
@@ -11,5 +11,5 @@ export function AdminSideBar({
     hideLogout?: boolean;
     hideLoginRegister?: boolean;
 }>) {
-  return <SideBar items={<AdminItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
+  return <SideBar items={<UserItems/>} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>{children}</SideBar>
 }

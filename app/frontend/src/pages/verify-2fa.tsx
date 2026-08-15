@@ -8,12 +8,12 @@ export default function Verify2FA() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { email, otpauth_url } = router.query;
+  const { email, otpauthUrl } = router.query;
 
   const isValidEmail = email && typeof email === 'string';
-  const hasQrSetup = isValidEmail && otpauth_url && typeof otpauth_url === 'string';
+  const hasQrSetup = isValidEmail && otpauthUrl && typeof otpauthUrl === 'string';
 
-  const qrCodeSrc = hasQrSetup ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauth_url as string)}` : '';
+  const qrCodeSrc = hasQrSetup ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauthUrl as string)}` : '';
 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

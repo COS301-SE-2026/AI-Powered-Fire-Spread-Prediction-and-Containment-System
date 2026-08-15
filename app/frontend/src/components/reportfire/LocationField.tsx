@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import React, { useEffect, useRef, useState, useId } from "react";
-import { MapPin } from "lucide-react";
 import { Alert } from "../shared/Alerts";
 import { LOCATION_PLACEHOLDER } from "./ReportDetailsForm";
 import { GeocodingSuggestion, useGeoSearch } from "../../hooks/useGeoSearch";
+import { SuggestionRow } from './SuggestionRow';
 
 interface LocationSelection {
     readonly lat: number;
@@ -19,24 +19,6 @@ interface LocationFieldProps {
     readonly onValidSelect: (loc: LocationSelection) => void;
 }
 
-interface SuggestionRowProps {
-    readonly suggestion: GeocodingSuggestion;
-    readonly onSelect: (s: GeocodingSuggestion) => void;
-}
-
-function SuggestionPin() {
-  return <MapPin size={12} className="mt-0.5 shrink-0 text-ignite/70" />
-}
-
-function SuggestionRow({ suggestion, onSelect }: SuggestionRowProps) {
-  return <li>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); onSelect(suggestion)}} className="flex items-start gap-2.5">
-                <SuggestionPin />
-                <span className="leading-snug">{suggestion.place_name}</span>
-            </button>
-        </li>
-}
-
 function renderSuggestions( suggestions: GeocodingSuggestion[], onSelect: (s: GeocodingSuggestion) => void): React.ReactNode[] {
     const rows: React.ReactNode[] = [];
     for (const s of suggestions) {
@@ -49,7 +31,7 @@ function handleClick(e: React.MouseEvent<HTMLInputElement>) {
     e.currentTarget.select();
 }
 
-export function LocationField({ value, error, onChange, onValidSelect}: LocationFieldProps) {
+export function LocationField({ value, error = "", onChange, onValidSelect}: LocationFieldProps) {
     const id = useId();
     const errorId = error ? `${id}-error` : undefined;
 
@@ -108,6 +90,3 @@ export function LocationField({ value, error, onChange, onValidSelect}: Location
     );
 }
 
-LocationField.defaultProps = {
-    error: undefined
-};

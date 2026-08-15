@@ -1,5 +1,6 @@
 import {Map, CircleAlert} from 'lucide-react'
-import { SideBar, NavLink } from "../../components/layout/Sidebar";
+import { SideBar } from "../../components/layout/SideBar";
+import { NavLink } from '../../components/layout/NavLink';
 import ReportPage from "../../components/reportfire/ReportPage";
 
 export default function RegisteredReportFire(){

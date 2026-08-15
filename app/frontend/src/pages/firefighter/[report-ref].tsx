@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar'; 
+import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar'; 
 import { ViewPage } from '../../components/admin/ReportView';
 
 export default function View() {

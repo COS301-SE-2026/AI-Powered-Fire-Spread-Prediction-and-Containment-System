@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pencil,CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
-import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
@@ -12,9 +12,9 @@ export default function ReportTable() {
     const [selectedFireId, setSelectedFireId] = useState(null);
     const selectedFire = fires.find(f => f.ref === selectedFireId) ?? null;
     const [timeline, setTimeline] = useState(0);
-    const default_location = { lat: -25.7479, lng: 28.2293}; // Pretoria
+    const defaultLocation = { lat: -25.7479, lng: 28.2293}; // Pretoria
     const [drawMode, setDrawMode] = useState(false);
-    const [userLocation] = useState(default_location);
+    const [userLocation] = useState(defaultLocation);
     const [clearDrawings] = useState(0);
     const { submitLine, loading: savingLine, error: lineError } = useContainmentLine(() => setDrawMode(false));
     const {

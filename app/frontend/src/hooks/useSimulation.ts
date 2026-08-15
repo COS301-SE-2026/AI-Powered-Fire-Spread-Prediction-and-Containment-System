@@ -32,7 +32,7 @@ export interface SimulationRequest {
     fire_id?: string | null;
     grid_h?: number;
     grid_w?: number;
-    n_steps?: number;
+    nSteps?: number;
     n_ignition_points?: number;
     weather?: Partial<WeatherParams>;
     static?: Partial<StaticParams>;
@@ -134,7 +134,7 @@ export function useSimulation() {
 
     // API call
     const runSimulation = useCallback(
-        async (lat: number, lng: number, n_steps = 48, fireId: string | null = null) => {
+        async (lat: number, lng: number, nSteps = 48, fireId: string | null = null) => {
             abortRef.current?.abort();
             const controller = new AbortController();  // ← declared here
             abortRef.current = controller;
@@ -151,7 +151,7 @@ export function useSimulation() {
                 fire_id: fireId,
                 grid_h: 30,
                 grid_w: 30,
-                n_steps,
+                nSteps,
                 n_ignition_points: 1,
                 weather,
                 static: staticParams,

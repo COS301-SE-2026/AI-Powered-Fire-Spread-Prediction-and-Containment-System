@@ -3,11 +3,11 @@ import { statusBadge } from "../admin/statusBadge";
 import type { NearbyFire } from "../../types/FirefighterDashboard";
 
 interface NearbyFireReports{
-    readonly nearby_fires: NearbyFire[];
+    readonly nearbyFires: NearbyFire[];
 }
 
-export function NearbyReports({nearby_fires}: NearbyFireReports) {
-    const fires = nearby_fires ?? [];
+export function NearbyReports({nearbyFires}: NearbyFireReports) {
+    const fires = nearbyFires ?? [];
 
     if(fires.length === 0){
         return(

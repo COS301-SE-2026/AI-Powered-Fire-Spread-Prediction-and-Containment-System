@@ -3,7 +3,7 @@ import { NearbyFire } from "../../types/FirefighterDashboard";
 
 
 interface NearbyFireReports{
-    readonly nearby_fires: NearbyFire[];
+    readonly nearbyFires: NearbyFire[];
 }
 
 const statusColor = (s: string) => ({
@@ -12,8 +12,8 @@ const statusColor = (s: string) => ({
     received: 'bg-humidity/20 text-humidity border border-humidity/35',
 }[s] ?? 'bg-carbon-card text-text-primary/50');
 
-export function NearbyReports({nearby_fires}: NearbyFireReports) {
-    const fires = nearby_fires ?? [];
+export function NearbyReports({nearbyFires}: NearbyFireReports) {
+    const fires = nearbyFires ?? [];
 
     if(fires.length === 0){
         return(
@@ -24,7 +24,7 @@ export function NearbyReports({nearby_fires}: NearbyFireReports) {
     }
     return(
         <div className="h-full overflow-y-auto flex flex-col p-2">
-        {nearby_fires.map((fire, i) => (
+        {nearbyFires.map((fire, i) => (
             <div key={i} className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors">
                 <div>
                     <p className="font-semibold text-sm">{fire.location_text}</p>

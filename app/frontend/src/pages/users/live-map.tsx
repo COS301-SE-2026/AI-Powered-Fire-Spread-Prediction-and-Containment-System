@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { NearbyReports} from '../../components/shared/nearbyReports';
-import { UserSideBar } from '../../components/users/usersSidebar';
+import { UserSideBar } from '../../components/users/UserSideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { MapPanel } from '../../components/users/mapPanel';
 import { SidePanelRight } from '../../components/users/sidePanelRight';

@@ -24,7 +24,7 @@ interface MapProps{
     onSelectFire?: (ref: string) => void;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0, selectedFireId, onSelectFire}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGrid = null, burnGridH = undefined, burnGridW = undefined, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = null}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -228,12 +228,3 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
     );
 }
 
-FireMap.defaultProps = {
-    burnGrid: undefined,
-    burnGridH: undefined,
-    burnGridW: undefined,
-    predictions: undefined,
-    currentTick: undefined,
-    selectedFireId: undefined,
-    onSelectFire: undefined
-};
