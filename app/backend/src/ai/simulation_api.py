@@ -15,6 +15,9 @@ from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
 from .dca import run_dca
+from .geo import bbox_from_fire, touch_edge
+from .resolve_tiles import resolve_tile_paths
+from ml.features.real_data_loader import load_real_inference_data
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -79,6 +82,7 @@ class Prediction(BaseModel):
     history: list[list[int]]
     burned_cells: int
     radius_m: float
+    truncated: bool
 
 
 class SimulationResponse(BaseModel):
@@ -135,12 +139,12 @@ def params_to_torch(dca: DCAParams):
 
 
 def burned_area_radius_m(
-    burned_cells: int, H: int, W: int, extent_deg: float = 0.05
+    burned_cells: int, H: int, W: int, lat_extent_deg: float, lon_extent_deg: float
 ) -> float:
     if burned_cells <= 0:
         return 0.0
-    cell_h_m = (extent_deg / H) * METRES_PER_DEG_LAT
-    cell_w_m = (extent_deg / W) * METRES_PER_DEG_LAT
+    cell_h_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
+    cell_w_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT
     return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
 
 
@@ -175,7 +179,6 @@ async def run_simulation(
         HTTPException: Status 500 if underlying DCA model execution fails.
     """
     H, W = req.grid_h, req.grid_w
-    EXTENT_DEG = 0.05
 
     # TODO: Pass req.lat and req.lng into these two functions so they can compute the bounding box and fetch real spatial data.
     weather_grids = build_weather_grids(H, W, req.weather)
@@ -186,6 +189,7 @@ async def run_simulation(
             FireReports.id,
             func.ST_Y(FireReports.location_geom).label("lat"),
             func.ST_X(FireReports.location_geom).label("lng"),
+            FireReports.boundary_radius
         )
         .filter(FireReports.status == ReportStatus.verified)
         .all()
@@ -195,6 +199,35 @@ async def run_simulation(
     n_steps_run = 0
 
     for fire in verified_fires:
+        min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
+            lat=fire.lat,
+            lng=fire.lng,
+            boundary_radius_m=fire.boundary_radius,
+            n_steps=req.n_steps
+        )
+
+        lat_extent_deg = max_lat - min_lat
+        lon_extent_deg = max_lon - min_lon
+
+        cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
+        cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
+        cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
+
+        resolved = resolve_tile_paths(min_lon, min_lat, max_lon, max_lat)
+
+        static_grids, weather_grids = await load_real_inference_data(
+            b04_path=resolved.b04_path,
+            b08_path=resolved.b08_path,
+            b11_path=resolved.b11_path,
+            dem_path=resolved.dem_path,
+            min_lon=min_lon,
+            min_lat=min_lat,
+            max_lon=max_lon,
+            max_lat=max_lat,
+            scl_path=resolved.scl_path,
+            target_shape=(H, W)
+        )
+
         cell = (H // 2, W // 2)
 
         try:
@@ -204,16 +237,17 @@ async def run_simulation(
                 n_steps=req.n_steps,
                 ignition_points=[cell],
                 params=params_to_torch(req.dca),
+                cell_size_m=cell_size_m
             )
         except Exception as exc:
             raise HTTPException(
                 status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}"
             ) from exc
-
+        
         final_grid = history[-1]
-
         burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
-
+        truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
+        
         predictions.append(
             Prediction(
                 ref=str(fire.id),
@@ -221,7 +255,8 @@ async def run_simulation(
                 lng=fire.lng,
                 history=[g.ravel().tolist() for g in history],
                 burned_cells=burned_cells,
-                radius_m=burned_area_radius_m(burned_cells, H, W, EXTENT_DEG),
+                radius_m=burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
+                truncated=truncated
             )
         )
         n_steps_run = len(history)
