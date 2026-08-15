@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserSideBar } from '../../components/users/usersSidebar';
+import { UserSideBar } from '../../components/users/UserSideBar';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { SystemAlertsPanel} from '../../components/users/SystemAlertsPanel';

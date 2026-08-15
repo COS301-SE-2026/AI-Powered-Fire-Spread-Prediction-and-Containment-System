@@ -29,7 +29,7 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     reports,
     centerLat,
     centerLng,
-    user_location,
+    user_location = undefined,
 
     }, ref)=>{
     const [selected, setSelected]= useState<Report |null>(null);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ReportStatus } from "../../types/Report";
-import { FirefighterSideBar } from '../../components/firefighter/firefighterSidebar';
+import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
 import { TableSearchBar } from '../../components/firefighter/searchbar';

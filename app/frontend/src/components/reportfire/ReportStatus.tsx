@@ -9,7 +9,7 @@ interface StatusProps {
     readonly locationText?: string;
 };
 
-export default function ReportStatus({ status, refNumber, locationText }: StatusProps) {
+export default function ReportStatus({ status, refNumber, locationText = ""}: StatusProps) {
     let label = "";
     let detail = "";
     let Icon = Clock;
@@ -42,6 +42,3 @@ export default function ReportStatus({ status, refNumber, locationText }: Status
     );
 }
 
-ReportStatus.defaultProps = {
-    locationText: undefined
-};

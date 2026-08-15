@@ -1,6 +1,6 @@
 import {Siren, CirclePlay, Headset} from 'lucide-react'
 import { useRouter } from 'next/router';
-import { SideBar } from '../../components/layout/Sidebar';
+import { SideBar } from '../../components/layout/SideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { ActionCard } from '../../components/firefighter/actionCard';
 

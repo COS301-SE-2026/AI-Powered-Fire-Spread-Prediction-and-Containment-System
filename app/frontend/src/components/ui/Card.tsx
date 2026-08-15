@@ -6,7 +6,7 @@ interface CardProps {
   actions?: ReactNode;
 }
 
-export default function Card({ title, children, actions }: CardProps) {
+export default function Card({ title = undefined, children, actions = undefined }: CardProps) {
   return (
     <div className="card bg-base-100 border border-base-100 shadow-sm rounded-box overflow-hidden">
       <div className="card-body p-5 space-y-4">
@@ -28,7 +28,3 @@ export default function Card({ title, children, actions }: CardProps) {
   );
 }
 
-Card.defaultProps = {
-  title: undefined,
-  actions: undefined,
-};

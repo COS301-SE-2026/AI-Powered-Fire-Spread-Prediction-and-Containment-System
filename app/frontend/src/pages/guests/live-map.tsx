@@ -2,7 +2,8 @@
 
 import dynamic from 'next/dynamic';
 import {Map, CircleAlert} from 'lucide-react'
-import { SideBar, NavLink } from '../../components/layout/Sidebar';
+import { SideBar } from '../../components/layout/SideBar';
+import { NavLink } from '../../components/layout/NavLink';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 import { GuestReports } from '../../components/guest/GuestReports';
 import { GuestActions } from '../../components/guest/GuestActions';

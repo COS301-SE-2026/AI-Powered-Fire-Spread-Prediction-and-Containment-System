@@ -4,12 +4,12 @@ import { useReportStatus } from '../../hooks/useReportStatus';
 import type { FireReportDetailResponse, ReportStatus } from "../../types/Report";
 
 interface ReportActionsProps {
-    readonly report_ref: string;
+    readonly reportRef: string;
     readonly status: ReportStatus;
     readonly onStatusChange: (report: FireReportDetailResponse) => void;
 }
 
-export function ReportActions({ report_ref, status, onStatusChange }: ReportActionsProps) {
+export function ReportActions({ reportRef, status, onStatusChange }: ReportActionsProps) {
     const { updateStatus, loading, error } = useReportStatus();
     const [success, setSuccess] = useState<string | null>(null);
 
@@ -20,7 +20,7 @@ export function ReportActions({ report_ref, status, onStatusChange }: ReportActi
     }, [success]);
 
     const handleChange = async (newStatus: ReportStatus) => {
-        const updated = await updateStatus(report_ref, newStatus);
+        const updated = await updateStatus(reportRef, newStatus);
         if (updated) {
             onStatusChange(updated);
             setSuccess(`Report successfully updated to ${newStatus}.`);

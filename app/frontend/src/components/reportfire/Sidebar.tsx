@@ -1,7 +1,7 @@
 import React from 'react';
 import { BookAlert, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 
-export function SidebarLayout({ children }: { children?: React.ReactNode }) {
+export function SidebarLayout({ children = undefined }: { children?: React.ReactNode }) {
   return <div className="flex min-h-screen bg-carbon-bg text-text-primary font-body antialiased relative z-0">
             {/* Atmospheric Background Blooms */}
             <div className="global-atmos">
@@ -72,6 +72,3 @@ export function SidebarLayout({ children }: { children?: React.ReactNode }) {
         </div>
 }
 
-SidebarLayout.defaultProps = {
-    children: undefined
-};

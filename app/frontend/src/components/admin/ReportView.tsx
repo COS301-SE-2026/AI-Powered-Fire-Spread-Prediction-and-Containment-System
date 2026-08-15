@@ -13,12 +13,12 @@ import { useFireReport } from '../../hooks/useFireReport';
     );
 
     interface ViewProps {
-        report_ref: string;
+        reportRef: string;
     }
 
-export function ViewPage({ report_ref }: Readonly<ViewProps>) {
+export function ViewPage({ reportRef }: Readonly<ViewProps>) {
     const router = useRouter();
-    const { report, loading, error, refetch } = useFireReport(report_ref);
+    const { report, loading, error, refetch } = useFireReport(reportRef);
 
     if (loading) return (
         <div className="p-6">
@@ -55,7 +55,7 @@ export function ViewPage({ report_ref }: Readonly<ViewProps>) {
                 <div className='lg:col-span-6 flex flex-col gap-2 h-full'>
                     <ReportPhoto report={report} />
                     <ReportDescription report={report} />
-                    <ReportActions report_ref={report.reference_number} status={report.status} onStatusChange={refetch} />
+                    <ReportActions reportRef={report.reference_number} status={report.status} onStatusChange={refetch} />
                 </div>
             </div>
         </div>

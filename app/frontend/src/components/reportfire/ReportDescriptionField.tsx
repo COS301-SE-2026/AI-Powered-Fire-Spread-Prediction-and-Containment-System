@@ -9,7 +9,7 @@ interface DescriptionProps {
     readonly onChange: (value: string) => void;
 }
 
-export function DescriptionField({ value, error, onChange }: DescriptionProps) {
+export function DescriptionField({ value, error = "", onChange }: DescriptionProps) {
     const id = useId();
 
     return (
@@ -32,6 +32,3 @@ export function DescriptionField({ value, error, onChange }: DescriptionProps) {
     );
 }
 
-DescriptionField.defaultProps = {
-    error: undefined
-};

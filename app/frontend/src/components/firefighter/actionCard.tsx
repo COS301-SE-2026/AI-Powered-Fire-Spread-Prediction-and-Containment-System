@@ -7,7 +7,7 @@ interface ActionCardProps {
     onClick?: () => void;
 }
 
-export function ActionCard({title, description, icon, onClick}: ActionCardProps) {
+export function ActionCard({title, description, icon, onClick = undefined}: ActionCardProps) {
   return <button
             onClick={onClick} className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke hover:border-ignite hover:bg-smoke-hover active:scale-[0.98] transition-all text-left w-full h-full group"
         >
@@ -23,7 +23,3 @@ export function ActionCard({title, description, icon, onClick}: ActionCardProps)
             </div>
         </button>
 }
-
-ActionCard.defaultProps = {
-    onClick: undefined
-};

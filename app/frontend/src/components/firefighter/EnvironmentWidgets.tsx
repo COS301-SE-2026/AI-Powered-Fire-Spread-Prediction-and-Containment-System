@@ -1,26 +1,5 @@
 import { Thermometer, Wind, Droplets, Flame} from "lucide-react";
-
-interface StatCardProps {
-    label: string;
-    value: string;
-    icon: React.ReactNode;
-    iconColor?: string;
-}
-
-export function StatCard({label, value, icon, iconColor = "bg-base-100"}: Readonly<StatCardProps>) {
-  return <div className="flex items-center gap-4 p-5 rounded-xl bg-carbon-side/60 backdrop-blur-sm border border-carbon-stroke w-full h-full">
-            {/* Icon wrapper */}
-            <div className={`size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center shrink-0 ${iconColor}`}>
-                {icon}
-            </div>
-
-            {/* Text wrapper */}
-            <div className="flex flex-col">
-                <span className="font-bold text-text-primary text-lg tracking-wide">{value}</span>
-                <span className="text-xs text-text-primary/50 font-medium mt-0.5">{label}</span>
-            </div>
-        </div>
-}
+import{ StatCard } from './StatCard';
 
 export interface EnvironmentVariables{
     readonly wind: number;
@@ -75,14 +54,14 @@ export function EnvironmentWidgets({variables}: EnvironmentWidgetsProp) {
         )
     }
 
-    const {wind, wind_dir, temperature, fire_danger, humidity} = variables;
-    const windDirection = WindDirection(wind_dir);
+    const {wind, wind_dir: windDeg, temperature, fire_danger: fireDanger, humidity} = variables;
+    const windDirection = WindDirection(windDeg);
 
     return(
         <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full">
             <StatCard icon={<Wind/>} label ={`Wind ${windDirection} `} value = {`${wind} km/h`}/>
             <StatCard icon={<Thermometer/>} label = "Temperature" value = {`${temperature}°C`}/>
-            <StatCard icon={<Flame/>} label = "Fire Danger" value ={fire_danger}/>
+            <StatCard icon={<Flame/>} label = "Fire Danger" value ={`fireDanger`}/>
             <StatCard icon={<Droplets/>} label = "Humidity" value ={`${humidity}%`}/>
         </div>
     );

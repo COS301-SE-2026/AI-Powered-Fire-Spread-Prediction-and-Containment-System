@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { LocationField } from "./ReportLocationField";
+import { LocationField } from "./LocationField";
 import { DescriptionField } from "./ReportDescriptionField";
 import { PhotoField } from "./ReportPhotoUpload";
 
@@ -19,7 +19,7 @@ type Props = {
 
 export const LOCATION_PLACEHOLDER = "Click the map to drop a pin";
 
-export default function ReportDetailsForm({ location = "", onSubmit, onLocationSearch }: Props) {
+export default function ReportDetailsForm({ location = "", onSubmit = undefined, onLocationSearch = undefined }: Props) {
     const [editableLocation, setEditableLocation] = useState(location);
     const [description, setDescription] = useState("");
     const [photo, setPhoto] = useState<File | null>(null);
@@ -105,8 +105,3 @@ export default function ReportDetailsForm({ location = "", onSubmit, onLocationS
     );
 }
 
-ReportDetailsForm.defaultProps = {
-    location: undefined,
-    onSubmit: undefined,
-    onLocationSearch: undefined
-};

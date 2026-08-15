@@ -36,6 +36,3 @@ export function LoggedContainmentLine({cardData = mockData}: CardListProp) {
         </div>
 }
 
-LoggedContainmentLine.defaultProps = {
-    cardData: undefined
-};
