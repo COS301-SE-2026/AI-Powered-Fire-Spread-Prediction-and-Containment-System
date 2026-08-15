@@ -42,18 +42,23 @@ export function useSubmitReport() {
           imageUrl = uploadResult.object_key;
         }
 
-        const report: FireReportDetailResponse = await apiCall('/api/users/reported-fires', 'POST', {
-          location_text: input.location,
-          description: input.description,
-          image_url: imageUrl,
-          lat: input.lat,
-          lng: input.lng,
-          boundary_radius: input.boundaryRadius,
-        });
+        const report: FireReportDetailResponse = await apiCall(
+          '/api/users/reported-fires',
+          'POST',
+          {
+            location_text: input.location,
+            description: input.description,
+            image_url: imageUrl,
+            lat: input.lat,
+            lng: input.lng,
+            boundary_radius: input.boundaryRadius,
+          }
+        );
 
         return report;
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to submit report. Please try again.';
+        const message =
+          err instanceof Error ? err.message : 'Failed to submit report. Please try again.';
         console.error('Failed to submit report', err);
         setError(message);
         return null;

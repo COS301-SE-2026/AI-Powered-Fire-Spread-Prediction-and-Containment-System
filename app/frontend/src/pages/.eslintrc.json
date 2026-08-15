@@ -1,6 +1,6 @@
 {
-    "rules": {
-        "filenames/match-exported": "off",
-        "react/no-multi-comp": "off"
-    }
+  "rules": {
+    "filenames/match-exported": "off",
+    "react/no-multi-comp": "off"
+  }
 }

@@ -2,9 +2,9 @@ import { FirefighterSideBar } from '../../components/firefighter/FirefighterSide
 import ReportPage from '../../components/reportfire/ReportPage';
 
 export default function FirefighterReportFire() {
-    return (
-        <FirefighterSideBar>
-            <ReportPage/>
-        </FirefighterSideBar>
-    );
+  return (
+    <FirefighterSideBar>
+      <ReportPage />
+    </FirefighterSideBar>
+  );
 }

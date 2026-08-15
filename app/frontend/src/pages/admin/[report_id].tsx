@@ -1,15 +1,15 @@
 import { useRouter } from 'next/router';
-import { AdminSideBar } from '../../components/admin/AdminSideBar'; 
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { ViewPage } from '../../components/admin/ReportView';
 
 export default function View() {
-    const router = useRouter();
-    const { reportId } = router.query;
-    if (!reportId) return null;
+  const router = useRouter();
+  const { reportId } = router.query;
+  if (!reportId) return null;
 
-    return (
-        <AdminSideBar>
-            <ViewPage reportRef = {reportId as string}/>
-        </AdminSideBar>
-    );
+  return (
+    <AdminSideBar>
+      <ViewPage reportRef={reportId as string} />
+    </AdminSideBar>
+  );
 }
