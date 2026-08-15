@@ -3,6 +3,7 @@ import torch
 
 from .ignition import IgnitionScorer
 from .schema import BURNED, BURNING, UNBURNED
+from pytorchfire.utils import calculate_slope
 
 
 # p_ignite is the output from the ignition scorer and is a 2D shape [H, W] and one probability per cell
@@ -41,7 +42,7 @@ def build_verified_reports_mask(
 
 
 def build_env_data(
-    weather_grids: dict, static_grids: dict, initial_ignition_mask: np.ndarray
+    weather_grids: dict, static_grids: dict, initial_ignition_mask: np.ndarray, cell_size_m: float
 ) -> dict:
 
     wind_u_comp = torch.from_numpy(weather_grids["wind_u"]).float()
@@ -50,12 +51,15 @@ def build_env_data(
     wind_velocity = torch.sqrt(wind_u_comp**2 + wind_v_comp**2)
     wind_towards_direction = torch.rad2deg(torch.atan2(wind_v_comp, wind_u_comp)) % 360
 
+    elevation = torch.from_numpy(static_grids["elevation"]).float()
+    slope = calculate_slope(elevation, torch.tensor(cell_size_m, dtype=torch.float32))
+
     return {
         "p_veg": torch.from_numpy(static_grids["fuel_load"]).float(),
         "p_den": torch.from_numpy(static_grids["dryness"]).float(),
         "wind_velocity": wind_velocity,
         "wind_towards_direction": wind_towards_direction,
-        "slope": torch.zeros((*wind_velocity.shape, 3, 3), dtype=torch.float32),
+        "slope": slope,
         "initial_ignition": torch.from_numpy(initial_ignition_mask).bool(),
     }
 
