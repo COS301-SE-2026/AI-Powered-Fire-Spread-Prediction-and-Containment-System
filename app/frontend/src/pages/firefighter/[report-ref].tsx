@@ -9,7 +9,7 @@ export default function View() {
 
     return (
         <FirefighterSideBar>
-            <ViewPage report_ref = {reportRef as string}/>
+            <ViewPage reportRef = {reportRef as string}/>
         </FirefighterSideBar>
     );
 }
