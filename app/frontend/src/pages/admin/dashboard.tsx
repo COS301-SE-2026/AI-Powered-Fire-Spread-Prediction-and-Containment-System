@@ -6,6 +6,7 @@ import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'luci
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { PreviewPanel } from '../../components/notification/PreviewPanel';
 
 export const AdminDashBoardDetailed: React.FC = () => {
     const { topMetrics, activityLog, weeklyIncidents, systemMetrics, loading, error, isForbidden } = useAdminDashboard();
@@ -77,6 +78,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
         <AdminSideBar hideLoginRegister={true}>
             <div className="w-full space-y-6">
 
+                <PreviewPanel />
                 <PageHeader title="FireAway System Dashboard" subtitle="Overview of active fires, predictions, and system health" />
 
                 <DashboardMetrics metrics={topMetrics} />
