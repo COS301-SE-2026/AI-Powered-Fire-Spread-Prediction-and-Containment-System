@@ -210,7 +210,8 @@
                 "**/*.config.js",
                 "**/*.config.ts",
                 "**/pages/**",
-                "**/types/**"
+                "**/types/**",
+                "**/brandStyle/**"
             ],
             "rules": {
                 "react/no-multi-comp": "off"
