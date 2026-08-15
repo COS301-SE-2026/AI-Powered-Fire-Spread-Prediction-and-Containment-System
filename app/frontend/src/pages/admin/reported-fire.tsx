@@ -45,7 +45,7 @@ export default function ReportedFiresPage() {
                         <span className="loading loading-spinner loading-lg text-primary" />
                     </div>
                 ) : (
-                    <FireReportsTable report={filteredReports} filter={filter} />
+                    <FireReportsTable reports={filteredReports} filter={filter} />
                 )}
             </div>
         </AdminSideBar>

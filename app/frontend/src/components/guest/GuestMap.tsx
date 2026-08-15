@@ -1,7 +1,7 @@
 'use client'
 
 import React,{useState, useEffect, useRef, forwardRef, useImperativeHandle} from 'react';
-import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface Report{
@@ -17,7 +17,7 @@ export interface GuestMapProps{
     reports:Report[];
     centerLat:number;
     centerLng:number;
-    user_location?: {lat:number, lng:number};
+    userLocation?: {lat:number; lng:number};
 }
 
 export interface GuestMapHandle{
@@ -29,7 +29,7 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
     reports,
     centerLat,
     centerLng,
-    user_location = undefined,
+    userLocation = undefined,
 
     }, ref)=>{
     const [selected, setSelected]= useState<Report |null>(null);
@@ -38,7 +38,7 @@ const GuestMap= forwardRef<GuestMapHandle, GuestMapProps>(({
         latitude: centerLat,
         zoom:12,
     });
-    const mapRef=useRef<any>(null);
+    const mapRef=useRef<MapRef>(null);
     
     useEffect(()=>{
         setViewport(v =>({ ...v, longitude:centerLng, latitude:centerLat}));
@@ -141,4 +141,7 @@ useImperativeHandle(ref, () => ({
     );
 });
 GuestMap.displayName = 'GuestMap';
+GuestMap.defaultProps = {
+    userLocation: undefined,
+};
 export default GuestMap;

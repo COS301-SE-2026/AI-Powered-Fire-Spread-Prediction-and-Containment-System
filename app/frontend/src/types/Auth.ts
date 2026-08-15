@@ -21,12 +21,12 @@ export interface TokenResp{
     token_type: string;
 }
 
-export interface Two_FA_Create_Response{
+export interface TwoFACreateResponse{
     otpauth_url: string;
 }
 
 
-export interface Two_FA_Verify_Request{
+export interface TwoFAVerifyRequest{
     username: string;
     code: string;
 }
@@ -37,7 +37,7 @@ export interface MsgResponse{
 }
 
 
-export interface Two_FA_Required_Response{
+export interface TwoFARequiredResponse{
     requires_2fa: boolean;
     email: string;
     otpauth_url: string | null;

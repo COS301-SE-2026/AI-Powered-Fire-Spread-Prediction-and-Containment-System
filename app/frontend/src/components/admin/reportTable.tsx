@@ -4,12 +4,12 @@ import { FireReportMapResponse, ReportStatus } from "../../types/Report";
 import { StatusBadge } from "./reportStatusBadge";
 
 interface FireReportsTableProps {
-    readonly report: FireReportMapResponse[];
+    readonly reports: FireReportMapResponse[];
     readonly filter: 'All' | ReportStatus;
 }
 
-export function FireReportsTable({ report, filter }: FireReportsTableProps) {
-    const filtered = report.filter(r => filter === 'All' || r.status === filter)
+export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
+    const filtered = reports.filter(r => filter === 'All' || r.status === filter)
         .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
 
     const router = useRouter();

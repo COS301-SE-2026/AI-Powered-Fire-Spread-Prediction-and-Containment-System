@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useId } from "react";
 import { Alert } from "../shared/Alerts";
-import { LOCATION_PLACEHOLDER } from "./ReportDetailsForm";
+import { LOCATION_PLACEHOLDER } from './locationConstants';
 import { GeocodingSuggestion, useGeoSearch } from "../../hooks/useGeoSearch";
 import { SuggestionRow } from './SuggestionRow';
 

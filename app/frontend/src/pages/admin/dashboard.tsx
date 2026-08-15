@@ -52,7 +52,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorisation': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -177,17 +177,17 @@ export const AdminDashBoardDetailed: React.FC = () => {
                             </h2>
 
                             <div className="flex justify-between items-end h-48 pt-4 px-4 bg-base-300/30 rounded border border-base-300">
-                            {data.weekly_incidents.map((data) => {
-                                const percentageHeight = (data.count /maxCount) * 100;
+                            {data.weekly_incidents.map((day) => {
+                                const percentageHeight = (day.count /maxCount) * 100;
                                 return (
-                                    <div key={data.day} className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end">
+                                    <div key={day.day} className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end">
                                         <div className="text-[10px] font-mono text-primary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {data.count}
+                                            {day.count}
                                          </div>
                                          <div className="w-full bg-primary/80 rounded-t-sm border-t border-x border-primary group-hover:bg-primary transition-colors"
                                          style={{height: `${percentageHeight}%`, minHeight: '4px'}} />
                                     <span className="text-[10px] font-medium text-base-content/60 mt-2 block font-mono">
-                                        {data.day}
+                                        {day.day}
                                     </span>
                                     </div>
                                 );

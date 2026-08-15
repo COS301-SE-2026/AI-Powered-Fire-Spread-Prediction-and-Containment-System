@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { LocationField } from "./LocationField";
 import { DescriptionField } from "./ReportDescriptionField";
 import { PhotoField } from "./ReportPhotoUpload";
+import { LOCATION_PLACEHOLDER } from './locationConstants';
 
 export type ReportFormData = {
     location: string;
@@ -16,8 +17,6 @@ type Props = {
     onSubmit?: (data: ReportFormData) => void;
     onLocationSearch?: (loc: { lat: number; lng: number; address: string }) => void;
 };
-
-export const LOCATION_PLACEHOLDER = "Click the map to drop a pin";
 
 export default function ReportDetailsForm({ location = "", onSubmit = undefined, onLocationSearch = undefined }: Props) {
     const [editableLocation, setEditableLocation] = useState(location);
@@ -65,7 +64,9 @@ export default function ReportDetailsForm({ location = "", onSubmit = undefined,
     function reset() {
         setEditableLocation(LOCATION_PLACEHOLDER);
         setDescription("");
-        photo && setPhoto(null);
+        if (photo) {
+            setPhoto(null);
+        }
         setErrors({});
     }
 

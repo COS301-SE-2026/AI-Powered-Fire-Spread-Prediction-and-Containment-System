@@ -3,6 +3,7 @@ import {
   Wind, Thermometer, Droplets, UserCircle, LogOut, PlusCircle,
   AlertTriangle, Radio, Navigation,
 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LogoSection() {
   return (
@@ -14,7 +15,7 @@ export default function LogoSection() {
         {/* large logo */}
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           <div style={{ height: '160px', backgroundColor: 'var(--color-carbon-side)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/images/logo-large.png" alt="Fireaway large logo" style={{ height: '80px', objectFit: 'contain' }} />
+            <Image src="/images/logo-large.png" alt="Fireaway large logo" style={{ height: '80px', objectFit: 'contain' }} />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-card)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#EDEAE5', marginBottom: '4px' }}>logo-large.png</p>
@@ -25,7 +26,7 @@ export default function LogoSection() {
         {/* small logo */}
         <div style={{ border: '1px solid var(--color-carbon-stroke)', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
           <div style={{ height: '160px', backgroundColor: 'var(--color-carbon-side)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/images/logo-small.png" alt="Fireaway small logo" style={{ height: '48px', objectFit: 'contain' }} />
+            <Image src="/images/logo-small.png" alt="Fireaway small logo" style={{ height: '48px', objectFit: 'contain' }} />
           </div>
           <div style={{ padding: '12px 16px', backgroundColor: 'var(--color-carbon-card)', borderTop: '1px solid var(--color-carbon-stroke)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#EDEAE5', marginBottom: '4px' }}>logo-small.png</p>

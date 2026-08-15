@@ -1,10 +1,10 @@
 import React from "react";
 import { FileCheck, Clock, CheckCircle2, XCircle } from "lucide-react";
-import type { ReportStatus } from "../../types/Report";
+import type { ReportStatus as ReportStatusValue } from "../../types/Report";
 import { StatusCard } from "./StatusCard";
 
 interface StatusProps {
-    readonly status: ReportStatus;
+    readonly status: ReportStatusValue;
     readonly refNumber: string;
     readonly locationText?: string;
 };

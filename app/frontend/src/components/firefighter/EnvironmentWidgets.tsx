@@ -61,7 +61,7 @@ export function EnvironmentWidgets({variables}: EnvironmentWidgetsProp) {
         <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full">
             <StatCard icon={<Wind/>} label ={`Wind ${windDirection} `} value = {`${wind} km/h`}/>
             <StatCard icon={<Thermometer/>} label = "Temperature" value = {`${temperature}°C`}/>
-            <StatCard icon={<Flame/>} label = "Fire Danger" value ={`fireDanger`}/>
+            <StatCard icon={<Flame/>} label = "Fire Danger" value ="fireDanger"/>
             <StatCard icon={<Droplets/>} label = "Humidity" value ={`${humidity}%`}/>
         </div>
     );
