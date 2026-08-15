@@ -9,8 +9,8 @@
     "lint": "next lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "playwright test --config=testing_config/playwright.config.ts",
-    "test:headed": "playwright test --headed --config=testing_config/playwright.config.ts",
+    "test": "playwright test --config=playwright.config.ts",
+    "test:headed": "playwright test --headed --config=playwright.config.ts",
     "test:report": "playwright show-report",
     "test:install": "playwright install"
   },
