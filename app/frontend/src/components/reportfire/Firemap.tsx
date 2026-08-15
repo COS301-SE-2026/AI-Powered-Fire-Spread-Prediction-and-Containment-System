@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
+import type { MapRef } from 'react-map-gl/mapbox';
 import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -28,7 +29,7 @@ const INITIAL_ZOOM = 15.5;
     setRadius(INITIAL_RADIUS_KM);
     onBoundarySizeChange?.(INITIAL_RADIUS_KM);
   }
-    function toLocation(mapRef: React.RefObject<any>, lng: number, lat: number) {
+    function toLocation(mapRef: React.RefObject<MapRef | null>, lng: number, lat: number) {
     mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
   }
 
@@ -66,7 +67,7 @@ const INITIAL_ZOOM = 15.5;
     label: HTMLDivElement,
     markerPosRef: React.RefObject<{lng: number; lat: number }|null>,
     radiusKmRef: React.MutableRefObject<number>,
-    mapRef: React.RefObject<any>,
+    mapRef: React.RefObject<MapRef | null>,
     onBoundarySizeChange?: (r: number) => void
   ) {
     const pos = markerPosRef.current;
@@ -107,7 +108,7 @@ const INITIAL_ZOOM = 15.5;
   }
 
 export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: Readonly<FireMapProps>) {
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<MapRef>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
   const markerPosRef = useRef(markerPos);
@@ -189,7 +190,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
   }, [markerPos]);
 
   // map click
-  const handleMapClick = useCallback(async (e: any) => {
+  const handleMapClick = useCallback(async (e: mapboxgl.MapMouseEvent) => {
     if (isDragging.current) return;
     if (Date.now() - dragEndTime.current < 300) return;
 
@@ -199,7 +200,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
 
     const address = await reverseGeocode(lng, lat);
     onLocationSelect?.({ lat, lng, address });
-  }, [onLocationSelect]);
+  }, [onLocationSelect, setRadius]);
 
   const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
 

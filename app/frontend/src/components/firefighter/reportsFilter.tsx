@@ -1,14 +1,14 @@
 import React from "react";
 import { ReportStatus } from "../../types/Report";
 
-type tableStatusFilter = 'all' | ReportStatus;
+type TableStatusFilter = 'all' | ReportStatus;
 
 interface StatusTableFilterProps {
-    readonly filter: tableStatusFilter;
-    readonly onChange: (filter: tableStatusFilter) => void;
+    readonly filter: TableStatusFilter;
+    readonly onChange: (filter: TableStatusFilter) => void;
 }
 
-const filters: tableStatusFilter[] = ['all', 'pending', 'verified', 'rejected'];
+const filters: TableStatusFilter[] = ['all', 'pending', 'verified', 'rejected'];
 
 export function StatusTableFilter({ filter, onChange }: StatusTableFilterProps) {
   return <div className="flex gap-2 mb-2">

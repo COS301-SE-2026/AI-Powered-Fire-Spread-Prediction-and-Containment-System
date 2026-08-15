@@ -140,7 +140,11 @@
                         ],
                         "format": [
                             "UPPER_CASE"
-                        ]
+                        ],
+                        "filter": {
+                            "regex": "^className$",
+                            "match": false
+                        }
                     },
                     {
                         "selector": "variable",

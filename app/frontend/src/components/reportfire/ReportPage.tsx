@@ -6,7 +6,7 @@ import ReportDetailsForm, { type ReportFormData } from "./ReportDetailsForm";
 import ReportStatus from "./ReportStatus";
 import { FireMap } from "../shared/DynamicUserMap"
 import { Alert } from "../shared/Alerts";
-import { LOCATION_PLACEHOLDER } from "./ReportDetailsForm";
+import { LOCATION_PLACEHOLDER } from "./locationConstants";
 import { useUserReports } from "../../hooks/useUserReports";
 import { useSubmitReport } from "../../hooks/useSubmitReport";
 

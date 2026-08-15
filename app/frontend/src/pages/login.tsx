@@ -75,8 +75,8 @@ export default function Login() {
       };
 
     window.location.href = roleRedirects[data.role] ?? '/login';
-    } catch (err: any) {
-        setApiError(err.message);
+    } catch (err: unknown) {
+        setApiError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

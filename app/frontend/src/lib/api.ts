@@ -3,7 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export async function apiCall(
   endpoint: string,
   method: string = "GET",
-  body: any = null,
+  body: unknown = null,
 ) {
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,

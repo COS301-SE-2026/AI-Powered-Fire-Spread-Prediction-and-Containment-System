@@ -2,9 +2,10 @@
 
 import 'mapbox-gl/dist/mapbox-gl.css'
 import circle from '@turf/circle';
-import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import type { Feature, LineString } from 'geojson';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
+import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw'
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -26,19 +27,20 @@ interface MapProps{
 
 export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGrid = null, burnGridH = undefined, burnGridW = undefined, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = null}: MapProps) {
 
-    const mapRef = useRef<any>(null);
-    const drawRef = useRef<any>(null);
+    const mapRef = useRef<MapRef>(null);
+    const drawRef = useRef<MapboxDraw>(null);
 
     const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
     const [viewState, setViewState] = useState({longitude: lng, latitude: lat, zoom: 12});
     const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-    const handleDrawCreate = (e: any) => {
+    const handleDrawCreate = useCallback((e: DrawCreateEvent) => {
         const line = e.features[0];
-        const coords = line.geometry.coordinates;
+        if (line.geometry.type !== 'LineString') return;
+        const coords = (line.geometry as LineString).coordinates;
         const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
         onDrawComplete(wkt);
-    }
+    }, [onDrawComplete]);
 
     useEffect(() => {
         if(!mapRef.current){
@@ -61,7 +63,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         }else if(drawRef.current){
                 drawRef.current.changeMode('simple_select');
             }
-    }, [drawMode]);
+    }, [drawMode, handleDrawCreate]);
 
     useEffect(() => {
         if(!drawRef.current) return;
