@@ -9,7 +9,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'alert',
     severity: 'high',
     message: 'Nearby fire reported',
-    mapDeepLink: '/users/live-map?fire=1',
+    fireId: '1',
     time: '2026-08-11T10:00:00Z',
     read: false,
   },
@@ -20,7 +20,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'update',
     severity: 'moderate',
     message: 'Firefighters are on their way',
-    mapDeepLink: '/users/live-map?fire=2',
+    fireId: '2',
     time: '2026-08-10T15:30:00Z',
     read: false,
   },
@@ -31,7 +31,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'alert',
     severity: 'extreme',
     message: 'Nearby fire reported',
-    mapDeepLink: '/users/live-map?fire=3',
+    fireId: '3',
     time: '2026-08-12T08:45:00Z',
     read: false,
   },
@@ -42,7 +42,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'update',
     severity: 'high',
     message: 'Fire has moved closer, distance updated',
-    mapDeepLink: '/users/live-map?fire=4',
+    fireId: '4',
     time: '2026-08-12T09:10:00Z',
     read: false,
   },
@@ -53,7 +53,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'alert',
     severity: 'low',
     message: 'Nearby fire reported',
-    mapDeepLink: '/users/live-map?fire=5',
+    fireId: '5',
     time: '2026-08-09T14:20:00Z',
     read: true,
   },
@@ -64,7 +64,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'update',
     severity: 'extreme',
     message: 'Containment line established nearby',
-    mapDeepLink: '/users/live-map?fire=6',
+    fireId: '6',
     time: '2026-08-12T07:55:00Z',
     read: false,
   },
@@ -75,7 +75,7 @@ const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
     type: 'update',
     severity: 'low',
     message: 'Fire contained, risk reduced',
-    mapDeepLink: '/users/live-map?fire=7',
+    fireId: '7',
     time: '2026-08-08T18:00:00Z',
     read: true,
   },
@@ -87,6 +87,10 @@ type NotificationState = Readonly <{
     isLoading: boolean;
     error: string | null;
     markAsRead: (id: string) => void;
+    activeToast: FireNotification | null;
+    showToast: (notification: FireNotification) => void;
+    dismissToast: () => void;
+    previewToast: (notification: FireNotification) => void;
 }>;
 
 const NotificationsContext = createContext<NotificationState | null>(null);
@@ -95,6 +99,20 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   const [notifications, setNotifications] = useState<readonly FireNotification[]>(MOCK_NOTIFICATIONS);
   const [isLoading] = useState(false);
   const [error] = useState<string | null>(null);
+  const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
+
+  const showToast = (notification: FireNotification): void => {
+    setNotifications((prev) => [notification, ...prev]);
+    setActiveToast(notification);
+  }
+
+  const dismissToast = (): void => {
+    setActiveToast(null);
+  }
+
+  const previewToast = (notification: FireNotification): void => {
+    setActiveToast(notification);
+  }
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -104,7 +122,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     );
   };
   return (
-    <NotificationsContext.Provider value={{ notifications, unreadCount, isLoading, error, markAsRead }}>{children}
+    <NotificationsContext.Provider value={{ notifications, unreadCount, isLoading, error, markAsRead, activeToast, showToast,dismissToast, previewToast}}>{children}
     </NotificationsContext.Provider>
   );
 }

@@ -3,6 +3,8 @@ import Link from 'next/link';
 import type { FireNotification } from '../../types/Notifications';
 import { NotificationBadge } from './StatusBadge';
 import { FormatDate } from '../shared/FormatDate';
+import { useAuth } from '../../hooks/useAuth';
+import { NotificationLink } from './NotificationLink';
 
 interface NotificationCardProps {
     readonly notification: FireNotification;
@@ -10,7 +12,10 @@ interface NotificationCardProps {
 }
 
 export function NotificationCard({ notification, onRead }: NotificationCardProps){
-    const { id, fireLocation, distance, type, severity, mapDeepLink, time, read } = notification;
+    const { role } = useAuth();
+    const mapLink = NotificationLink(notification.fireId, role);
+
+    const { id, fireLocation, distance, type, severity, fireId, message, time, read } = notification;
 
     let icon;
     let headline: string;
@@ -29,7 +34,7 @@ export function NotificationCard({ notification, onRead }: NotificationCardProps
     };
 
     return (
-        <Link href={mapDeepLink} onClick={handleClick} className={`flex items-center justify-between border-b border-border-subtle py-3 transition-colors hover:bg-surface-hover ${read ? 'opacity-60' : ''}`}>
+        <Link href={mapLink} onClick={handleClick} className={`flex items-center justify-between border-b border-border-subtle py-3 transition-colors hover:bg-surface-hover ${read ? 'opacity-60' : ''}`}>
             <div className="flex items-start gap-3">{icon}
                 <div>
                     <h3 className="text-sm font-semibold text-text-primary">{headline}</h3>

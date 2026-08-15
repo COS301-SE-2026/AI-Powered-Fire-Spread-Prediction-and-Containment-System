@@ -8,7 +8,7 @@ export type FireNotification = Readonly <{
     type: NotificationType;
     severity: NotificationSeverity;
     message: string;
-    mapDeepLink: string;
+    fireId: string;
     time: string;
     read: boolean;
 }>;

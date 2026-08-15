@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { apiCall } from '../lib/api';
+import type { UserRole } from '../types/User';
 
 interface AuthProps {
     readonly isAuth: boolean;
-    readonly role: string | null;
+    readonly role: UserRole | null;
     readonly isLoading: boolean;
 }
 
 export function useAuth(): AuthProps {
     const [isAuth, setIsAuth] = useState(false);
-    const [role, setRole] = useState<string | null>(null);
+    const [role, setRole] = useState<UserRole | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
