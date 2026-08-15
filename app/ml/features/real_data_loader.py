@@ -58,6 +58,7 @@ async def load_real_inference_data(
         "slope": terrain_data["slope"],
         "aspect": terrain_data["aspect"],
         "fuel_load": veg_data["fuel_load"],
+        "dryness": veg_data["dryness"],
         "valid_mask": veg_data["valid_mask"],
     }
 
