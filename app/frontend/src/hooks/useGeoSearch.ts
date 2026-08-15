@@ -7,7 +7,10 @@ export interface GeocodingSuggestion {
   readonly center: [number, number];
 }
 
-async function fetchSuggestions(query: string, signal: AbortSignal): Promise<GeocodingSuggestion[]> {
+async function fetchSuggestions(
+  query: string,
+  signal: AbortSignal
+): Promise<GeocodingSuggestion[]> {
   const res = await fetch(
     `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&autocomplete=true&limit=5&types=address,place,locality,neighborhood,poi`
   );
@@ -47,7 +50,7 @@ export function useGeoSearch(query: string) {
         const results = await fetchSuggestions(debouncedQuery, controller.signal);
         if (cancelled) return;
         setSuggestions(results);
-      } catch (err){
+      } catch (err) {
         if (cancelled) return;
         if (err instanceof Error && err.name === 'AbortError') return;
         setSuggestions([]);

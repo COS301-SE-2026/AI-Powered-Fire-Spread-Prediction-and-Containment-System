@@ -3,7 +3,7 @@ import { Thermometer, Wind, Droplets, Flame } from 'lucide-react';
 import type { EnvironmentVariables } from '../../types/FirefighterDashboard';
 import { StatCard } from './GuestStatCard';
 
-export function GuestEnvironment({ data }: {readonly data: EnvironmentVariables | null }) {
+export function GuestEnvironment({ data }: { readonly data: EnvironmentVariables | null }) {
   if (!data) return <div className="text-xs opacity-50">No environment data</div>;
 
   const { temperature, humidity, wind, wind_dir: windDeg, fire_danger: fireDanger } = data;
@@ -16,11 +16,22 @@ export function GuestEnvironment({ data }: {readonly data: EnvironmentVariables 
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      <StatCard label="Temperature" value={temperature !== undefined ? `${temperature}°C` : '--'} icon={<Thermometer />} />
-      <StatCard label="Humidity" value={humidity !== undefined ? `${humidity}%` : '--'} icon={<Droplets />} />
-      <StatCard label="Wind" value={wind !== undefined ? `${wind} km/h ${windDir(windDeg)}` : '--'} icon={<Wind />} />
+      <StatCard
+        label="Temperature"
+        value={temperature !== undefined ? `${temperature}°C` : '--'}
+        icon={<Thermometer />}
+      />
+      <StatCard
+        label="Humidity"
+        value={humidity !== undefined ? `${humidity}%` : '--'}
+        icon={<Droplets />}
+      />
+      <StatCard
+        label="Wind"
+        value={wind !== undefined ? `${wind} km/h ${windDir(windDeg)}` : '--'}
+        icon={<Wind />}
+      />
       <StatCard label="Fire Danger" value={fireDanger || '--'} icon={<Flame />} />
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ReportStatus } from "../../types/Report";
+import { ReportStatus } from '../../types/Report';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
 import { StatusTableFilter } from '../../components/firefighter/reportsFilter';
@@ -7,34 +7,40 @@ import { TableSearchBar } from '../../components/firefighter/searchbar';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 
 export default function ReportTable() {
-    const [statusFilter, setStatusFilter] = useState<'all' | ReportStatus>('all');
-    const [searchKey, setSearchKey] = useState("");
-    const { reports, loading, error } = useFirefighterReports(searchKey);
+  const [statusFilter, setStatusFilter] = useState<'all' | ReportStatus>('all');
+  const [searchKey, setSearchKey] = useState('');
+  const { reports, loading, error } = useFirefighterReports(searchKey);
 
-    return (
-        <FirefighterSideBar>
-            <div className="p-4 flex flex-col h-full w-full gap-y-3">
-                <header className="mb-6">
-                    <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">Reported Fires</h1>
-                    <p className="font-body text-body text-text-primary/50">View the reported fires</p>
-                </header>
-                {/* Header + filter + search */}
-                <div className="flex justify-between items-center">
-                        <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>
+  return (
+    <FirefighterSideBar>
+      <div className="p-4 flex flex-col h-full w-full gap-y-3">
+        <header className="mb-6">
+          <h1 className="text-page-title font-display font-bold tracking-wider text-text-primary uppercase">
+            Reported Fires
+          </h1>
+          <p className="font-body text-body text-text-primary/50">View the reported fires</p>
+        </header>
+        {/* Header + filter + search */}
+        <div className="flex justify-between items-center">
+          <StatusTableFilter filter={statusFilter} onChange={setStatusFilter} />
 
-                        <TableSearchBar value={searchKey} onChange={setSearchKey}/>
-                </div>
+          <TableSearchBar value={searchKey} onChange={setSearchKey} />
+        </div>
 
-                {error && <div className="text-error text-sm">{error}</div>}
+        {error && <div className="text-error text-sm">{error}</div>}
 
-                {loading ? (
-                    <div className="flex justify-center items-center min-h-[40vh]">
-                        <span className="loading loading-spinner loading-lg text-primary" />
-                    </div>
-                ) : (
-                <ReportsTable requests={reports} filter={statusFilter} onView={(req) => console.log(req)}/>
-                )}
-            </div>
-        </FirefighterSideBar>
-    );
+        {loading ? (
+          <div className="flex justify-center items-center min-h-[40vh]">
+            <span className="loading loading-spinner loading-lg text-primary" />
+          </div>
+        ) : (
+          <ReportsTable
+            requests={reports}
+            filter={statusFilter}
+            onView={(req) => console.log(req)}
+          />
+        )}
+      </div>
+    </FirefighterSideBar>
+  );
 }

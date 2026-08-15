@@ -10,7 +10,7 @@ export default function Landing() {
   const router = useRouter();
 
   const handleGuest = () => {
-    localStorage.setItem('token', `guest-token-${  Date.now()}`);
+    localStorage.setItem('token', `guest-token-${Date.now()}`);
     router.push('/guests/live-map');
   };
 
@@ -23,7 +23,9 @@ export default function Landing() {
         <EmberField density={35} />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen p-4 pt-[20vh]">        {/* Logo outside the card */}
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen p-4 pt-[20vh]">
+        {' '}
+        {/* Logo outside the card */}
         <div className="mb-8">
           <Image
             src="/images/logo-large.png"
@@ -33,7 +35,6 @@ export default function Landing() {
             className="mx-auto"
           />
         </div>
-
         {/* Card with buttons */}
         <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm relative overflow-hidden">
           <h1 className="text-4xl font-bold text-text-primary mb-4">Welcome!</h1>
