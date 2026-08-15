@@ -44,7 +44,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
 
     useEffect(() => {
         if(!mapRef.current){
-            return;
+            return undefined;
         }
         const map = mapRef.current.getMap();
 
@@ -57,12 +57,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
                 map.addControl(drawRef.current);
             }
             drawRef.current.changeMode('draw_line_string')
-
-            map.off('draw.create', handleDrawCreate);
             map.on('draw.create', handleDrawCreate);
-        }else if(drawRef.current){
-                drawRef.current.changeMode('simple_select');
-            }
+        } else if(drawRef.current){
+            drawRef.current.changeMode('simple_select');
+        }
+
+        return () => {
+            map.off('draw.create', handleDrawCreate);
+        }
+        
     }, [drawMode, handleDrawCreate]);
 
     useEffect(() => {
