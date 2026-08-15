@@ -33,4 +33,4 @@ def login_route(
         path="/",
     )
 
-    return {"role": result["role"]}
+    return {"access_token": result["access_token"],"role": result["role"]}
