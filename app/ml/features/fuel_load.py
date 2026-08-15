@@ -318,12 +318,22 @@ def process_sentinal2_and_worldcover(
     ndvi_scale = np.clip((ndvi - 0.1) / 0.7, 0.0, 1.0)
 
     fuel_load = np.clip(fuel_base * ndvi_scale, 0.0, 1.0).astype(np.float32)
-    fuel_load = np.nan_to_num(fuel_load, nan=0.0)
+    if cloud_mask is not None:
+        valid = ~cloud_mask
+        fill_val = np.nanmean(np.where(valid, fuel_load, np.nan)) if valid.any() else 0.0
+        fuel_load = np.where(np.isnan(fuel_load) | cloud_mask, fill_val, fuel_load)
+    else:
+        fuel_load = np.nan_to_num(fuel_load, nan=0.0)
 
     ndmi = (b08 - b11) / (b08 + b11 + eps)
 
     dryness = np.clip((1.0 - ndmi) / 2.0, 0.0, 1.0).astype(np.float32)
-    dryness = np.nan_to_num(dryness, nan=0.0)
+    if cloud_mask is not None:
+        valid = ~cloud_mask
+        fill_val = np.nanmean(np.where(valid, dryness, np.nan)) if valid.any() else 0.0
+        dryness = np.where(np.isnan(dryness) | cloud_mask, fill_val, dryness)
+    else:
+        dryness = np.nan_to_num(dryness, nan=0.0)
 
     if cloud_mask is not None:
         valid_mask = ~cloud_mask
