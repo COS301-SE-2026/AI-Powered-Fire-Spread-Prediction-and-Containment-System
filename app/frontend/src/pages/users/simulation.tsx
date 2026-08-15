@@ -50,7 +50,7 @@ export default function GuestPublicDashboard() {
                             className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto"
                             style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
                         >
-                            <NearbyReports nearby_fires={nearbyFires}/>
+                            <NearbyReports nearbyFires={nearbyFires}/>
                         </div>
                     </div>
                 </div>
