@@ -266,6 +266,7 @@ jobs:
         run: yarn install
 
       - name: Install Playwright browsers
+        working-directory: app/frontend
         run: yarn playwright install --with-deps
 
       - name: Run Playwright Tests
