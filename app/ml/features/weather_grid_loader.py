@@ -5,8 +5,8 @@ import pandas as pd
 
 DYNAMIC_CHANNELS = ["wind_u", "wind_v", "temperature", "relative_humidity"]
 
-SA_LAT_MIN, SA_LAT_MAX = -34.83, -22.12
-SA_LON_MIN, SA_LON_MAX = 16.48, 32.89
+SA_LAT_MIN, SA_LAT_MAX = -35.0, -22.0
+SA_LON_MIN, SA_LON_MAX = 16.0, 33.0
 
 def build_sa_grid_shape(resolution_deg: float=0.5) -> tuple[int, int]:
     lats = np.arange(SA_LAT_MAX, SA_LAT_MIN - resolution_deg, -resolution_deg)

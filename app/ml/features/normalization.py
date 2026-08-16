@@ -16,7 +16,7 @@ class _ChannelStats:
 
     @classmethod
     def from_dict(cls, d:dict)->"_ChannelStats":
-        return cls(mean=np.array(d["mean"]), std = np.arrad(d["std"]))
+        return cls(mean=np.array(d["mean"]), std = np.array(d["std"]))
 class _BaseNormalizer:
     def __init__(self):
         self.stats=_ChannelStats()
@@ -47,5 +47,7 @@ class _BaseNormalizer:
         self.stats = _ChannelStats.from_dict(json.loads(Path(path).read_text()))
 
 class RawChannelNormalizer(_BaseNormalizer):
+    pass
 
 class DeltaNormalizer(_BaseNormalizer):
+    pass

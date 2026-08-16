@@ -12,10 +12,10 @@ class TemporalTargetBuilder:
     using linear interpolation.
     """
     def __init__(self, substeps_per_hour: int = 4, method: str = "linear"): 
-    if method != "linear":
-        raise NotImplementedError("Only linear interpolation is implemented.")
-    self.substeps_per_hour = substeps_per_hour
-    self.method = method
+        if method != "linear":
+            raise NotImplementedError("Only linear interpolation is implemented.")
+        self.substeps_per_hour = substeps_per_hour
+        self.method = method
 
     def interpolate(self, hourly_dynamic: np.ndarray) -> np.ndarray:
         T, C, H, W = hourly_dynamic.shape
@@ -36,7 +36,7 @@ class TemporalTargetBuilder:
     def build_naive_baseline(self, hourly_dynamic: np.ndarray) -> np.ndarray:
         return self.interpolate(hourly_dynamic)
 
-    def quarter_hourly_timestamps(self, start_time: str, end_time: str) -> list[str]:
+    def quarter_hourly_timestamps(self, hourly_timestamps: list[str]) -> list[str]:
         from datetime import datetime, timedelta
  
         n = self.substeps_per_hour

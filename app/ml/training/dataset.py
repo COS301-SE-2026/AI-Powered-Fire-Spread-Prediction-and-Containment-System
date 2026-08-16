@@ -11,7 +11,7 @@ from app.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
 
 
 def _hour_angle(timestamps: list[str]) -> tuple[np.ndarray, np.ndarray]:
-=    hours = np.array(
+    hours = np.array(
         [datetime.fromisoformat(ts).hour + datetime.fromisoformat(ts).minute / 60.0 for ts in timestamps],
         dtype=np.float32,
     )
@@ -29,7 +29,8 @@ def attach_static_and_time(
         return np.concatenate([dynamic, static, hs, hc], axis=0)
     if dynamic.ndim == 4:
         T, _, H, W = dynamic.shape
-        static_rep = np.broadcast_to(static, (T, 3, H, W))
+        C_static = static.shape[0]
+        static_rep = np.broadcast_to(static, (T, C_static, H, W))
         hs = np.asarray(hour_sin, dtype=np.float32).reshape(T, 1, 1, 1) * np.ones((1, 1, H, W), dtype=np.float32)
         hc = np.asarray(hour_cos, dtype=np.float32).reshape(T, 1, 1, 1) * np.ones((1, 1, H, W), dtype=np.float32)
         return np.concatenate([dynamic, static_rep, hs, hc], axis=1)
@@ -87,7 +88,7 @@ class WeatherRolloutDataset(Dataset):
         input_seq = attach_static_and_time(window_dynamic, self.static_tensor, w_sin, w_cos)
         input_seq_norm = self._normalize_sequence(input_seq)
 
-        anchor_dynamic_raw = hourly[h
+        anchor_dynamic_raw = hourly[h]
         future_dynamic_raw = hourly[h + 1 : h + 1 + cfg.rollout_steps]
         future_ts = [str(t) for t in hourly_ts[h + 1 : h + 1 + cfg.rollout_steps]]
         future_hs, future_hc = _hour_angle(future_ts)
@@ -109,3 +110,25 @@ class WeatherRolloutDataset(Dataset):
 
     def _normalize_deltas(self, deltas: np.ndarray) -> np.ndarray:
         return np.stack([self.delta_normalizer.transform(frame) for frame in deltas], axis=0)
+
+    def split_by_month(self, val_months: set[int]) -> tuple["torch.utils.data.Subset", "torch.utils.data.Subset"]:
+
+        from datetime import datetime as _dt
+
+        from torch.utils.data import Subset
+
+        train_idx, val_idx = [], []
+        for i, (file_idx, h) in enumerate(self._index):
+            anchor_ts = str(self._hourly_ts[file_idx][h])
+            month = _dt.fromisoformat(anchor_ts).month
+            (val_idx if month in val_months else train_idx).append(i)
+
+        if not val_idx:
+            raise ValueError(
+                f"val_months={val_months} matched no samples — check the "
+                "months actually present in the fetched data."
+            )
+        if not train_idx:
+            raise ValueError(f"val_months={val_months} matched every sample — nothing left to train on.")
+
+        return Subset(self, train_idx), Subset(self, val_idx)

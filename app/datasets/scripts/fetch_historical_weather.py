@@ -178,23 +178,42 @@ def build_sa_grid_coords(resolution_deg: float = 0.5) -> list[tuple[np.ndarray, 
     # South Africa bounding box
     lat_min, lat_max = -35.0, -22.0
     lon_min, lon_max = 16.0, 33.0
-    lats = np.arange(lat_min, lat_max - resolution_deg, -resolution_deg)
+    lats = np.arange(lat_max, lat_min - resolution_deg, -resolution_deg)
     lons = np.arange(lon_min, lon_max + resolution_deg, resolution_deg)
     lat_grid, lon_grid = np.meshgrid(lats, lons, indexing='ij')
     return list(zip(lat_grid.ravel().tolist(), lon_grid.ravel().tolist()))
 
+import time
+
 def fetch_historical_weather_grid_year(
     coords: list[tuple[float, float]],
     year: int,
-    chunk_size: int =50,
-    region_name : str ="south_africa",
-)-> pd.Dataframe:
+    chunk_size: int = 10,
+    region_name: str = "south_africa",
+    max_retries: int = 4,
+    base_delay: float = 8.0,
+) -> pd.DataFrame:
     start_date, end_date = f"{year}-01-01", f"{year}-12-31"
-    print(f"Fetching historical weather grid for {region_name} ({len(coords)} points) for year {year}") 
+    out_file = GRID_OUTPUT_DIR / f"weather_grid_{region_name}_{year}.csv"
+    GRID_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    frames = []
-    for i in range(0, len(coords), chunk_size):
-        chunk = coords[i:i + chunk_size]
+    # resume support: skip coords already written from a previous partial run
+    done_coords = set()
+    if out_file.exists():
+        existing = pd.read_csv(out_file, usecols=["latitude", "longitude"])
+        done_coords = set(zip(existing["latitude"].round(4), existing["longitude"].round(4)))
+        print(f"Resuming: {len(done_coords)} points already saved in {out_file}")
+
+    remaining = [c for c in coords if (round(c[0], 4), round(c[1], 4)) not in done_coords]
+    print(f"Fetching historical weather grid for {region_name} ({len(remaining)}/{len(coords)} points remaining) for year {year}")
+
+    n_chunks = (len(remaining) + chunk_size - 1) // chunk_size
+    header_written = out_file.exists()
+
+    for i in range(0, len(remaining), chunk_size):
+        chunk = remaining[i:i + chunk_size]
+        chunk_num = i // chunk_size + 1
+        print(f"  chunk {chunk_num}/{n_chunks} ({len(chunk)} points)...")
         latitudes, longitudes = zip(*chunk)
         params = {
             "latitude": latitudes,
@@ -204,14 +223,108 @@ def fetch_historical_weather_grid_year(
             "hourly": HOURLY_VARS
         }
 
-        try:
-            response = httpx.get(ARCHIVE_URL, params=params, timeout=30.0)
-            response.raise_for_status()
-            data = response.json()
-        except Exception as e:
-            print(f"Failed to fetch weather data for chunk {i // chunk_size + 1}: {e}")
+        data = None
+        for attempt in range(max_retries):
+            try:
+                response = httpx.get(ARCHIVE_URL, params=params, timeout=120.0)
+                response.raise_for_status()
+                data = response.json()
+                break
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    wait = base_delay * (2 ** attempt)
+                    print(f"    429 rate limited, retrying in {wait:.0f}s (attempt {attempt+1}/{max_retries})")
+                    time.sleep(wait)
+                else:
+                    print(f"    HTTP error for chunk {chunk_num}: {e}")
+                    break
+            except Exception as e:
+                print(f"    Failed to fetch weather data for chunk {chunk_num}: {e}")
+                break
+
+        if data is None:
+            print(f"    giving up on chunk {chunk_num} for now — rerun later to pick up remaining points")
+            time.sleep(base_delay)
             continue
 
+        points = data if isinstance(data, list) else [data]
+        chunk_frames = []
+        for (lat, lon), point in zip(chunk, points):
+            hourly = point.get("hourly", {})
+            if not hourly or "time" not in hourly:
+                print(f"No hourly data for ({lat}, {lon}) — skipping")
+                continue
+
+            df = pd.DataFrame(hourly)
+            df.rename(
+                columns={
+                    "time": "datetime",
+                    "temperature_2m": "temperature",
+                    "relative_humidity_2m": "relative_humidity",
+                    "wind_speed_10m": "wind_speed",
+                    "wind_direction_10m": "wind_direction",
+                },
+                inplace=True,
+            )
+            df["wind_u"], df["wind_v"] = calculate_wind_components_vectorized(
+                df["wind_speed"].to_numpy(), df["wind_direction"].to_numpy()
+            )
+            df["dryness"] = np.clip(
+                (100 - df["relative_humidity"] + df["temperature"]) / 100.0, 0.0, 1.0
+            ).round(4)
+            df["latitude"] = lat
+            df["longitude"] = lon
+            chunk_frames.append(df)
+
+        if chunk_frames:
+            chunk_result = pd.concat(chunk_frames, ignore_index=True)
+            chunk_result.to_csv(out_file, mode="a", header=not header_written, index=False)
+            header_written = True
+            print(f"    saved {len(chunk_result):,} rows -> {out_file}")
+
+        time.sleep(base_delay)
+
+    return pd.read_csv(out_file) if out_file.exists() else pd.DataFrame()
+    start_date, end_date = f"{year}-01-01", f"{year}-12-31"
+    print(f"Fetching historical weather grid for {region_name} ({len(coords)} points) for year {year}")
+
+    frames = []
+    n_chunks = (len(coords) + chunk_size - 1) // chunk_size
+    for i in range(0, len(coords), chunk_size):
+        chunk = coords[i:i + chunk_size]
+        chunk_num = i // chunk_size + 1
+        print(f"  chunk {chunk_num}/{n_chunks} ({len(chunk)} points)...")
+        latitudes, longitudes = zip(*chunk)
+        params = {
+            "latitude": latitudes,
+            "longitude": longitudes,
+            "start_date": start_date,
+            "end_date": end_date,
+            "hourly": HOURLY_VARS
+        }
+
+        data = None
+        for attempt in range(max_retries):
+            try:
+                response = httpx.get(ARCHIVE_URL, params=params, timeout=120.0)
+                response.raise_for_status()
+                data = response.json()
+                break
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    wait = base_delay * (2 ** attempt)
+                    print(f"    429 rate limited, retrying in {wait:.0f}s (attempt {attempt+1}/{max_retries})")
+                    time.sleep(wait)
+                else:
+                    print(f"    HTTP error for chunk {chunk_num}: {e}")
+                    break
+            except Exception as e:
+                print(f"    Failed to fetch weather data for chunk {chunk_num}: {e}")
+                break
+
+        if data is None:
+            print(f"    giving up on chunk {chunk_num} after {max_retries} attempts")
+            continue
 
         points = data if isinstance(data, list) else [data]
         for (lat, lon), point in zip(chunk, points):
@@ -220,26 +333,28 @@ def fetch_historical_weather_grid_year(
                 print(f"No hourly data for ({lat}, {lon}) — skipping")
                 continue
 
-        df = pd.DataFrame(hourly_data)
-        df.rename(
-            columns={
-                "time": "datetime",
-                "temperature_2m": "temperature",
-                "relative_humidity_2m": "relative_humidity",
-                "wind_speed_10m": "wind_speed",
-                "wind_direction_10m": "wind_direction",
-            },
-            inplace=True,
-        )
-        df["wind_u"], df["wind_v"] = calculate_wind_components_vectorized(
-            df["wind_speed"].to_numpy(), df["wind_direction"].to_numpy()
-        )
-        df["dryness"] = np.clip(
-            (100 - df["relative_humidity"] + df["temperature"]) / 100.0, 0.0, 1.0
-        ).round(4)
-        df["latitude"] = lat
-        df["longitude"] = lon
-        frames.append(df)
+            df = pd.DataFrame(hourly)
+            df.rename(
+                columns={
+                    "time": "datetime",
+                    "temperature_2m": "temperature",
+                    "relative_humidity_2m": "relative_humidity",
+                    "wind_speed_10m": "wind_speed",
+                    "wind_direction_10m": "wind_direction",
+                },
+                inplace=True,
+            )
+            df["wind_u"], df["wind_v"] = calculate_wind_components_vectorized(
+                df["wind_speed"].to_numpy(), df["wind_direction"].to_numpy()
+            )
+            df["dryness"] = np.clip(
+                (100 - df["relative_humidity"] + df["temperature"]) / 100.0, 0.0, 1.0
+            ).round(4)
+            df["latitude"] = lat
+            df["longitude"] = lon
+            frames.append(df)
+
+        time.sleep(base_delay)  # pace ourselves even on success, to avoid tripping the limit again
 
     if not frames:
         print("No data fetched for any coordinates.")
@@ -251,13 +366,12 @@ def fetch_historical_weather_grid_year(
     result.to_csv(out_file, index=False)
     print(f"Saved {len(result):,} hourly weather records to: {out_file}")
     return result
-
 def fetch_historical_weather_grid_sa(
     start_year: int, end_year: int, resolution_deg: float = 0.5
 )-> None:
-"""
-Fetches historical weather data for a grid covering South Africa for a range of years.
-"""
+    """
+    Fetches historical weather data for a grid covering South Africa for a range of years.
+    """
     coords = build_sa_grid_coords(resolution_deg)
     print(f"Fetching weather data for {len(coords)} grid points at {resolution_deg}° resolution from {start_year} to {end_year}")
     for year in range(start_year, end_year + 1):

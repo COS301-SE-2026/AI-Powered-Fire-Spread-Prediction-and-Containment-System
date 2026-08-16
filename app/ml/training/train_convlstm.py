@@ -85,12 +85,7 @@ class Trainer:
         full_raw = torch.cat([dynamic_raw, static_batch, hs, hc], dim=1)  # (B,9,H,W)
         return (full_raw - self.raw_mean) / self.raw_std
 
-    def _rollout(
-        self, 
-        dynamic_raw: torch.Tensor, 
-        our_sin: torch.Tensor, 
-        hour_cos: torch.Tensor
-    )-> torch.Tensor:
+    def _rollout(self, batch: dict, tf_p: float) -> dict:
         window = batch["input_seq"].to(self.device)
         current_dynamic_raw = batch["anchor_dynamic_raw"].to(self.device)
         future_dynamic_raw = batch["future_dynamic_raw"].to(self.device)
@@ -182,7 +177,7 @@ class Trainer:
                 if epochs_without_improvement >= early_stopping_patience:
                     print(f"Early stopping at epoch {epoch} (no improvement for {early_stopping_patience} epochs)")
                     break
- 
+
     def save_checkpoint(self, epoch: int, val_metrics: dict, is_best: bool = False) -> None:
         if not is_best:
             return
@@ -195,8 +190,8 @@ class Trainer:
             json.dumps({"epoch": epoch, "val_loss": self.best_val_loss, "val_metrics": val_metrics}, indent=2)
         )
         print(f"  saved checkpoint -> {out_dir}")
- 
- 
+
+
 def build_normalizers(
     npz_paths: list[str], static_tensor: np.ndarray
 ) -> tuple[RawChannelNormalizer, DeltaNormalizer]:
@@ -209,17 +204,17 @@ def build_normalizers(
         full = attach_static_and_time(hourly, static_tensor, hs, hc)  # (T,9,H,W)
         raw_frames.append(full)
         delta_frames.append(data["hourly_deltas"])
- 
+
     raw_all = np.concatenate(raw_frames, axis=0)
     delta_all = np.concatenate(delta_frames, axis=0)
- 
+
     raw_norm = RawChannelNormalizer()
     raw_norm.fit(raw_all)
     delta_norm = DeltaNormalizer()
     delta_norm.fit(delta_all)
     return raw_norm, delta_norm
- 
- 
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--weather-tensors-dir", default=TrainConfig.weather_tensors_dir)
@@ -227,7 +222,7 @@ def main() -> None:
     ap.add_argument("--epochs", type=int, default=TrainConfig.epochs)
     ap.add_argument("--batch-size", type=int, default=TrainConfig.batch_size)
     args = ap.parse_args()
- 
+
     cfg = TrainConfig(
         weather_tensors_dir=args.weather_tensors_dir,
         static_tensor_path=args.static_tensor_path,
@@ -236,14 +231,14 @@ def main() -> None:
     )
     torch.manual_seed(cfg.seed)
     random.seed(cfg.seed)
- 
+
     npz_paths = sorted(str(p) for p in Path(cfg.weather_tensors_dir).glob("weather_tensors_*.npz"))
     if not npz_paths:
         raise FileNotFoundError(
             f"No weather_tensors_*.npz found in {cfg.weather_tensors_dir} — "
             "run app.ml.training.build_weather_dataset first."
         )
- 
+
     static_path = Path(cfg.static_tensor_path)
     if not static_path.exists():
         raise FileNotFoundError(
@@ -251,12 +246,12 @@ def main() -> None:
             "haven't been wired up yet."
         )
     static_tensor = np.load(static_path)["static_tensor"]
- 
+
     raw_norm, delta_norm = build_normalizers(npz_paths, static_tensor)
- 
+
     split_cfg = WeatherDatasetSplitConfig(input_hours=cfg.input_hours, rollout_steps=cfg.rollout_steps)
     full_dataset = WeatherRolloutDataset(npz_paths, static_tensor, raw_norm, delta_norm, split_cfg)
- 
+
     n_val = int(len(full_dataset) * cfg.val_fraction)
     n_train = len(full_dataset) - n_val
     train_set, val_set = random_split(
@@ -266,18 +261,17 @@ def main() -> None:
     # a TIME-BASED split (contiguous months/fire-seasons), not a random one,
     # to avoid leaking near-identical adjacent hours into validation. Swap
     # this out once the fire-season stratification approach is settled.
- 
+
     train_loader = DataLoader(train_set, batch_size=cfg.batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=cfg.batch_size, shuffle=False)
- 
+
     model_cfg = WeatherDeltaModelConfig(hidden_dims=cfg.hidden_dims, kernel_size=cfg.kernel_size)
     model = WeatherDeltaModel(model_cfg)
- 
+
     trainer = Trainer(model, train_loader, val_loader, static_tensor, raw_norm, delta_norm, cfg)
     trainer.fit(cfg.epochs)
- 
- 
+
+
 if __name__ == "__main__":
     main()
- 
 
