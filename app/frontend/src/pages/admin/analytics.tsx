@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Card from '../../components/ui/Card';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
 
 const dateTimeFormatter = new Intl.DateTimeFormat('en-ZA', {
@@ -14,7 +14,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat('en-ZA', {
 });
 
 export default function AdminAnalyticsPage() {
-  const {kpis, pendingRequests, loading, error, refetch } = useAdminAnalytics();
+  const { kpis, pendingRequests, loading, error, refetch } = useAdminAnalytics();
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
@@ -25,7 +25,9 @@ export default function AdminAnalyticsPage() {
     return (
       <AdminSideBar>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
-          <div className="loading loading-spinner loading-lg text-primary">Loading analytics data...</div>
+          <div className="loading loading-spinner loading-lg text-primary">
+            Loading analytics data...
+          </div>
         </div>
       </AdminSideBar>
     );
@@ -68,7 +70,6 @@ export default function AdminAnalyticsPage() {
   return (
     <AdminSideBar>
       <div className="p-6 space-y-6 w-full">
-
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -120,7 +121,10 @@ export default function AdminAnalyticsPage() {
                 </thead>
                 <tbody>
                   {pendingRequests.map((req) => (
-                    <tr key={req.request_id} className="border-b border-carbon-stroke/50 last:border-0">
+                    <tr
+                      key={req.request_id}
+                      className="border-b border-carbon-stroke/50 last:border-0"
+                    >
                       <td className="py-2 text-text-primary">
                         {req.user.name} {req.user.surname}
                       </td>
@@ -138,7 +142,6 @@ export default function AdminAnalyticsPage() {
             </div>
           )}
         </Card>
-
       </div>
     </AdminSideBar>
   );
