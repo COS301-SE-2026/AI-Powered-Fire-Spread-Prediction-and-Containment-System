@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { apiCall } from '../lib/api';
@@ -8,13 +8,14 @@ export default function Verify2FA() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { email, otpauth_url } = router.query;
+  const { email, otpauthUrl } = router.query;
 
   const isValidEmail = email && typeof email === 'string';
-  const hasQrSetup = isValidEmail && otpauth_url && typeof otpauth_url === 'string';
+  const hasQrSetup = isValidEmail && otpauthUrl && typeof otpauthUrl === 'string';
 
-  const qrCodeSrc = hasQrSetup ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauth_url as string)}` : '';
-
+  const qrCodeSrc = hasQrSetup
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauthUrl as string)}`
+    : '';
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,9 +36,9 @@ export default function Verify2FA() {
       });
 
       const roleRedirects: Record<string, string> = {
-        admin: '/admin/adminDashboard',
-        firefighter: '/firefighterDashboard',
-        user: '/registeredUser/registeredUserLanding',
+        admin: '/admin/dashboard',
+        firefighter: 'firefighter/dashboard',
+        user: '/users/live-map',
       };
 
       if (data.role) {
@@ -45,13 +46,12 @@ export default function Verify2FA() {
       } else {
         setError('Verification failed');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Verification failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -91,17 +91,24 @@ export default function Verify2FA() {
               {hasQrSetup && (
                 <>
                   <p className="text-white/60 text-sm mb-4">
-                    Scann this QR code with your authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code below.
+                    Scann this QR code with your authenticator app (Google Authenticator, Authy,
+                    etc.), then enter the 6-digit code below.
                   </p>
                   <div className="flex justify-center mb-4">
-                    <img src={qrCodeSrc} alt="2FA QR Code" width={220} height={220} className="rounded-md border border-carbon-stroke"/>
+                    <img
+                      src={qrCodeSrc}
+                      alt="2FA QR Code"
+                      width={220}
+                      height={220}
+                      className="rounded-md border border-carbon-stroke"
+                    />
                   </div>
                 </>
               )}
 
               {!hasQrSetup && (
                 <p className="text-white/60 text-sm mb-4">
-                Enter the 6‑digit code from your authenticator app
+                  Enter the 6‑digit code from your authenticator app
                 </p>
               )}
 

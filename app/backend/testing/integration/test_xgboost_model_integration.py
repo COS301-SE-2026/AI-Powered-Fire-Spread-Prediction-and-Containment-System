@@ -6,7 +6,7 @@ from ml.training.synthetic_data import (
     make_static,
     make_weather,
 )
-from ml.training.train_ignition import group_split, train
+from app.ml.training.train_ignition import group_split, train
 
 from ai import artifact_store
 from ai.ignition import IgnitionScorer
