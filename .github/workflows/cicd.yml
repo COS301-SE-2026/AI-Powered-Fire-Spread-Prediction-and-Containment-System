@@ -248,7 +248,7 @@ jobs:
           MINIO_BUCKET: fire-reports
           JWT_SECRET: "your-super-secret-key-change-this"
         run: |
-          cd app/backend/src
+          cd app/backend
           nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
           for i in {1..30}; do
             curl -sf http://localhost:8000/docs > /dev/null && break
