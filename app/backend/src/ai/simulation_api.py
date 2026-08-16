@@ -18,11 +18,29 @@ from .dca import run_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
 from ml.features.real_data_loader import load_real_inference_data
+from .simulation import build_boundary_ignition_mask
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
 METRES_PER_DEG_LAT = 111_320.0
+TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
+MIN_GRID_DIMENSION = 10
+MAX_GRID_DIMENSION = 200
 
+def grid_dimensions_for_extent(
+        lat_extent_deg: float,
+        lon_extent_deg: float,
+        lat: float,
+        target_cell_size_m: float = TARGET_CELL_SIZE_M
+) -> tuple[int, int]:
+    # gets H and W from the real world target cell size
+    lat_extent_m = lat_extent_deg * METRES_PER_DEG_LAT
+    lon_extent_m = lon_extent_deg * METRES_PER_DEG_LAT * math.cos(math.radians(lat))
+
+    H = int(np.clip(round(lat_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
+    W = int(np.clip(round(lon_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
+
+    return H, W
 
 # Request/Response Schemas
 # TODO: WeatherParams will become read-only once pull weather data
@@ -85,14 +103,14 @@ class Prediction(BaseModel):
     truncated: bool
     lat_extent_deg: float
     lon_extent_deg: float
+    grid_h: int
+    grid_w: int
 
 
 class SimulationResponse(BaseModel):
     # Flattened burn-state grids per tick (list of (H*W) ints in {0=unburned, 1=burning, 2=burned})
     # Frontend reshapes to [H, W] using grid_h/_w
     predictions: list[Prediction]
-    grid_h: int
-    grid_w: int
     n_steps_run: int
 
 
@@ -142,7 +160,6 @@ async def run_simulation(
     Raises:
         HTTPException: Status 500 if underlying DCA model execution fails.
     """
-    H, W = req.grid_h, req.grid_w
 
     verified_fires = (
         db.query(
@@ -170,6 +187,8 @@ async def run_simulation(
         lat_extent_deg = max_lat - min_lat
         lon_extent_deg = max_lon - min_lon
 
+        H, W = grid_dimensions_for_extent(lat_extent_deg , lon_extent_deg, fire.lat)
+
         cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
         cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
         cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
@@ -189,16 +208,16 @@ async def run_simulation(
             target_shape=(H, W)
         )
 
-        cell = (H // 2, W // 2)
-
-        
+        ignition_mask = build_boundary_ignition_mask(
+            H, W, cell_size_m, float(fire.boundary_radius)
+        )
 
         try:
             history = run_dca(
                 weather_grids=weather_grids,
                 static_grids=static_grids,
                 n_steps=automatic_steps,
-                ignition_points=[cell],
+                ignition_mask=ignition_mask,
                 params=params_to_torch(req.dca),
                 cell_size_m=cell_size_m
             )
@@ -221,14 +240,14 @@ async def run_simulation(
                 radius_m=burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
                 truncated=truncated,
                 lat_extent_deg=lat_extent_deg,
-                lon_extent_deg=lon_extent_deg
+                lon_extent_deg=lon_extent_deg,
+                grid_h=H,
+                grid_w=W
             )
         )
         n_steps_run = len(history)
 
     return SimulationResponse(
         predictions=predictions,
-        grid_h=H,
-        grid_w=W,
         n_steps_run=n_steps_run,
     )
