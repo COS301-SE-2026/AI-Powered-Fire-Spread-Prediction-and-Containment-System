@@ -1,0 +1,1 @@
+export const LOCATION_PLACEHOLDER = 'Click the map to drop a pin';

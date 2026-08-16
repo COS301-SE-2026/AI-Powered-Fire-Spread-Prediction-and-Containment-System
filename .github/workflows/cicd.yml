@@ -12,10 +12,10 @@ jobs:
         working-directory: app/backend/testing
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -80,10 +80,10 @@ jobs:
       MINIO_BUCKET: fire-reports
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -116,10 +116,10 @@ jobs:
             working-directory: app/backend
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -133,149 +133,156 @@ jobs:
       - name: Run pylint
         run: PYTHONPATH=src:. pylint src --fail-under=8.0
 
-  # frontend-build:
-  #   name: Frontend Build
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: app/frontend/src
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-  #     - name: Set up Node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22
-  #         cache: yarn
-  #         cache-dependency-path: yarn.lock
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: yarn.lock
 
-  #     - name: Install dependencies
-  #       run: yarn install
+      - name: Install dependencies
+        run: yarn install
 
-  #     - name: Build
-  #       run: yarn run build
+      - name: Build
+        run: yarn run build
 
-  # frontend-eslint:
-  #   name: Frontend Lint (ESLint)
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: app/frontend
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+  frontend-eslint:
+    name: Frontend Lint (ESLint)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-  #     - name: Set up Node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22
-  #         cache: yarn
-  #         cache-dependency-path: app/frontend/src/yarn.lock
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: app/frontend/yarn.lock
 
-  #     - name: Install dependencies
-  #       run: yarn install
+      - name: Install dependencies
+        run: yarn install
 
-  #     - name: Run ESLint
-  #       run: yarn eslint
+      - name: Run ESLint
+        run: yarn eslint . --ext .js,.jsx,.ts,.tsx
 
-  # frontend-e2e:
-  #   name: Frontend E2E (Playwright)
-  #   runs-on: ubuntu-latest
-  #   needs: frontend-build
-  #   if: false
-  #   services:
-  #     postgres:
-  #       image: postgis/postgis:15-3.3
-  #       env:
-  #         POSTGRES_USER: postgres
-  #         POSTGRES_PASSWORD: postgres
-  #         POSTGRES_DB: test_fire_db
-  #       ports:
-  #         - 5433:5432
-  #       options: >-
-  #         --health-cmd "pg_isready -U postgres -d test_fire_db"
-  #         --health-interval 10s
-  #         --health-timeout 5s
-  #         --health-retries 5
-  #     minio:
-  #       image: minio/minio:latest
-  #       env:
-  #         MINIO_ROOT_USER: admin
-  #         MINIO_ROOT_PASSWORD: miniosupersecretpassword
-  #       ports:
-  #         - 9000:9000
-  #       command: server /data
+  frontend-react-doctor:
+    name: React Doctor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+      statuses: write
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
 
-  #     - name: Set up Python
-  #       uses: actions/setup-python@v5
-  #       with:
-  #         python-version: '3.11'
+      - name: Run React Doctor
+        uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
+        with:
+          directory: app/frontend
+          blocking: error
 
-  #     - name: Install backend dependencies
-  #       run: "pip install --require-hashes --only-binary :all: -r app/backend/src/requirements.txt"
+  frontend-e2e:
+    name: Frontend E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: frontend-build
+    services:
+      postgres:
+        image: postgis/postgis:15-3.3
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_fire_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d test_fire_db"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      minio:
+        image: minio/minio:latest
+        env:
+          MINIO_ROOT_USER: admin
+          MINIO_ROOT_PASSWORD: miniosupersecretpassword
+        ports:
+          - 9000:9000
+        command: server /data
 
-  #     - name: Launch backend
-  #       env:
-  #         DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-  #         MINIO_ENDPOINT: localhost:9000
-  #         MINIO_ACCESS_KEY: admin
-  #         MINIO_SECRET_KEY: miniosupersecretpassword
-  #         MINIO_BUCKET: fire-reports
-  #         JWT_SECRET: "your-super-secret-key-change-this"
-  #       run: |
-  #         cd app/backend/src
-  #         nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
-  #         sleep 3
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-  #     - name: Set up Node
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 22
-  #         cache: yarn
-  #         cache-dependency-path: app/frontend/src/yarn.lock
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  
+        with:
+          python-version: '3.12'
 
-  #     - name: Install frontend dependencies
-  #       run: yarn install
+      - name: Install backend dependencies
+        run: "pip install --require-hashes --only-binary :all: -r app/backend/requirements.txt"
 
-  #     - name: Install Playwright browsers
-  #       run: yarn playwright install --with-deps
+      - name: Launch backend
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+          MINIO_ENDPOINT: localhost:9000
+          MINIO_ACCESS_KEY: admin
+          MINIO_SECRET_KEY: miniosupersecretpassword
+          MINIO_BUCKET: fire-reports
+          JWT_SECRET: "your-super-secret-key-change-this"
+        run: |
+          cd app/backend
+          PYTHONPATH=src nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+          for i in {1..30}; do
+            curl -sf http://localhost:8000/docs > /dev/null && break
+            sleep 1
+          done
 
-  #     - name: Run Playwright Tests
-  #       working-directory: app/frontend/src
-  #       env:
-  #         CI: true
-  #         BACKEND_INTERNAL_URL: "http://localhost:8000"
-  #       run: yarn test --config=testing_config/playwright.config.ts
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: app/frontend/yarn.lock
 
-  #     - name: Upload Playwright Report
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: playwright-report
-  #         path: app/frontend/src/playwright-report/
-  #         retention-days: 7
-  # frontend-react-doctor:
-  #   name: React Doctor
-  #   runs-on: ubuntu-latest
-  #   permissions:
-  #     contents: read
-  #     pull-requests: write
-  #     issues: write
-  #     statuses: write
+      - name: Install frontend dependencies
+        working-directory: app/frontend
+        run: yarn install
 
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+      - name: Install Playwright browsers
+        working-directory: app/frontend
+        run: yarn playwright install --with-deps
 
-  #     - name: Run React Doctor
-  #       uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
-  #       with:
-  #         directory: app/frontend/src
-  #         blocking: error
+      - name: Run Playwright Tests
+        working-directory: app/frontend
+        env:
+          CI: true
+          BACKEND_INTERNAL_URL: "http://localhost:8000"
+        run: yarn test
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: app/frontend/playwright-report/
+          retention-days: 7
+
+ 
