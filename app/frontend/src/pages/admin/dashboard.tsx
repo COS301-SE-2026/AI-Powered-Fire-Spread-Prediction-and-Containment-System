@@ -1,7 +1,5 @@
-//need to add sidebar still
-import React, {useState, useEffect} from 'react';
-import {DashboardMetrics} from '../../components/admin/adminDashboardMetrics';
-import { SystemMetrics, MiniMetric } from '../../components/admin/systemMetrics';
+// need to add sidebar still
+import React, { useState, useEffect } from 'react';
 import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
 import { AdminSideBar } from '../../components/admin/adminSidebar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
@@ -109,11 +107,11 @@ export const AdminDashBoardDetailed: React.FC = () => {
                         </div>
                     </section>
 
-                    <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px]">
-                        <div className="w-full">
-                            <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
-                                Incidents this week
-                            </h2>
+          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px]">
+            <div className="w-full">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
+                Incidents this week
+              </h2>
 
                             <div className="flex justify-between items-end h-48 pt-4 px-4 bg-base-300/30 rounded border border-base-300">
                             {weeklyIncidents.map((day) => {
@@ -135,19 +133,17 @@ export const AdminDashBoardDetailed: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-base-300 text-[11px] text-base-content/50 font-mono flex justify-between">
-                            <span>Y-Axis Max: {maxCount} Alerts</span>
-                            <span> Spatial Log Distribution Context</span>
-                        </div>
-                    </section>
-
-                </div>
-
-                <SystemMetrics metrics={bottomMetrics} />
-
+            <div className="mt-4 pt-4 border-t border-base-300 text-[11px] text-base-content/50 font-mono flex justify-between">
+              <span>Y-Axis Max: {maxCount} Alerts</span>
+              <span> Spatial Log Distribution Context</span>
             </div>
-        </AdminSideBar>
-    );
+          </section>
+        </div>
+
+        <SystemMetrics metrics={bottomMetrics} />
+      </div>
+    </AdminSideBar>
+  );
 };
 
 export default AdminDashBoardDetailed;

@@ -1,20 +1,20 @@
-import React from "react";
-import { FireReportMapResponse, ReportStatus } from "../../types/Report";
-import { StatusBadge } from "./reportStatusBadge";
+import React from 'react';
 import { useRouter } from 'next/router';
+import { FireReportMapResponse, ReportStatus } from '../../types/Report';
+import { StatusBadge } from './reportStatusBadge';
 import { FormatDate } from "../shared/FormatDate";
 
 interface FireReportsTableProps {
-    readonly report: FireReportMapResponse[];
-    readonly filter: 'All' | ReportStatus;
+  readonly reports: FireReportMapResponse[];
+  readonly filter: 'All' | ReportStatus;
 }
 
-export function FireReportsTable({ report, filter }: FireReportsTableProps) {
-    const filtered = report.filter(r => filter === 'All' || r.status === filter)
-        .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
+export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
+  const filtered = reports
+    .filter((r) => filter === 'All' || r.status === filter)
+    .sort((a, b) => new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime());
 
-    const router = useRouter();
-
+  const router = useRouter();
 
     return (
         <div className="overflow-x-auto rounded-2xl border border-carbon-stroke  max-h-150">

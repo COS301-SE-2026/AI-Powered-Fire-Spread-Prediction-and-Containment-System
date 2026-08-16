@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import { ReportDetails } from './reportDetails';
 import { ReportDescription } from './reportDescription';
 import { ReportActions } from './reportActions';
@@ -14,24 +14,26 @@ import dynamic from 'next/dynamic';
         { ssr: false }
     );
 
-    interface ViewProps {
-        report_ref: string;
-    }
+interface ViewProps {
+  reportRef: string;
+}
 
-export function ViewPage({ report_ref }: Readonly<ViewProps>) {
-    const router = useRouter();
-    const { report, loading, error, refetch } = useFireReport(report_ref);
+export function ViewPage({ reportRef }: Readonly<ViewProps>) {
+  const router = useRouter();
+  const { report, loading, error, refetch } = useFireReport(reportRef);
 
-    if (loading) return (
-        <div className="p-6">
-            <p className="text-text-muted">Loading report...</p>
-        </div>
+  if (loading)
+    return (
+      <div className="p-6">
+        <p className="text-text-muted">Loading report...</p>
+      </div>
     );
 
-    if (error || !report) return (
-        <div className="p-6">
-            <p className="text-error">{error ?? 'Report not found.'}</p>
-        </div>
+  if (error || !report)
+    return (
+      <div className="p-6">
+        <p className="text-error">{error ?? 'Report not found.'}</p>
+      </div>
     );
 
     return (

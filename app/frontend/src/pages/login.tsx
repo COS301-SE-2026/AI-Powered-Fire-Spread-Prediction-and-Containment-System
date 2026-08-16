@@ -5,17 +5,16 @@ import Image from 'next/image';
 import { apiCall } from '../lib/api';
 import { useAuth } from '../hooks/useAuth';
 
-function validateEmail(email: string){
+function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-  const fieldClass = (hasError?: string) => {
-    if (hasError) {
-      return 'input input-error w-full';
-    } else {
-      return 'input input-neutral focus:border-primary w-full';
-    }
-  };
+const fieldClass = (hasError?: string) => {
+  if (hasError) {
+    return 'input input-error w-full';
+  }
+  return 'input input-neutral focus:border-primary w-full';
+};
 
   const ROLE_REDIRECTS: Record<string, string> = {
     admin: '/admin/dashboard',
@@ -40,15 +39,15 @@ export default function Login() {
   }, [isAuthLoading, isAuth, role, router]);
 
   const validate = () => {
-    const newErrors: { email?: string; password?: string} = {};
-    if(!email){
+    const newErrors: { email?: string; password?: string } = {};
+    if (!email) {
       newErrors.email = 'Email is required';
-    }else if(!validateEmail(email)){
+    } else if (!validateEmail(email)) {
       newErrors.email = 'Enter a valid email address';
     }
     if (!password) {
       newErrors.password = 'Password is required';
-    }else if(password.length < 6){
+    } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
 
@@ -59,7 +58,7 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setApiError('');
-    if(!validate()){
+    if (!validate()) {
       return;
     }
     setIsLoading(true);
@@ -106,37 +105,59 @@ export default function Login() {
           <h2 className="text-2xl font-bold text-text-primary text-center mb-6">Welcome back</h2>
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <div>
-              <label htmlFor="email" className="block text-sm text-white/60 mb-1">Email</label>
+              <label htmlFor="email" className="block text-sm text-white/60 mb-1">
+                Email
+              </label>
               <input
                 id="email"
                 type="email"
                 placeholder="example@something.co.za"
                 className={fieldClass(errors.email)}
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); setErrors(prev => ({ ...prev, email: undefined })); }}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((prev) => ({ ...prev, email: undefined }));
+                }}
               />
               {errors.email && <p className="text-flare text-xs mt-1">{errors.email}</p>}
             </div>
             <div>
-              <label htmlFor="password" className="block text-sm text-white/60 mb-1">Password</label>
+              <label htmlFor="password" className="block text-sm text-white/60 mb-1">
+                Password
+              </label>
               <input
                 id="password"
                 type="password"
                 placeholder="••••••••"
                 className={fieldClass(errors.password)}
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrors(prev => ({ ...prev, password: undefined })); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
               />
               {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
             </div>
-            {apiError && <div className="bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">{apiError}</div>}
-            <button type="submit" disabled={isLoading} className="w-full btn btn-primary active:scale-90 text-lg">
+            {apiError && (
+              <div className="bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">
+                {apiError}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full btn btn-primary active:scale-90 text-lg"
+            >
               {isLoading ? 'Logging in...' : 'Login'}
             </button>
             <Link href="/register" className="w-full btn btn-neutral text-lg">
               Register
             </Link>
-            <button type="button" onClick={handleGuest} className="w-full py-2 text-white/80 hover:text-white transition">
+            <button
+              type="button"
+              onClick={handleGuest}
+              className="w-full py-2 text-white/80 hover:text-white transition"
+            >
               Sign in as Guest
             </button>
           </form>

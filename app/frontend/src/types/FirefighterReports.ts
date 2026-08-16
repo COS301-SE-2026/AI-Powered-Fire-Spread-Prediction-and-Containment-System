@@ -1,32 +1,31 @@
 import type { ReportStatus } from './Report';
 
-
 export interface FirefighterReportTable {
-    ref: string;
-    location: string;
-    status: ReportStatus;
-    size: number;
-    reported: string;
-    reporter: string;
-    lat: number;
-    lng: number;
+  ref: string;
+  location: string;
+  status: ReportStatus;
+  size: number;
+  reported: string;
+  reporter: string;
+  lat: number;
+  lng: number;
 }
 
 export interface FirefighterReportModal {
-    id: string;
-    ref: string;
-    location: string;
-    status: ReportStatus;
-    reported: string;
-    reporter: string;
-    description: string;
-    image_url: string;
-    size: number;
-    lat: number;
-    lng: number;
+  id: string;
+  ref: string;
+  location: string;
+  status: ReportStatus;
+  reported: string;
+  reporter: string;
+  description: string;
+  image_url: string;
+  size: number;
+  lat: number;
+  lng: number;
 }
 
 export interface ReportList {
-    data: FirefighterReportTable[];
-    total: number;
+  data: FirefighterReportTable[];
+  total: number;
 }

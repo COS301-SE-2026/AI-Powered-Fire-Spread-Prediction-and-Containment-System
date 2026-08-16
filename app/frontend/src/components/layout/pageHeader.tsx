@@ -6,9 +6,9 @@ import { useNotifications } from "../../hooks/useNotification";
 import { NotificationSidebar } from "../notification/NotificationSidebar";
 
 interface PageHeaderProps {
-    title: string;
-    subtitle?: string;
-    actions?: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  actions?: React.ReactNode;
 }
 
 const UNREAD_COUNT = 9;

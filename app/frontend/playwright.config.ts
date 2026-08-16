@@ -1,14 +1,6 @@
 const config = {
-  testDir: '../testing',
-  testMatch: [
-    '**/admin/**/*.spec.@(js|ts|tsx)',
-    '**/reportFire/**/*.spec.@(js|ts|tsx)',
-    '**/loginAndRegister/**/*.spec.@(js|ts|tsx)',
-    '**/firefighter/**/*.spec.@(js|ts|tsx)',
-    '**/guests/**/*.spec.@(js|ts|tsx)',
-    '**/firefighter/**/*.spec.@(js|ts|tsx)',
-    '**/registeredUser/**/*.spec.@(js|ts|tsx)',
-  ],
+  testDir: './testing',
+
   timeout: 30000,
   expect: {
     timeout: 5000,
@@ -17,6 +9,7 @@ const config = {
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
+  reporter: [['html', { open: 'never '}]],
   use: {
     headless: true,
     baseURL: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -24,7 +17,7 @@ const config = {
     trace: 'on-first-retry',
   },
   webServer: {
-      command: 'yarn dev',
+    command: 'yarn dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
   },
