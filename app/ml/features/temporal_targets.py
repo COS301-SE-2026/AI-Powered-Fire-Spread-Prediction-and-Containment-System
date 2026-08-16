@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import numpy as np
 
-class TemporalTargets:
+class TemporalTargetBuilder:
     """
     Handles converting hourly dynamic data into smaller temporal steps.
 
