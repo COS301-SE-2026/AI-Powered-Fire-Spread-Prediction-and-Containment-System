@@ -9,6 +9,7 @@ from models.users import User
 from schemas.auth import LoginRequest
 
 #needs t.b. added to env files, these are just temp
+#odes not need to be ip address, that's only for fire reports
 VALKEY_HOST = os.getenv("VALKEY_HOST", "localhost")
 VALKEY_PORT = int(os.getenv("VALKEY_PORT", 6379))
 
