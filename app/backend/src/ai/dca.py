@@ -11,7 +11,7 @@ from .simulation import (
     state_to_burn_state,
 )
 
-MAXSTEPS = 144 # 2 ticks = 1 hour max ticks is 148 as 72 hours is max simulation time
+MAXSTEPS = 144 # 2 ticks = 1 hour max ticks is 144 as 72 hours is max simulation time
 TICK_MINUTES = 30 # how many minutes 1 tick is equivalent to
 
 
