@@ -17,7 +17,7 @@ from models.reported_fires import FireReports
 from .dca import run_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
-from ml.features.real_data_loader import load_real_inference_data
+from app.ml.features.real_data_loader import load_real_inference_data
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -83,6 +83,8 @@ class Prediction(BaseModel):
     burned_cells: int
     radius_m: float
     truncated: bool
+    lat_extent_deg: float
+    lon_extent_deg: float
 
 
 class SimulationResponse(BaseModel):
@@ -230,11 +232,13 @@ async def run_simulation(
 
         cell = (H // 2, W // 2)
 
+        automatic_steps = 2 
+
         try:
             history = run_dca(
                 weather_grids=weather_grids,
                 static_grids=static_grids,
-                n_steps=req.n_steps,
+                n_steps=automatic_steps,
                 ignition_points=[cell],
                 params=params_to_torch(req.dca),
                 cell_size_m=cell_size_m
@@ -256,7 +260,9 @@ async def run_simulation(
                 history=[g.ravel().tolist() for g in history],
                 burned_cells=burned_cells,
                 radius_m=burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
-                truncated=truncated
+                truncated=truncated,
+                lat_extent_deg=lat_extent_deg,
+                lon_extent_deg=lon_extent_deg
             )
         )
         n_steps_run = len(history)

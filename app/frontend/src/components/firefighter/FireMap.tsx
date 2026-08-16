@@ -88,21 +88,19 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
         setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 13)}))
     }, [selectedFireId, fires])
 
-    const EXTENT_DEG = 0.05;
-
     const girdFeautures = useMemo(() => {
         if(!predictions?.length || !burnGridH || !burnGridW) return [];
         
         const features = [];
-        const cellLonSize = EXTENT_DEG / burnGridW;
-        const cellLatSize = EXTENT_DEG / burnGridH;
 
         for (const p of predictions){
             const grid = p.history[currentTick]
             if(!grid) continue;
 
-            const minLon = p.lng - EXTENT_DEG / 2;
-            const maxLat = p.lat + EXTENT_DEG / 2;
+            const cellLonSize = p.lon_extent_deg / burnGridW;
+            const cellLatSize = p.lat_extent_deg / burnGridH;
+            const minLon = p.lng - p.lon_extent_deg / 2;
+            const maxLat = p.lat + p.lat_extent_deg / 2;
 
             for(let row = 0; row < burnGridH; row++){
                 for(let col = 0; col < burnGridW; col++){

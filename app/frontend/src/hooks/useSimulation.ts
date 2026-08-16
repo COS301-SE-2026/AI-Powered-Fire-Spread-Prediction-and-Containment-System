@@ -46,6 +46,9 @@ export interface Prediction {
     history: number[][];
     burned_cells: number;
     radius_m: number;
+    truncated: boolean;
+    lat_extent_deg: number;
+    lon_extent_deg: number;
 }
 
 export interface SimulationResult {
