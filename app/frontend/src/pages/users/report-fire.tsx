@@ -1,10 +1,10 @@
-import { UserSideBar } from "../../components/users/usersSidebar";
-import ReportPage from "../../components/reportfire/report";
+import { UserSideBar } from '../../components/users/UserSideBar';
+import ReportPage from '../../components/reportfire/ReportPage';
 
-export default function RegisteredReportFire(){
-    return(
-        <UserSideBar>
-            <ReportPage/>
-        </UserSideBar>
-    );
+export default function RegisteredReportFire() {
+  return (
+    <UserSideBar>
+      <ReportPage />
+    </UserSideBar>
+  );
 }
