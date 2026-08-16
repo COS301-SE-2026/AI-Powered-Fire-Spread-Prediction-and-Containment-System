@@ -1,10 +1,13 @@
 // need to add sidebar still
 import React, { useState, useEffect } from 'react';
 import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { PreviewPanel } from '../../components/notification/PreviewPanel';
+import { DashboardMetrics } from '../../components/admin/adminDashboardMetrics';
+import { SystemMetrics } from '../../components/admin/systemMetrics';
+import { MiniMetric } from '../../types/AdminDashboard';
 
 export const AdminDashBoardDetailed: React.FC = () => {
     const { topMetrics, activityLog, weeklyIncidents, systemMetrics, loading, error, isForbidden } = useAdminDashboard();
