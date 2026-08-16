@@ -1,20 +1,18 @@
-import React from "react";
-import { ReportStatus, FireReportDetailResponse } from "../../types/Report";
+import React from 'react';
 import { useRouter } from 'next/router';
-import { StatusBadge } from "../admin/reportStatusBadge";
+import { ReportStatus } from '../../types/Report';
+import { StatusBadge } from '../admin/reportStatusBadge';
 import { FirefighterReportTable } from '../../types/FirefighterReports';
 import { FormatDate } from "../shared/FormatDate";
 
-interface ReportsTableProp{
-    readonly requests: FirefighterReportTable[];
-    readonly filter: 'all' | ReportStatus;
-    readonly onView: (request: FirefighterReportTable) => void;
+interface ReportsTableProp {
+  readonly requests: FirefighterReportTable[];
+  readonly filter: 'all' | ReportStatus;
+  readonly onView: (request: FirefighterReportTable) => void;
 }
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
-    const filtered = requests.filter(req =>
-        filter === 'all' || req.status === filter
-    );
+  const filtered = requests.filter((req) => filter === 'all' || req.status === filter);
 
     const router = useRouter();
     return (

@@ -1,0 +1,190 @@
+{
+  "plugins": ["filenames"],
+  "extends": ["airbnb", "next/core-web-vitals", "prettier"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "import/prefer-default-export": "off",
+    "react/prefer-stateless-function": [
+      "error",
+      {
+        "ignorePureComponents": false
+      }
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ClassDeclaration[superClass.name='Component'], ClassDeclaration[superClass.name='PureComponent'], ClassDeclaration[superClass.property.name='Component'], ClassDeclaration[superClass.property.name='PureComponent']",
+        "message": "Class components are disallowed. Use a functional component with hooks instead."
+      }
+    ],
+    "react/function-component-definition": "off",
+    "react/prop-types": "off",
+    "react/no-multi-comp": [
+      "error",
+      {
+        "ignoreStateless": false
+      }
+    ],
+    "react/require-default-props": [
+      "error",
+      {
+        "functions": "defaultArguments"
+      }
+    ],
+    "camelcase": "off",
+    "no-unused-vars": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [".tsx"]
+      }
+    ],
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ],
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": [
+          "**/*.spec.ts",
+          "**/*.spec.tsx",
+          "**/*.spec.js",
+          "**/testing/**",
+          "**/testing_config/**",
+          "**/*.config.js",
+          "**/*.config.ts",
+          "tailwind.config.js",
+          "next.config.js"
+        ]
+      }
+    ],
+    "react/button-has-type": "off",
+    "jsx-a11y/label-has-associated-control": "off",
+    "jsx-a11y/control-has-associated-label": "off",
+    "eqeqeq": "off",
+    "no-plusplus": "off",
+    "no-continue": "off",
+    "react/jsx-no-bind": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/no-unescaped-entities": "off",
+    "react/no-array-index-key": "off",
+    "no-multi-assign": "off",
+    "no-nested-ternary": "off",
+    "no-param-reassign": "off",
+    "consistent-return": "off",
+    "no-restricted-globals": "off",
+    "global-require": "off",
+    "no-console": "off",
+    "no-constant-condition": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "parser": "@typescript-eslint/parser",
+      "parserOptions": {
+        "project": "./tsconfig.json"
+      },
+      "plugins": ["@typescript-eslint"],
+      "extends": ["airbnb-typescript", "prettier"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "error",
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/naming-convention": [
+          "error",
+          {
+            "selector": "typeLike",
+            "format": ["PascalCase"]
+          },
+          {
+            "selector": "enumMember",
+            "format": ["PascalCase"]
+          },
+          {
+            "selector": "variable",
+            "modifiers": ["const", "global"],
+            "types": ["boolean", "string", "number"],
+            "format": ["UPPER_CASE"],
+            "filter": {
+              "regex": "^className$",
+              "match": false
+            }
+          },
+          {
+            "selector": "variable",
+            "types": ["function"],
+            "format": ["camelCase", "PascalCase"]
+          },
+          {
+            "selector": "function",
+            "format": ["camelCase", "PascalCase"]
+          },
+          {
+            "selector": "variable",
+            "format": ["camelCase", "UPPER_CASE", "PascalCase"],
+            "leadingUnderscore": "allow"
+          },
+          {
+            "selector": "parameter",
+            "format": ["camelCase", "PascalCase"],
+            "leadingUnderscore": "allow"
+          },
+          {
+            "selector": "property",
+            "format": null
+          },
+          {
+            "selector": "import",
+            "format": ["camelCase", "PascalCase"]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/*.ts", "**/*.tsx", "**/*.jsx"],
+      "excludedFiles": [
+        "**/hooks/**",
+        "**/*.config.js",
+        "**/*.config.ts",
+        "**/types/**",
+        "**/*.spec.ts",
+        "**/*.spec.tsx"
+      ],
+      "rules": {
+        "filenames/match-exported": ["error", "pascal"]
+      }
+    },
+    {
+      "files": [
+        "**/hooks/**",
+        "**/*.config.js",
+        "**/*.config.ts",
+        "**/pages/**",
+        "**/types/**",
+        "**/brandStyle/**"
+      ],
+      "rules": {
+        "react/no-multi-comp": "off"
+      }
+    },
+    {
+      "files": ["**/*.js", "**/*.jsx"],
+      "rules": {
+        "@typescript-eslint/dot-notation": "off"
+      }
+    },
+    {
+      "files": ["**/*.config.js", "**/*.config.ts"],
+      "rules": {
+        "filenames/match-exported": "off"
+      }
+    }
+  ]
+}
