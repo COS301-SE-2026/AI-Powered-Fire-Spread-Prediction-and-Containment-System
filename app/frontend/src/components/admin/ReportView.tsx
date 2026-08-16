@@ -7,8 +7,6 @@ import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 import { PageHeader } from '../../components/layout/pageHeader';
 
-import dynamic from 'next/dynamic';
-
     const ReportMap = dynamic(
         () => import('./reportMapCard').then(mod => mod.ReportMap),
         { ssr: false }
@@ -55,7 +53,7 @@ export function ViewPage({ reportRef }: Readonly<ViewProps>) {
                 <div className='lg:col-span-6 flex flex-col gap-2 h-full'>
                     <ReportPhoto report={report} />
                     <ReportDescription report={report} />
-                    <ReportActions report_ref={report.reference_number} status={report.status} onStatusChange={refetch} />
+                    <ReportActions reportRef={report.reference_number} status={report.status} onStatusChange={refetch} />
                 </div>
             </div>
         </div>
