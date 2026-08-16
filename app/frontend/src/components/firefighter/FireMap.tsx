@@ -15,15 +15,13 @@ interface MapProps{
     onDrawComplete: (line: string) => void;
     clearDrawings: number;
     burnGrid?: number[] | null;
-    burnGridH?: number;
-    burnGridW?: number;
     predictions?: Prediction[];
     currentTick?: number;
     selectedFireId?: string | null;
     onSelectFire?: (ref: string) => void;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burnGridH, burnGridW, predictions, currentTick=0, selectedFireId, onSelectFire}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions, currentTick=0, selectedFireId, onSelectFire}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -89,22 +87,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
     }, [selectedFireId, fires])
 
     const girdFeautures = useMemo(() => {
-        if(!predictions?.length || !burnGridH || !burnGridW) return [];
+        if(!predictions?.length) return [];
         
         const features = [];
 
         for (const p of predictions){
             const grid = p.history[currentTick]
-            if(!grid) continue;
+            if(!grid || !p.grid_h || !p.grid_w) continue;
 
-            const cellLonSize = p.lon_extent_deg / burnGridW;
-            const cellLatSize = p.lat_extent_deg / burnGridH;
+            const cellLonSize = p.lon_extent_deg / p.grid_w;
+            const cellLatSize = p.lat_extent_deg / p.grid_h;
             const minLon = p.lng - p.lon_extent_deg / 2;
             const maxLat = p.lat + p.lat_extent_deg / 2;
 
-            for(let row = 0; row < burnGridH; row++){
-                for(let col = 0; col < burnGridW; col++){
-                    const state = grid[row * burnGridW + col];
+            for(let row = 0; row < p.grid_h; row++){
+                for(let col = 0; col < p.grid_w; col++){
+                    const state = grid[row * p.grid_w+ col];
                     if(state === 0) continue;
 
                     const cellMinLon = minLon + col * cellLonSize;
@@ -128,7 +126,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, burn
             }
         }
         return features;
-    }, [predictions, currentTick, burnGridH, burnGridW])
+    }, [predictions, currentTick])
 
     return (
         <Map

@@ -49,12 +49,12 @@ export interface Prediction {
     truncated: boolean;
     lat_extent_deg: number;
     lon_extent_deg: number;
+    grid_h: number;
+    grid_w: number;
 }
 
 export interface SimulationResult {
     predictions: Prediction[];
-    grid_h: number;
-    grid_w: number;
     n_steps_run: number;
 }
 
@@ -232,8 +232,6 @@ export function useSimulation() {
         autoplay,
         setAutoPlay,
         totalTicks: result?.n_steps_run ?? 0,
-        gridH: result?.grid_h ?? 30,
-        gridW: result?.grid_w ?? 30,
         weather,
         setWeather,
         staticParams,

@@ -30,8 +30,6 @@ export default function ReportTable() {
         autoplay,
         setAutoPlay,
         totalTicks,
-        gridH,
-        gridW,
         weather,
         setWeather,
         staticParams,
@@ -115,8 +113,6 @@ export default function ReportTable() {
                                     drawMode={drawMode}
                                     onDrawComplete={submitLine}
                                     clearDrawings={clearDrawings}
-                                    burnGridH={gridH}
-                                    burnGridW={gridW}
                                     predictions={predictions}
                                     currentTick={currentTick}
                                     selectedFireId={selectedFireId}

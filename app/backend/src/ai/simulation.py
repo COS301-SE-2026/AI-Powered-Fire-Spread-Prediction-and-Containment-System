@@ -40,6 +40,18 @@ def build_verified_reports_mask(
 
     return mask
 
+def build_boundary_ignition_mask(
+        H: int, W: int, cell_size_m: float, boundary_radius_m: float
+) -> np.ndarray:
+    # marks every fire inside the boundary radius as ignited
+    cy, cx = H / 2.0, W / 2.0
+    radius_cells = boundary_radius_m / cell_size_m
+
+    yy, xx = np.mgrid[0:H, 0:W]
+    dist_cells = np.sqrt((yy - cy) **2 + (xx - cx) **2)
+
+    return dist_cells <= radius_cells
+
 
 def build_env_data(
     weather_grids: dict, static_grids: dict, initial_ignition_mask: np.ndarray, cell_size_m: float

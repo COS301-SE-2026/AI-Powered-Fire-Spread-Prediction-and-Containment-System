@@ -22,6 +22,7 @@ def run_dca(
     n_steps: int = 2,
     n_ignition_points: int = 1,
     ignition_points: list[tuple[int, int]] | None = None,
+    ignition_mask: np.ndarray | None = None,
     params: dict | None = None,
 ):
     if n_steps > MAXSTEPS:
@@ -35,7 +36,9 @@ def run_dca(
     H, W = static_grids["elevation"].shape
     burn_state0 = np.full((H, W), UNBURNED, dtype=np.int64)
 
-    if ignition_points:
+    if ignition_mask is not None:
+        pass
+    elif ignition_points:
         ignition_mask = build_verified_reports_mask(H, W, ignition_points)
     else:
         scorer = IgnitionScorer.load()
