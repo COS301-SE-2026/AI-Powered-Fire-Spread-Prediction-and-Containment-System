@@ -10,9 +10,9 @@ STAC_API = "https://earth-search.aws.element84.com/v1"
 S2_COLLECTION = "sentinel-2-c1-l2a"
 
 S2_REQUIRED_BANDS = {
-    "red": "b04",
-    "nir": "b08",
-    "swir16": "b11"
+    "red",
+    "nir",
+    "swir16"
 }
 
 @dataclass
@@ -51,8 +51,8 @@ def resolve_dem_path(
     }
 
     return [
-        f"/vsis3/{COPERNICUS_DEM_BUCKET}/Copernicus_DSM_COG_30_{tile}_DEM/"
-        f"Copernicus_DSM_COG_30_{tile}_DEM.tif"
+        f"/vsis3/{COPERNICUS_DEM_BUCKET}/Copernicus_DSM_COG_10_{tile}_DEM/"
+        f"Copernicus_DSM_COG_10_{tile}_DEM.tif"
         for tile in sorted(tiles)
     ]
 
@@ -92,7 +92,7 @@ def resolve_sentinel2_bands(
         )
 
     def score(item):
-        item_dt = item.datetime.replace(tzinfo=None) if item.datetime else when
+        item_dt = item.datetime if item.datetime else when
         time_delta = abs((item_dt - when).total_seconds())
         cloud = item.properties.get("eo:cloud_cover", 100)
         return (time_delta, cloud)
@@ -105,9 +105,9 @@ def resolve_sentinel2_bands(
         raise FileNotFoundError(f"Scene {best.id} is missing required bands: {missing}")
 
     return ResolvedTiles(
-        b04_path=assets[S2_REQUIRED_BANDS["red"]].href,
-        b08_path=assets[S2_REQUIRED_BANDS["nir"]].href,
-        b11_path=assets[S2_REQUIRED_BANDS["swir16"]].href,
+        b04_path=assets["red"].href,
+        b08_path=assets["nir"].href,
+        b11_path=assets["swir16"].href,
         dem_path="",
         scl_path=assets["scl"].href if "scl" in assets else None,
         s2_item_id=best.id,
