@@ -263,6 +263,7 @@ jobs:
           cache-dependency-path: app/frontend/yarn.lock
 
       - name: Install frontend dependencies
+        working-directory: app/frontend
         run: yarn install
 
       - name: Install Playwright browsers
