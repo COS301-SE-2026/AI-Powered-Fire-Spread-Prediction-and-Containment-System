@@ -12,8 +12,9 @@ def bbox_from_fire(
         lng: float,
         boundary_radius_m: float,
         n_steps: int,
-        max_spread_m_per_tick: float = 50.0, # placeholder will be changed after training/calibration
-        min_pad_ratio: float = 2.0 # cannot pad less than 2 times the size of the reported fire
+        max_spread_m_per_tick: float = 15.0, # placeholder will be changed after training/calibration
+        min_pad_ratio: float = 2.0, # cannot pad less than 2 times the size of the reported fire
+        min_extent_radius_m: float = 300
 ) -> tuple[float, float, float, float]: # (min_lon, min_lat, max_lon, max_lat)
     """ 
     Centers the boundary box around a fire and pads it beyond the reported size/radius of the fire
@@ -23,7 +24,8 @@ def bbox_from_fire(
 
     padded_radius_m = max(
         boundary_radius_m * min_pad_ratio,
-        boundary_radius_m + spread_headroom_m
+        boundary_radius_m + spread_headroom_m,
+        min_extent_radius_m
     )
 
     m_per_deg_lon = METERS_PER_DEG_LAT * math.cos(math.radians(lat))
