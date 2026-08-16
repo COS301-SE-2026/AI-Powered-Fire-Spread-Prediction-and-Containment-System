@@ -58,8 +58,8 @@ def check_rate_limits(email_key: str) -> None:
 
 #change to IP here also, probably IP and device
 def record_failure(email_key: str) -> None:
-    lockout_key = f"auth:lockout{email_key}"
-    consecutive_key = f"auth.consecutirve:{email_key}"
+    lockout_key = f"auth:lockout:{email_key}"
+    consecutive_key = f"auth.consecutive:{email_key}"
     throttle_key = f"auth:throttle:{email_key}"
 
     fails = valkey_client.incr(consecutive_key)
@@ -71,7 +71,7 @@ def record_failure(email_key: str) -> None:
         valkey_client.delete(throttle_key)
         raise HTTPException(
             status_code=status.HTTP_423_LOCKED,
-            details=f"Account locked for 30 minutes due to 10 consecutive failed login attempts"
+            detail=f"Account locked for 30 minutes due to 10 consecutive failed login attempts"
         )
 
     delay = get_delay(fails)
@@ -79,7 +79,7 @@ def record_failure(email_key: str) -> None:
         valkey_client.set(throttle_key, "throttled", ex=delay)
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            details=f"Incorrect credentials. Please wait {delay} before retrying to login"
+            detail=f"Incorrect credentials. Please wait {delay} seconds before retrying to login"
         )
 
     raise HTTPException(
