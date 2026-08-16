@@ -11,15 +11,15 @@ from .simulation import (
     state_to_burn_state,
 )
 
-MAXSTEPS = 144 # 2 ticks = 1 hour max ticks is 144 as 72 hours is max simulation time
-TICK_MINUTES = 30 # how many minutes 1 tick is equivalent to
+MAXSTEPS = 288 # 4 ticks = 1 hour max ticks is 288 as 72 hours is max simulation time
+TICK_MINUTES = 15 # how many minutes 1 tick is equivalent to
 
 
 def run_dca(
     weather_grids: dict,
     static_grids: dict,
     cell_size_m: float,
-    n_steps: int = 2,
+    n_steps: int = 4,
     n_ignition_points: int = 1,
     ignition_points: list[tuple[int, int]] | None = None,
     ignition_mask: np.ndarray | None = None,

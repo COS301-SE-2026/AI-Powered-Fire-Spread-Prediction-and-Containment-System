@@ -44,7 +44,7 @@ export default function ReportTable() {
 
     function handleRun() {
         const target = selectedFire ?? userLocation;
-        runSimulation(target.lat, target.lng, 48, selectedFireId);
+        runSimulation(target.lat, target.lng, 96, selectedFireId);
     }
 
     function handleReset(){
@@ -53,7 +53,7 @@ export default function ReportTable() {
     }
 
     const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-    const totalHours = hasResult ? (maxSlider / 2) : 48;
+    const totalHours = hasResult ? (maxSlider / 4) : 48;
     return (
         <FirefighterSideBar>
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>

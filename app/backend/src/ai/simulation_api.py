@@ -174,13 +174,15 @@ async def run_simulation(
 
     predictions: list[Prediction] = []
     n_steps_run = 0
-    automatic_steps = 2 
+    automatic_steps = 4 
 
     for fire in verified_fires:
+        boundary_m = float(fire.boundary_radius) * 1000 # convert boundary from db to meters
+
         min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
             lat=fire.lat,
             lng=fire.lng,
-            boundary_radius_m=float(fire.boundary_radius),
+            boundary_radius_m=boundary_m,
             n_steps=automatic_steps
         )
 
@@ -209,7 +211,7 @@ async def run_simulation(
         )
 
         ignition_mask = build_boundary_ignition_mask(
-            H, W, cell_size_m, float(fire.boundary_radius)
+            H, W, cell_size_m, boundary_m
         )
 
         try:

@@ -115,15 +115,17 @@ export function useSimulation() {
 
     const startAutoPlay = useCallback((totalTicks: number) => {
         stopAutoPlay();
+        setStatus('playing');
+
         playTimeRef.current = setInterval(() => {
             setCurrentTick((t) => {
-                if (t >= totalTicks-1) {
-                    return t;
-                }
-                return t+1;
-            });
-            const next = totalTicks + 1;
+                const next = t + 1;
 
+                if (next >= totalTicks-1) {
+                    return totalTicks - 1;
+                }
+                return next
+            });
         }, PLAYBACK_INTERVAL_MS);
         setStatus('playing');
     },
