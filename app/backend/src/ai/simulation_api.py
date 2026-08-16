@@ -17,7 +17,7 @@ from models.reported_fires import FireReports
 from .dca import run_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
-from app.ml.features.real_data_loader import load_real_inference_data
+from ml.features.real_data_loader import load_real_inference_data
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -96,38 +96,6 @@ class SimulationResponse(BaseModel):
     n_steps_run: int
 
 
-# Grid Builders
-
-
-# Temp func. Delete when integrate real spatial data
-def build_uniform_grid(h: int, w: int, value: float, dtype=np.float32) -> np.ndarray:
-    return np.full((h, w), value, dtype=dtype)
-
-
-def build_weather_grids(
-    h: int, w: int, w_params: WeatherParams
-) -> dict[str, np.ndarray]:
-    # TODO: replace build_uniform_grid() calls with real fetches
-    return {
-        "wind_u": build_uniform_grid(h, w, w_params.wind_u),
-        "wind_v": build_uniform_grid(h, w, w_params.wind_v),
-        "rel_humidity": build_uniform_grid(h, w, w_params.rel_humidity),
-        "temperature": build_uniform_grid(h, w, w_params.temperature),
-    }
-
-
-def build_static_grids(h: int, w: int, s_params: StaticParams) -> dict[str, np.ndarray]:
-    # TODO: Replace build_uniform_grids() call with real raster lookups
-    return {
-        "elevation": build_uniform_grid(h, w, s_params.elevation),
-        "slope": build_uniform_grid(h, w, s_params.slope),
-        "aspect_sin": build_uniform_grid(h, w, s_params.aspect_sin),
-        "aspect_cos": build_uniform_grid(h, w, s_params.aspect_cos),
-        "fuel_load": build_uniform_grid(h, w, s_params.fuel_load),
-        "dryness": build_uniform_grid(h, w, s_params.dryness),
-    }
-
-
 def params_to_torch(dca: DCAParams):
     import torch
 
@@ -161,14 +129,8 @@ async def run_simulation(
 ) -> SimulationResponse:
     """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
 
-    Frontend sends map-center coordinates and environment parameters. This endpoint builds
-    uniform grids (simple proxy for real raster data), runs IgnitionScorer to select ignition
-    points, executes WildfireModel and returns the complete history so frontend can animate it.
-
-    Note:
-        When real raster/weather data becomes available, only grid and weather initialisation
-        call sites need to be updated. Everything downstream (IgnitionScorer, run_dca, response serialization)
-        remains unchanged. Also update this docstring when real data is plugged in.
+    Runs the simulation for one hour on each verified fire. Computes a bounding box based on the fires current radius.
+    Loads real data.
 
     Args:
         req (SimulationRequest): Incoming request payload containing grid dimentions,
@@ -181,10 +143,6 @@ async def run_simulation(
         HTTPException: Status 500 if underlying DCA model execution fails.
     """
     H, W = req.grid_h, req.grid_w
-
-    # TODO: Pass req.lat and req.lng into these two functions so they can compute the bounding box and fetch real spatial data.
-    weather_grids = build_weather_grids(H, W, req.weather)
-    static_grids = build_static_grids(H, W, req.static)
 
     verified_fires = (
         db.query(
@@ -199,13 +157,14 @@ async def run_simulation(
 
     predictions: list[Prediction] = []
     n_steps_run = 0
+    automatic_steps = 2 
 
     for fire in verified_fires:
         min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
             lat=fire.lat,
             lng=fire.lng,
-            boundary_radius_m=fire.boundary_radius,
-            n_steps=req.n_steps
+            boundary_radius_m=float(fire.boundary_radius),
+            n_steps=automatic_steps
         )
 
         lat_extent_deg = max_lat - min_lat
@@ -232,7 +191,7 @@ async def run_simulation(
 
         cell = (H // 2, W // 2)
 
-        automatic_steps = 2 
+        
 
         try:
             history = run_dca(
