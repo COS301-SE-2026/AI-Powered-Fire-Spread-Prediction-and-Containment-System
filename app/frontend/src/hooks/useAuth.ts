@@ -24,7 +24,7 @@ export function useAuth(): AuthProps {
                     setRole(data.role);
                 }
             } catch {
-
+                // not authenticated
             } finally {
                 if (isMounted) {
                     setIsLoading(false);

@@ -5,15 +5,6 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { NotificationsProvider, useNotifications } from "../hooks/useNotification";
 import { NotificationToast } from '../components/notification/NotificationToast';
 
-function MyApp({ Component, pageProps }: AppProps) {
-  return (
-    <NotificationsProvider>
-      <Component {...pageProps} />
-      <GlobalToast />
-    </NotificationsProvider>
-  );
-}
-
 function GlobalToast() {
   const { activeToast, dismissToast } = useNotifications();
   if (!activeToast) return null;
@@ -21,6 +12,15 @@ function GlobalToast() {
     <div className="toast toast-top toast-end z-100">
       <NotificationToast notification={activeToast} onDismiss={dismissToast} />
     </div>
+  );
+}
+
+function MyApp({ Component, pageProps }: AppProps) {
+  return (
+    <NotificationsProvider>
+      <Component {...pageProps} />
+      <GlobalToast />
+    </NotificationsProvider>
   );
 }
 

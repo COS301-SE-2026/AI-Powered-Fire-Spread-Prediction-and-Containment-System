@@ -14,7 +14,7 @@ export default function GuestPublicDashboard() {
         <UserSideBar>
             <div className="flex flex-col p-6 relative h-full overflow-hidden">
 
-                {/*Public View Header*/}
+                {/* Public View Header */}
                 <PageHeader title="Incident Map" subtitle="Public Fire Map View"
                     // actions = {
                     //     <button type="button" onClick={() => setIsAlertsOpen(true)}>
