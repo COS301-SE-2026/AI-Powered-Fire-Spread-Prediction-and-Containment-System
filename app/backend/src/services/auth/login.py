@@ -88,7 +88,7 @@ def record_failure(email_key: str) -> None:
     )
 
 def reset_counters(email_key: str) -> None:
-    consecutive_key = f"auth.consecutirve:{email_key}"
+    consecutive_key = f"auth.consecutive:{email_key}"
     throttle_key = f"auth:throttle:{email_key}"
     valkey_client.delete(consecutive_key)
     valkey_client.delete(throttle_key)
