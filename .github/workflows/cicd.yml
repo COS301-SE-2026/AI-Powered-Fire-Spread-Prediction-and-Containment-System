@@ -79,7 +79,7 @@ jobs:
           --health-cmd "valkey-cli ping"
           --health-interval 10s
           --health-timeout 5s
-          --heallth-retries 5
+          --health-retries 5
       
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -246,7 +246,7 @@ jobs:
           --health-cmd "valkey-cli ping"
           --health-interval 10s
           --health-timeout 5s
-          --heallth-retries 5
+          --health-retries 5
 
     steps:
       - name: Checkout
