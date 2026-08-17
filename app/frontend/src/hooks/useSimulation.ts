@@ -51,6 +51,7 @@ export interface Prediction {
     lon_extent_deg: number;
     grid_h: number;
     grid_w: number;
+    cell_size_m: number;
 }
 
 export interface SimulationResult {

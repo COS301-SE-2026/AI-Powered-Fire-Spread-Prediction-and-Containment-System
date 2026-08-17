@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api", tags=["simulation"])
 METRES_PER_DEG_LAT = 111_320.0
 TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
 MIN_GRID_DIMENSION = 10
-MAX_GRID_DIMENSION = 200
+MAX_GRID_DIMENSION = 400
 
 def grid_dimensions_for_extent(
         lat_extent_deg: float,
@@ -106,6 +106,7 @@ class Prediction(BaseModel):
     lon_extent_deg: float
     grid_h: int
     grid_w: int
+    cell_size_m: float
 
 
 class SimulationResponse(BaseModel):
@@ -211,7 +212,8 @@ async def simulate_single_fire(fire, dca: DCAParams, automatic_steps: int, semap
             lat_extent_deg=lat_extent_deg,
             lon_extent_deg=lon_extent_deg,
             grid_h=H,
-            grid_w=W
+            grid_w=W,
+            cell_size_m=cell_size_m
         )
 
 # The endpoint
