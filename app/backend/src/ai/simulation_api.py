@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import asyncio
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
@@ -135,6 +136,79 @@ def burned_area_radius_m(
     cell_w_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT
     return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
 
+MAX_CONCURR_USERS = 10
+
+async def simulate_single_fire(fire, req: SimulationRequest, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+    async with semaphore:
+        boundary_m = float(fire.boundary_radius) * 1000
+
+        min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
+            lat=fire.lat,
+            lng=fire.lng,
+            boundary_radius_m=boundary_m,
+            n_steps=automatic_steps
+        )
+
+        lat_extent_deg = max_lat - min_lat
+        lon_extent_deg = max_lon - min_lon
+
+        H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, fire.lat)
+
+        cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
+        cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
+        cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
+
+        resolved = await asyncio.to_thread(resolve_tile_paths,min_lon, min_lat, max_lon, max_lat)
+
+        static_grids, weather_grids = await load_real_inference_data(
+            b04_path=resolved.b04_path,
+            b08_path=resolved.b08_path,
+            b11_path=resolved.b11_path,
+            dem_path=resolved.dem_path,
+            min_lon=min_lon,
+            min_lat=min_lat,
+            max_lon=max_lon,
+            max_lat=max_lat,
+            scl_path=resolved.scl_path,
+            target_shape=(H, W)
+        )
+
+        ignition_mask = build_boundary_ignition_mask(
+            H, W, cell_size_m, boundary_m
+        )
+
+        try:
+            history = await asyncio.to_thread(
+                run_dca,
+                weather_grids=weather_grids,
+                static_grids=static_grids,
+                n_steps=automatic_steps,
+                ignition_mask=ignition_mask,
+                params=params_to_torch(req.dca),
+                cell_size_m=cell_size_m
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}"
+            ) from exc
+        
+        final_grid = history[-1]
+        burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
+        truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
+        
+        return Prediction(
+            ref=str(fire.id),
+            lat=fire.lat,
+            lng=fire.lng,
+            history=[g.ravel().tolist() for g in history],
+            burned_cells=burned_cells,
+            radius_m=burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
+            truncated=truncated,
+            lat_extent_deg=lat_extent_deg,
+            lon_extent_deg=lon_extent_deg,
+            grid_h=H,
+            grid_w=W
+        )
 
 # The endpoint
 @router.post(
@@ -172,84 +246,16 @@ async def run_simulation(
         .all()
     )
 
-    predictions: list[Prediction] = []
-    n_steps_run = 0
-    automatic_steps = 4 
+    automatic_steps = 4
+    semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
-    for fire in verified_fires:
-        boundary_m = float(fire.boundary_radius) * 1000 # convert boundary from db to meters
+    predictions = await asyncio.gather(
+        *(simulate_single_fire(fire, req, automatic_steps, semaphore) for fire in verified_fires)
+    )
 
-        min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
-            lat=fire.lat,
-            lng=fire.lng,
-            boundary_radius_m=boundary_m,
-            n_steps=automatic_steps
-        )
-
-        lat_extent_deg = max_lat - min_lat
-        lon_extent_deg = max_lon - min_lon
-
-        H, W = grid_dimensions_for_extent(lat_extent_deg , lon_extent_deg, fire.lat)
-
-        cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
-        cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
-        cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
-
-        resolved = resolve_tile_paths(min_lon, min_lat, max_lon, max_lat)
-
-        static_grids, weather_grids = await load_real_inference_data(
-            b04_path=resolved.b04_path,
-            b08_path=resolved.b08_path,
-            b11_path=resolved.b11_path,
-            dem_path=resolved.dem_path,
-            min_lon=min_lon,
-            min_lat=min_lat,
-            max_lon=max_lon,
-            max_lat=max_lat,
-            scl_path=resolved.scl_path,
-            target_shape=(H, W)
-        )
-
-        ignition_mask = build_boundary_ignition_mask(
-            H, W, cell_size_m, boundary_m
-        )
-
-        try:
-            history = run_dca(
-                weather_grids=weather_grids,
-                static_grids=static_grids,
-                n_steps=automatic_steps,
-                ignition_mask=ignition_mask,
-                params=params_to_torch(req.dca),
-                cell_size_m=cell_size_m
-            )
-        except Exception as exc:
-            raise HTTPException(
-                status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}"
-            ) from exc
-        
-        final_grid = history[-1]
-        burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
-        truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
-        
-        predictions.append(
-            Prediction(
-                ref=str(fire.id),
-                lat=fire.lat,
-                lng=fire.lng,
-                history=[g.ravel().tolist() for g in history],
-                burned_cells=burned_cells,
-                radius_m=burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
-                truncated=truncated,
-                lat_extent_deg=lat_extent_deg,
-                lon_extent_deg=lon_extent_deg,
-                grid_h=H,
-                grid_w=W
-            )
-        )
-        n_steps_run = len(history)
+    n_steps_run = max((len(p.history) for p in predictions), default = 0)
 
     return SimulationResponse(
-        predictions=predictions,
+        predictions=list(predictions),
         n_steps_run=n_steps_run,
     )
