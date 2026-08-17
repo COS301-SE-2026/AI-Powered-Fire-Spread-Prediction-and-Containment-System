@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timezone
 from fastapi import HTTPException, status
 import redis
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from auth import create_access_token, verify_password
@@ -100,9 +101,11 @@ def login_user(db: Session, request: LoginRequest):
 
     check_rate_limits(email_key)
 
-    user = db.query(User).filter(User.email == request.email).first()
+    user = db.query(User).filter(func.lower(User.email) == email_key).first()
 
-    if not user or not verify_password(request.password, user.hashed_password):
+    hashed = user.hashed_password
+
+    if not user or not verify_password(request.password, hashed):
         record_failure(email_key)
 
     reset_counters(email_key)
