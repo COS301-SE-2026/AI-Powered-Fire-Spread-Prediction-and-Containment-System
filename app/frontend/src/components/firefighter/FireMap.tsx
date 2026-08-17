@@ -83,7 +83,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         if(!selectedFireId) return;
         const fire = fires.find(f => f.ref === selectedFireId);
         if(!fire) return;
-        setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 13)}))
+        setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 16)}))
     }, [selectedFireId, fires])
 
     const girdFeautures = useMemo(() => {
