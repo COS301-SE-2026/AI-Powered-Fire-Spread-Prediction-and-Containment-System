@@ -46,7 +46,7 @@ jobs:
         working-directory: app/backend/testing
     services:
       postgres:
-        image: postgis/postgis:15-3.3
+        image: postgis/postgis@sha256:a2fc46b52819d25add4ed93d3da83e106e17ea3ace6883cce3791631c9820bb2
         env: 
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -59,7 +59,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-          image: minio/minio:latest
+          image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
           env:
             MINIO_ROOT_USER: admin
             MINIO_ROOT_PASSWORD: miniosupersecretpassword
@@ -71,6 +71,16 @@ jobs:
             --health-interval 10s
             --health-timeout 5s
             --health-retries 5
+      valkey:
+        image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
       MINIO_ENDPOINT: localhost:9000
@@ -78,6 +88,8 @@ jobs:
       MINIO_SECRET_KEY: miniosupersecretpassword
       MINIO_SECURE: "false"
       MINIO_BUCKET: fire-reports
+      VALKEY_HOST: localhost
+      VALKEY_PORT: 6379
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -206,7 +218,7 @@ jobs:
     needs: frontend-build
     services:
       postgres:
-        image: postgis/postgis:15-3.3
+        image: postgis/postgis@sha256:a2fc46b52819d25add4ed93d3da83e106e17ea3ace6883cce3791631c9820bb2
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -219,13 +231,22 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-        image: minio/minio:latest
+        image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
         env:
           MINIO_ROOT_USER: admin
           MINIO_ROOT_PASSWORD: miniosupersecretpassword
         ports:
           - 9000:9000
         command: server /data
+      valkey:
+        image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -247,6 +268,8 @@ jobs:
           MINIO_SECRET_KEY: miniosupersecretpassword
           MINIO_BUCKET: fire-reports
           JWT_SECRET: "your-super-secret-key-change-this"
+          VALKEY_HOST: localhost
+          VALKEY_PORT: 6379
         run: |
           cd app/backend
           PYTHONPATH=src nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
