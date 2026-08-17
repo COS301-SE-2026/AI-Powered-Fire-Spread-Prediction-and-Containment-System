@@ -38,25 +38,23 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
                             </td>
                         </tr>
                     ) : (
-                        filtered.map((report) => {
-                            return (
-                                <tr key={report.id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80">
-                                    <td className="px-4 text-sm text-text-primary">{report.reference_number}</td>
-                                    <td className="px-4 text-sm text-text-primary">{report.location_text}</td>
-                                    <td className="px-4 text-sm text-text-primary"><StatusBadge status={report.status} /></td>
-                                    <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
-                                    <td className="px-4 text-sm text-text-primary">
-                                        {FormatDate(report.submitted_at)}
-                                    </td>
-                                    <td className="px-4 text-sm text-text-primary">{report.reporter_name}</td>
-                                    <td className="px-4 py-3">
-                                        <button type="button" onClick={() => router.push(`/admin/${report.reference_number}`)} className="text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors">
-                                            View
-                                        </button>
-                                    </td>
-                                </tr>
-                            );
-                        })
+                        filtered.map((report) => (
+                            <tr key={report.id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80">
+                                <td className="px-4 text-sm text-text-primary">{report.reference_number}</td>
+                                <td className="px-4 text-sm text-text-primary">{report.location_text}</td>
+                                <td className="px-4 text-sm text-text-primary"><StatusBadge status={report.status} /></td>
+                                <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
+                                <td className="px-4 text-sm text-text-primary">
+                                    {FormatDate(report.submitted_at)}
+                                </td>
+                                <td className="px-4 text-sm text-text-primary">{report.reporter_name}</td>
+                                <td className="px-4 py-3">
+                                    <button type="button" onClick={() => router.push(`/admin/${report.reference_number}`)} className="text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        ))
                     )}
                 </tbody>
             </table>

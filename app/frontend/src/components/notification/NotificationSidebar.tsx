@@ -16,7 +16,7 @@ export function NotificationSidebar({ isOpen, onClose, notifications, onRead }: 
             <input type="checkbox" className="drawer-toggle" checked={isOpen} readOnly />
 
             <div className="drawer-side">
-                <label onClick={onClose} className="drawer-overlay" />
+                <button type="button" onClick={onClose} aria-label="Close notifications" className="drawer-overlay btn btn-link" />
 
                 <div className="menu w-80 h-full bg-carbon-side p-4 flex flex-col">
                     <div className="flex items-center justify-between mb-4">

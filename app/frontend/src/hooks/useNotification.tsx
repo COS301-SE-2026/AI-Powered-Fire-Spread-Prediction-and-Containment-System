@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
 import type { FireNotification } from '../types/Notifications';
 
 const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
@@ -101,28 +101,45 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   const [error] = useState<string | null>(null);
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
 
-  const showToast = (notification: FireNotification): void => {
+  const showToast = useCallback((notification: FireNotification): void => {
     setNotifications((prev) => [notification, ...prev]);
     setActiveToast(notification);
-  }
+  }, []);
 
-  const dismissToast = (): void => {
+  const dismissToast = useCallback((): void => {
     setActiveToast(null);
-  }
+  }, []);
 
-  const previewToast = (notification: FireNotification): void => {
+  const previewToast = useCallback((notification: FireNotification): void => {
     setActiveToast(notification);
-  }
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAsRead = (id: string): void => {
+  const markAsRead = useCallback((id: string): void => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      notifications,
+      unreadCount,
+      isLoading,
+      error,
+      markAsRead,
+      activeToast,
+      showToast,
+      dismissToast,
+      previewToast,
+    }),
+    [notifications, unreadCount, isLoading, error, markAsRead, activeToast, showToast, dismissToast, previewToast],
+  );
+
   return (
-    <NotificationsContext.Provider value={{ notifications, unreadCount, isLoading, error, markAsRead, activeToast, showToast,dismissToast, previewToast}}>{children}
+    <NotificationsContext.Provider value={value}>
+      {children}
     </NotificationsContext.Provider>
   );
 }

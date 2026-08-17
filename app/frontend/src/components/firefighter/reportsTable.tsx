@@ -12,8 +12,7 @@ interface ReportsTableProp {
 }
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
-  const filtered = requests.filter((req) => filter === 'all' || req.status === filter);
-
+    const filtered = requests.filter((req) => filter === 'all' || req.status === filter);
     const router = useRouter();
     return (
         <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-150 w-full">
@@ -26,7 +25,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Size</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reported</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reporter</th>
-                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase"></th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase" />
                     </tr>
                 </thead>
                 <tbody>
@@ -37,25 +36,21 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                             </td>
                         </tr>
                     ) : (
-                        filtered.map((req) => {
-                            const formattedDate = FormatDate(req.reported);
-
-                            return(
-                                <tr key={req.ref} className="hover:bg-(--color-surface-hover) even:bg-carbon-bg/80">
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.size} ha</td>
-                                    <td className="px-4 text-sm text-text-primary">{formattedDate}</td>
-                                    <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>
-                                    <td className="px-4 py-3">
-                                        <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
-                                            View
-                                        </button>
-                                    </td>
-                                </tr>
-                            )
-                        })
+                        filtered.map((req) => (
+                            <tr key={req.ref} className="hover:bg-(--color-surface-hover) even:bg-carbon-bg/80">
+                                <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
+                                <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
+                                <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
+                                <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.size} ha</td>
+                                <td className="px-4 text-sm text-text-primary">{FormatDate(req.reported)}</td>
+                                <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>
+                                <td className="px-4 py-3">
+                                    <button type="button" onClick={() => router.push(`/firefighter/${req.ref}`)} className="text-xs font-semibold btn btn-sm btn-outline text-text-primary rounded-lg border hover:bg-smoke-hover hover:text-text-primary transition-colors">
+                                        View
+                                    </button>
+                                </td>
+                            </tr>
+                        ))
                     )}
                 </tbody>
             </table>

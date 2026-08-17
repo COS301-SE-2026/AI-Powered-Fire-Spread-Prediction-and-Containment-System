@@ -70,8 +70,8 @@ export default function Login() {
         return;
       }
 
-    window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
-    } catch (err: any) {
+      window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
+    } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed. Email or password incorrect.';
       setApiError(message);
     } finally {

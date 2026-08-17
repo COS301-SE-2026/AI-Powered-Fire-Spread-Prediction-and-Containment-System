@@ -14,9 +14,9 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
     if (loading) {
         return (
-            <AdminSideBar hideLoginRegister={true}>
+            <AdminSideBar hideLoginRegister>
                 <div className="w-full min-h-screen flex items-center justify-center">
-                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                    <span className="loading loading-spinner loading-lg text-primary" />
                 </div>
             </AdminSideBar>
         );
@@ -24,7 +24,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
     if (isForbidden) {
         return (
-            <AdminSideBar hideLoginRegister={true}>
+            <AdminSideBar hideLoginRegister>
                 <div className="alert alert-error bg-red-900/20 border border-red-900 text-red-400">
                     <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -38,7 +38,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
     if (error || !topMetrics || !systemMetrics) {
         return (
-            <AdminSideBar hideLoginRegister={true}>
+            <AdminSideBar hideLoginRegister>
                 <div className="alert alert-error bg-error/50 border border-error text-text-error">
                     <span>Unable to connect to the server. Ensure backend is running.</span>
                 </div>
@@ -76,7 +76,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
     ];
 
     return (
-        <AdminSideBar hideLoginRegister={true}>
+        <AdminSideBar hideLoginRegister>
             <div className="w-full space-y-6">
 
                 <PreviewPanel />
@@ -125,8 +125,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                                             {day.count}
                                          </div>
                                          <div className="w-full bg-primary/80 rounded-t-sm border-t border-x border-primary group-hover:bg-primary transition-colors"
-                                         style={{height: `${percentageHeight}%`, minHeight: '4px'}}>
-                                    </div>
+                                         style={{height: `${percentageHeight}%`, minHeight: '4px'}} />
                                     <span className="text-[10px] font-medium text-base-content/60 mt-2 block font-mono">
                                         {day.day}
                                     </span>

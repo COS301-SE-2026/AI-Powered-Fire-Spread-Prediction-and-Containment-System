@@ -64,7 +64,7 @@ export default function ReportTable() {
         <FirefighterSideBar>
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
-                {/*Page header and subtitle*/}
+                {/* Page header and subtitle */}
                 <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" />
 
         <div className="flex flex-row gap-4 min-w-0">
