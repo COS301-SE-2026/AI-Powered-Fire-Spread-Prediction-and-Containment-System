@@ -44,6 +44,8 @@ services:
       - VALKEY_HOST=valkey
       - MINIO_ENDPOINT=minio:9000
       - PYTHONPATH=/app/src:/app
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
     restart: unless-stopped
     env_file:
       - .env
@@ -51,6 +53,8 @@ services:
       postgres:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      valkey:
         condition: service_healthy
     volumes:
       - ./app/backend:/app:Z
