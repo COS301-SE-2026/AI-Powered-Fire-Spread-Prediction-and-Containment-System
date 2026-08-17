@@ -191,7 +191,7 @@ def fetch_historical_weather_grid_year(
     chunk_size: int = 10,
     region_name: str = "south_africa",
     max_retries: int = 4,
-    base_delay: float = 8.0,
+    base_delay: float = 20.0,
 ) -> pd.DataFrame:
     start_date, end_date = f"{year}-01-01", f"{year}-12-31"
     out_file = GRID_OUTPUT_DIR / f"weather_grid_{region_name}_{year}.csv"
@@ -368,19 +368,11 @@ def fetch_historical_weather_grid_year(
     return result
 def fetch_historical_weather_grid_sa(
     start_year: int, end_year: int, resolution_deg: float = 0.5
-)-> None:
-    """
-    Fetches historical weather data for a grid covering South Africa for a range of years.
-    """
+) -> None:
     coords = build_sa_grid_coords(resolution_deg)
     print(f"Fetching weather data for {len(coords)} grid points at {resolution_deg}° resolution from {start_year} to {end_year}")
     for year in range(start_year, end_year + 1):
-        out_file = GRID_OUTPUT_DIR / f"weather_grid_south_africa_{year}.csv"
-        if out_file.exists():
-            print(f"Data for year {year} already exists at {out_file}, skipping.")
-            continue
         fetch_historical_weather_grid_year(coords, year, region_name="south_africa")
-
 
 if __name__ == "__main__":
     # fetch one year of weather for Pta, SA

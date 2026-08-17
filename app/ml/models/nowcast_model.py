@@ -10,7 +10,7 @@ from app.ml.models.conv_lstm import ConvLSTM
 
 @dataclass
 class WeatherDeltaModelConfig:
-    input_dim: int = 9
+    input_dim: int = 10
     hidden_dims: list[int] = field(default_factory=lambda: [48, 48])
     kernel_size: int = 3
     output_dim: int = 4

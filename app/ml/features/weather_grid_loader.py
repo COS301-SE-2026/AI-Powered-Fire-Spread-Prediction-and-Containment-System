@@ -16,6 +16,7 @@ def build_sa_grid_shape(resolution_deg: float=0.5) -> tuple[int, int]:
 def load_weather_grid_csv(csv_path: str, resolution_deg: float=0.5)-> tuple[np.ndarray, list[str]]:
     
     df = pd.read_csv(csv_path)
+    df = df.rename(columns={"latitude": "lat", "longitude": "lon"})
     H, W = build_sa_grid_shape(resolution_deg)
     lats = np.sort(df["lat"].unique())[::-1] #descending order, north to south
     lons = np.sort(df["lon"].unique())
