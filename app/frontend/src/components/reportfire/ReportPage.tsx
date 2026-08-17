@@ -9,6 +9,7 @@ import { Alert } from '../shared/Alerts';
 import { LOCATION_PLACEHOLDER } from './locationConstants';
 import { useUserReports } from '../../hooks/useUserReports';
 import { useSubmitReport } from '../../hooks/useSubmitReport';
+import { PageHeader } from '../layout/pageHeader';
 
 interface FormStateProps {
   activeStep: number;
@@ -103,8 +104,8 @@ export default function ReportPage() {
 
   return (
     <div className="flex flex-col p-2">
-      <header className="mb-4">
-        <h1 className="uppercase">Report a fire</h1>
+      <header>
+      <PageHeader title="Report a fire" />
         <div className="mt-2">
           <StepIndicator />
         </div>

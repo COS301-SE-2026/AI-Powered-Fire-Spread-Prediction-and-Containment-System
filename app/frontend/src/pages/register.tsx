@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
-import type { RegisterRequest, Two_FA_Required_Response } from '../types/Auth';
+import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
 
 interface RegisterForm {
   name: string;
@@ -129,10 +129,7 @@ export default function Register() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const payload: RegisterRequest = {
           email: form.email,
           password: form.password,
           name: form.name,
@@ -141,7 +138,7 @@ export default function Register() {
           license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
         };
 
-      const data: Two_FA_Required_Response = await apiCall('api/auth/register', 'POST', payload);
+      const data: TwoFARequiredResponse = await apiCall('api/auth/register', 'POST', payload);
 
       if (data.requires_2fa && data.otpauth_url) {
         router.push(
