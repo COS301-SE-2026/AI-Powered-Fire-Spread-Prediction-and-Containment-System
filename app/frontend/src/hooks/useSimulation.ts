@@ -141,7 +141,7 @@ export function useSimulation() {
 
     // API call
     const runSimulation = useCallback(
-        async (lat: number, lng: number, n_steps = 48, fireId: string | null = null) => {
+        async (lat: number, lng: number, n_steps = 288, fireId: string | null = null) => {
             abortRef.current?.abort();
             const controller = new AbortController();  // ← declared here
             abortRef.current = controller;
@@ -151,41 +151,57 @@ export function useSimulation() {
             setResult(null);
             setCurrentTick(0);
             stopAutoPlay();
-
-            const body: SimulationRequest = {
-                lat,
-                lng,
-                fire_id: fireId,
-                grid_h: 30,
-                grid_w: 30,
-                n_steps,
-                n_ignition_points: 1,
-                weather,
-                static: staticParams,
-                dca: dcaParams,
-            };
-
+            
             try {
-                const res = await fetch(`${API_BASE}/api/simulate`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json' },
-                    body: JSON.stringify(body),
-                    signal: controller.signal,
-                });
+                let data: SimulationResult;
 
-                if (!res.ok) {
-                    const detail = await res.text();
-                    throw new Error(`Server error ${res.status}: ${detail}`);
+                if(fireId) {
+                    const resp = await fetch(`${API_BASE}/api/simulate/fire/${fireId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json'},
+                        body: JSON.stringify({n_steps, dca: dcaParams}),
+                        signal: controller.signal,
+                    });
+
+                    if(!resp.ok) {
+                        const detail = await resp.text();
+                        throw new Error(`INternal server error ${resp.status}: ${detail}`);
+                    }
+
+                    const prediction: Prediction = await resp.json();
+                    data = {predictions: [prediction], n_steps_run: prediction.history.length}
+                } else{
+                    const body: SimulationRequest = {
+                        lat,
+                        lng,
+                        fire_id: null,
+                        grid_h: 30,
+                        grid_w: 30,
+                        n_steps,
+                        n_ignition_points: 1,
+                        weather,
+                        static: staticParams,
+                        dca: dcaParams,
+                    }
+
+                    const res = await fetch(`${API_BASE}/api/simulate`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify(body),
+                        signal: controller.signal,
+                    });
+
+                    data = await res.json();
+
+                    setResult(data);
+
+                    if(autoplay){
+                        startAutoPlay(data.n_steps_run);
+                    }else{
+                        setStatus('paused')
+                    }
                 }
-
-                const data: SimulationResult = await res.json();
-                setResult(data);
-
-                if (autoplay) {
-                    startAutoPlay(data.n_steps_run);
-                } else {
-                    setStatus('paused');
-                }
+            
             } catch (err) {
                 if (err instanceof Error && err.name === 'AbortError') return;
                 const msg = err instanceof Error ? err.message : String(err);
