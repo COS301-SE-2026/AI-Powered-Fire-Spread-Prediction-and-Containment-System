@@ -10,6 +10,11 @@ jobs:
     defaults:
       run:
         working-directory: app/backend/testing
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: miniosupersecretpassword
+      MINIO_BUCKET: fire-reports
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -80,7 +85,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
       MINIO_ENDPOINT: localhost:9000
