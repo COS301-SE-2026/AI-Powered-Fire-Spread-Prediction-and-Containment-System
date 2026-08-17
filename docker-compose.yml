@@ -41,6 +41,8 @@ services:
       dockerfile: Dockerfile
     container_name: python-backend
     environment:
+      - VALKEY_HOST=valkey
+      - MINIO_ENDPOINT=minio:9000
       - PYTHONPATH=/app/src:/app
     restart: unless-stopped
     env_file:
@@ -97,6 +99,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  valkey:
+    image: valkey/valkey:latest
+    ports:
+      - "6379:6379"
   
 
   # pwa:
