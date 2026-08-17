@@ -19,14 +19,16 @@ export function GuestActions({ onRecenter }: GuestActionsProps) {
         onClick={handleReportFire}
         className="w-46 px-4 py-2 text-lg font-medium rounded transition-colors bg-carbon-side/40 text-text-primary/70 hover:bg-carbon-side/60"
       >
-        <Flame className="size-15" />Report Fire
+        <Flame className="size-15" />
+        Report Fire
       </button>
       <button
         type="button"
         onClick={onRecenter}
         className="w-46 px-4 py-2 text-lg font-medium rounded transition-colors bg-carbon-side/40 text-text-primary/70 hover:bg-carbon-side/60"
       >
-        <LocateFixed className="size-15" />Recenter
+        <LocateFixed className="size-15" />
+        Recenter
       </button>
     </div>
   );

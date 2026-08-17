@@ -1,9 +1,11 @@
 'use client';
-import 'mapbox-gl/dist/mapbox-gl.css'
+
+import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
-import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Map, Marker, Popup, Layer, Source } from 'react-map-gl/mapbox';
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import type { Feature, LineString } from 'geojson';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
+import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -26,58 +28,68 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
 
-    const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
-    const [viewState, setViewState] = useState({longitude: lng, latitude: lat, zoom: 12});
-    const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+  const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
+  const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
+  const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-    const handleDrawCreate = (e: any) => {
-        const line = e.features[0];
-        const coords = line.geometry.coordinates;
-        const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
-        onDrawComplete(wkt);
+  const handleDrawCreate = useCallback(
+    (e: DrawCreateEvent) => {
+      const line = e.features[0];
+      if (line.geometry.type !== 'LineString') return;
+      const coords = (line.geometry as LineString).coordinates;
+      const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+      onDrawComplete(wkt);
+    },
+    [onDrawComplete]
+  );
+
+  useEffect(() => {
+    if (!mapRef.current) {
+      return undefined;
+    }
+    const map = mapRef.current.getMap();
+
+    if (drawMode) {
+      if (!drawRef.current) {
+        drawRef.current = new MapboxDraw({
+          displayControlsDefault: false,
+          modes: { ...MapboxDraw.modes },
+        });
+        map.addControl(drawRef.current);
+      }
+      drawRef.current.changeMode('draw_line_string');
+      map.on('draw.create', handleDrawCreate);
+    } else if (drawRef.current) {
+      drawRef.current.changeMode('simple_select');
     }
 
-    useEffect(() => {
-        if(!mapRef.current){
-            return;
-        }
-        const map = mapRef.current.getMap();
+    return () => {
+      map.off('draw.create', handleDrawCreate);
+    };
+  }, [drawMode, handleDrawCreate]);
 
-        if(drawMode){
-            if(!drawRef.current){
-                drawRef.current = new MapboxDraw({
-                    displayControlsDefault: false,
-                    modes: {...MapboxDraw.modes},
-                });
-                map.addControl(drawRef.current);
-            }
-            drawRef.current.changeMode('draw_line_string')
+  useEffect(() => {
+    if (!drawRef.current) return;
+    drawRef.current.deleteAll();
+  }, [clearDrawings]);
 
-            map.off('draw.create', handleDrawCreate);
-            map.on('draw.create', handleDrawCreate);
-        }else{
-            if(drawRef.current){
-                drawRef.current.changeMode('simple_select');
-            }
-        }
-    }, [drawMode]);
+  useEffect(() => {
+    setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
+  }, [lat, lng]);
 
-    useEffect(() => {
-        if(!drawRef.current) return;
-        drawRef.current.deleteAll();
-    }, [clearDrawings])
-
-    useEffect(() => {
-        setViewState(v => ({...v, longitude: lng, latitude:lat}));
-    },[lat,lng]);
-
-    const circleFeatures = useMemo(() => {
-        return fires.filter(f => f.size != null && f.size > 0).map(f => circle([f.lng, f.lat], f.size, {
+  const circleFeatures = useMemo(
+    () =>
+      fires
+        .filter((f) => f.size != null && f.size > 0)
+        .map((f) =>
+          circle([f.lng, f.lat], f.size, {
             steps: 64,
             units: 'kilometers',
-            properties: {ref: f.ref}
-        }));
-    }, [fires])
+            properties: { ref: f.ref },
+          })
+        ),
+    [fires]
+  );
 
     useEffect(() => {
         if(!selectedFireId) return;
@@ -105,8 +117,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
                     const state = grid[row * p.grid_w+ col];
                     if(state === 0) continue;
 
-                    const cellMinLon = minLon + col * cellLonSize;
-                    const cellMaxLat = maxLat - row * cellLatSize;
+          const cellMinLon = minLon + col * cellLonSize;
+          const cellMaxLat = maxLat - row * cellLatSize;
 
                     features.push({
                         type: 'Feature',
@@ -128,103 +140,126 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         return features;
     }, [predictions, currentTick])
 
-    return (
-        <Map
-            ref={mapRef}
-            mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-            {...viewState}
-            onMove={evt => setViewState(evt.viewState)}
-            style={{ width: '100%', height: '100%' }}
-            mapStyle='mapbox://styles/mapbox/navigation-night-v1'
+  return (
+    <Map
+      ref={mapRef}
+      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+      {...viewState}
+      onMove={(evt) => setViewState(evt.viewState)}
+      style={{ width: '100%', height: '100%' }}
+      mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+    >
+      {fires.map((fire) => (
+        <Marker
+          key={fire.ref}
+          longitude={fire.lng}
+          latitude={fire.lat}
+          anchor="center"
+          onClick={(e) => {
+            e.originalEvent.stopPropagation();
+            setSelectedFire(fire);
+            onSelectFire?.(fire.ref);
+          }}
         >
-           {fires.map((fire) => (
-                <Marker key={fire.ref} longitude={fire.lng} latitude={fire.lat} anchor='center' onClick={(e) => {e.originalEvent.stopPropagation(); setSelectedFire(fire); onSelectFire?.(fire.ref); }}>
-                    <div className='relative flex items-center justify-center size-6'>
-                        {/* The radar ping animation effect */}
-                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`} />
-                        {/* The solid core so the marker remains visible */}
-                        <span className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`} />
-                    </div>
-                </Marker>
-            ))}
+          <div className="relative flex items-center justify-center size-6">
+            {/* The radar ping animation effect */}
+            <span
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
+            />
+            {/* The solid core so the marker remains visible */}
+            <span
+              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+            />
+          </div>
+        </Marker>
+      ))}
 
-            {/*Circles around markers*/}
-            {circleFeatures.length>0 &&(
-              <Source
-                  id ='fire-circles'
-                  type='geojson'
-                  data={{
-                      type:'FeatureCollection',
-                      features:circleFeatures
-                  }}
-                  >
-                      <Layer
-                          id='fire-radius-fill'
-                          type='fill'
-                          paint={{
-                            'fill-color': '#fcba3e',
-                            'fill-opacity': 0.3,
-                          }}
-                      />
+      {/* Circles around markers */}
+      {circleFeatures.length > 0 && (
+        <Source
+          id="fire-circles"
+          type="geojson"
+          data={{
+            type: 'FeatureCollection',
+            features: circleFeatures,
+          }}
+        >
+          <Layer
+            id="fire-radius-fill"
+            type="fill"
+            paint={{
+              'fill-color': '#fcba3e',
+              'fill-opacity': 0.3,
+            }}
+          />
 
-                      <Layer
-                          id='fire-radius-outline'
-                          type='line'
-                          paint={{
-                            'line-color': '#fcba3e',
-                            'line-width': 1,
-                          }}
-                      />
-                  </Source>
+          <Layer
+            id="fire-radius-outline"
+            type="line"
+            paint={{
+              'line-color': '#fcba3e',
+              'line-width': 1,
+            }}
+          />
+        </Source>
+      )}
 
-          )}
+      {girdFeautures.length > 0 && (
+        <Source
+          id="burn-grid"
+          type="geojson"
+          data={{ type: 'FeatureCollection', features: girdFeautures }}
+        >
+          <Layer
+            id="burn-grid-fill"
+            type="fill"
+            paint={{
+              'fill-color': ['match', ['get', 'state'], 1, '#ff6b1a', 2, '#46201d', '#000000'], // swap with ignite and torch vals
+              'fill-opacity': ['match', ['get', 'state'], 1, 0.75, 2, 0.55, 0],
+              'fill-antialias': true,
+            }}
+          />
 
-          {girdFeautures.length > 0 && (
-            <Source id='burn-grid' type='geojson' data={{type: 'FeatureCollection', features: girdFeautures}}>
-                <Layer
-                    id='burn-grid-fill'
-                    type='fill'
-                    paint={{
-                        'fill-color': ['match', ['get', 'state'], 1, '#ff6b1a', 2, '#46201d', '#000000'], // swap with ignite and torch vals
-                        'fill-opacity': ['match', ['get', 'state'], 1, 0.75, 2, 0.55, 0],
-                        'fill-antialias': true
-                    }}
-                >
-                </Layer>
+          <Layer
+            id="simulation-outline"
+            type="line"
+            paint={{
+              'line-color': '#000000',
+              'line-opacity': 0.15,
+              'line-width': 0.5,
+            }}
+          />
+        </Source>
+      )}
 
-                <Layer
-                    id='simulation-outline'
-                    type='line'
-                    paint={{
-                        'line-color': '#000000',
-                        'line-opacity': 0.15,
-                        'line-width': 0.5,
-                    }}
-                >
-                </Layer>
-            </Source>
-          )}
-
-            {selectedFire && (
-                <Popup longitude={selectedFire.lng} latitude={selectedFire.lat} onClose={() => setSelectedFire(null)} className='carbon-popup'>
-                    <div className='p-1'>
-                        <h3 className='font-display font-bold text-sm uppercase tracking-wide text-ignite'>
-                            {selectedFire.location}
-                        </h3>
-                        <p className='text-xs text-text-muted mt-1'>
-                            Status: <span className='text-neutral-content'>{selectedFire.status}</span>
-                        </p>
-                        <p className='text-xs text-text-muted'>
-                            Submitted: <span className='text-neutral-content'>{new Date(selectedFire.reported).toLocaleString()}</span>
-                        </p>
-                        {selectedFire.size && (
-                            <p className='text-xs text-text-muted'>
-                                Radius: <span className='text-neutral-content'>{selectedFire.size} km</span>
-                            </p>
-                        )}
-                    </div>
-                </Popup>
+      {selectedFire && (
+        <Popup
+          longitude={selectedFire.lng}
+          latitude={selectedFire.lat}
+          onClose={() => setSelectedFire(null)}
+          className="carbon-popup"
+        >
+          <div className="p-1">
+            <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
+              {selectedFire.location}
+            </h3>
+            <p className="text-xs text-text-muted mt-1">
+              Status: <span className="text-neutral-content">{selectedFire.status}</span>
+            </p>
+            <p className="text-xs text-text-muted">
+              Submitted:{' '}
+              <span className="text-neutral-content">
+                {new Date(selectedFire.reported).toLocaleString()}
+              </span>
+            </p>
+            {selectedFire.size && (
+              <p className="text-xs text-text-muted">
+                Radius: <span className="text-neutral-content">{selectedFire.size} km</span>
+              </p>
             )}
-        </Map>
-    );
+          </div>
+        </Popup>
+      )}
+    </Map>
+  );
 }
