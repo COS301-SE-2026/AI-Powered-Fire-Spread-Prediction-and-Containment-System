@@ -84,7 +84,7 @@ class SimulationRequest(BaseModel):
     grid_w: int = Field(30, ge=10, le=200, description="Grid columns")
 
     # Amount of DCA ticks to run (1 tick +- is 1 model timestep)
-    n_steps: int = Field(48, ge=1, le=500, description="Number of simulation steps")
+    n_steps: int = Field(4, ge=1, le=500, description="Number of simulation steps")
 
     # Amount independent ignition points to seed
     n_ignition_points: int = Field(1, ge=1, le=10)
@@ -114,6 +114,10 @@ class SimulationResponse(BaseModel):
     predictions: list[Prediction]
     n_steps_run: int
 
+class OnDemandSimRequest(BaseModel):
+    n_steps: int = Field(288, ge=1, le=288, description="Number of sim steps")
+    dca: DCAParams = DCAParams()
+
 
 def params_to_torch(dca: DCAParams):
     import torch
@@ -138,7 +142,7 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
-async def simulate_single_fire(fire, req: SimulationRequest, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+async def simulate_single_fire(fire, dca: DCAParams, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
     async with semaphore:
         boundary_m = float(fire.boundary_radius) * 1000
 
@@ -184,7 +188,7 @@ async def simulate_single_fire(fire, req: SimulationRequest, automatic_steps: in
                 static_grids=static_grids,
                 n_steps=automatic_steps,
                 ignition_mask=ignition_mask,
-                params=params_to_torch(req.dca),
+                params=params_to_torch(dca),
                 cell_size_m=cell_size_m
             )
         except Exception as exc:
@@ -197,7 +201,7 @@ async def simulate_single_fire(fire, req: SimulationRequest, automatic_steps: in
         truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
         
         return Prediction(
-            ref=str(fire.id),
+            ref=fire.reference_number,
             lat=fire.lat,
             lng=fire.lng,
             history=[g.ravel().tolist() for g in history],
@@ -238,6 +242,7 @@ async def run_simulation(
     verified_fires = (
         db.query(
             FireReports.id,
+            FireReports.reference_number,
             func.ST_Y(FireReports.location_geom).label("lat"),
             func.ST_X(FireReports.location_geom).label("lng"),
             FireReports.boundary_radius
@@ -250,7 +255,7 @@ async def run_simulation(
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(
-        *(simulate_single_fire(fire, req, automatic_steps, semaphore) for fire in verified_fires)
+        *(simulate_single_fire(fire, req.dca, automatic_steps, semaphore) for fire in verified_fires)
     )
 
     n_steps_run = max((len(p.history) for p in predictions), default = 0)
@@ -259,3 +264,32 @@ async def run_simulation(
         predictions=list(predictions),
         n_steps_run=n_steps_run,
     )
+
+@router.post(
+    "/simulate/fire/{fire_id}",
+    response_model=Prediction,
+    responses={
+        404: {"description": "Fire not found or verified"},
+        500: {"description": "Internal server error"}
+    }
+)
+async def run_single_fire_simulation(
+    fire_id: str, req: OnDemandSimRequest, db: Session = Depends(get_db)
+) -> Prediction:
+    fire = (
+        db.query(
+            FireReports.id,
+            FireReports.reference_number,
+            func.ST_Y(FireReports.location_geom).label("lat"),
+            func.ST_X(FireReports.location_geom).label("lng"),
+            FireReports.boundary_radius
+        )
+        .filter(FireReports.reference_number == fire_id, FireReports.status == ReportStatus.verified)
+        .first()
+    )
+
+    if fire is None:
+        raise HTTPException(status_code=404, detail=f"Verified fire {fire_id} not found")
+
+    semaphore = asyncio.Semaphore(1)
+    return await simulate_single_fire(fire, req.dca, req.n_steps, semaphore)
