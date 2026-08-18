@@ -103,7 +103,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
   valkey:
     image: valkey/valkey:latest
     container_name: valkey-cache
@@ -115,6 +114,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      
+  
+  
 
   # pwa:
   #   build:

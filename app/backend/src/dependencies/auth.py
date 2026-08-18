@@ -2,7 +2,7 @@
 # Reads cookie, decodes token and either blocks or allows request
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Request, status
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -10,7 +10,6 @@ from auth import ALGORITHM, SECRET_KEY
 from db import get_db
 from enums.user_role import UserRole
 from models.users import User
-
 
 def extract_token(request: Request) -> Optional[str]:
     token = request.cookies.get("access_token")
@@ -46,14 +45,13 @@ def require_role(*allowed_roles):
     def get_summary(user: User = Depends(require_role(UserRole.admin))): ...
     """
 
-    def role_checker(user: User = Depends(require_role(UserRole.admin))):
+    def role_checker(user: User = Depends(get_current_user)):
         if user.role not in allowed_roles:
             raise HTTPException(
                 status_code=403,
                 detail="You do not have permission to access this resource",
             )
         return user
-
     return role_checker
 
 
@@ -77,9 +75,9 @@ def get_current_user_optional(
     return db.query(User).filter(User.id == user_id).first()
 
 
-def get_current_admin_user(current_user: dict = Depends(get_current_user)):
+def get_current_admin_user(current_user: User = Depends(get_current_user)):
     """Dependency ensures the current user has an Admin privilage"""
-    if current_user.get("role") != "Admin":
+    if current_user.role != UserRole.admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access denied: Admin privileges needed",

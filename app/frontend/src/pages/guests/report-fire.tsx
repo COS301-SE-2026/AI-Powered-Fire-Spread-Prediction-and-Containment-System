@@ -12,7 +12,7 @@ export default function RegisteredReportFire() {
   );
   return (
     <SideBar items={guestNavItems}>
-      <ReportPage />
+      <ReportPage showHeaderIcons={false} />
     </SideBar>
   );
 }
