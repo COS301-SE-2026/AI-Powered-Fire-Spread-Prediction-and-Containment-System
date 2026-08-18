@@ -20,6 +20,8 @@ def login_route(
 ):
     try:
         result = login_user(db, request)
+    except HTTPException:
+        raise
     except ValueError as err:
         raise HTTPException(status_code=401, detail=str(err))
 
@@ -36,7 +38,7 @@ def login_route(
         path="/",
     )
 
-    return {"role": result["role"]}
+    return {"access_token": result["access_token"], "role": result["role"],}
 
 @router.get("/me", response_model=LoginResponse)
 def me_route(user: User = Depends(get_current_user)):
