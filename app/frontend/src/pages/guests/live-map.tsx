@@ -36,7 +36,7 @@ export default function GuestPublicDashboard() {
     <SideBar items={guestNavItems} hideLogout>
       <div className="flex flex-col p-6">
         {/* Header */}
-        <PageHeader title="Incident Map" subtitle="Public Fire Map View" />
+        <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons={false} />
 
         {/* Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">

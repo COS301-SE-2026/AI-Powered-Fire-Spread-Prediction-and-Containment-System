@@ -11,6 +11,10 @@ import { useUserReports } from '../../hooks/useUserReports';
 import { useSubmitReport } from '../../hooks/useSubmitReport';
 import { PageHeader } from '../layout/pageHeader';
 
+interface ReportPageProps {
+  showHeaderIcons?: boolean;
+}
+
 interface FormStateProps {
   activeStep: number;
   location: string;
@@ -66,7 +70,7 @@ function formReducer(state: FormStateProps, action: FormAction): FormStateProps 
   }
 }
 
-export default function ReportPage() {
+export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
   const { reports, refetch } = useUserReports();
   const { submitReport, submitting, error } = useSubmitReport();
@@ -105,7 +109,7 @@ export default function ReportPage() {
   return (
     <div className="flex flex-col p-2">
       <header>
-      <PageHeader title="Report a fire" />
+      <PageHeader title="Report a fire" showIcons={showHeaderIcons} />
         <div className="mt-2">
           <StepIndicator />
         </div>
