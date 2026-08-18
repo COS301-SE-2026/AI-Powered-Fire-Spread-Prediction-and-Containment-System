@@ -15,7 +15,7 @@ export default function ReportTable() {
     return (
         <FirefighterSideBar>
             <div className="p-4 flex flex-col h-full w-full gap-y-3">
-                <PageHeader title="Reported Fires" subtitle="View the reported fires"/>
+                <PageHeader title="Reported Fires" subtitle="View the reported fires" showIcons={true}/>
                 {/* Header + filter + search */}
                 <div className="flex justify-between items-center">
                         <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>

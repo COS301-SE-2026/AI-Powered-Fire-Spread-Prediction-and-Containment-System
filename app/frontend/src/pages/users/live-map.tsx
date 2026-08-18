@@ -13,7 +13,7 @@ export default function RegisteredUserDashboard() {
   return (
     <UserSideBar>
       <div className="flex flex-col p-6">
-        <PageHeader title="Welcome" subtitle="Public Fire Map View" />
+        <PageHeader title="Welcome" subtitle="Public Fire Map View" showIcons={true} />
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
           <MapPanel colSpan={8} height="lg">

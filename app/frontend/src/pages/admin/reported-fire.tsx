@@ -23,7 +23,7 @@ export default function ReportedFiresPage() {
         <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
 
-                <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" />
+                <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" showIcons={true}/>
 
         <div className="flex items-center justify-between mb-4">
           <ReportFilterTabs filter={filter} onChange={setFilter} />

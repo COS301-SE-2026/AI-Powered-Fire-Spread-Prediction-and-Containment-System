@@ -15,7 +15,7 @@ export default function GuestPublicDashboard() {
             <div className="flex flex-col p-6 relative h-full overflow-hidden">
 
                 {/* Public View Header */}
-                <PageHeader title="Incident Map" subtitle="Public Fire Map View"
+                <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons={true}
                     // actions = {
                     //     <button type="button" onClick={() => setIsAlertsOpen(true)}>
                     //         View Alerts
