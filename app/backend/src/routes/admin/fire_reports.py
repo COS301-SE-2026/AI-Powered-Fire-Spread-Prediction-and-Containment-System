@@ -8,7 +8,13 @@ from enums.report_status import ReportStatus
 from schemas.fire_report import FireReportDetailResponse, FireReportMapResponse
 from services.users import fire_report
 
-router = APIRouter(prefix="/api/admin", tags=["Admin"])
+from dependencies.auth import get_current_admin_user
+
+router = APIRouter(
+    prefix="/api/admin",
+    tags=["Admin"],
+    dependencies=[Depends(get_current_admin_user)]
+)
 
 dbSession = Annotated[Session, Depends(get_db)]
 
