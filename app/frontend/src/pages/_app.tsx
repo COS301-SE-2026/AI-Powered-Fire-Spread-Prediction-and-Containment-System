@@ -1,10 +1,27 @@
 import React from 'react';
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'mapbox-gl/dist/mapbox-gl.css'
+import { NotificationsProvider, useNotifications } from "../hooks/useNotification";
+import { NotificationToast } from '../components/notification/NotificationToast';
+
+function GlobalToast() {
+  const { activeToast, dismissToast } = useNotifications();
+  if (!activeToast) return null;
+  return (
+    <div className="toast toast-top toast-end z-100">
+      <NotificationToast notification={activeToast} onDismiss={dismissToast} />
+    </div>
+  );
+}
 
 function MyApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+  return (
+    <NotificationsProvider>
+      <Component {...pageProps} />
+      <GlobalToast />
+    </NotificationsProvider>
+  );
 }
 
 export default MyApp;

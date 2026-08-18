@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
+import { apiCall } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -14,6 +16,13 @@ const fieldClass = (hasError?: string) => {
   return 'input input-neutral focus:border-primary w-full';
 };
 
+  const ROLE_REDIRECTS: Record<string, string> = {
+    admin: '/admin/dashboard',
+    firefighter: '/firefighter/dashboard',
+    user: '/users/live-map',
+  };
+
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +30,13 @@ export default function Login() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuth, role, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuth && role){
+      router.push(ROLE_REDIRECTS[role] ?? '/');
+    }
+  }, [isAuthLoading, isAuth, role, router]);
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -47,34 +63,17 @@ export default function Login() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch(`/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // needed so browser stores httpOnly cookie
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!res.ok) {
-        const errBody = await res.json().catch(() => null);
-        setApiError(errBody?.detail || 'Login failed. Email or password incorrect');
-        return;
-      }
-
-      const data = await res.json();
+        const data = await apiCall(`/api/auth/login`, 'POST', { email, password });
 
       if (data.requires_2fa) {
         router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
+        return;
       }
 
-      const roleRedirects: Record<string, string> = {
-        admin: '/admin/dashboard',
-        firefighter: '/firefighter/dashboard',
-        user: '/users/live-map',
-      };
-
-      window.location.href = roleRedirects[data.role] ?? '/login';
+      window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      const message = err instanceof Error ? err.message : 'Login failed. Email or password incorrect.';
+      setApiError(message);
     } finally {
       setIsLoading(false);
     }

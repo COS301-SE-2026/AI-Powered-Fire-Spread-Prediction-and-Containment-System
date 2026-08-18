@@ -8,8 +8,13 @@ from sqlalchemy.orm import Session
 from db import get_db
 from schemas.admin_analytics import AnalyticsOverviewResponse, KPIs
 from services.admin.analytics_service import analytics_overview
+from dependencies.auth import get_current_admin_user
 
-router = APIRouter(prefix="/api/admin/analytics", tags=["Admin Analytics"])
+router = APIRouter(
+    prefix="/api/admin/analytics",
+    tags=["Admin Analytics"],
+    dependencies=[Depends(get_current_admin_user)]
+)
 
 
 @router.get("/overview", response_model=AnalyticsOverviewResponse, responses={404: {"description": "Could not retrieve analytics overview"}})
