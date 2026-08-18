@@ -22,7 +22,7 @@ export default function FirefighterDashboard() {
     return(
         <FirefighterSideBar hideLoginRegister>
             <div className="flex flex-col p-6">
-                <PageHeader title="Firefighter Dashboard" subtitle="Tshwane District • Real-time Monitoring" showIcons={true}/>
+                <PageHeader title="Firefighter Dashboard" subtitle="Tshwane District • Real-time Monitoring" showIcons/>
 
         {/* Main Grid container */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">

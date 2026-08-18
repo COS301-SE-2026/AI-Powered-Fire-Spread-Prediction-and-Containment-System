@@ -37,7 +37,7 @@ export function ViewPage({ reportRef }: Readonly<ViewProps>) {
     return (
         <div className="p-6 flex flex-col h-full w-full">
             <header className="mb-3 flex items-start justify-between">
-                <PageHeader title="Report {report.reference_number}" subtitle="Viewing fire report details" showIcons={true} />
+                <PageHeader title="Report {report.reference_number}" subtitle="Viewing fire report details" showIcons />
                 <button type="button" onClick={() => router.back()} className="btn btn-sm btn-outline rounded-lg">Back</button>
             </header>
             {/* 2 cols */}

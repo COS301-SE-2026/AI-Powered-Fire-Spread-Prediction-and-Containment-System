@@ -40,7 +40,7 @@ export default function RoleApprovalPage() {
         <AdminSideBar>
             <div className="p-6 flex flex-col h-full w-full">
                 {/* Header + filter */}
-                <PageHeader title="Role Approvals" subtitle="Manage user role requests" showIcons={true} />
+                <PageHeader title="Role Approvals" subtitle="Manage user role requests" showIcons />
 
         <RoleFilterTabs filter={filter} onChange={setFilter} />
 

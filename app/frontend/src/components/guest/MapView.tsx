@@ -18,7 +18,7 @@ export default function MapView() {
   return (
     <div className="flex flex-col p-6">
       {/* Public View Header */}
-      <PageHeader title="Incident Map" subtitle='Public Fire Map View' showIcons={true}/>
+      <PageHeader title="Incident Map" subtitle='Public Fire Map View' showIcons/>
 
       {/* Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
