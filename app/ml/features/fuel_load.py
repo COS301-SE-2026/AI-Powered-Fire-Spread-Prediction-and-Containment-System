@@ -11,6 +11,8 @@ from rasterio.merge import merge as rio_merge
 from rasterio.windows import from_bounds
 from rasterio.warp import transform_bounds
 
+from ml.features.geo_utils import stream_cropped_raster, OPTIMIZED_GDAL_ENV
+
 # Sen2Cor Scene Classification vals, published in 'scl' asset.
 # Use it to mask pixx\els that would otherwise silently corrupt
 
@@ -150,30 +152,6 @@ def _resample_to_shape(
             return dst.read(1, out_shape=out_shape, resampling=resampling)
 
 
-def _read_window_single(
-    file_path: str,
-    min_lon: float,
-    min_lat: float,
-    max_lon: float,
-    max_lat: float,
-    out_shape: tuple[int, int],
-    resampling: Resampling,
-) -> np.ndarray:
-    """Read from single / remote bucket.
-    Only fetches the bytes covering the window"""
-    with rasterio.open(file_path) as src:
-        if src.crs is not None and src.crs.to_epsg() != 4326:
-            b_min_lon, b_min_lat, b_max_lon, b_max_lat = transform_bounds(
-                "EPSG:4326", src.crs, min_lon, min_lat, max_lon, max_lat
-            )
-        else:
-            b_min_lon, b_min_lat, b_max_lon, b_max_lat = min_lon, min_lat, max_lon, max_lat 
-        window = from_bounds(
-            b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform
-        )
-        return src.read(1, window=window, out_shape=out_shape, resampling=resampling)
-
-
 def _read_worldcover_window(
     worldcover_map_path: Optional[str],
     min_lon: float,
@@ -185,32 +163,28 @@ def _read_worldcover_window(
 ) -> np.ndarray:
     """Read categorical wordlcover raster cropped to bbox"""
     if worldcover_map_path is not None:
-        return _read_window_single(
-            worldcover_map_path,
-            min_lon,
-            min_lat,
-            max_lon,
-            max_lat,
-            out_shape,
-            Resampling.nearest,
+        return stream_cropped_raster(
+            worldcover_map_path, min_lon, min_lat, max_lon, max_lat, out_shape, Resampling.nearest
         )
 
     urls = worldcover_s3_urls_for_bbox(
         min_lon, min_lat, max_lon, max_lat, year=worldcover_year
     )
-    datasets = [rasterio.open(u) for u in urls]
-    try:
-        # merge crops to bbox part of moaic
-        # only stream windows we need
-        mosaic, out_transform = rio_merge(
-            datasets,
-            bounds=(min_lon, min_lat, max_lon, max_lat),
-        )
-        crs = datasets[0].crs
-    finally:
-        for ds in datasets:
-            ds.close()
 
+    with rasterio.Env(**OPTIMIZED_GDAL_ENV):
+        datasets = [rasterio.open(u) for u in urls]
+        try:
+            # merge crops to bbox part of moaic
+            # only stream windows we need
+            mosaic, out_transform = rio_merge(
+                datasets,
+                bounds=(min_lon, min_lat, max_lon, max_lat),
+            )
+            crs = datasets[0].crs
+        finally:
+            for ds in datasets:
+                ds.close()
+        
     if mosaic.shape[-2:] == out_shape:
         return mosaic[0]
     return _resample_to_shape(mosaic, out_transform, crs, out_shape, Resampling.nearest)
@@ -257,50 +231,38 @@ def process_sentinal2_and_worldcover(
     H, W = target_shape
     fuel_weights = load_fuel_base_weights()
 
-    with rasterio.Env(**S3_READ_ENV):
-        wc_map = _read_worldcover_window(
-            worldcover_map_path,
+    wc_map = _read_worldcover_window(
+        worldcover_map_path,
+        min_lon,
+        min_lat,
+        max_lon,
+        max_lat,
+        out_shape=(H, W),
+        worldcover_year=worldcover_year,
+    )
+
+    fuel_base = np.zeros((H, W), dtype=np.float32)
+    for class_val, weight in fuel_weights.items():
+        fuel_base[wc_map == class_val] = weight
+
+    b04_dn = stream_cropped_raster(b04_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
+    b08_dn = stream_cropped_raster(b08_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
+    b11_dn = stream_cropped_raster(b11_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
+
+    cloud_mask = None
+    if scl_path is not None:
+        scl = stream_cropped_raster(
+            scl_path,
             min_lon,
             min_lat,
             max_lon,
             max_lat,
-            out_shape=(H, W),
-            worldcover_year=worldcover_year,
+            (H, W),
+            Resampling.nearest,
         )
-
-        fuel_base = np.zeros((H, W), dtype=np.float32)
-        for class_val, weight in fuel_weights.items():
-            fuel_base[wc_map == class_val] = weight
-
-        def read_band(path: str) -> np.ndarray:
-            return _read_window_single(
-                path,
-                min_lon,
-                min_lat,
-                max_lon,
-                max_lat,
-                (H, W),
-                Resampling.bilinear,
-            )
-
-        b04_dn = read_band(b04_path)
-        b08_dn = read_band(b08_path)
-        b11_dn = read_band(b11_path)
-
-        cloud_mask = None
-        if scl_path is not None:
-            scl = _read_window_single(
-                scl_path,
-                min_lon,
-                min_lat,
-                max_lon,
-                max_lat,
-                (H, W),
-                Resampling.nearest,
-            )
-            cloud_mask = np.isin(
-                scl, np.array(sorted(scl_masked_classes), dtype=scl.dtype)
-            )
+        cloud_mask = np.isin(
+            scl, np.array(sorted(scl_masked_classes), dtype=scl.dtype)
+        )
 
     b04 = _dn_to_reflectance(b04_dn, s2_reflectance_scale, s2_reflectance_offset)
     b08 = _dn_to_reflectance(b08_dn, s2_reflectance_scale, s2_reflectance_offset)

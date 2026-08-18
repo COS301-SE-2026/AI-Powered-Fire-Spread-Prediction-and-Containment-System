@@ -194,14 +194,13 @@ export function useSimulation() {
                     });
 
                     data = await res.json();
+                }
+                setResult(data);
 
-                    setResult(data);
-
-                    if(autoplay){
-                        startAutoPlay(data.n_steps_run);
-                    }else{
-                        setStatus('paused')
-                    }
+                if(autoplay){
+                  startAutoPlay(data.n_steps_run);
+                }else{
+                  setStatus('paused')
                 }
             
             } catch (err) {

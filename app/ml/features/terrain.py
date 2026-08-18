@@ -4,6 +4,7 @@ import rasterio
 from rasterio.enums import Resampling
 from rasterio.windows import from_bounds
 import math
+from ml.features.geo_utils import stream_cropped_raster
 
 DEMREADENV = dict(
     AWS_NO_SIGN_REQUEST="YES",
@@ -48,24 +49,20 @@ def extract_terrain_features(
 
     H, W = target_shape
 
-    with rasterio.Env(**DEMREADENV), rasterio.open(dem_path) as src:
-        window = from_bounds(
-            min_lon, min_lat, max_lon, max_lat, transform=src.transform
-        )
-        elevation = src.read(
-            1, window=window, out_shape=(H, W), resampling=Resampling.bilinear
-        ).astype(np.float32)
+    elevation = stream_cropped_raster(
+        dem_path, min_lon, min_lat, max_lon, max_lat, target_shape
+    ).astype(np.float32)
 
-        cell_size_y, cell_size_x = bbox_cell_size_m(min_lon, min_lat, max_lon, max_lat, H, W)
+    cell_size_y, cell_size_x = bbox_cell_size_m(min_lon, min_lat, max_lon, max_lat, H, W)
 
-        # compute elevation gradients along rows and columns seperately
-        dy, dx = np.gradient(elevation, cell_size_y, cell_size_x)
+    # compute elevation gradients along rows and columns seperately
+    dy, dx = np.gradient(elevation, cell_size_y, cell_size_x)
 
-        # compute slope in degrees between 0 and 90 degrees
-        slope_rad = np.arctan(np.sqrt(dx**2 + dy**2))
-        slope = np.degrees(slope_rad).astype(np.float32)
+    # compute slope in degrees between 0 and 90 degrees
+    slope_rad = np.arctan(np.sqrt(dx**2 + dy**2))
+    slope = np.degrees(slope_rad).astype(np.float32)
 
-        # aspect degrees between 0 and 360 degrees
-        aspect = (np.degrees(np.arctan2(-dx, dy)) % 360.0).astype(np.float32)
+    # aspect degrees between 0 and 360 degrees
+    aspect = (np.degrees(np.arctan2(-dx, dy)) % 360.0).astype(np.float32)
 
-        return {"elevation": elevation, "slope": slope, "aspect": aspect}
+    return {"elevation": elevation, "slope": slope, "aspect": aspect}
