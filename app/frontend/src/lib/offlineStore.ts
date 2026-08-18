@@ -79,7 +79,5 @@ class OfflineStore {
             };
         });
     }
-
-    async cached
 }
 
