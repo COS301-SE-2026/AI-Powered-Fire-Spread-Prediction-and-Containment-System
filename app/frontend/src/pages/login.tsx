@@ -39,6 +39,8 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const [cooldown, setCooldown] = useState(0);
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setApiError('');
@@ -88,8 +90,6 @@ export default function Login() {
   const handleGuest = () => {
     router.push('/guests/live-map');
   };
-
-  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     if (cooldown <= 0) return;
