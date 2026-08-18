@@ -26,7 +26,7 @@ router = APIRouter(prefix="/api", tags=["simulation"])
 METRES_PER_DEG_LAT = 111_320.0
 TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
 MIN_GRID_DIMENSION = 10
-MAX_GRID_DIMENSION = 400
+MAX_GRID_DIMENSION = 800
 
 def grid_dimensions_for_extent(
         lat_extent_deg: float,
