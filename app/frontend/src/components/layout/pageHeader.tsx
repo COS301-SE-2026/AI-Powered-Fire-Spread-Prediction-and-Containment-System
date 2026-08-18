@@ -9,17 +9,18 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
+  showIcons: boolean;
 }
 
-const UNREAD_COUNT = 9;
+const MAX_UNREAD_COUNT = 9;
 
-export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps>){
+export function PageHeader({title, subtitle, actions, showIcons = true }: Readonly<PageHeaderProps>){
     const { isAuth } = useAuth();
     const { unreadCount, notifications, markAsRead } = useNotifications();
     const router = useRouter();
     const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-    const count = unreadCount > UNREAD_COUNT ? `${UNREAD_COUNT}+` : unreadCount;
+    const count = unreadCount > MAX_UNREAD_COUNT ? `${MAX_UNREAD_COUNT}+` : unreadCount;
     const authLabel = isAuth ? 'Profile' : 'Login / Register';
 
     const handleAuthClick = (): void => {
@@ -41,7 +42,7 @@ export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps
             </div>
             <div className="flex flex-col items-end gap-2">
                 {actions}
-                    {isAuth && (
+                    {showIcons && isAuth && (
                         <div className="flex items-center gap-2">
                             <div className="indicator">
                                 {unreadCount > 0 && (
@@ -60,7 +61,9 @@ export function PageHeader({title, subtitle, actions }: Readonly<PageHeaderProps
                     )}
                 </div>
         </header>
-        <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onRead={markAsRead}/>
+        { showIcons && (
+            <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onRead={markAsRead}/>
+        )}
         </>
     );
 }
