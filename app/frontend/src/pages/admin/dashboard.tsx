@@ -80,7 +80,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
             <div className="w-full space-y-6">
 
                 <PreviewPanel />
-                <PageHeader title="FireAway System Dashboard" subtitle="Overview of active fires, predictions, and system health" />
+                <PageHeader title="FireAway System Dashboard" subtitle="Overview of active fires, predictions, and system health" showIcons={true} />
 
                 <DashboardMetrics metrics={topMetrics} />
 
