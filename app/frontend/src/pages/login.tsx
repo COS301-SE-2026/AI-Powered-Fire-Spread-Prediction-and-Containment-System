@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -39,6 +39,8 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const [cooldown, setCooldown] = useState(0);
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setApiError('');
@@ -57,6 +59,11 @@ export default function Login() {
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
         setApiError(errBody?.detail || 'Login failed. Email or password incorrect');
+
+        const match = errBody?.detail?.match(/(\d+)\s*seconds?/);
+        if (match) {
+          setCooldown(parseInt(match[1], 10))
+        }
         return;
       }
 
@@ -83,6 +90,14 @@ export default function Login() {
   const handleGuest = () => {
     router.push('/guests/live-map');
   };
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 1 ? prev -  1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -146,10 +161,19 @@ export default function Login() {
             )}
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full btn btn-primary active:scale-90 text-lg"
+              disabled={isLoading || cooldown > 0}
+              className="w-full btn btn-primary text-lg"
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? (
+                <>
+                  <span className='loading loading-spinner loading-sm' />
+                  Logging in...
+                </>
+              ) : cooldown > 0 ? (
+                `Try again in ${cooldown}s`
+              ) : (
+                'Login'
+              )}
             </button>
             <Link href="/register" className="w-full btn btn-neutral text-lg">
               Register

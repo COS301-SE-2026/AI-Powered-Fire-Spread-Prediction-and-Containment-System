@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from jose import jwt
 
 from auth import create_access_token, hash_password, verify_password
-from service.auth.login import (
+from services.auth.login import (
     get_delay,
     check_rate_limits,
     record_failure,
