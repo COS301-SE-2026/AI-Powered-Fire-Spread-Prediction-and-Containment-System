@@ -65,7 +65,7 @@ export default function ReportTable() {
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
                 {/* Page header and subtitle */}
-                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons={true} />
+                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
 
         <div className="flex flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}

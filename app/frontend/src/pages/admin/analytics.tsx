@@ -72,7 +72,7 @@ export default function AdminAnalyticsPage() {
     <AdminSideBar>
       <div className="p-6 space-y-6 w-full">
         {/* Header */}
-          <PageHeader title="Admin Analytics" subtitle="User governance and role management overview" showIcons={true}
+          <PageHeader title="Admin Analytics" subtitle="User governance and role management overview" showIcons
             actions={
               <span className="text-sm text-text-primary/40">
                 Updated: {new Date().toLocaleString()}
