@@ -135,8 +135,9 @@ export function useSimulation() {
     stopAutoPlay();
     if(abortRef.current){
       abortRef.current.abort();
+      abortRef.current = null;
     }
-    setStatus('paused');
+    setStatus((prev) => (prev === 'loading' ? 'idle' : 'paused'));
   }, [stopAutoPlay])
 
   const clearMap = useCallback(() => {
