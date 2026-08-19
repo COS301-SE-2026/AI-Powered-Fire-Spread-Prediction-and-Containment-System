@@ -12,7 +12,7 @@ from geoalchemy2.functions import ST_DWithin
 from geoalchemy2 import Geography
 
 from sqlalchemy import cast, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
@@ -98,7 +98,7 @@ def valid_timestamp(timestamp: datetime) -> bool:
         return False
     return True
 
-async def duplicate_submission(report: FireReports, session: AsyncSession) -> bool:
+def duplicate_submission(report: FireReports, session: Session) -> bool:
     """ Checks if same user has already submitted a report near the location and time. True if duplicate exists """
 
     start_time = report.submitted_at - DUPLICATE_WINDOW
@@ -117,7 +117,7 @@ async def duplicate_submission(report: FireReports, session: AsyncSession) -> bo
         ),
     ).limit(1)
 
-    result = await session.execute(query)
+    result = session.execute(query)
     return result.scalar_one_or_none() is not None
 
 def required_fields_present(report: FireReports) -> bool:
@@ -127,7 +127,7 @@ def required_fields_present(report: FireReports) -> bool:
             return False
     return True
 
-async def sanity_check(report: FireReports, session: AsyncSession) -> tuple[bool, str | None]:
+def sanity_check(report: FireReports, session: Session) -> tuple[bool, str | None]:
     """ Runs checks on fire reports. Returns True if passed or False with message """
     if not required_fields_present(report):
         return False, "missing_required_field"
@@ -147,7 +147,7 @@ async def sanity_check(report: FireReports, session: AsyncSession) -> tuple[bool
         return False, "invalid_timestamp"
     if not report.image_url:
         return False, "missing_photo"
-    if await duplicate_submission(report, session):
+    if duplicate_submission(report, session):
         return False, "duplicate_submission"
 
     try:
