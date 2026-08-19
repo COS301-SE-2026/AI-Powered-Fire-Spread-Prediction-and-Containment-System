@@ -7,11 +7,9 @@ import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 
-export default function ReportTable() {
+export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
-  const [selectedFireId, setSelectedFireId] = useState(null);
-  const selectedFire = fires.find((f) => f.ref === selectedFireId) ?? null;
-  const [timeline, setTimeline] = useState(0);
+  const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation] = useState(defaultLocation);
@@ -21,6 +19,7 @@ export default function ReportTable() {
     loading: savingLine,
     error: lineError,
   } = useContainmentLine(() => setDrawMode(false));
+
   const {
     status,
     error,
@@ -30,25 +29,26 @@ export default function ReportTable() {
     seekToTick,
     play,
     pause,
-    autoplay,
-    setAutoPlay,
     totalTicks,
-    weather,
-    setWeather,
-    staticParams,
-    setStaticParams,
-    dcaParams,
-    setDcaParams,
+    stopRunning,
+    clearMap
   } = useSimulation();
 
   const isLoading = status === 'loading';
   const isPlaying = status === 'playing';
   const hasResult = totalTicks > 0;
 
-    function handleRun() {
-        const target = selectedFire ?? userLocation;
-        runSimulation(target.lat, target.lng, 288, selectedFireId);
-    }
+  function handleRun() {
+      runSimulation(selectedFireId, 288);
+  }
+
+  function handleStop(){
+    stopRunning();
+  }
+
+  function handleClear(){
+    clearMap();
+  }
 
   function handleReset() {
     seekToTick(0);
@@ -80,7 +80,7 @@ export default function ReportTable() {
                 {/* Live tick badge */}
                 {hasResult && (
                   <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
-                    TICK {currentTick} / {totalTicks - 1}
+                    TICK {currentTick + 1} / {totalTicks}
                   </span>
                 )}
               </div>
@@ -111,19 +111,20 @@ export default function ReportTable() {
                 </div>
               )}
 
-                            <div className='w-full h-full'>
-                                <FireMap
-                                    lat={userLocation.lat}
-                                    lng={userLocation.lng}
-                                    drawMode={drawMode}
-                                    onDrawComplete={submitLine}
-                                    clearDrawings={clearDrawings}
-                                    predictions={predictions}
-                                    currentTick={currentTick}
-                                    selectedFireId={selectedFireId}
-                                    onSelectFire={setSelectedFireId}/>
-                            </div>
-                        </div>
+              <div className='w-full h-full'>
+                <FireMap
+                  lat={userLocation.lat}
+                  lng={userLocation.lng}
+                  drawMode={drawMode}
+                  onDrawComplete={submitLine}
+                  clearDrawings={clearDrawings}
+                  predictions={predictions}
+                  currentTick={currentTick}
+                  selectedFireId={selectedFireId}
+                  onSelectFire={setSelectedFireId}
+                />
+              </div>
+          </div>
 
             {/* simulation vars and buttons */}
             <div className="flex gap-2 items-stretched">
@@ -191,18 +192,8 @@ export default function ReportTable() {
                   <div className="flex flex-col gap-1 p-2">
                     <div className="flex flex-row items-center justify-between">
                       <span className="text-sm text-text-muted p-1">
-                        {hasResult ? `Tick ${currentTick} of ${totalTicks - 1}` : 'Not yet run'}
+                        {hasResult ? `Tick ${currentTick + 1} of ${totalTicks}` : 'Not yet run'}
                       </span>
-                      {/* Auto Update Checkbox */}
-                      <label className="flex gap-1 p-2">
-                        <span className="text-sm text-text-muted">Auto Play:</span>
-                        <input
-                          type="checkbox"
-                          checked={autoplay}
-                          onChange={(e) => setAutoPlay(e.target.checked)}
-                          className="checkbox checkbox-sm rounded-lg"
-                        />
-                      </label>
                     </div>
 
                     <div className="w-full">
@@ -246,106 +237,6 @@ export default function ReportTable() {
                           </option>
                         ))}
                     </select>
-                  </div>
-
-                  {/* Weather inputs */}
-                  <div className="border-t border-carbon-stroke/40 pt-3">
-                    <p className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
-                      Weather Params
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted"> Wind U (m/s)</span>
-                        <input
-                          type="number"
-                          step={0.5}
-                          value={weather.wind_u}
-                          onChange={(e) =>
-                            setWeather({ ...weather, wind_u: Number(e.target.value) })
-                          }
-                          className="input input-sm input-bordered rounded-lg bg-carbon-bg text-neutral w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">Wind V (m/s)</span>
-                        <input
-                          type="number"
-                          step={0.5}
-                          value={weather.wind_v}
-                          onChange={(e) =>
-                            setWeather({ ...weather, wind_v: Number(e.target.value) })
-                          }
-                          className="input input-sm input-boardered rounded-lg bg-carbon-bg text-neutral w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">Humidity (%)</span>
-                        <input
-                          type="number"
-                          step={1}
-                          min={0}
-                          max={100}
-                          value={weather.rel_humidity}
-                          onChange={(e) =>
-                            setWeather({ ...weather, rel_humidity: Number(e.target.value) })
-                          }
-                          className="input input-sm input-boardered rounded-lg bg-carbon-bg rext-neutral w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">Temp (degrees celcius)</span>
-                        <input
-                          type="number"
-                          step={1}
-                          value={weather.temperature}
-                          onChange={(e) =>
-                            setWeather({ ...weather, temperature: Number(e.target.value) })
-                          }
-                          className="input input-sm input-boardered rounded-lg bg-carbon-bg text-netral w-full"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Fuel Params */}
-                  <div className="border-t boarder-carbon-stroke/40 pt-3">
-                    <p className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
-                      fuel Conditions
-                    </p>
-                    <div className="grid grid-col-2 gap-2">
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">
-                          Fuel Load: {staticParams.fuel_load.toFixed(2)}
-                        </span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.05}
-                          value={staticParams.fuel_load}
-                          onChange={(e) =>
-                            setStaticParams({ ...staticParams, fuel_load: Number(e.target.value) })
-                          }
-                          className="range range-xs w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">
-                          Dryness: {staticParams.dryness.toFixed(2)}
-                        </span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.05}
-                          value={staticParams.dryness}
-                          onChange={(e) =>
-                            setStaticParams({ ...staticParams, dryness: Number(e.target.value) })
-                          }
-                          className="range range-xs w-full"
-                        />
-                      </label>
-                    </div>
                   </div>
                 </div>
               </div>
