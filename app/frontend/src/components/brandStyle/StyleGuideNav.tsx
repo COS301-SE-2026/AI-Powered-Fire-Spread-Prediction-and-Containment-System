@@ -14,13 +14,25 @@ export default function StyleGuideNav() {
         Logo & Iconography
       </a>
       <a href="#components" className={className}>
-        UI Components
+        Components
+      </a>
+      <a href="#tokens" className={className}>
+        Design Tokens
       </a>
       <a href="#accessibility" className={className}>
         Accessibility
       </a>
+      <a href="#voice" className={className}>
+        Voice & Tone
+      </a>
       <a href="#principles" className={className}>
         Design Principles
+      </a>
+      <a href="#layout" className={className}>
+        Layout & Spacing
+      </a>
+      <a href="#changelog" className={className}>
+        Change Log
       </a>
     </nav>
   );
