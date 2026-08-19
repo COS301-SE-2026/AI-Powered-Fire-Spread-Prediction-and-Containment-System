@@ -4,6 +4,9 @@ import '../styles/globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import { NotificationsProvider, useNotifications } from "../hooks/useNotification";
 import { NotificationToast } from '../components/notification/NotificationToast';
+import { offlineStore } from '../lib/offlineStore';
+import { probeHealth } from '../lib/offline/shared';
+import { OfflineBar }
 
 function GlobalToast() {
   const { activeToast, dismissToast } = useNotifications();

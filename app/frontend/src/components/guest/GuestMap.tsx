@@ -42,7 +42,7 @@ const GuestMap = forwardRef<GuestMapHandle, GuestMapProps>(
     }, [centerLat, centerLng]);
 
     useEffect(() => {
-      async function syncGuestReports() {
+      async function initMapData() {
         if (reports && reports.length > 0) {
           setActiveReports(reports);
           const mapped: FireReportMapResponse[] = reports.map((r) => ({
@@ -78,7 +78,7 @@ const GuestMap = forwardRef<GuestMapHandle, GuestMapProps>(
         }
       }
 
-      void syncGuestReports();
+      void initMapData();
     }, [reports]);
 
     useImperativeHandle(ref, () => ({
