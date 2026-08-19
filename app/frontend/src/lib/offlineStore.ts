@@ -114,11 +114,23 @@ class OfflineStore {
 
         //t_action stands for transaction, transaction is a method though. So I needed to change oit to something else
         //like it would've  been fine, but maybe confusing.
-        const t_action = this.db.transaction('predictions', 'readwrite');
-        const store = t_action.objectStore('predictions');
+        const t_action = this.db.transaction('incidents', 'readwrite');
+        const store = t_action.objectStore('incidents');
         store.clear();
 
         for (const incident of incidents) {
+            const recordId = 
+                incident.id ||
+                incident.reference_number ||
+                (typeof crypto !== 'undefined' && crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : String(Date.now()));
+
+            const recordToSave = {
+                ...incident,
+                id: recordId,
+            };
+
             store.put(incident);
         }
 
