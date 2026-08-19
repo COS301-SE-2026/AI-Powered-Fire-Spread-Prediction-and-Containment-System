@@ -20,9 +20,6 @@ from startup_migrations import run_startup_migrations
 from seed import seed
 from src.services.storage import ensure_bucket
 
-@app.on_event("startup")
-def on_startup():
-    run_startup_migrations(engine)
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
@@ -38,6 +35,11 @@ app = FastAPI(
 )
 
 # app = FastAPI(root_path="/api")
+
+
+@app.on_event("startup")
+def on_startup():
+    run_startup_migrations(engine)
 
 
 @app.exception_handler(ValueError)
