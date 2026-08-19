@@ -19,7 +19,7 @@ from seed import seed
 from services.storage import ensure_bucket
 
 @asynccontextmanager
-async def liefspan(app: FastAPI):
+async def lifespan(app: FastAPI):
     ensure_bucket()
 
     if os.environ.get("SKIP_DB_INIT") != "1":
@@ -35,7 +35,7 @@ app = FastAPI(
     description="Backend for the AI-Powered Fire Spread Prediction and Containment System",
     version="1.0.0",
     redirect_slashes=False,
-    lifespan=liefspan
+    lifespan=lifespan
 )
 
 # app = FastAPI(root_path="/api")
