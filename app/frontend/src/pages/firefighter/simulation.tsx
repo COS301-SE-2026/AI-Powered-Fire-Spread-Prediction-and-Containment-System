@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
+import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2 } from 'lucide-react';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
@@ -139,8 +139,18 @@ export default function Simulation() {
                   Draw Containment
                 </button>
 
-                {/* Run/pause/resume button */}
-                {!hasResult || status === 'idle' || status === 'error' ? (
+                {/* Run/pause/resume/cancel/clear button */}
+                {isLoading ? (
+                  <button
+                    type="button"
+                    onClick={handleStop}
+                    className='btn btn-error rounded-lg btn-outline p-2 w-full flex items-center justify-center gap-2'
+                    title='Cancel Simulation Request'
+                    >
+                      <Square size={20}/>
+                      Cancel Simulation
+                    </button>
+                ): !hasResult || status === 'idle' || status === 'error' ? (
                   <button
                     onClick={handleRun}
                     disabled={isLoading}
@@ -154,13 +164,25 @@ export default function Simulation() {
                     {isLoading ? 'Running...' : 'RUN'}
                   </button>
                 ) : isPlaying ? (
-                  <button
-                    onClick={pause}
-                    className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1"
-                  >
+                  <div className='flex gap-2 flex-1 w-full'>
+                    <button
+                      onClick={pause}
+                      className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1"
+                    >
                     <Pause size={24} />
-                    Pause
-                  </button>
+                      Pause
+                    </button>
+                    <button
+                      onClick={handleStop}
+                      className='btn btn-error rounded-lg btn-outline p-2 flex-1'
+                      title='Stop Simulation'
+                    >
+                      <Square size={20}/>
+                      Stop
+                    </button>
+                  </div>
+                  
+
                 ) : (
                   <div className="flex gap-2 flex-1">
                     <button
@@ -176,6 +198,13 @@ export default function Simulation() {
                       title="Re-run simulation"
                     >
                       <RotateCcw size={18} />
+                    </button>
+                    <button
+                      onClick={handleClear}
+                      className='btn btn-outline btn-info rounded-lg p-2 flex-1'
+                    >
+                      <Trash2 size={18}/>
+                      Clear map
                     </button>
                   </div>
                 )}
