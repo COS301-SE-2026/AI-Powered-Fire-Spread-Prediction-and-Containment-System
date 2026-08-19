@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2 } from 'lucide-react';
+import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity } from 'lucide-react';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
@@ -7,6 +7,7 @@ import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { stat } from 'node:fs';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
@@ -59,7 +60,7 @@ export default function Simulation() {
     const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
     const totalHours = hasResult ? (maxSlider / 4) : 72;
     return (
-        <FirefighterSideBar>
+        <FirefighterSideBar hideLogout hideLoginRegister>
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
                 {/* Page header and subtitle */}
@@ -126,87 +127,77 @@ export default function Simulation() {
           </div>
 
             {/* simulation vars and buttons */}
-            <div className="flex gap-2 items-stretched">
+            <div className="flex gap-3 items-stretched">
               {/* buttons to start simulation or draw page */}
-              <div className="flex flex-col gap-6 shrink-0 h-auto justify-between">
+              <div className="flex flex-col gap-3 shrink-0 w-80">
                 <button
                   type="button"
                   onClick={() => setDrawMode(true)}
-                  className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1"
+                  className="btn btn-primary btn-outline w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold tracking-wide"
                 >
-                  <Pencil size={28} />
+                  <Pencil size={20} />
                   Draw Containment
                 </button>
 
-                {/* Run/pause/resume/cancel/clear button */}
-                {isLoading ? (
+                {/* Run/Cancel */}
+                <button
+                  type="button"
+                  onClick={isLoading? handleStop : handleRun}
+                  disabled={hasResult && !isLoading && status !== 'error'}
+                  className={`btn rounded-xl btn-outline w-full flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-30 disable:pointer-events-none ${
+                    isLoading? 'btn-error' : 'btn-accent'}`}
+                  title={isLoading ? 'Cancel Simulation Request' : undefined}
+                >
+                  {isLoading? (
+                    <Square size={20}/>
+                  ) : (
+                    <CirclePlay size={24}/>
+                  )}
+
+                  {isLoading ? 'Cancel Simulation' : 'RUN'}
+                </button>
+                
+                {/* Pause and Resume buttons */}
+                <div className='flex gap-2'>
                   <button
-                    type="button"
+                    onClick={isPlaying ? pause : play}
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-accent rounded-xl btn-outline flex-1 disabled:opacity-30 disabled:pointer-events-none'
+                  >
+                    {isPlaying ? <Pause size={20}/> : <CirclePlay size={20}/>}
+                    {isPlaying ? 'Pause' : 'Resume'}
+                  </button>
+                  <button
                     onClick={handleStop}
-                    className='btn btn-error rounded-lg btn-outline p-2 w-full flex items-center justify-center gap-2'
-                    title='Cancel Simulation Request'
-                    >
-                      <Square size={20}/>
-                      Cancel Simulation
-                    </button>
-                ): !hasResult || status === 'idle' || status === 'error' ? (
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-error rounded-xl btn-outline flex-1 disabled:opacity-30 disabled:pointer-events-none'
+                    title='Stop Simulation'
+                  >
+                    <Square size={20}/>
+                    Stop
+                  </button>
+                </div>
+
+                {/* Rerun and clear buttons */}
+                <div className='flex gap-2'>
                   <button
                     onClick={handleRun}
-                    disabled={isLoading}
-                    className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1 disabled-opacity-50"
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-outline rounded-xl flex-1 text-neautral/60 disabled:opacity-30 disabled:pointer-events-none'
+                    title='Re-run Simulation'
                   >
-                    {isLoading ? (
-                      <Loader2 className="animate-spin" size={24} />
-                    ) : (
-                      <CirclePlay size={24} />
-                    )}
-                    {isLoading ? 'Running...' : 'RUN'}
+                    <RotateCcw size={20}/>
+                    Re-run
                   </button>
-                ) : isPlaying ? (
-                  <div className='flex gap-2 flex-1 w-full'>
-                    <button
-                      onClick={pause}
-                      className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1"
-                    >
-                    <Pause size={24} />
-                      Pause
-                    </button>
-                    <button
-                      onClick={handleStop}
-                      className='btn btn-error rounded-lg btn-outline p-2 flex-1'
-                      title='Stop Simulation'
-                    >
-                      <Square size={20}/>
-                      Stop
-                    </button>
-                  </div>
-                  
-
-                ) : (
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={play}
-                      className="btn btn-accent rounded-lg btn-outline btn-xl p-2 flex-1"
-                    >
-                      <CirclePlay size={22} />
-                      Resume
-                    </button>
-                    <button
-                      onClick={handleRun}
-                      className="btn btn-outline rounded-lg btn-xl p-2 flex-1 text-neutral/60"
-                      title="Re-run simulation"
-                    >
-                      <RotateCcw size={18} />
-                    </button>
-                    <button
-                      onClick={handleClear}
-                      className='btn btn-outline btn-info rounded-lg p-2 flex-1'
-                    >
-                      <Trash2 size={18}/>
-                      Clear map
-                    </button>
-                  </div>
-                )}
+                  <button
+                    onClick={handleClear}
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
+                  >
+                    <Trash2 size={20}/>
+                    Clear Map
+                  </button>
+                </div>
               </div>
 
               {/* input variables */}
