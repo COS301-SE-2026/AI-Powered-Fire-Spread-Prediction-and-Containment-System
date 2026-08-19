@@ -5,10 +5,12 @@ from typing import Optional
 
 from pystac_client import Client
 
+# The AWS data source
 COPERNICUS_DEM_BUCKET = "copernicus-dem-30m"
 STAC_API = "https://earth-search.aws.element84.com/v1"
 S2_COLLECTION = "sentinel-2-c1-l2a"
 
+# Optical bands we need for our feature extraction
 S2_REQUIRED_BANDS = {
     "red",
     "nir",
@@ -17,6 +19,7 @@ S2_REQUIRED_BANDS = {
 
 @dataclass
 class ResolvedTiles:
+    """Container to hold the remote raster URLS for the simulation"""
     b04_path: str
     b08_path: str
     b11_path: str
@@ -26,8 +29,11 @@ class ResolvedTiles:
     s2_cloud_cover: Optional[float] = None
 
 def dem_tile_id(lat: float, lon: float) -> str:
-    # name dem tiles by 1deg cell SW corner e.g. lat=-25.9 lon=28.1 = S26_00_E028_00
+    """
+    Generates Copernicus 30m DEM tiles using the naming convention:
 
+    name dem tiles by 1deg cell SW corner e.g. lat=-25.9 lon=28.1 = S26_00_E028_00
+    """
     tile_lon = math.floor(lon)
     lat_mag = abs(math.floor(lat))
     ns = "N" if lat >= 0 else "S"
@@ -41,6 +47,9 @@ def resolve_dem_path(
     max_lon: float,
     max_lat: float
 ) -> list[str]:
+    """
+    Gets the 1x1 DEM tile raster path that overlaps the fires bounding box
+    """
     lat0, lat1 = math.floor(min_lat), math.floor(max_lat)
     lon0, lon1 = math.floor(min_lon), math.floor(max_lon)
 
@@ -65,7 +74,9 @@ def resolve_sentinel2_bands(
     time_window: int = 14,
     max_cloud_coverage = 10.0
 ) -> ResolvedTiles:
-    
+    """
+    Query the AWS STAC catalog to find the clearest image of the scene over the fire area
+    """
     when = when or datetime.now(timezone.utc)
     bbox = [min_lon, min_lat, max_lon, max_lat]
     catalog = Client.open(STAC_API)
@@ -121,6 +132,10 @@ def resolve_tile_paths(
     max_lat: float,
     when: Optional[datetime] = None
 ) -> ResolvedTiles:
+    """
+    A wrapper that resolves the Sentinel-2 and DEM paths
+    """
+    
     s2 = resolve_sentinel2_bands(min_lon, min_lat, max_lon, max_lat, when=when)
 
     dem_paths = resolve_dem_path(min_lon, min_lat, max_lon, max_lat)
