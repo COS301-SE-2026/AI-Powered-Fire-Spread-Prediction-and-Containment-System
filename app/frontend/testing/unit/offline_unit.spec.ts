@@ -2,7 +2,7 @@
 
 import { test, expect} from '@playwright/test';
 import { LngLat } from 'mapbox-gl';
-import { FireReportMapResponse } from '../../src/lib/offlineStore';
+import { OfflinePredictionOverlay, FireReportMapResponse } from '../../src/lib/offlineStore';
 import { clear } from 'node:console';
 
 test.describe('Unit testing for Othe Offline Store', () => {
@@ -79,7 +79,7 @@ test.describe('Unit testing for Othe Offline Store', () => {
     });
 
     test('test_cahce_and_retrieve_prediction_overlay_in_indexeddb', async ({ page }) => {
-        const mockPrediction = {
+        const mockPrediction: OfflinePredictionOverlay = {
             incident_id: 'FR-2026-UNIT-01',
             timestamp: '2026-08-19T10:00:00Z',
             prediction_grid: {
@@ -109,7 +109,7 @@ test.describe('Unit testing for Othe Offline Store', () => {
         };
 
         const retrievedOverlay = await page.evaluate(
-            async (predictionData: FireReportMapResponse): Promise<FireReportMapResponse | undefined> => {
+            async (predictionData: OfflinePredictionOverlay): Promise<OfflinePredictionOverlay | undefined> => {
                 return new Promise((resolve, reject) => {
                     const req = indexedDB.open('fireaway_offline_db', 1);
 
@@ -131,7 +131,7 @@ test.describe('Unit testing for Othe Offline Store', () => {
                             const readStore = readTAction.objectStore('predictions');
                             const getReq = readStore.get(predictionData.incident_id);
 
-                            getReq.onsuccess = () => resolve(getReq.result as FireReportMapResponse | undefined);
+                            getReq.onsuccess = () => resolve(getReq.result as OfflinePredictionOverlay | undefined);
                             getReq.onerror = () => reject(getReq.error);
                         };
 
