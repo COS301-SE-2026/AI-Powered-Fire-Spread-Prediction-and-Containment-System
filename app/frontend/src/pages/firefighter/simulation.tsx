@@ -120,7 +120,7 @@ export default function Simulation() {
                   currentTick={currentTick}
                   selectedFireId={selectedFireId}
                   onSelectFire={setSelectedFireId}
-                  showKey={true}
+                  showKey
                 />
               </div>
           </div>

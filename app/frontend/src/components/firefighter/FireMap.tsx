@@ -4,7 +4,8 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source} from 'react-map-gl/mapbox';
+import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
@@ -24,7 +25,7 @@ interface MapProps{
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions, currentTick=0, selectedFireId, onSelectFire, showKey = false}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -33,9 +34,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-  const verifiedFires = useMemo(() => {
-    return fires.filter((f) => f.status?.toLowerCase() === 'verified')
-  }, [fires])
+  const verifiedFires = useMemo(
+    () => fires.filter((f) => f.status?.toLowerCase() === 'verified'),
+    [fires]
+  );
 
   const handleDrawCreate = useCallback(
     (e: DrawCreateEvent) => {
