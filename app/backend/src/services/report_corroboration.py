@@ -6,7 +6,7 @@ from geoalchemy2.functions import ST_DWithin
 from geoalchemy2 import Geography
 
 from sqlalchemy import cast, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
@@ -14,7 +14,7 @@ from models.reported_fires import FireReports
 WINDOW = timedelta(hours=12)
 RADIUS_METERS = 2000
 
-async def corroborating_reports(report: FireReports, session: AsyncSession) -> list[str]:
+def corroborating_reports(report: FireReports, session: Session) -> list[str]:
     """ finds fire reports from other users near this fires location and time. Return list of IDs """
 
     start_time = report.submitted_at - WINDOW
@@ -36,5 +36,5 @@ async def corroborating_reports(report: FireReports, session: AsyncSession) -> l
         ),
     )
 
-    result = await session.execute(query)
+    result = session.execute(query)
     return [row[0] for row in result.all()]
