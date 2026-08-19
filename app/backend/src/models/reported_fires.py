@@ -56,6 +56,8 @@ class FireReports(Base):
     system_verified = Column(Boolean, default=False, nullable=False)
     verification_notes = Column(Text, nullable=True)
 
+    # for verification of the photo hash
+    photo_hash = Column(String(64), nullable=True, index=True)
     @property
     def reporter(self) -> str:
         if self.user is None:
