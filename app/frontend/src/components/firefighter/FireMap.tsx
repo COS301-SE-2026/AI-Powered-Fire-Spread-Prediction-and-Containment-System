@@ -21,9 +21,10 @@ interface MapProps{
     currentTick?: number;
     selectedFireId?: string | null;
     onSelectFire?: (ref: string) => void;
+    showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions, currentTick=0, selectedFireId, onSelectFire}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions, currentTick=0, selectedFireId, onSelectFire, showKey = false}: MapProps) {
 
     const mapRef = useRef<any>(null);
     const drawRef = useRef<any>(null);
@@ -31,6 +32,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+
+  const verifiedFires = useMemo(() => {
+    return fires.filter((f) => f.status?.toLowerCase() === 'verified')
+  }, [fires])
 
   const handleDrawCreate = useCallback(
     (e: DrawCreateEvent) => {
@@ -79,7 +84,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   const circleFeatures = useMemo(
     () =>
-      fires
+      verifiedFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -88,15 +93,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             properties: { ref: f.ref },
           })
         ),
-    [fires]
+    [verifiedFires]
   );
 
     useEffect(() => {
         if(!selectedFireId) return;
-        const fire = fires.find(f => f.ref === selectedFireId);
+        const fire = verifiedFires.find(f => f.ref === selectedFireId);
         if(!fire) return;
         setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 16)}))
-    }, [selectedFireId, fires])
+    }, [selectedFireId, verifiedFires])
 
     const girdFeautures = useMemo(() => {
         if(!predictions?.length) return [];
@@ -143,6 +148,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   return (
     <div className='relative w-full h-full'>
       {/* key for map legend */}
+      {showKey && (
       <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
         <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
         <div className='flex items-center justify-between text-xs'>
@@ -164,6 +170,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </div>
       </div>
+    )}
+
     <Map
       ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
@@ -172,7 +180,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
-      {fires.map((fire) => (
+      {verifiedFires.map((fire) => (
         <Marker
           key={fire.ref}
           longitude={fire.lng}
