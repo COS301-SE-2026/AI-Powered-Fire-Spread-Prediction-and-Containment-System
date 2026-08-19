@@ -11,6 +11,7 @@ import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
+import type { ReportStatus } from '../../types/Report';
 
 
 interface MapProps {
@@ -78,7 +79,7 @@ export function FireMap({
             cached.map((c) => ({
               ref: c.reference_number,
               location: c.location_text,
-              status: c.status as any,
+              status: c.status as ReportStatus,
               size: c.size ?? c.boundary_radius ?? 0.2,
               reported: c.submitted_at ? new Date(c.submitted_at).toISOString() : new Date().toISOString(),
               reporter: c.reporter_name || 'Anonymous',

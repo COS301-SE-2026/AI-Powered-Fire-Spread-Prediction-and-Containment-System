@@ -112,10 +112,10 @@ class OfflineStore {
         if (!this.db) await this.init();
         if (!this) return;
 
-        //t_action stands for transaction, transaction is a method though. So I needed to change oit to something else
+        //tAction stands for transaction, transaction is a method though. So I needed to change oit to something else
         //like it would've  been fine, but maybe confusing.
-        const t_action = this.db.transaction('incidents', 'readwrite');
-        const store = t_action.objectStore('incidents');
+        const tAction = this.db.transaction('incidents', 'readwrite');
+        const store = tAction.objectStore('incidents');
         store.clear();
 
         for (const incident of incidents) {
@@ -135,8 +135,8 @@ class OfflineStore {
         }
 
         return new Promise((resolve, reject) => {
-            t_action.oncomplete = () => resolve();
-            t_action.onerror = () => reject(t_action.error);
+            tAction.oncomplete = () => resolve();
+            tAction.onerror = () => reject(tAction.error);
         });
     }
 
@@ -145,8 +145,8 @@ class OfflineStore {
         if (!this) return [];
 
         return new Promise((resolve, reject) => {
-            const t_action = this.db!.transaction('incidents', 'readonly');
-            const store = t_action.objectStore('incidents');
+            const tAction = this.db!.transaction('incidents', 'readonly');
+            const store = tAction.objectStore('incidents');
             const request = store.getAll();
 
             request.onsuccess = () => resolve(request.result || []);
@@ -158,13 +158,13 @@ class OfflineStore {
         if (!this.db) await this.init();
         if (!this) return;
 
-        const t_action = this.db.transaction('predictions', 'readwrite');
-        const store = t_action.objectStore('predictions');
+        const tAction = this.db.transaction('predictions', 'readwrite');
+        const store = tAction.objectStore('predictions');
         store.put(prediction);
 
         return new Promise((resolve, reject) => {
-            t_action.oncomplete = () => resolve();
-            t_action.onerror = () => reject(t_action.error);
+            tAction.oncomplete = () => resolve();
+            tAction.onerror = () => reject(tAction.error);
         });
     }
 
@@ -173,8 +173,8 @@ class OfflineStore {
         if (!this) return null;
 
         return new Promise((resolve, reject) => {
-            const t_action = this.db!.transaction('predictions', 'readonly');
-            const store = t_action.objectStore('predictions');
+            const tAction = this.db!.transaction('predictions', 'readonly');
+            const store = tAction.objectStore('predictions');
             const request = store.get(incidentId);
 
             request.onsuccess = () => resolve(request.result || null);
@@ -197,8 +197,8 @@ class OfflineStore {
         };
 
         return new Promise((resolve, reject) => {
-            const t_action = this.db!.transaction('action_queue', 'readwrite');
-            const store = t_action.objectStore('action_queue');
+            const tAction = this.db!.transaction('action_queue', 'readwrite');
+            const store = tAction.objectStore('action_queue');
             const request = store.add(record);
 
             request.onsuccess = () => resolve(id);
@@ -229,8 +229,8 @@ class OfflineStore {
         if (!this) return [];
 
         return new Promise((resolve, reject) => {
-            const t_action = this.db!.transaction('action_queue', 'readonly');
-            const store = t_action.objectStore('action_queue');
+            const tAction = this.db!.transaction('action_queue', 'readonly');
+            const store = tAction.objectStore('action_queue');
             const request = store.getAll();
 
             request.onsuccess = () => resolve(request.result || []);
@@ -243,8 +243,8 @@ class OfflineStore {
         if (!this) return;
 
         return new Promise((resolve, reject) => {
-            const t_action = this.db!.transaction('action_queue', 'readwrite');
-            const store = t_action.objectStore('action_queue');
+            const tAction = this.db!.transaction('action_queue', 'readwrite');
+            const store = tAction.objectStore('action_queue');
             const request = store.delete(id);
 
             request.onsuccess = () => resolve();
