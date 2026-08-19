@@ -9,6 +9,7 @@ from .simulation import (
     build_verified_reports_mask,
     pick_ignition_points,
     state_to_burn_state,
+    update_model_tensors
 )
 
 MAXSTEPS = 288 # 4 ticks = 1 hour max ticks is 288 as 72 hours is max simulation time
@@ -36,16 +37,19 @@ def run_dca(
     H, W = static_grids["elevation"].shape
     burn_state0 = np.full((H, W), UNBURNED, dtype=np.int64)
 
+    init_weather = weather_grids[0] if isinstance(weather_grids, list) else weather_grids
+
     if ignition_mask is not None:
         pass
     elif ignition_points:
         ignition_mask = build_verified_reports_mask(H, W, ignition_points)
     else:
         scorer = IgnitionScorer.load()
-        p_ignite = scorer.score_grid(weather_grids, static_grids, burn_state0)
+        p_ignite = scorer.score_grid(init_weather, static_grids, burn_state0)
         ignition_mask = pick_ignition_points(p_ignite, n_points=n_ignition_points)
 
-    env_data = build_env_data(weather_grids, static_grids, ignition_mask, cell_size_m)
+    
+    env_data = build_env_data(init_weather, static_grids, ignition_mask, cell_size_m)
 
     model = WildfireModel(env_data=env_data, params=params).to(device)
     model.eval()
@@ -53,7 +57,11 @@ def run_dca(
     history = [state_to_burn_state(model.state)]
 
     with torch.no_grad():
-        for _ in range(n_steps):
+        for step in range(n_steps):
+            if isinstance(weather_grids, list):
+                weather_idx = min(step // 4, len(weather_grids) - 1)
+                update_model_tensors(model, weather_grids[weather_idx], device)
+
             model.compute()
             history.append(state_to_burn_state(model.state))
 
