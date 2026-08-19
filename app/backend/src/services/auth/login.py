@@ -5,7 +5,7 @@ import redis
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from auth import create_access_token, verify_password
+from dependencies.auth import create_access_token, verify_password
 from models.users import User
 from schemas.auth import LoginRequest
 
