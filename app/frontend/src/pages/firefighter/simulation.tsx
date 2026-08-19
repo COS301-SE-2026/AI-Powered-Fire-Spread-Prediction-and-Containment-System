@@ -6,6 +6,7 @@ import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
@@ -61,11 +62,8 @@ export default function Simulation() {
         <FirefighterSideBar>
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
-                {/*Page header and subtitle*/}
-                <header className='mb-6'>
-                    <h1 className='text-page-title font-display font-bold tracking-wider text-text-primary uppercase'>Fire Simulation</h1>
-                    <p className='font-body text-body text-text-primary/50'>Simulate fire spread and prevention methods</p>
-                </header>
+                {/* Page header and subtitle */}
+                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
 
         <div className="flex flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}

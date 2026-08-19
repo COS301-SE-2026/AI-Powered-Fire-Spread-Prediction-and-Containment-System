@@ -41,7 +41,11 @@ services:
       dockerfile: Dockerfile
     container_name: python-backend
     environment:
+      - VALKEY_HOST=valkey
+      - MINIO_ENDPOINT=minio:9000
       - PYTHONPATH=/app/src:/app
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
     restart: unless-stopped
     env_file:
       - .env
@@ -49,6 +53,8 @@ services:
       postgres:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      valkey:
         condition: service_healthy
     volumes:
       - ./app/backend:/app:Z
@@ -98,6 +104,19 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  valkey:
+    image: valkey/valkey:latest
+    container_name: valkey-cache
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  
   
   reseed:
     build:

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
+import { apiCall } from '../lib/api';
+import { useAuth } from '../hooks/useAuth';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -14,6 +16,13 @@ const fieldClass = (hasError?: string) => {
   return 'input input-neutral focus:border-primary w-full';
 };
 
+  const ROLE_REDIRECTS: Record<string, string> = {
+    admin: '/admin/dashboard',
+    firefighter: '/firefighter/dashboard',
+    user: '/users/live-map',
+  };
+
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +30,13 @@ export default function Login() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuth, role, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuth && role){
+      router.push(ROLE_REDIRECTS[role] ?? '/');
+    }
+  }, [isAuthLoading, isAuth, role, router]);
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -38,6 +54,8 @@ export default function Login() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const [cooldown, setCooldown] = useState(0);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -57,6 +75,11 @@ export default function Login() {
       if (!res.ok) {
         const errBody = await res.json().catch(() => null);
         setApiError(errBody?.detail || 'Login failed. Email or password incorrect');
+
+        const match = errBody?.detail?.match(/(\d+)\s*seconds?/);
+        if (match) {
+          setCooldown(parseInt(match[1], 10))
+        }
         return;
       }
 
@@ -64,17 +87,13 @@ export default function Login() {
 
       if (data.requires_2fa) {
         router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}`);
+        return;
       }
 
-      const roleRedirects: Record<string, string> = {
-        admin: '/admin/dashboard',
-        firefighter: '/firefighter/dashboard',
-        user: '/users/live-map',
-      };
-
-      window.location.href = roleRedirects[data.role] ?? '/login';
+      window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      const message = err instanceof Error ? err.message : 'Login failed. Email or password incorrect.';
+      setApiError(message);
     } finally {
       setIsLoading(false);
     }
@@ -83,6 +102,14 @@ export default function Login() {
   const handleGuest = () => {
     router.push('/guests/live-map');
   };
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 1 ? prev -  1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   return (
     <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -146,10 +173,19 @@ export default function Login() {
             )}
             <button
               type="submit"
-              disabled={isLoading}
-              className="w-full btn btn-primary active:scale-90 text-lg"
+              disabled={isLoading || cooldown > 0}
+              className="w-full btn btn-primary text-lg"
             >
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? (
+                <>
+                  <span className='loading loading-spinner loading-sm' />
+                  Logging in...
+                </>
+              ) : cooldown > 0 ? (
+                `Try again in ${cooldown}s`
+              ) : (
+                'Login'
+              )}
             </button>
             <Link href="/register" className="w-full btn btn-neutral text-lg">
               Register
