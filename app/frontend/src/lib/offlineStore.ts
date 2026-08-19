@@ -1,3 +1,5 @@
+//manages and stores offline fire incidents in cache
+
 const DB_NAME = 'fireaway_offline_db'
 const DB_VERSION = 1
 
