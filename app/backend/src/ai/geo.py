@@ -17,7 +17,9 @@ def bbox_from_fire(
         min_extent_radius_m: float = 300
 ) -> tuple[float, float, float, float]: # (min_lon, min_lat, max_lon, max_lat)
     """ 
-    Centers the boundary box around a fire and pads it beyond the reported size/radius of the fire
+    Computes a padded geographic bounding box around a fire
+
+    Calculates the headroom based on the time steps in the simulation this is to prevent the model from hitting the edges of the grid before finishing
     """
 
     spread_headroom_m = n_steps * max_spread_m_per_tick

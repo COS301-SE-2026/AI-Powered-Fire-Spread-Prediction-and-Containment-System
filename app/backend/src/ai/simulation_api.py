@@ -89,6 +89,9 @@ def burned_area_radius_m(
 MAX_CONCURR_USERS = 10
 
 async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+    """
+    Executes the whole DCA pipeline for a single fire
+    """
     async with semaphore:
         boundary_m = float(fire.boundary_radius) * 1000
 
@@ -170,20 +173,10 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
 async def run_simulation(
      db: Session = Depends(get_db)
 ) -> SimulationResponse:
-    """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
+    """
+    Endpoint for all verified fires
 
-    Runs the simulation for one hour on each verified fire. Computes a bounding box based on the fires current radius.
-    Loads real data.
-
-    Args:
-        req (SimulationRequest): Incoming request payload containing grid dimentions,
-        coordinates and simulation configuration parameters.
-
-    Returns:
-        SimulationResponse: Formatted response containing flattened per-tick grid histories, dimentions, stats and execution steps.
-
-    Raises:
-        HTTPException: Status 500 if underlying DCA model execution fails.
+    Runs for 4 ticks which is a 1 hour spread simulation
     """
 
     verified_fires = (
@@ -223,6 +216,12 @@ async def run_simulation(
 async def run_single_fire_simulation(
     fire_id: str, req: OnDemandSimRequest, db: Session = Depends(get_db)
 ) -> Prediction:
+    """
+    Endpiont for spread on a single spread which spreads for 72 hours
+
+    Runs the 72 hour spread which is 288 ticks for a fire selected on the map
+    """
+
     fire = (
         db.query(
             FireReports.id,
