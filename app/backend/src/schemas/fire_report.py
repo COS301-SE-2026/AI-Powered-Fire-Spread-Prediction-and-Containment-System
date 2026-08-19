@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from enums.report_status import ReportStatus
-
+from enums.report_priority import ReportPriority
 
 class FireReportCreate(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
@@ -44,6 +44,10 @@ class FireReportDetailResponse(BaseModel):
     size: float
     submitted_at: datetime
     reporter_name: Optional[str] = None
+
+    #for auto fire report verification
+    priority: ReportPriority
+    system_verified: bool
 
     class Config:
         from_attributes = True
