@@ -1,6 +1,4 @@
 // All API communication and playback state for fire simulation
-
-import { clear } from 'node:console';
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface Prediction {

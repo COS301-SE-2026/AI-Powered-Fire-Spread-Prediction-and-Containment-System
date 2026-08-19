@@ -99,6 +99,21 @@ services:
       timeout: 5s
       retries: 5
   
+  reseed:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app/src:/app
+    volumes:
+      - ./app/backend:/app:Z
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "seed.py", "--reseed"]
 
   # pwa:
   #   build:
