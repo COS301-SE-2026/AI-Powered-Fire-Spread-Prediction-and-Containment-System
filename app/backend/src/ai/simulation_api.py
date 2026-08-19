@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import asyncio
+import torch
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
@@ -26,7 +27,16 @@ router = APIRouter(prefix="/api", tags=["simulation"])
 METRES_PER_DEG_LAT = 111_320.0
 TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
 MIN_GRID_DIMENSION = 10
-MAX_GRID_DIMENSION = 400
+MAX_GRID_DIMENSION = 800
+
+# will change after training
+DEFAULT_DCA_PARAMS = {
+    "a": torch.tensor(0.015),
+    "p_h": torch.tensor(0.06),
+    "c_1": torch.tensor(0.04),
+    "c_2": torch.tensor(0.03),
+    "p_continue": torch.tensor(0.6),
+}
 
 def grid_dimensions_for_extent(
         lat_extent_deg: float,
@@ -42,57 +52,6 @@ def grid_dimensions_for_extent(
     W = int(np.clip(round(lon_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
 
     return H, W
-
-# Request/Response Schemas
-# TODO: WeatherParams will become read-only once pull weather data
-class WeatherParams(BaseModel):
-    wind_u: float = Field(3.0, description="East-west wind component (m/s)")
-    wind_v: float = Field(1.0, description="North-south wind component (m/s)")
-    rel_humidity: float = Field(35.0, description="Relative humidity (%)")
-    temperature: float = Field(28.0, description="Air temperature (degrees celcius)")
-
-
-# TODO: StaticParams to be replaced by raster lookups
-class StaticParams(BaseModel):
-    elevation: float = Field(0.0, description="Mean elevation of the area (m)")
-    slope: float = Field(0.0, description="Mean slope (degrees)")
-    aspect_sin: float = Field(0.0)
-    aspect_cos: float = Field(1.0)
-    fuel_load: float = Field(0.5, description="Fuel load fraction 0-1")
-    dryness: float = Field(0.5, description="Fuel dryness fraction 0-1")
-
-
-class DCAParams(BaseModel):
-    a: float = Field(0.1, description="Base fire spread coefficient")
-    p_h: float = Field(0.4, description="Probability of horizontal spread")
-    c_1: float = Field(0.1, description="Wind spread coefficient")
-    c_2: float = Field(0.1, description="Slope spread coefficient")
-    p_continue: float = Field(
-        0.6, description="Probability a burning cell stays burning"
-    )
-
-
-class SimulationRequest(BaseModel):
-    # Spatial extent (frontend sends bounding box it's rendering)
-    # TODO: Pass lat/lng into build_weather_grids() & build_static_grids() to determine bounding box for raster/weather queries
-    lat: float = Field(..., description="Map center latitude")
-    lng: float = Field(..., description="Map center longitude")
-
-    # Grid resolution (keep small for fast round-trips (Gonna use 30x30 as default))
-    # TODO: These should match resolution of raster tiles
-    grid_h: int = Field(30, ge=10, le=200, description="Grid rows")
-    grid_w: int = Field(30, ge=10, le=200, description="Grid columns")
-
-    # Amount of DCA ticks to run (1 tick +- is 1 model timestep)
-    n_steps: int = Field(4, ge=1, le=500, description="Number of simulation steps")
-
-    # Amount independent ignition points to seed
-    n_ignition_points: int = Field(1, ge=1, le=10)
-
-    weather: WeatherParams = WeatherParams()
-    static: StaticParams = StaticParams()
-    dca: DCAParams = DCAParams()
-
 
 class Prediction(BaseModel):
     ref: str
@@ -117,20 +76,6 @@ class SimulationResponse(BaseModel):
 
 class OnDemandSimRequest(BaseModel):
     n_steps: int = Field(288, ge=1, le=288, description="Number of sim steps")
-    dca: DCAParams = DCAParams()
-
-
-def params_to_torch(dca: DCAParams):
-    import torch
-
-    return {
-        "a": torch.tensor(dca.a),
-        "p_h": torch.tensor(dca.p_h),
-        "c_1": torch.tensor(dca.c_1),
-        "c_2": torch.tensor(dca.c_2),
-        "p_continue": torch.tensor(dca.p_continue),
-    }
-
 
 def burned_area_radius_m(
     burned_cells: int, H: int, W: int, lat_extent_deg: float, lon_extent_deg: float
@@ -143,7 +88,7 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
-async def simulate_single_fire(fire, dca: DCAParams, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
     async with semaphore:
         boundary_m = float(fire.boundary_radius) * 1000
 
@@ -189,7 +134,7 @@ async def simulate_single_fire(fire, dca: DCAParams, automatic_steps: int, semap
                 static_grids=static_grids,
                 n_steps=automatic_steps,
                 ignition_mask=ignition_mask,
-                params=params_to_torch(dca),
+                params=DEFAULT_DCA_PARAMS,
                 cell_size_m=cell_size_m
             )
         except Exception as exc:
@@ -223,7 +168,7 @@ async def simulate_single_fire(fire, dca: DCAParams, automatic_steps: int, semap
     responses={500: {"description": "Internal server error simulation failed"}},
 )
 async def run_simulation(
-    req: SimulationRequest, db: Session = Depends(get_db)
+     db: Session = Depends(get_db)
 ) -> SimulationResponse:
     """Run full DCA fire simulation pipeline and returns per-tick burn state grids.
 
@@ -257,7 +202,7 @@ async def run_simulation(
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(
-        *(simulate_single_fire(fire, req.dca, automatic_steps, semaphore) for fire in verified_fires)
+        *(simulate_single_fire(fire, automatic_steps, semaphore) for fire in verified_fires)
     )
 
     n_steps_run = max((len(p.history) for p in predictions), default = 0)
@@ -294,4 +239,4 @@ async def run_single_fire_simulation(
         raise HTTPException(status_code=404, detail=f"Verified fire {fire_id} not found")
 
     semaphore = asyncio.Semaphore(1)
-    return await simulate_single_fire(fire, req.dca, req.n_steps, semaphore)
+    return await simulate_single_fire(fire, req.n_steps, semaphore)
