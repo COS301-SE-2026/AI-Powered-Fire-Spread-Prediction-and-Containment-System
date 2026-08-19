@@ -111,6 +111,7 @@ def create_fire_report(
         location_text=report.location_text,
         description=report.description,
         image_url=report.image_url,
+        photo_hash=report.photo_hash,
         location_geom=point_wkt,
         boundary_radius=report.boundary_radius,
         status=ReportStatus.pending,

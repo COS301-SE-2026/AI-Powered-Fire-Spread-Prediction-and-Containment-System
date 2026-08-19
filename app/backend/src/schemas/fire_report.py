@@ -13,7 +13,7 @@ class FireReportCreate(BaseModel):
     description: Optional[str] = Field(default=None, max_length=1000)
     image_url: Optional[str] = None
     boundary_radius: float = Field(..., gt=0, le=50)
-
+    photo_hash: Optional[str] = None
 
 class FireReportMapResponse(BaseModel):
     id: str
