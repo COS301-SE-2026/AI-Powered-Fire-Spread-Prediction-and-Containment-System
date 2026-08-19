@@ -7,7 +7,6 @@ import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { PageHeader } from '../../components/layout/pageHeader';
-import { stat } from 'node:fs';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
