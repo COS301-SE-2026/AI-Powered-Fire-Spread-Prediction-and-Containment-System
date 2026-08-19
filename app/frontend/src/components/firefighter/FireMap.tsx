@@ -27,8 +27,8 @@ interface MapProps{
 
 export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
 
-    const mapRef = useRef<any>(null);
-    const drawRef = useRef<any>(null);
+  const mapRef = useRef<MapRef | null>(null);
+  const drawRef = useRef<MapboxDraw | null>(null);
 
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
