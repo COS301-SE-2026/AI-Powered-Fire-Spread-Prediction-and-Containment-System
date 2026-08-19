@@ -14,8 +14,15 @@ from src.routes.users import router as user_router
 from src.routes.guests import router as guest_router
 from src.routes.auth import router as auth_router
 
+from db import engine
+from startup_migrations import run_startup_migrations
+
 from seed import seed
 from src.services.storage import ensure_bucket
+
+@app.on_event("startup")
+def on_startup():
+    run_startup_migrations(engine)
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
