@@ -8,6 +8,7 @@ export interface FireReportMapResponse {
     reference_number: string;
     lat: number;
     lng: number;
+    location_text: string;
     status: string;
     boundary_radius: number;
     size: number;
@@ -127,7 +128,7 @@ class OfflineStore {
         });
     }
 
-    async getCahchedIncidents(): Promise<FireReportMapResponse[]> {
+    async getCachedIncidents(): Promise<FireReportMapResponse[]> {
         if (!this.db) await this.init();
         if (!this) return [];
 
