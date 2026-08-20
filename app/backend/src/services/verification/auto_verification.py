@@ -3,10 +3,10 @@
 from sqlalchemy.orm import Session
 
 from models.reported_fires import FireReports
-from rejection_checks import rejection_check
-from report_corroboration import corroborating_reports
-from report_spam_detection import abnormal_rate, duplicate_photo_hash
-from reporter_trust import reporter_trust_score
+from services.verification.rejection_checks import rejection_check
+from services.verification.report_corroboration import corroborating_reports
+from services.verification.report_spam_detection import abnormal_rate, duplicate_photo_hash
+from services.verification.reporter_trust import reporter_trust_score
 
 # Tresholds
 MIN_CORROBORATING_REPORTS = 3
