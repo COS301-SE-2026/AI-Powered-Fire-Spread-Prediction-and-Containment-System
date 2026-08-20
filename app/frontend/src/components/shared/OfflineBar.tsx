@@ -7,25 +7,28 @@ export const OfflineBar: React.FC = () => {
     const [queueCount, setQueueCount] = useState(0);
 
     const checkStatus = async () => {
-        const reachable = await probeHealth();
-        setIsOffline(!reachable);
+        if (typeof window === 'undefined') return;
+        if (!navigator.onLine) {
+            setIsOffline(true);
+        } else {
+            const reachable = await probeHealth();
+            setIsOffline(!reachable)
+        }
 
         const queued = await offlineStore.getQueuedActions();
         setQueueCount(queued.length);
     };
 
     useEffect(() => {
-        checkStatus();
+        void checkStatus();
 
         const handleOnline = async () => {
-            const reachable = await probeHealth();
-            setIsOffline(!reachable);
-            if (reachable) {
-                const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhostt:8000';
-                await offlineStore.syncQueuedActions(apiBaseUrl);
-                const queued = await offlineStore.getQueuedActions();
-                setQueueCount(queued.length);
-            }
+            setIsOffline(false);
+            
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhostt:8000';
+            await offlineStore.syncQueuedActions(apiBaseUrl);
+            const queued = await offlineStore.getQueuedActions();
+            setQueueCount(queued.length);
         };
 
         const handleOffline = () => {
@@ -34,7 +37,7 @@ export const OfflineBar: React.FC = () => {
 
         window.addEventListener('online', handleOnline);
         window.addEventListener('offline', handleOffline);
-        const interval = setInterval(checkStatus, 15000);
+        const interval = setInterval(checkStatus, 4000);
 
         return () => {
             window.removeEventListener('online', handleOnline);
