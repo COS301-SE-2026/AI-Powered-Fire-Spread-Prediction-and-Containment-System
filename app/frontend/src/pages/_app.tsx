@@ -47,6 +47,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <NotificationsProvider>
       <Component {...pageProps} />
       <GlobalToast />
+      <OfflineBar />
     </NotificationsProvider>
   );
 }
