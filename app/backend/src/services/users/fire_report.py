@@ -91,6 +91,8 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         "reporter_name": (
             f"{report.user.name} {report.user.surname}" if report.user else "Anonymous"
         ),
+        "priority": report.priority,
+        "system_verified": report.system_verified,
     }
 
 
