@@ -62,13 +62,9 @@ attrs==26.1.0 \
     --hash=sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32
     # via
     #   affine
-<<<<<<< HEAD
-    #   rasterio
-=======
     #   jsonschema
     #   rasterio
     #   referencing
->>>>>>> origin/ai_model
 bcrypt==4.2.0 \
     --hash=sha256:096a15d26ed6ce37a14c1ac1e48119660f21b24cba457f160a4b830f3fe6b5cb \
     --hash=sha256:0da52759f7f30e83f1e30a888d9163a81353ef224d82dc58eb5bb52efcabc399 \
