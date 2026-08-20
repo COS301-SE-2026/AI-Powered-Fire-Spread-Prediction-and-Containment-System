@@ -276,7 +276,7 @@ jobs:
           VALKEY_PORT: 6379
         run: |
           cd app/backend
-          PYTHONPATH=src nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+          PYTHONPATH=.:src:..:../ml uvicorn main:app --host 0.0.0.0 --port 8000 &
           for i in {1..30}; do
             curl -sf http://localhost:8000/docs > /dev/null && break
             sleep 1
