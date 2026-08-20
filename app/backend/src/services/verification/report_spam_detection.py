@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
-WINDOW = timedelta(hour=1)
+WINDOW = timedelta(hours=1)
 MAX_REPORTS = 3
 
 def abnormal_rate(report: FireReports, session: Session) -> bool:
