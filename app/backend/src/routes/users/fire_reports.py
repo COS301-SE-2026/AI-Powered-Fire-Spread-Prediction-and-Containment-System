@@ -12,7 +12,7 @@ from schemas.fire_report import (
     FireReportMapResponse,
 )
 from services.users import fire_report
-from verification_runner import run_verification
+from services.verification.verification_runner import run_verification
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
