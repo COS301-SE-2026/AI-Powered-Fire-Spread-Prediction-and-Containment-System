@@ -26,6 +26,7 @@ class FireReportMapResponse(BaseModel):
     size: float
     submitted_at: datetime
     reporter_name: Optional[str] = None
+    verification_notes: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -48,6 +49,7 @@ class FireReportDetailResponse(BaseModel):
     #for auto fire report verification
     priority: ReportPriority
     system_verified: bool
+    verification_notes: Optional[str] = None
 
     class Config:
         from_attributes = True

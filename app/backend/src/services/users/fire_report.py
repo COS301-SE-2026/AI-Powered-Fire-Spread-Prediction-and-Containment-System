@@ -49,6 +49,7 @@ def get_fire_reports(db: Session, user_id: Optional[str] = None):
                 "submitted_at": report.submitted_at.isoformat(),
                 "boundary_radius": float(report.boundary_radius),
                 "size": calc_size(float(report.boundary_radius)),
+                "verification_notes": report.verification_notes,
                 "reporter_name": (
                     f"{report.user.name} {report.user.surname}"
                     if report.user
@@ -93,6 +94,7 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         ),
         "priority": report.priority,
         "system_verified": report.system_verified,
+        "verification_notes": report.verification_notes,
     }
 
 
