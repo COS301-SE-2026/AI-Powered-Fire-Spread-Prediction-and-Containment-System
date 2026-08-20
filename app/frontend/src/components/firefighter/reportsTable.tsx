@@ -3,7 +3,8 @@ import { useRouter } from 'next/router';
 import { ReportStatus } from '../../types/Report';
 import { StatusBadge } from '../admin/reportStatusBadge';
 import { FirefighterReportTable } from '../../types/FirefighterReports';
-import { FormatDate } from "../shared/FormatDate";
+import { FormatDate } from "../../lib/FormatDate";
+import { VerificationNotes } from "../../lib/VerificationNotes";
 
 interface ReportsTableProp {
   readonly requests: FirefighterReportTable[];
@@ -22,6 +23,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase" >Ref</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Location</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Status</th>
+                        <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reason</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Size</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reported</th>
                         <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase">Reporter</th>
@@ -41,6 +43,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.ref}</td>
                                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.location}</td>
                                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card"><StatusBadge status={req.status} /></td>
+                                <td className="px-4 text-sm text-text-primary">{VerificationNotes(req.verification_notes)}</td>
                                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.size} ha</td>
                                 <td className="px-4 text-sm text-text-primary">{FormatDate(req.reported)}</td>
                                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card">{req.reporter}</td>

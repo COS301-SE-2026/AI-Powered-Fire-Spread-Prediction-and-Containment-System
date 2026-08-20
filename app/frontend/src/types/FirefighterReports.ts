@@ -7,6 +7,7 @@ export interface FirefighterReportTable {
   size: number;
   reported: string;
   reporter: string;
+  verification_notes: string;
   lat: number;
   lng: number;
 }
