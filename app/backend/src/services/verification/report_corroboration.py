@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from geoalchemy2.functions import ST_DWithin
 from geoalchemy2 import Geography
+from geoalchemy2.shape import to_shape
 
 from sqlalchemy import cast, select
 from sqlalchemy.orm import Session
@@ -20,6 +21,8 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
     start_time = report.submitted_at - WINDOW
     end_time = report.submitted_at + WINDOW
 
+    report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
+
     if report.user_id is None:
         return []
 
@@ -31,7 +34,7 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
         FireReports.submitted_at <= end_time,
         ST_DWithin(
             cast(FireReports.location_geom, Geography),
-            cast(report.location_geom, Geography),
+            cast(report_point_wkt, Geography),
             RADIUS_METERS,
         ),
     )

@@ -104,6 +104,8 @@ def duplicate_submission(report: FireReports, session: Session) -> bool:
     start_time = report.submitted_at - DUPLICATE_WINDOW
     end_time = report.submitted_at + DUPLICATE_WINDOW
 
+    report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
+
     query = select(FireReports.id).where(
         FireReports.user_id == report.user_id,
         FireReports.id != report.id,
@@ -112,7 +114,7 @@ def duplicate_submission(report: FireReports, session: Session) -> bool:
         FireReports.submitted_at <= end_time,
         ST_DWithin(
             cast(FireReports.location_geom, Geography),
-            cast(report.location_geom, Geography),
+            cast(report_point_wkt, Geography),
             DUPLICATE_RADIUS_METERS,
         ),
     ).limit(1)
