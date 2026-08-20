@@ -42,15 +42,6 @@ export function SideBar({
           <ul className="menu w-full px-3 space-y-2 flex flex-col items-center group-hover:items-start">
             {items}
           </ul>
-
-          {!hideLogout && (
-            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-              <Settings className="size-6 text-text-primary group-hover:text-ignite shrink-0 transition-colors" />
-              <span className="text-sm font-semibold hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                Global Settings
-              </span>
-            </button>
-          )}
         </div>
 
         {/* footer */}
