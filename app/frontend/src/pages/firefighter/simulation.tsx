@@ -59,7 +59,7 @@ export default function Simulation() {
     const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
     const totalHours = hasResult ? (maxSlider / 4) : 72;
     return (
-        <FirefighterSideBar hideLogout hideLoginRegister>
+        <FirefighterSideBar hideLoginRegister>
             <div className='p-4 flex flex-col h-full w-full gap-y-3'>
 
                 {/* Page header and subtitle */}
