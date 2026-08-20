@@ -9,7 +9,7 @@ from models.notification import Notification
 from models.users import User
 from schemas.notification import NotificationListOut, NotificationOut
 from services.notifications import mark_all_read, mark_notification_read
-from services.websocket_manager import manager
+from app.backend.src.services.notifications.websocket_manager import manager
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
