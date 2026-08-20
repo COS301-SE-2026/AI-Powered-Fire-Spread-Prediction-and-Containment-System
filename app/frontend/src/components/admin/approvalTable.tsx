@@ -85,7 +85,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                       type="button"
                       onClick={() => onView(req)}
                       data-testid={`view-request-${req.request_id}`}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-carbon-card text-text-primary/50 hover:bg-smoke-hover hover:text-text-primary transition-colors"
+                      className="text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors"
                     >
                       View
                     </button>

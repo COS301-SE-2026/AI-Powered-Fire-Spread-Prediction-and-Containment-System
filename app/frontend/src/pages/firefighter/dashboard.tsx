@@ -7,6 +7,7 @@ import { EnvironmentWidgets } from '../../components/firefighter/EnvironmentWidg
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
+import { PageHeader } from '../../components/layout/pageHeader';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
@@ -18,19 +19,10 @@ export default function FirefighterDashboard() {
     error: lineError,
   } = useContainmentLine(() => setDrawMode(false));
 
-  return (
-    <FirefighterSideBar hideLoginRegister>
-      <div className="flex flex-col p-6">
-        <header className="mb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
-              Firefighter Dashboard
-            </h1>
-            <p className="text-sm text-text-primary/50 font-medium">
-              Tshwane District • Real-time Monitoring
-            </p>
-          </div>
-        </header>
+    return(
+        <FirefighterSideBar hideLoginRegister>
+            <div className="flex flex-col p-6">
+                <PageHeader title="Firefighter Dashboard" subtitle="Tshwane District • Real-time Monitoring" showIcons/>
 
         {/* Main Grid container */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">

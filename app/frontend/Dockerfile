@@ -2,9 +2,9 @@ FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a55
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package*.json yarn.lock ./
 RUN corepack enable \
-	&& yarn install --ignore-workspaces
+	&& yarn install --ignore-workspaces --frozen-lockfile
 
 COPY . .
 

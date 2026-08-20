@@ -1,3 +1,5 @@
+import React from "react";
+
 export interface ActivityItem {
   id: string;
   message: string;
@@ -28,4 +30,12 @@ export interface DashboardSummaryResponse {
   activity_log: ActivityItem[];
   weekly_incidents: WeeklyData[];
   system_metrics: SystemMetrics;
+}
+
+export interface MiniMetric {
+  title: string;
+  value: string;
+  subtext: string;
+  statusText?: string;
+  icon: React.ReactNode;
 }
