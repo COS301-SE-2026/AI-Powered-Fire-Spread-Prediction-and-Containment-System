@@ -1,4 +1,4 @@
-""" Automated verification chacks for fire reports """
+""" Rejection checks for fire reports """
 
 import logging
 import os
@@ -127,7 +127,7 @@ def required_fields_present(report: FireReports) -> bool:
             return False
     return True
 
-def sanity_check(report: FireReports, session: Session) -> tuple[bool, str | None]:
+def rejection_check(report: FireReports, session: Session) -> tuple[bool, str | None]:
     """ Runs checks on fire reports. Returns True if passed or False with message """
     if not required_fields_present(report):
         return False, "missing_required_field"
