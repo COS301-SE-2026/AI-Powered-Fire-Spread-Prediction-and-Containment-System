@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from dependencies.auth import get_current_user_optional
 from models.users import User
 from services.storage import upload_image
-from app.backend.src.services.firereport_verification.photo_hashing import hash_photo
+from services.verification.photo_hashing import hash_photo
 
 
 router = APIRouter(prefix="/api/uploads", tags=["Uploads"])
