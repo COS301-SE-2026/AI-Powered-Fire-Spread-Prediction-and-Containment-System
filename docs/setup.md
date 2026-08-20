@@ -130,7 +130,7 @@ yarn build
 yarn lint
 ```
 
-- To run from app/backend/src:
+- To run from app/backend:
 
 ```bash
 yarn test # runs all test files in the tests folder
@@ -138,7 +138,7 @@ yarn start
 yarn dev
 ```
 
-- To run from app/frontend/src:
+- To run from app/frontend:
 
 ```bash
 yarn dev
@@ -149,4 +149,5 @@ yarn test
 yarn test:headed
 yarn test:report
 yarn test:install
+yarn eslint . --ext .js,.jsx,.ts,.tsx  # for eslint
 ```

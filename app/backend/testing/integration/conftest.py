@@ -34,7 +34,7 @@ from models.role_request import RoleRequest
 from models.users import User
 
 # seed data
-from app.backend.seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
+from app.backend.seed import REGIONAL_LOCATIONS as SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"

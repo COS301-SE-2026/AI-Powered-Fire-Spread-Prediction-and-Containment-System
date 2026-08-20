@@ -4,47 +4,40 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source} from 'react-map-gl/mapbox';
+import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 
-interface MapProps {
-  lat: number;
-  lng: number;
-  drawMode: boolean;
-  onDrawComplete: (line: string) => void;
-  clearDrawings: number;
-  burnGrid?: number[] | null;
-  burnGridH?: number;
-  burnGridW?: number;
-  predictions?: Prediction[];
-  currentTick?: number;
-  selectedFireId?: string | null;
-  onSelectFire?: (ref: string) => void;
+interface MapProps{
+    lat: number;
+    lng: number;
+    drawMode: boolean;
+    onDrawComplete: (line: string) => void;
+    clearDrawings: number;
+    burnGrid?: number[] | null;
+    predictions?: Prediction[];
+    currentTick?: number;
+    selectedFireId?: string | null;
+    onSelectFire?: (ref: string) => void;
+    showKey?: boolean;
 }
 
-export function FireMap({
-  lat,
-  lng,
-  drawMode,
-  onDrawComplete,
-  clearDrawings,
-  burnGrid = null,
-  burnGridH = undefined,
-  burnGridW = undefined,
-  predictions = [],
-  currentTick = 0,
-  selectedFireId = null,
-  onSelectFire = null,
-}: MapProps) {
-  const mapRef = useRef<MapRef>(null);
-  const drawRef = useRef<MapboxDraw>(null);
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
+
+  const mapRef = useRef<MapRef | null>(null);
+  const drawRef = useRef<MapboxDraw | null>(null);
 
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+
+  const verifiedFires = useMemo(
+    () => fires.filter((f) => f.status?.toLowerCase() === 'verified'),
+    [fires]
+  );
 
   const handleDrawCreate = useCallback(
     (e: DrawCreateEvent) => {
@@ -93,7 +86,7 @@ export function FireMap({
 
   const circleFeatures = useMemo(
     () =>
-      fires
+      verifiedFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -102,68 +95,85 @@ export function FireMap({
             properties: { ref: f.ref },
           })
         ),
-    [fires]
+    [verifiedFires]
   );
 
-  useEffect(() => {
-    if (!selectedFireId) return;
-    const fire = fires.find((f) => f.ref === selectedFireId);
-    if (!fire) return;
-    setViewState((v) => ({
-      ...v,
-      longitude: fire.lng,
-      latitude: fire.lat,
-      zoom: Math.max(v.zoom, 13),
-    }));
-  }, [selectedFireId, fires]);
+    useEffect(() => {
+        if(!selectedFireId) return;
+        const fire = verifiedFires.find(f => f.ref === selectedFireId);
+        if(!fire) return;
+        setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 16)}))
+    }, [selectedFireId, verifiedFires])
 
-  const EXTENT_DEG = 0.05;
+    const girdFeautures = useMemo(() => {
+        if(!predictions?.length) return [];
+        
+        const features = [];
 
-  const girdFeautures = useMemo(() => {
-    if (!predictions?.length || !burnGridH || !burnGridW) return [];
+        for (const p of predictions){
+            const grid = p.history[currentTick]
+            if(!grid || !p.grid_h || !p.grid_w) continue;
 
-    const features = [];
-    const cellLonSize = EXTENT_DEG / burnGridW;
-    const cellLatSize = EXTENT_DEG / burnGridH;
+            const cellLonSize = p.lon_extent_deg / p.grid_w;
+            const cellLatSize = p.lat_extent_deg / p.grid_h;
+            const minLon = p.lng - p.lon_extent_deg / 2;
+            const maxLat = p.lat + p.lat_extent_deg / 2;
 
-    for (const p of predictions) {
-      const grid = p.history[currentTick];
-      if (!grid) continue;
-
-      const minLon = p.lng - EXTENT_DEG / 2;
-      const maxLat = p.lat + EXTENT_DEG / 2;
-
-      for (let row = 0; row < burnGridH; row++) {
-        for (let col = 0; col < burnGridW; col++) {
-          const state = grid[row * burnGridW + col];
-          if (state === 0) continue;
+            for(let row = 0; row < p.grid_h; row++){
+                for(let col = 0; col < p.grid_w; col++){
+                    const state = grid[row * p.grid_w+ col];
+                    if(state === 0) continue;
 
           const cellMinLon = minLon + col * cellLonSize;
           const cellMaxLat = maxLat - row * cellLatSize;
 
-          features.push({
-            type: 'Feature',
-            properties: { ref: p.ref, state },
-            geometry: {
-              type: 'Polygon',
-              coordinates: [
-                [
-                  [cellMinLon, cellMaxLat - cellLatSize],
-                  [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
-                  [cellMinLon + cellLonSize, cellMaxLat],
-                  [cellMinLon, cellMaxLat],
-                  [cellMinLon, cellMaxLat - cellLatSize],
-                ],
-              ],
-            },
-          });
+                    features.push({
+                        type: 'Feature',
+                        properties: { ref: p.ref, state},
+                        geometry: {
+                            type: 'Polygon',
+                            coordinates: [[
+                                [cellMinLon, cellMaxLat - cellLatSize],
+                                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
+                                [cellMinLon + cellLonSize, cellMaxLat],
+                                [cellMinLon, cellMaxLat],
+                                [cellMinLon, cellMaxLat - cellLatSize],
+                            ]],
+                        }
+                    });
+                }
+            }
         }
-      }
-    }
-    return features;
-  }, [predictions, currentTick, burnGridH, burnGridW]);
+        return features;
+    }, [predictions, currentTick])
 
   return (
+    <div className='relative w-full h-full'>
+      {/* key for map legend */}
+      {showKey && (
+      <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
+        <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
+        <div className='flex items-center justify-between text-xs'>
+          <div className='flex items-center gap-2'>
+            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-flare inline-block shadow-sm animate-pulse'/>
+            <span className='text-text-primary'>Burning cell</span>
+          </div>
+        </div>
+        <div className='flex items-center justify-between text-xs'>
+          <div className='flex items-center gap-2'>
+            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-[#46201d] inline-block shadow-sm animate-pulse'/>
+            <span className='text-text-primary'>Burned cell</span>
+          </div>
+        </div>
+        <div className='flex items-center justify-between text-xs'>
+          <div className='flex items-center gap-2'>
+            <span className='w-3.5 h-3.5 shrink-0 rounded-full bg-accent inline-block shadow-sm animate-pulse'/>
+            <span className='text-text-primary'>Reported Radius</span>
+          </div>
+        </div>
+      </div>
+    )}
+
     <Map
       ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
@@ -172,7 +182,7 @@ export function FireMap({
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
-      {fires.map((fire) => (
+      {verifiedFires.map((fire) => (
         <Marker
           key={fire.ref}
           longitude={fire.lng}
@@ -237,8 +247,8 @@ export function FireMap({
             id="burn-grid-fill"
             type="fill"
             paint={{
-              'fill-color': ['match', ['get', 'state'], 1, '#ff6b1a', 2, '#46201d', '#000000'], // swap with ignite and torch vals
-              'fill-opacity': ['match', ['get', 'state'], 1, 0.75, 2, 0.55, 0],
+              'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
+              'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
               'fill-antialias': true,
             }}
           />
@@ -284,5 +294,6 @@ export function FireMap({
         </Popup>
       )}
     </Map>
+    </div>
   );
 }
