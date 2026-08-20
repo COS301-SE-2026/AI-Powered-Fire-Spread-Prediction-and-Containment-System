@@ -123,6 +123,47 @@ def notify_fire_update(db: Session, fire_report: FireReports, message: str) -> l
             continue
         
         user_latlng = point_to_latlng(getattr(user, "location_geom", None))
-        distance = haversine_km(user_latlng[0], user_latlng[1], fire_lat, fire_lng)
+        distance = haversine_km(user_latlng[0], user_latlng[1], fire_lat, fire_lng) if user_latlng else 0.0
+        
+        notification = Notification(
+            user_id=user.id,
+            fire_report_id=fire_report.id,
+            type=NotificationType.update,
+            severity=severity,
+            message=message,
+            fire_location=fire_report.location_text,
+            distance=distance,
+        )
+        db.add(notification)
+        created.append(notification)
+    
+    db.commit()
+    for n in created:
+        db.refresh(n)
+        push(n)
+    
+    return created
+
+def mark_notification_read(db: Session, user_id: str, notification_id: str) -> Notification | None:
+    notification = (
+        db.query(Notification)
+        .filter(Notification.id == notification_id, Notification.user_id == user_id)
+        .first()
+    )
+    
+    if notification is None:
+        return None
+    
+    notification.read = True
+    db.commit()
+    db.refresh(notification)
+    return notification
+
+def mark_all_read(db: Session, user_id: str) -> int:
+    unread = db.query(Notification).filter(Notification.user_id == user_id, Notification.read.is_(False)).add()
+    for n in unread:
+        n.read = True
+    db.commit()
+    return len(unread)
         
         
