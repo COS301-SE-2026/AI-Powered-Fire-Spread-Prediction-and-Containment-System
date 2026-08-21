@@ -39,4 +39,5 @@ class NotificationOut(BaseModel):
 class NotificationListOut(BaseModel):
     notifications: list[NotificationOut]
     unread_count: int
+    locationEnabled: bool
         
