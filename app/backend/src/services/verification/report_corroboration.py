@@ -15,6 +15,7 @@ from models.reported_fires import FireReports
 WINDOW = timedelta(hours=12)
 RADIUS_METERS = 2000
 
+# anonymous reports can never corroborate another report(no identity) they can receive corroboration from other registered user
 def corroborating_reports(report: FireReports, session: Session) -> list[str]:
     """ finds fire reports from other users near this fires location and time. Return list of IDs """
 
@@ -23,11 +24,15 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
 
     report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
 
-    if report.user_id is None:
-        return []
+    identity = (
+        FireReports.user_id.is_not(None)
+        if report.user_id is None
+        else FireReports.user_id != report.user_id
+    )
+
 
     query = select(FireReports.id).where(
-        FireReports.user_id != report.user_id,
+        identity,
         FireReports.id != report.id,
         FireReports.status != ReportStatus.rejected,
         FireReports.submitted_at >= start_time,
