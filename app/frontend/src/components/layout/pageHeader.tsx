@@ -16,7 +16,7 @@ const MAX_UNREAD_COUNT = 9;
 
 export function PageHeader({title, subtitle, actions, showIcons = true }: Readonly<PageHeaderProps>){
     const { isAuth } = useAuth();
-    const { unreadCount, notifications, markAsRead } = useNotifications();
+    const { unreadCount, notifications, markAsRead, locationEnabled } = useNotifications();
     const router = useRouter();
     const [isNotifOpen, setIsNotifOpen] = useState(false);
 
@@ -62,7 +62,7 @@ export function PageHeader({title, subtitle, actions, showIcons = true }: Readon
                 </div>
         </header>
         { showIcons && (
-            <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onRead={markAsRead}/>
+            <NotificationSidebar isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onRead={markAsRead} locationEnabled={locationEnabled}/>
         )}
         </>
     );
