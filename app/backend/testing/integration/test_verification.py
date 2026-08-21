@@ -119,7 +119,7 @@ def test_duplicate_submission_outside_window_returns_false(db):
     make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG, submitted_at=old_time)
     recent = make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
 
-    assert duplicate_submission(recent, db) is True
+    assert duplicate_submission(recent, db) is False
 
 # rejection_check
 def test_rejection_clean_report_return_true(db):
@@ -140,3 +140,55 @@ def test_rejection_outside_boundary_fails_with_reason_return_False(db):
     assert passed is False
     assert reason is "outside_boundary"
 
+# corroborating_report
+def test_corroborating_report_nearby_report_matches(db):
+    """ Nearby report from other user matches and should count as corroboration """
+    reporter = make_user(db, email="reporter@example.com")
+    other_a = make_user(db, email="other_a@example.com")
+    other_b = make_user(db, email="other_b@example.com")
+
+    make_report(db, user=other_a, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+    make_report(db, user=other_b, lat=PRETORIA_LAT + 0.001, lng=PRETORIA_LNG + 0.001)
+    this_report = make_report(db, user=reporter, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    matches = corroborating_reports(this_report, db)
+    assert len(matches) == 2
+
+def test_corroborating_reports_anonymous_reporter_corroboration(db):
+    """ Anonymous report are able to receive corroboration from identified users """
+    other_a = make_user(db, email="other_a@example.com")
+    other_b = make_user(db, email="other_b@example.com")
+    make_report(db, user=other_a, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+    make_report(db, user=other_b, lat=PRETORIA_LAT + 0.001, lng=PRETORIA_LNG + 0.001)
+    anon_report = make_report(db, user=None, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    matches = corroborating_reports(anon_report, db)
+    assert len(matches) == 2
+
+def test_corroborating_reports_anonymous_dont_corroborate(db):
+    """ other anonymous reports shouldnt count as corroborators """
+    reporter = make_user(db, email="reporter3@example.com")
+    make_report(db, user=None, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+    this_report = make_report(db, user=reporter, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    matches = corroborating_reports(this_report, db)
+    assert matches == []
+
+def test_corroborating_report_same_user_return_false(db):
+    """ report from same user shouldnt corroborate """
+    user = make_user(db)
+    make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+    this_report = make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    matches = corroborating_reports(this_report, db)
+    assert matches == []
+
+def test_corroborating_reports_outside_radius_returns_empty(db):
+    """ outside corroboration radius should not count as a corroboration """
+    reporter = make_user(db, email="reporter2@example.com")
+    other = make_user(db, email="other@example.com")
+    make_report(db, user=other, lat=PRETORIA_LAT + 0.5, lng=PRETORIA_LNG + 0.5)
+    this_report = make_report(db, user=reporter, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    matches = corroborating_reports(this_report, db)
+    assert matches == []
