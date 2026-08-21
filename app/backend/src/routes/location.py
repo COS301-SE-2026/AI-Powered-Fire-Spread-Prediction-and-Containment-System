@@ -7,6 +7,7 @@ from db import get_db
 from dependencies.auth import get_current_user
 from models.users import User
 from schemas.user_location import UserLocationIn
+from services.notifications import check_proximity_for_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -18,5 +19,8 @@ def update_my_location(
 ):
     user.location_geom = from_shape(Point(payload.longitude, payload.latitude), srid=4326)
     db.commit()
+    db.refresh(user)
+    
+    check_proximity_for_user(db, user)
     return {"status": "ok"}
 
