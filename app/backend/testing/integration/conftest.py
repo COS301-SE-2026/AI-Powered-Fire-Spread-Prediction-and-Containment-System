@@ -1,6 +1,7 @@
 import os
 import sys
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -162,6 +163,10 @@ def make_report(
     status=ReportStatus.pending,
     status_index=1,
     reference_number=None,
+    submitted_at=None,
+    image_url="https://example.com/fire.jpg",
+    photo_hash=None,
+    description=None,
 ):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
@@ -170,11 +175,14 @@ def make_report(
         user_id=user.id if user else None,
         reporter_ip="127.0.0.1",
         location_text="Test location",
-        image_url="https://example.com/fire.jpg",
+        description=description,
+        image_url=image_url,
+        photo_hash=photo_hash,
         location_geom=point_wkt,
         boundary_radius=0.2,
         status=status,
         status_index=status_index,
+        submitted_at=submitted_at or datetime.now(timezone.utc)
     )
     db.add(report)
     db.commit()
