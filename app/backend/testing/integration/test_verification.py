@@ -66,7 +66,7 @@ def test_valid_timestamp_older_than_report_duration_returns_false():
     old = datetime.now(timezone.utc) - timedelta(days=8)
     assert valid_timestamp(old) is False
 
-def test_valid_timestamp_recent_returns_false():
+def test_valid_timestamp_recent_returns_True():
     """ Timestamp in within acceptable window is valid """
     recent = datetime.now(timezone.utc) - timedelta(hours=2)
     assert valid_timestamp(recent) is True
@@ -87,14 +87,6 @@ def test_required_fields_present_missing_photo_return_false(db):
 # duplicate_submission
 def test_duplicate_submission_same_user_returns_true(db):
     """ Same user reporting fire again nearby and soon after counts as a duplicat """
-    user = make_user(db)
-    make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
-    second = make_report(db, user=user, lat=PRETORIA_LAT + 0.001, lng=PRETORIA_LNG + 0.001)
-
-    assert duplicate_submission(second, db) is True
-
-def test_duplicate_submission_same_user_returns_true(db):
-    """ Same user reporting fire again nearby and soon after counts as a duplicate """
     user = make_user(db)
     make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
     second = make_report(db, user=user, lat=PRETORIA_LAT + 0.001, lng=PRETORIA_LNG + 0.001)
@@ -136,7 +128,7 @@ def test_rejection_outside_boundary_fails_with_reason_return_False(db):
 
     passed, reason = rejection_check(report, db)
     assert passed is False
-    assert reason is "outside_boundary"
+    assert reason == "outside_boundary"
 
 # corroborating_report
 def test_corroborating_report_nearby_report_matches(db):
