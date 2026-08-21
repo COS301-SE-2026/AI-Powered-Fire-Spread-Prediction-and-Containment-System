@@ -8,9 +8,9 @@ from models.notification import Notification
 from models.reported_fires import FireReports
 from models.users import User
 from schemas.notification import NotificationOut
-from geo import haversine_km, point_to_latlng
-from severity import severity_from_boundary_radius
-from websocket_manager import manager
+from .geo import haversine_km, point_to_latlng
+from .severity import severity_from_boundary_radius
+from .websocket_manager import manager
 
 
 TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0]
