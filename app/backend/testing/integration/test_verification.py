@@ -192,3 +192,39 @@ def test_corroborating_reports_outside_radius_returns_empty(db):
 
     matches = corroborating_reports(this_report, db)
     assert matches == []
+
+# abnormal_rate
+def test_abnormal_rate_under_treshold_return_false(db):
+    """ a single report from user shouldnt be true for rate limmit """
+    user =make_user(db)
+    report = make_report(db, user=user)
+    assert abnormal_rate(report, db) is False
+
+def test_abnormal_rate_over_treshold_return_false(db):
+    """ more than rate limmit max should trigger signal """
+    user =make_user(db)
+    now = datetime.now(timezone.utc)
+    for _ in range(4):
+        make_report(db, user=user, submitted_at=now)
+    latest = make_report(db, user=user, submitted_at=now)
+
+    assert abnormal_rate(latest, db) is True
+
+# duplicate_photo_hash
+def test_duplicate_photo_hash_true_returns_hash(db):
+    """ 2 different users submitting sam photo hash should be the same """
+    user_a = make_user(db, email="photo_a@example.com")
+    user_b = make_user(db, email="photo_b@example.com")
+    shared_hash = "a" * 64
+
+    make_report(db, user=user_a, photo_hash=shared_hash)
+    report_b = make_report(db, user=user_b, photo_hash=shared_hash)
+
+    matches = duplicate_photo_hash(report_b, db)
+    assert len(matches) == 1
+
+def test_duplicate_photo_hash_no_hash_return_empty(db):
+    """ a photo thats not duplicate should not match hash """
+    user = make_user(db)
+    report = make_report(db, user=user, photo_hash=None)
+    assert duplicate_photo_hash(report, db) == []
