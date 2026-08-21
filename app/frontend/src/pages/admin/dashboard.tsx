@@ -4,7 +4,7 @@ import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'luci
 import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
-import { PreviewPanel } from '../../components/notification/PreviewPanel';
+import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { DashboardMetrics } from '../../components/admin/adminDashboardMetrics';
 import { SystemMetrics } from '../../components/admin/systemMetrics';
 import { MiniMetric } from '../../types/AdminDashboard';
@@ -79,7 +79,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
         <AdminSideBar hideLoginRegister>
             <div className="w-full space-y-6">
 
-                <PreviewPanel />
+                <NotificationToastHost />
                 <PageHeader title="FireAway System Dashboard" subtitle="Overview of active fires, predictions, and system health" showIcons />
 
                 <DashboardMetrics metrics={topMetrics} />
