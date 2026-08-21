@@ -25,7 +25,7 @@ export const OfflineBar: React.FC = () => {
         const handleOnline = async () => {
             setIsOffline(false);
             
-            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhostt:8000';
+            const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
             await offlineStore.syncQueuedActions(apiBaseUrl);
             const queued = await offlineStore.getQueuedActions();
             setQueueCount(queued.length);

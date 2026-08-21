@@ -10,15 +10,15 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cahce) => {
-            return cache.addAll(STATIC_ASSETS);
+        caches.open(CACHE_NAME).then((cache1) => {
+            return cache1.addAll(STATIC_ASSETS);
         })
     );
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-    AirVent.waitUntil(
+    event.waitUntil(
         caches.keys().then((keys) => {
             return Promise.all(
                 keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
