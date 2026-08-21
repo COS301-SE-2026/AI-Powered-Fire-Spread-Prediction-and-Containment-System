@@ -1,89 +1,10 @@
-import React, { createContext, useContext, useState, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { FireNotification } from '../types/Notifications';
-
-const MOCK_NOTIFICATIONS: readonly FireNotification[] = [
-  {
-    id: '1',
-    fireLocation: 'Groenkloof Nature Reserve',
-    distance: 4.6,
-    type: 'alert',
-    severity: 'high',
-    message: 'Nearby fire reported',
-    fireId: '1',
-    time: '2026-08-11T10:00:00Z',
-    read: false,
-  },
-  {
-    id: '2',
-    fireLocation: 'Voortrekker Monument hillside',
-    distance: 6.4,
-    type: 'update',
-    severity: 'moderate',
-    message: 'Firefighters are on their way',
-    fireId: '2',
-    time: '2026-08-10T15:30:00Z',
-    read: false,
-  },
-  {
-    id: '3',
-    fireLocation: 'Fountains Valley Recreation Resort',
-    distance: 1.2,
-    type: 'alert',
-    severity: 'extreme',
-    message: 'Nearby fire reported',
-    fireId: '3',
-    time: '2026-08-12T08:45:00Z',
-    read: false,
-  },
-  {
-    id: '4',
-    fireLocation: 'Menlyn Maine construction site',
-    distance: 3.8,
-    type: 'update',
-    severity: 'high',
-    message: 'Fire has moved closer, distance updated',
-    fireId: '4',
-    time: '2026-08-12T09:10:00Z',
-    read: false,
-  },
-  {
-    id: '5',
-    fireLocation: 'Pretoria National Botanical Garden',
-    distance: 9.1,
-    type: 'alert',
-    severity: 'low',
-    message: 'Nearby fire reported',
-    fireId: '5',
-    time: '2026-08-09T14:20:00Z',
-    read: true,
-  },
-  {
-    id: '6',
-    fireLocation: 'LC de Villiers Sports Grounds, Hatfield',
-    distance: 1.4,
-    type: 'update',
-    severity: 'extreme',
-    message: 'Containment line established nearby',
-    fireId: '6',
-    time: '2026-08-12T07:55:00Z',
-    read: false,
-  },
-  {
-    id: '7',
-    fireLocation: 'Lynnwood Road crossing',
-    distance: 2.5,
-    type: 'update',
-    severity: 'low',
-    message: 'Fire contained, risk reduced',
-    fireId: '7',
-    time: '2026-08-08T18:00:00Z',
-    read: true,
-  },
-];
 
 type NotificationState = Readonly <{
     notifications: readonly FireNotification[];
     unreadCount: number;
+    locationEnabled: boolean;
     isLoading: boolean;
     error: string | null;
     markAsRead: (id: string) => void;
@@ -95,14 +16,21 @@ type NotificationState = Readonly <{
 
 const NotificationsContext = createContext<NotificationState | null>(null);
 
+interface NotificationListResponse {
+  notifications: FireNotification[];
+  unread_count: number;
+  locationEnabled: boolean;
+}
+
 export function NotificationsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [notifications, setNotifications] = useState<readonly FireNotification[]>(MOCK_NOTIFICATIONS);
-  const [isLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<readonly FireNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [locationEnabled, setLocationEnabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
 
   const showToast = useCallback((notification: FireNotification): void => {
-    setNotifications((prev) => [notification, ...prev]);
     setActiveToast(notification);
   }, []);
 
@@ -114,18 +42,85 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     setActiveToast(notification);
   }, []);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // initial load: recent notification history, unread count, whether user has location on file at all
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'include' });
+        if (!res.ok) throw new Error (`Failed to load notifications (${res.status})`);
+        const data: NotificationListResponse = await res.json();
+        if (cancelled) return;
+
+        setNotifications(data.notifications);
+        setUnreadCount(data.unread_count);
+        setLocationEnabled(data.locationEnabled);
+        setError(null);
+      } catch (err) {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load notifications');
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    fetchNotifications();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Live push over WebSocket. Auth comes from same access_token cookie
+  // REST calls use, browsers attach it to WS handshake automatically so no token neeeds to be passed here
+  useEffect(() => {
+    const protocol = window.location.protocol === 'https' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/api/notifications/ws`);
+
+    ws.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload.event !== 'notification') return;
+
+        const incoming = payload.data as FireNotification;
+        setNotifications((prev) => [incoming, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+        showToast(incoming);
+      } catch (err) {
+        console.warn('Failed to parse notification payload', err);
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.warn('Notifications WebSocket error', err);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [showToast]);
 
   const markAsRead = useCallback((id: string): void => {
+    // optimistic local update (UI reflects 'read' immediately rather than waitng on network round trip)
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+
+    fetch(`/api/notifications/${id}/read`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch((err) => {
+      console.warn('Failed to mark notifications as read', err);
+    });
   }, []);
 
   const value = useMemo(
     () => ({
       notifications,
       unreadCount,
+      locationEnabled,
       isLoading,
       error,
       markAsRead,
@@ -134,7 +129,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       dismissToast,
       previewToast,
     }),
-    [notifications, unreadCount, isLoading, error, markAsRead, activeToast, showToast, dismissToast, previewToast],
+    [notifications, unreadCount, locationEnabled, isLoading, error, markAsRead, activeToast, showToast, dismissToast, previewToast],
   );
 
   return (
