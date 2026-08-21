@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from enums.notification_type import NotificationType
 from enums.report_status import ReportStatus
@@ -11,12 +12,33 @@ from geo import haversine_km, point_to_latlng
 from severity import severity_from_boundary_radius
 from websocket_manager import manager
 
-# radius (km) used to decide which user-role accounts get notified about a new fire alert based on proximity.
-# Admin and firefighters get a wider radius since they may need broader situational awareness
 
-# Adjust these once ai model has been changed to fir more accurately 
-DEFAULT_USER_ALERT_RADIUS  = 25.0
-STAFF_ALERT_RADIUS_KM = 100.0
+TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0]
+
+# Admin and firefighters get a wider escalation ladder since they may need broader situational awareness
+STAFF_TIER_THRESHOLDS_KM = [50.0, 20.0, 10.0, 5.0, 2.0]
+
+def tier_for_distance(distance_km: float) -> float | None:
+    """
+    Returns closest threshold the distance satisfies or none if beyond 
+    outermost tier entirely.
+    """
+    
+    reached = None
+    for threshold in TIER_THRESHOLDS_KM:
+        if distance_km <= threshold:
+            reached = threshold
+        return reached
+
+def tier_thresholds_for_role(role: UserRole) -> list[float]:
+    return TIER_THRESHOLDS_KM if role == UserRole.user else STAFF_TIER_THRESHOLDS_KM
+
+def distance_to_fire_edge(user_lat: float, user_lng: float, fire_lat: float, fire_lng: float, boundary_radius) -> float:
+    """
+    Distance from user to fire's reported boundary/edge
+    """
+    center_distance = haversine_km(user_lat, user_lng, fire_lat, fire_lng)
+    return max(0.0, center_distance - float(boundary_radius))
 
 def push(notification: Notification) -> None:
     payload = {
@@ -32,58 +54,136 @@ def push(notification: Notification) -> None:
     except RuntimeError:
         asyncio.run(manager.send_to_user(notification.user_id, payload))
         
-    def notify_fire_alert(db: Session, fire_report: FireReports, message: str) -> list[Notification]:
-        """
-        Fan out a fire report as an "alert" notification.
+def notify_fire_alert(db: Session, fire_report: FireReports, message: str) -> list[Notification]:
+    """
+    Fan out a fire report as an "alert" notification.
+    
+    Only fires for reports with status == verified.
+    
+    - everyone is filtered by proximity
+    - severity is derived from boundary_radius (services/severity.py) since FireReports doesn't track severity directly
+    """
+    
+    if fire_report.status != ReportStatus.verified:
+        return[]
+    
+    fire_latlng = point_to_latlng(fire_report.location_geom)
+    if fire_latlng is None:
+        raise ValueError("fire_report.location_geom not set. Cannot calculate distances")
+    fire_lat, fire_lng = fire_latlng
+    
+    severity = severity_from_boundary_radius(fire_report.boundary_radius)
+    all_users = db.query(User).all()
+    
+    created: list[Notification] = []
+    for user in all_users:
+        user_latlng = point_to_latlng(getattr(user, "location_geom", None))
+        if user_latlng is None:
+            continue    # if location not shared, never notified
         
-        Only fires for reports with status == verified.
+        distance = distance_to_fire_edge(
+            user_latlng[0], user_latlng[1], fire_lat, fire_lng, fire_report.boundary_radius
+        )
+        thresholds = tier_thresholds_for_role(user.role)
+        if tier_for_distance(distance, thresholds) is None:
+            continue
         
-        - everyone is filtered by proximity
-        - severity is derived from boundary_radius (services/severity.py) since FireReports doesn't track severity directly
-        """
+        personalized_message = f"{message} ({distance:.1f}km from you)"
         
-        if fire_report.status != ReportStatus.verified:
-            return[]
+        notification = Notification(
+            user_id=user.id,
+            fire_report_id=fire_report.id,
+            type=NotificationType.alert,
+            severity=severity,
+            message=personalized_message,
+            fire_location=fire_report.location_text,
+            distance=distance,
+        )
+        db.add(notification)
+        created.append(notification)
         
+    db.commit()
+    for n in created:
+        db.refresh(n)
+        push(n)
+    return created
+
+def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
+    """
+    Re-checks every currently verified fire report against user's new location. 
+    For each fire, works out tier user in currently, compares it to closest tier they were already
+    notified at for that fire (derived from their existing Notification rows, not a separate
+    tracking table), and sends fresh notification only if they've moved into a closer tier than before
+    """
+    user_latlng = point_to_latlng(getattr(user, "location_geom", None))
+    if user_latlng is None:
+        return []
+    
+    thresholds = tier_thresholds_for_role(user.role)
+    verified_fires = db.query(FireReports).filter(FireReports.status == ReportStatus.verified).all()
+    
+    created: list[Notification] = []
+    for fire_report in verified_fires:
         fire_latlng = point_to_latlng(fire_report.location_geom)
         if fire_latlng is None:
-            raise ValueError("fire_report.location_geom not set. Cannot calculate distances")
-        fire_lat, fire_lng = fire_latlng
+            continue
+        
+        distance = distance_to_fire_edge(
+            user_latlng[0], user_latlng[1], fire_latlng[0], fire_latlng[1], fire_report.boundary_radius
+        )
+        new_tier = tier_for_distance(distance, thresholds)
+        if new_tier is None:
+            continue
+        
+        previous_best_distance = (
+            db.query(func.min(Notification.distance))
+            .filter(Notification.user_id == user.id, Notification.fire_report_id == fire_report.id)
+            .scalar()
+        )
+        
+        old_tier = (
+            tier_for_distance(previous_best_distance, thresholds)
+            if previous_best_distance is not None
+            else None
+        )
+        
+        if old_tier is not None and new_tier >= old_tier:
+            continue    # not closer than a tier they've already been fotified at
         
         severity = severity_from_boundary_radius(fire_report.boundary_radius)
-        all_users = db.query(User).all()
+        is_first_notification_for_fire = old_tier is None
         
-        created: list[Notification] = []
-        for user in all_users:
-            user_latlng = point_to_latlng(getattr(user, "location_geom", None))
-            radius = STAFF_ALERT_RADIUS_KM if user.role != UserRole.user else DEFAULT_USER_ALERT_RADIUS
-            
-            if user_latlng is None:
-                if user.role == UserRole.user:
-                    continue
-                distance = 0.0
-            else:
-                distance = haversine_km(user_latlng[0], user_latlng[1], fire_lat, fire_lng)
-                if distance > radius:
-                    continue
-            
-            notification = Notification(
-                user_id=user.id,
-                fire_report_id=fire_report.id,
-                type=NotificationType.alert,
-                severity=severity,
-                message=message,
-                fire_location=fire_report.location_text,
-                distance=distance,
+        if is_first_notification_for_fire:
+            personalized_message = (
+                f"Fire reported at {fire_report.location_text} is within {new_tier:.0f}km"
+                f"{distance:.1f}km away"
             )
-            db.add(notification)
-            created.append(notification)
-            
-        db.commit()
-        for n in created:
-            db.refresh(n)
-            push(n)
-        return created
+            notify_type = NotificationType.alert
+        else:
+            personalized_message = (
+                f"Fire at {fire_report.location_text} is within {new_tier:.0f}km"
+                f"({distance:.1f}km away) "
+            )
+            notify_type = NotificationType.update
+        
+        notification = Notification(
+            user_id=user.id,
+            fire_report_id=fire_report.id,
+            type=notify_type,
+            severity=severity,
+            message=personalized_message,
+            fire_location=fire_report.location_text,
+            distance=distance,
+        )
+        db.add(notification)
+        created.append(notification)
+        
+    db.commit()
+    for n in created:
+        db.refresh(n)
+        push(n)
+        
+    return created
     
 def notify_fire_update(db: Session, fire_report: FireReports, message: str) -> list[Notification]:
     """
@@ -123,14 +223,21 @@ def notify_fire_update(db: Session, fire_report: FireReports, message: str) -> l
             continue
         
         user_latlng = point_to_latlng(getattr(user, "location_geom", None))
-        distance = haversine_km(user_latlng[0], user_latlng[1], fire_lat, fire_lng) if user_latlng else 0.0
+        if user_latlng:
+            distance = distance_to_fire_edge(
+                user_latlng[0], user_latlng[1], fire_lat, fire_lng, fire_report.boundary_radius
+            )
+            personalized_message = f"{message} ({distance:.1f}km away)"
+        else:
+            distance = 0.0
+            personalized_message = message
         
         notification = Notification(
             user_id=user.id,
             fire_report_id=fire_report.id,
             type=NotificationType.update,
             severity=severity,
-            message=message,
+            message=personalized_message,
             fire_location=fire_report.location_text,
             distance=distance,
         )
