@@ -1,4 +1,4 @@
-//manages and stores offline fire incidents in cache
+// manages and stores offline fire incidents in cache
 
 const DB_NAME = 'fireaway_offline_db'
 const DB_VERSION = 1
@@ -112,8 +112,8 @@ class OfflineStore {
         if (!this.db) await this.init();
         if (!this) return;
 
-        //tAction stands for transaction, transaction is a method though. So I needed to change oit to something else
-        //like it would've  been fine, but maybe confusing.
+        // tAction stands for transaction, transaction is a method though. So I needed to change oit to something else
+        // like it would've  been fine, but maybe confusing.
         const tAction = this.db.transaction('incidents', 'readwrite');
         const store = tAction.objectStore('incidents');
         store.clear();
@@ -254,35 +254,24 @@ class OfflineStore {
 
     async syncQueuedActions(apiBaseUrl: string): Promise<{ syncedCount: number; errors: number}> {
         const queue = await this.getQueuedActions();
-        let syncedCount = 0;
-        let errors = 0;
-
-        for (const item of queue) {
-            try {
+        const results = await Promise.allSettled(
+            queue.map(async (item) => {
                 let endpoint = `${apiBaseUrl}/api/v1/containment-lines`;
                 if (item.action_type === 'fire_report') {
                     endpoint = `${apiBaseUrl}/api/reports`;
                 }
-
                 const response = await fetch(endpoint, {
                     method: 'POST',
                     credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(item.payload),
                 });
-
-                if (response.ok) {
-                    await this.removeQueueAction(item.id);
-                    syncedCount++;
-                } else {
-                    errors++;
-                }
-            } catch {
-                errors++;
-            }
-        }
+                if (!response.ok) throw new Error('sync failed');
+                await this.removeQueueAction(item.id);
+            })
+        );
+        const syncedCount = results.filter((r) => r.status === 'fulfilled').length;
+        const errors = results.filter((r) => r.status === 'rejected').length;        
         return { syncedCount, errors };
     }
 }

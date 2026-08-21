@@ -78,7 +78,7 @@ const GuestMap = forwardRef<GuestMapHandle, GuestMapProps>(
         }
       }
 
-      void initMapData();
+      initMapData();
     }, [reports]);
 
     useImperativeHandle(ref, () => ({

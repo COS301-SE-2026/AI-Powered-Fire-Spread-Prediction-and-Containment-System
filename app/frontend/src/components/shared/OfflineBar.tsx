@@ -20,7 +20,7 @@ export const OfflineBar: React.FC = () => {
     };
 
     useEffect(() => {
-        void checkStatus();
+        checkStatus();
 
         const handleOnline = async () => {
             setIsOffline(false);

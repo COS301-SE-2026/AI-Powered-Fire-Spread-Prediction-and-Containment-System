@@ -1,9 +1,7 @@
-//yarn playwright test src/testing/offline_unit.spec.ts
+// yarn playwright test src/testing/offline_unit.spec.ts
 
 import { test, expect} from '@playwright/test';
-import { LngLat } from 'mapbox-gl';
 import { OfflinePredictionOverlay, FireReportMapResponse } from '../../src/lib/offlineStore';
-import { clear } from 'node:console';
 
 test.describe('Unit testing for Othe Offline Store', () => {
     test.beforeEach(async ({ page }) => {
@@ -38,8 +36,8 @@ test.describe('Unit testing for Othe Offline Store', () => {
         };
 
         const retrievedRecord = await page.evaluate(
-            async (incidentData: FireReportMapResponse): Promise<FireReportMapResponse | undefined> => {
-                return new Promise((resolve, reject) => {
+            async (incidentData: FireReportMapResponse): Promise<FireReportMapResponse | undefined> => 
+                new Promise((resolve, reject) => {
                     const req = indexedDB.open('fireaway_offline_db', 1);
 
                     req.onupgradeneeded = (event) => {
@@ -68,8 +66,7 @@ test.describe('Unit testing for Othe Offline Store', () => {
                     };
 
                     req.onerror = () => reject(req.error);
-                });
-        }, mockIncident);
+                }), mockIncident);
 
         expect(retrievedRecord).not.toBeNull();
         expect(retrievedRecord.id).toBe('FR-2026-UNIT-01');
@@ -109,8 +106,8 @@ test.describe('Unit testing for Othe Offline Store', () => {
         };
 
         const retrievedOverlay = await page.evaluate(
-            async (predictionData: OfflinePredictionOverlay): Promise<OfflinePredictionOverlay | undefined> => {
-                return new Promise((resolve, reject) => {
+            async (predictionData: OfflinePredictionOverlay): Promise<OfflinePredictionOverlay | undefined> =>
+                new Promise((resolve, reject) => {
                     const req = indexedDB.open('fireaway_offline_db', 1);
 
                     req.onupgradeneeded = (event) => {
@@ -139,8 +136,7 @@ test.describe('Unit testing for Othe Offline Store', () => {
                     };
 
                     req.onerror = () => reject(req.error);
-                });
-        }, mockPrediction);
+                }), mockPrediction);
 
         expect(retrievedOverlay).not.toBeNull();
         expect(retrievedOverlay.incident_id).toBe('FR-2026-UNIT-01');
@@ -157,8 +153,8 @@ test.describe('Unit testing for Othe Offline Store', () => {
             created_at: 1724064000000,
         };
 
-        const queuedCount = await page.evaluate(async (actionRecord) => {
-            return new Promise<number>((resolve, reject) => {
+        const queuedCount = await page.evaluate(async (actionRecord) =>
+            new Promise<number>((resolve, reject) => {
                 const req = indexedDB.open('fireaway_offline_db', 1);
 
                 req.onupgradeneeded = (event) => {
@@ -187,8 +183,7 @@ test.describe('Unit testing for Othe Offline Store', () => {
                 };
 
                 req.onerror = () => reject(req.error);
-            });
-        }, actionPayload);
+            }), actionPayload);
 
         expect(queuedCount).toBeGreaterThanOrEqual(1);
     });
