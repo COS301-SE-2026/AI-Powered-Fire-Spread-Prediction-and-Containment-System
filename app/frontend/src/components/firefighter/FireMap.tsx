@@ -91,7 +91,7 @@ export function FireMap({
       }
     }
 
-    void syncFires();
+    syncFires();
   }, [fires]);
 
   const handleDrawCreate = useCallback(

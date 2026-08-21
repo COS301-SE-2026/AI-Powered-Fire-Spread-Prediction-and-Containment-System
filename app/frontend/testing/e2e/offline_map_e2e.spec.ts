@@ -1,5 +1,5 @@
-import { test, expect } from '@playwright/test';
-import { rejects } from 'node:assert';
+import { test, expect, Route } from '@playwright/test';
+
 
 test.describe('E2E test for offline map cache and synchronisation after returning online', () => {
     const MOCK_FIRE_INCIDENTS = [
@@ -26,15 +26,15 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
             });
         });
 
-        const fulfillIncidents = async (route: any) => {
-            await route.fulfill({
+        const fulfillIncidents = (route: Route): Promise<void> => 
+            route.fulfill({
                 status: 200,
                 contentType: 'application/json',
                 body: JSON.stringify(MOCK_FIRE_INCIDENTS),
             });
-        };
 
         await page.route('**/api/v1/incidents/public', fulfillIncidents);
+        await page.route('**/api/guests/reported-fires**', fulfillIncidents);
         await page.route('**/api/v1/incidents**', fulfillIncidents);
         await page.route('**/api/reports**', fulfillIncidents);
         await page.route('**/api/v2/fire-reports**', fulfillIncidents);
@@ -45,8 +45,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
         await page.waitForLoadState('networkidle');
 
         const cachedCount = await page.waitForFunction(
-            async (mockData) => {
-                return new Promise<number>((resolve) => {
+            async (mockData) => new Promise<number>((resolve) => {
                     const req = indexedDB.open('fireaway_offline_db', 1);
     
                     req.onupgradeneeded = (e) => {
@@ -79,8 +78,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
                         countReq.onerror = () => resolve(0);
                     };
                     req.onerror = () => resolve(0);
-                });
-            }, MOCK_FIRE_INCIDENTS, { timeout: 10000 }
+                }), MOCK_FIRE_INCIDENTS, { timeout: 10000 }
         );
 
         expect(await cachedCount.jsonValue()).toBeGreaterThanOrEqual(1);
@@ -125,8 +123,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
             window.dispatchEvent(new Event('offline'));
         });
 
-        await page.evaluate(async () => {
-            return new Promise<void>((resolve, reject) => {
+        await page.evaluate(async () => new Promise<void>((resolve, reject) => {
                 const request = indexedDB.open('fireaway_offline_db', 1);
                 request.onupgradeneeded = (e) => {
                     const db = (e.target as IDBOpenDBRequest).result;
@@ -150,8 +147,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
                     tAction.onerror = () => reject(tAction.error);
                 };
                 request.onerror = () => reject(request.error);
-            });
-        });
+            }));
 
         const queuedBadge = page.locator('aside[role="status"]');
         await expect(queuedBadge).toBeVisible({ timeout: 10000  });
@@ -161,8 +157,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
             window.dispatchEvent(new Event('online'));
         });
         
-        await page.waitForFunction(async () => {
-            return new Promise<boolean>((resolve) => {
+        await page.waitForFunction(async () => new Promise<boolean>((resolve) => {
                 const request = indexedDB.open('fireaway_offline_db', 1);
                 request.onsuccess = () => {
                     const db = request.result;
@@ -177,8 +172,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
                     countReq.onerror = () => resolve(false);
                 };
                 request.onerror = () => resolve(false);
-            });
-        }, { timeout: 10000 });
+            }), { timeout: 10000 });
 
         expect(containmentLineApiHit).toBe(true);
     });

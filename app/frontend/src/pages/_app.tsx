@@ -22,11 +22,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service_worker.js').catch(() => {
-        //service worker registration fallback
+        // service worker registration fallback
       });
     }
 
-    void offlineStore.init();
+    offlineStore.init();
 
     const handleReconnection = async () => {
       const isReachable = await probeHealth();

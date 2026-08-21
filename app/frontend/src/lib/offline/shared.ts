@@ -1,4 +1,4 @@
-//checks network reachability with health checks
+// checks network reachability with health checks
 export async function probeHealth(apiBaseUrl?: string): Promise<boolean> {
     if(typeof window === 'undefined') return false;
     if(!navigator.onLine) return false;
