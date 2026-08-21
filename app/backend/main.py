@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from src.ai.simulation_api import router as simulation_router
 from db import init_db
 from src.routes import image_uploads
+from src.routes import router as notifications_and_location_router
 
 from src.routes.admin import router as admin_router
 from src.routes.firefighter import router as firefighter_router
@@ -62,6 +63,7 @@ app.include_router(user_router)
 app.include_router(guest_router)
 app.include_router(image_uploads.router)
 app.include_router(simulation_router)
+app.include_router(notifications_and_location_router)
 
 
 @app.get("/")
