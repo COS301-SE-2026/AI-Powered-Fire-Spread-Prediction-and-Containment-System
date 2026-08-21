@@ -8,9 +8,10 @@ interface NotificationSidebarProps {
     onClose: () => void;
     notifications: readonly FireNotification[];
     onRead: (id: string) => void;
+    locationEnabled: boolean;
 }
 
-export function NotificationSidebar({ isOpen, onClose, notifications, onRead }: Readonly<NotificationSidebarProps>){
+export function NotificationSidebar({ isOpen, onClose, notifications, onRead, locationEnabled }: Readonly<NotificationSidebarProps>){
     return (
         <div className={`drawer drawer-end fixed inset-0 z-50 ${isOpen ? '' : 'pointer-events-none'}`}>
             <input type="checkbox" className="drawer-toggle" checked={isOpen} readOnly />
@@ -27,8 +28,14 @@ export function NotificationSidebar({ isOpen, onClose, notifications, onRead }: 
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
-                        {notifications.length === 0 ? (
-                            <p className="text-xs text-text-muted text-center mt-8">No notifications yet</p>
+                        {!locationEnabled ? (
+                            <p className="text-xs text-text-muted text-center mt-8">
+                                Enable location services to receive notifications
+                            </p>
+                        ) : notifications.length === 0 ? (
+                            <p className="text-xs text-text-muted text-center mt-8">
+                                No notifications currently
+                            </p>
                         ) : (
                             notifications.map((notification) => (
                             <NotificationCard key={notification.id} notification={notification} onRead={onRead} />
