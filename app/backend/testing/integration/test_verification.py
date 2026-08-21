@@ -228,3 +228,23 @@ def test_duplicate_photo_hash_no_hash_return_empty(db):
     user = make_user(db)
     report = make_report(db, user=user, photo_hash=None)
     assert duplicate_photo_hash(report, db) == []
+
+# reporter_trust_score
+def test_reporter_trust_score_new_user(db):
+    """ new user should get default score """
+    user = make_user(db)
+    assert reporter_trust_score(user.id, db) == 50.0
+
+def test_reporter_trust_score_anon(db):
+    """ new anonymous reporter should get default score """
+    assert reporter_trust_score(None, db) == 50.0
+
+def test_reporter_trust_history_returns_ratio(db):
+    """ the score of the amount of reports rejected/verified should be correct """
+    user = make_user(db)
+    make_report(db, user=user, status=ReportStatus.verified)
+    make_report(db, user=user, status=ReportStatus.verified)
+    make_report(db, user=user, status=ReportStatus.verified)
+    make_report(db, user=user, status=ReportStatus.rejected)
+
+    assert reporter_trust_score(user.id, db) == 75.0
