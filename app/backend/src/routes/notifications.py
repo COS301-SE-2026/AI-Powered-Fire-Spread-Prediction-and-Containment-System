@@ -8,8 +8,8 @@ from dependencies.auth import decode_token, get_current_user
 from models.notification import Notification
 from models.users import User
 from schemas.notification import NotificationListOut, NotificationOut
-from services.notifications import mark_all_read, mark_notification_read
-from app.backend.src.services.notifications.websocket_manager import manager
+from services.notifications.notifications import mark_all_read, mark_notification_read
+from services.notifications.websocket_manager import manager
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 
@@ -48,6 +48,7 @@ def list_notifications(
     return NotificationListOut(
         notifications=[NotificationOut.from_model(n) for n in notifications],
         unread_count=unread_count,
+        locationEnabled=user.location_geom is not None,
     )
     
 @router.post("/{notification_id}/read", response_model=NotificationOut)

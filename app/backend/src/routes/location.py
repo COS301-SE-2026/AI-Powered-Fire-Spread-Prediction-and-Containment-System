@@ -7,7 +7,7 @@ from db import get_db
 from dependencies.auth import get_current_user
 from models.users import User
 from schemas.user_location import UserLocationIn
-from services.notifications import check_proximity_for_user
+from services.notifications.notifications import check_proximity_for_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
