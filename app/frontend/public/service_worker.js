@@ -1,6 +1,3 @@
-import { AirVent } from "lucide-react";
-import { cache } from "react";
-
 const CACHE_NAME = 'fireaway-cache-v1';
 const STATIC_ASSETS = [
     '/',
@@ -10,8 +7,8 @@ const STATIC_ASSETS = [
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache1) => {
-            return cache1.addAll(STATIC_ASSETS);
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(STATIC_ASSETS);
         })
     );
     self.skipWaiting();
@@ -31,6 +28,10 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
+
+    if (request.method !== 'GET') {
+        return;
+    }
 
     //mapbox tiles, fonts and styles
     if (url.hostname.includes('mapbox.com') ||
