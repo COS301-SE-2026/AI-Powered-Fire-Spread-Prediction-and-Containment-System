@@ -9,6 +9,8 @@ import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
+import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+
 
 interface MapProps {
   lat: number;
@@ -45,6 +47,7 @@ export function FireMap({
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+  const updateUserLocation = useUpdateUserLocation();
 
   const handleDrawCreate = useCallback(
     (e: DrawCreateEvent) => {
@@ -89,7 +92,8 @@ export function FireMap({
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
-  }, [lat, lng]);
+    updateUserLocation(lat, lng);
+  }, [lat, lng, updateUserLocation]);
 
   const circleFeatures = useMemo(
     () =>
