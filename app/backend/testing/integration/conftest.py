@@ -13,6 +13,8 @@ from sqlalchemy.orm import sessionmaker
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
+from unittest.mock import patch
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Points to app/backend/src and app/ml — skips the parent conftest
@@ -257,3 +259,10 @@ def small_grids():
         return weather, static, burn
 
     return _make
+
+# for verification integration test cause we cant use env for mapbox token in deplyment
+@pytest.fixture(autouse=True)
+def mock_on_land():
+    """ prevent tests from depending on live mapbox API """
+    with patch("services.verification.rejection_checks.on_land", return_value=True):
+        yield
