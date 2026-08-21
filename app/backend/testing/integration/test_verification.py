@@ -13,8 +13,6 @@ from services.verification.rejection_checks import (
     duplicate_submission,
  )
 
-
-
 from services.verification. report_corroboration import corroborating_reports
 from services.verification.report_spam_detection import (
     abnormal_rate,
@@ -248,3 +246,56 @@ def test_reporter_trust_history_returns_ratio(db):
     make_report(db, user=user, status=ReportStatus.rejected)
 
     assert reporter_trust_score(user.id, db) == 75.0
+
+# auto_verify_report
+def test_auto_verify_report_failed_rejection_check(db):
+    """ a report that failed a rejection_check should be auto-rejected with that reason"""
+    user = make_user(db)
+    report = make_report(db, user=user, lat=OUTSIDE_BOUNDARY_LAT, lng=OUTSIDE_BOUNDARY_LNG)
+
+    decision, reason, signals = auto_verify_report(report, db)
+    assert decision == AUTO_REJECT
+    assert reason == "outside_boundary"
+
+def test_auto_verify_report_duplicate_photo_returns_auto_reject(db):
+    """A report matching another user's photo hash should be auto-rejected."""
+    user_a = make_user (db, email="dup_a@example.com")
+    user_b = make_user (db, email="dup_b@example.com")
+    shared_hash = "b" * 64
+
+    make_report(db, user=user_a, photo_hash=shared_hash)
+    report_b = make_report(db, user=user_b, photo_hash=shared_hash)
+
+    decision, reason, signals = auto_verify_report(report_b, db)
+    assert decision == AUTO_REJECT
+    assert reason == "duplicate_photo"
+
+def test_auto_verify_report_isolated_report_returns_manual_review(db):
+    """A clean report with no corroboration yet should fall to manual review. """
+    user = make_user (db)
+    report = make_report(db, user=user, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    decision, reason, signals = auto_verify_report(report, db)
+    assert decision == MANUAL_REVIEW
+    assert reason == "insufficient_signal_for_auto_decision"
+
+def test_auto_verify_report_corroborated_and_trusted_returns_auto_verify(db):
+    """Enough corroborators plus a sufficient trust score should auto-verify the report. """
+    reporter = make_user (db, email="trusted_reporter@example.com")
+    old_time = datetime.now(timezone.utc) - timedelta(days=30)
+    make_report(db, user=reporter, status=ReportStatus.verified, submitted_at=old_time)
+    make_report(db, user=reporter, status=ReportStatus.verified, submitted_at=old_time)
+    make_report(db, user=reporter, status=ReportStatus.verified, submitted_at=old_time)
+
+    other_a = make_user(db, email="corrob_a@example.com")
+    other_b = make_user(db, email="corrob_b@example.com")
+    other_c = make_user(db, email="corrob_c@example.com")
+    make_report(db, user=other_a, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+    make_report(db, user=other_b, lat=PRETORIA_LAT + 0.001, lng=PRETORIA_LNG + 0.001)
+    make_report(db, user=other_c, lat=PRETORIA_LAT - 0.001, lng=PRETORIA_LNG - 0.001)
+
+    report = make_report(db, user=reporter, lat=PRETORIA_LAT, lng=PRETORIA_LNG)
+
+    decision, reason, signals = auto_verify_report(report, db)
+    assert decision == AUTO_VERIFY
+    assert reason == "corroborated_and_trusted"
