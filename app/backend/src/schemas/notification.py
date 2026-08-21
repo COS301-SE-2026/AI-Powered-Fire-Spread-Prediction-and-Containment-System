@@ -28,7 +28,7 @@ class NotificationOut(BaseModel):
             id=n.id,
             fireId=n.fire_report_id,
             fireLocation=n.fire_location,
-            distance=n.round(n.distance, 1),
+            distance=round(n.distance, 1),
             type=n.type,
             severity=n.severity,
             message=n.message,

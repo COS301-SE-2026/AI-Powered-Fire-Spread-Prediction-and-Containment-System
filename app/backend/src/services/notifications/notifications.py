@@ -18,17 +18,17 @@ TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0]
 # Admin and firefighters get a wider escalation ladder since they may need broader situational awareness
 STAFF_TIER_THRESHOLDS_KM = [50.0, 20.0, 10.0, 5.0, 2.0]
 
-def tier_for_distance(distance_km: float) -> float | None:
+def tier_for_distance(distance_km: float, thresholds: list[float]) -> float | None:
     """
     Returns closest threshold the distance satisfies or none if beyond 
     outermost tier entirely.
     """
     
     reached = None
-    for threshold in TIER_THRESHOLDS_KM:
+    for threshold in thresholds:
         if distance_km <= threshold:
             reached = threshold
-        return reached
+    return reached
 
 def tier_thresholds_for_role(role: UserRole) -> list[float]:
     return TIER_THRESHOLDS_KM if role == UserRole.user else STAFF_TIER_THRESHOLDS_KM
@@ -267,7 +267,7 @@ def mark_notification_read(db: Session, user_id: str, notification_id: str) -> N
     return notification
 
 def mark_all_read(db: Session, user_id: str) -> int:
-    unread = db.query(Notification).filter(Notification.user_id == user_id, Notification.read.is_(False)).add()
+    unread = db.query(Notification).filter(Notification.user_id == user_id, Notification.read.is_(False)).all()
     for n in unread:
         n.read = True
     db.commit()
