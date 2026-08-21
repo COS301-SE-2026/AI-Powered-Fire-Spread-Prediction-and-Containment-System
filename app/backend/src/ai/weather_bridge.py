@@ -37,4 +37,50 @@ class WeatherForecastBridge:
         if not npz_paths.exists():
             logger.error("No processed weather tensors found for normalizer fitting.")
             raise FileNotFoundError("No processed weather tensors found for normalizer fitting.")
-            
+
+        self.raw_norm, self.delta_norm = build_normalizers(npz_paths, self.static_tensor)
+
+        config = WeatherDeltaModelConfig(input_dim=10)
+        self.model = WeatherDeltaModel(config)
+
+        model_path = self.artifact_dir / "model.pt"
+        if not model_path.exists():
+            logger.error("Model checkpoint not found at %s", model_path)
+            raise FileNotFoundError(f"Model checkpoint not found at {model_path}")
+
+        try:
+            self.model.load_state_dict(torch.load(model_path, map_location=self.device))
+            self.model.to(self.device)
+            self.model.eval()
+        except Exception as exc:
+            logger.error("Failed to load model weights: %s", exc)
+            raise RuntimeError(f"Failed to initialize WeatherDeltaModel: {exc}") from exc
+
+    def forecast_for_simulation(
+        self, history_tensor: np.ndarray, rollout_steps: int = 4, substeps_per_hour: int = 4
+    ) -> np.ndarray:
+        norm_history = self.raw_norm.transform(history_tensor)
+        current_window = torch.tensor(norm_history, dtype=torch.float32).unsqueeze(0).to(self.device)
+
+        preds_hourly = []
+
+        with torch.no_grad():
+            for _ in range(rollout_steps):
+                pred_delta_norm = self.model(current_window)
+                pred_delta = self.delta_norm.inverse_transform(pred_delta_norm.cpu().numpy()[0])
+
+                last_frame = history_tensor[-1] if not preds_hourly else preds_hourly[-1]
+                next_frame = last_frame + pred_delta
+
+                preds_hourly.append(next_frame)
+
+                next_norm = self.raw_norm.transform(next_frame[np.newaxis, ...])
+                next_tensor = torch.tensor(next_norm, dtype=torch.float32).unsqueeze(0).to(self.device)
+                current_window = torch.cat([current_window[:, 1:], next_tensor], dim=1)
+
+        hourly_array = np.stack(preds_hourly, axis=0)
+
+        interpolator = TemporalTargetBuilder(substeps_per_hour=substeps_per_hour, method="linear")
+        full_sequence = np.concatenate([history_tensor[-1:], hourly_array], axis=0)
+        
+        return interpolator.interpolate(full_sequence)
