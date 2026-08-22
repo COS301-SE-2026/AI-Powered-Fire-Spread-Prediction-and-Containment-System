@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
+import { probeHealth } from '../../lib/offline/shared';
 
 interface Report {
   id: string;
@@ -27,6 +29,7 @@ export interface GuestMapHandle {
 const GuestMap = forwardRef<GuestMapHandle, GuestMapProps>(
   ({ reports, centerLat, centerLng, userLocation = undefined }, ref) => {
     const [selected, setSelected] = useState<Report | null>(null);
+    const [activeReports, setActiveReports] = useState<Report[]>(reports);
     const [viewport, setViewport] = useState({
       longitude: centerLng,
       latitude: centerLat,
@@ -37,6 +40,46 @@ const GuestMap = forwardRef<GuestMapHandle, GuestMapProps>(
     useEffect(() => {
       setViewport((v) => ({ ...v, longitude: centerLng, latitude: centerLat }));
     }, [centerLat, centerLng]);
+
+    useEffect(() => {
+      async function initMapData() {
+        if (reports && reports.length > 0) {
+          setActiveReports(reports);
+          const mapped: FireReportMapResponse[] = reports.map((r) => ({
+            id: r.id,
+            reference_number: r.id,
+            lat: r.lat,
+            lng: r.lng,
+            location_text: r.location_text,
+            status: r.status,
+            boundary_radius: r.boundary_radius || 0.2,
+            size: r.boundary_radius || 0.2,
+            submitted_at: new Date().toISOString(),
+          }));
+          await offlineStore.cacheIncidents(mapped);
+          return;
+        }
+
+        const isOnline = await probeHealth();
+        if (!isOnline) {
+          const cached = await offlineStore.getCachedIncidents();
+          if (cached && cached.length > 0) {
+            setActiveReports(
+              cached.map((c) => ({
+                id: c.id,
+                lat: c.lat,
+                lng: c.lng,
+                location_text: c.location_text,
+                status: c.status,
+                boundary_radius: c.boundary_radius,
+              }))
+            );
+          }
+        }
+      }
+
+      initMapData();
+    }, [reports]);
 
     useImperativeHandle(ref, () => ({
       recenter: (lat: number, lng: number) => {

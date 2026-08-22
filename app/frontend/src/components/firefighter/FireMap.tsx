@@ -10,6 +10,10 @@ import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
+import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
+import { probeHealth } from '../../lib/offline/shared';
+import type { ReportStatus } from '../../types/Report';
+
 
 interface MapProps{
     lat: number;
@@ -31,6 +35,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const drawRef = useRef<MapboxDraw | null>(null);
 
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
+  const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
@@ -38,6 +43,49 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     () => fires.filter((f) => f.status?.toLowerCase() === 'verified'),
     [fires]
   );
+
+  useEffect(() => {
+    async function syncFires() {
+      if (fires && fires.length > 0) {
+        setActiveFires(fires);
+        const mapped: FireReportMapResponse[] = fires.map((f) => ({
+          id: f.ref,
+          reference_number: f.ref,
+          lat: f.lat,
+          lng: f.lng,
+          location_text: f.location,
+          status: f.status,
+          boundary_radius: f.size,
+          size: f.size,
+          submitted_at: f.reported ? new Date(f.reported).toISOString() : new Date().toISOString(),
+          reporter_name: f.reporter,
+        }));
+        await offlineStore.cacheIncidents(mapped);
+        return;
+      }
+
+      const isOnline = await probeHealth();
+      if (!isOnline) {
+        const cached = await offlineStore.getCachedIncidents();
+        if (cached && cached.length > 0) {
+          setActiveFires(
+            cached.map((c) => ({
+              ref: c.reference_number,
+              location: c.location_text,
+              status: c.status as ReportStatus,
+              size: c.size ?? c.boundary_radius ?? 0.2,
+              reported: c.submitted_at ? new Date(c.submitted_at).toISOString() : new Date().toISOString(),
+              reporter: c.reporter_name || 'Anonymous',
+              lat: c.lat,
+              lng: c.lng,
+            }))
+          );
+        }
+      }
+    }
+
+    syncFires();
+  }, [fires]);
 
   const handleDrawCreate = useCallback(
     (e: DrawCreateEvent) => {
@@ -86,7 +134,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   const circleFeatures = useMemo(
     () =>
-      verifiedFires
+      activeFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -95,15 +143,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             properties: { ref: f.ref },
           })
         ),
-    [verifiedFires]
+    [activeFires]
   );
 
-    useEffect(() => {
-        if(!selectedFireId) return;
-        const fire = verifiedFires.find(f => f.ref === selectedFireId);
-        if(!fire) return;
-        setViewState(v => ({...v, longitude: fire.lng, latitude: fire.lat, zoom: Math.max(v.zoom, 16)}))
-    }, [selectedFireId, verifiedFires])
+  useEffect(() => {
+    if (!selectedFireId) return;
+    const fire = activeFires.find((f) => f.ref === selectedFireId);
+    if (!fire) return;
+    setViewState((v) => ({
+      ...v,
+      longitude: fire.lng,
+      latitude: fire.lat,
+      zoom: Math.max(v.zoom, 13),
+    }));
+  }, [selectedFireId, activeFires]);
+
+  const EXTENT_DEG = 0.05;
 
     const girdFeautures = useMemo(() => {
         if(!predictions?.length) return [];
@@ -182,7 +237,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
-      {verifiedFires.map((fire) => (
+      {activeFires.map((fire) => (
         <Marker
           key={fire.ref}
           longitude={fire.lng}
