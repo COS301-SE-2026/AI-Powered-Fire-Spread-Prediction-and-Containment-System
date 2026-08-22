@@ -1,8 +1,24 @@
 import asyncio
 import json
+import logging
 from collections import defaultdict
 
 from fastapi import WebSocket
+
+logger = logging.getLogger(__name__)
+
+# captured once at app startup - actual event loop running websocket connections.
+# needed because notification creation code runs from sync endpoints which fastapi executes in a worker thread
+# sending on websocket from any loop other than the one it was accepted on doesn't work. 
+# Hence this lets background threads safely hand work back to loop that actually owns the connections.
+main_loop: asyncio.AbstractEventLoop | None = None
+
+def set_main_loop(loop: asyncio.AbstractEventLoop) -> None:
+    global main_loop
+    main_loop = loop
+
+def get_main_loop() -> asyncio.AbstractEventLoop | None:
+    return main_loop
 
 class ConnectionManager:
     """
