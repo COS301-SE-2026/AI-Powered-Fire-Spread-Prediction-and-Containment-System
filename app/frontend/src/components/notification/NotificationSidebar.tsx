@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import type { FireNotification } from '../../types/Notifications';
 import { NotificationCard } from './NotificationCard';
@@ -8,10 +8,17 @@ interface NotificationSidebarProps {
     onClose: () => void;
     notifications: readonly FireNotification[];
     onRead: (id: string) => void;
-    locationEnabled: boolean;
 }
 
-export function NotificationSidebar({ isOpen, onClose, notifications, onRead, locationEnabled }: Readonly<NotificationSidebarProps>){
+export function NotificationSidebar({ isOpen, onClose, notifications, onRead }: Readonly<NotificationSidebarProps>){
+    const [mounted, setMounted] = useState(false);
+    
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const visibleNotifications = mounted ? notifications : [];
+
     return (
         <div className={`drawer drawer-end fixed inset-0 z-50 ${isOpen ? '' : 'pointer-events-none'}`}>
             <input type="checkbox" className="drawer-toggle" checked={isOpen} readOnly />
@@ -28,11 +35,7 @@ export function NotificationSidebar({ isOpen, onClose, notifications, onRead, lo
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
-                        {!locationEnabled ? (
-                            <p className="text-xs text-text-muted text-center mt-8">
-                                Enable location services to receive notifications
-                            </p>
-                        ) : notifications.length === 0 ? (
+                       {visibleNotifications.length === 0 ? (
                             <p className="text-xs text-text-muted text-center mt-8">
                                 No notifications currently
                             </p>
