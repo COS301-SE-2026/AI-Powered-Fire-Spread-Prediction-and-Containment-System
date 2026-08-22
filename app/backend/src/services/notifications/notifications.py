@@ -1,3 +1,5 @@
+import asyncio
+
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -10,7 +12,7 @@ from models.users import User
 from schemas.notification import NotificationOut
 from .geo import haversine_km, point_to_latlng
 from .severity import severity_from_boundary_radius
-from .websocket_manager import manager
+from .websocket_manager import manager, get_main_loop
 
 
 TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0]
@@ -46,13 +48,11 @@ def push(notification: Notification) -> None:
         "data": NotificationOut.from_model(notification).model_dump(mode="json"),
     }
     
-    import asyncio
+    loop = get_main_loop()
+    if loop is None:
+        return  # main loop never got caught
     
-    try:
-        loop = asyncio.get_running_loop()
-        loop.create_task(manager.send_to_user(notification.user_id, payload))
-    except RuntimeError:
-        asyncio.run(manager.send_to_user(notification.user_id, payload))
+    asyncio.run_coroutine_threadsafe(manager.send_to_user(notification.user_id, payload), loop)
         
 def notify_fire_alert(db: Session, fire_report: FireReports, message: str) -> list[Notification]:
     """
