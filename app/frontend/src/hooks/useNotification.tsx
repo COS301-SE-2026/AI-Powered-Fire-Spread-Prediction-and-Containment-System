@@ -1,5 +1,20 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { FireNotification } from '../types/Notifications';
+import { apiCall } from '@/lib/api';
+import { clear } from 'node:console'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+
+const PANEL_RETENTION_MS = 24 * 60 * 60 * 1000;
+
+function isWithinRetention(time: string): boolean {
+  return Date.now() - new Date(time).getTime() < PANEL_RETENTION_MS;
+}
+
+function getWebSocketUrl(path: string): string {
+  const httpBase = API_URL || window.location.origin;
+  return httpBase.replace(/^http/, 'ws') + path;
+}
 
 type NotificationState = Readonly <{
     notifications: readonly FireNotification[];
@@ -24,11 +39,11 @@ interface NotificationListResponse {
 
 export function NotificationsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   const [notifications, setNotifications] = useState<readonly FireNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
+  const knownIdsRef = useRef<Set<string>>(new Set());
 
   const showToast = useCallback((notification: FireNotification): void => {
     setActiveToast(notification);
@@ -42,6 +57,22 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     setActiveToast(notification);
   }, []);
 
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.read && isWithinRetention(n.time)).length,
+    [notifications],
+  );
+
+  // periodically drops notifications older than 24h retention window
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNotifications((prev) => {
+        const kept = prev.filter((n) => isWithinRetention(n.time));
+        knownIdsRef.current = new Set(kept.map((n) => n.id));
+        return kept;
+      });
+    }, 60_000);
+    return () => clearInterval(interval);
+  })
 
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
@@ -55,9 +86,23 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
         if (cancelled) return;
 
         setNotifications(data.notifications);
-        setUnreadCount(data.unread_count);
+        knownIdsRef.current = new Set(data.notifications.map((n) => n.id));
         setLocationEnabled(data.locationEnabled);
         setError(null);
+
+        // only toast on genuine login and not every page refresh
+        const justLoggedIn = sessionStorage.getItem('justLoggedIn') === '1';
+        if (justLoggedIn) {
+          sessionStorage.removeItem('justLoggedIn');
+
+          // surface most recent unread notification immediately.
+          // only display one toast (most urgent) at a time not stacked
+          const mostRecentUnread = data.notifications.find((n) => !n.read);
+          if (mostRecentUnread){
+            showToast(mostRecentUnread);
+          }
+
+        }
       } catch (err) {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : 'Failed to load notifications');
@@ -70,13 +115,12 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showToast]);
 
   // Live push over WebSocket. Auth comes from same access_token cookie
   // REST calls use, browsers attach it to WS handshake automatically so no token neeeds to be passed here
   useEffect(() => {
-    const protocol = window.location.protocol === 'https' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.host}/api/notifications/ws`);
+    const ws = new WebSocket(getWebSocketUrl('/api/notifications/ws'));
 
     ws.onmessage = (event) => {
       try {
@@ -84,8 +128,12 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
         if (payload.event !== 'notification') return;
 
         const incoming = payload.data as FireNotification;
+        if (knownIdsRef.current.has(incoming.id)) {
+          return;
+        }
+        knownIdsRef.current.add(incoming.id);
+
         setNotifications((prev) => [incoming, ...prev]);
-        setUnreadCount((prev) => prev + 1);
         showToast(incoming);
       } catch (err) {
         console.warn('Failed to parse notification payload', err);
@@ -106,7 +154,6 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
 
     fetch(`/api/notifications/${id}/read`, {
       method: 'POST',
