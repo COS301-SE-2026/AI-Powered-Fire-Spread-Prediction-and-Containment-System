@@ -5,6 +5,7 @@ import mapboxgl from 'mapbox-gl';
 import type { MapRef } from 'react-map-gl/mapbox';
 import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { probeHealth } from '../../lib/offline/shared';
 
 const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
 
@@ -94,19 +95,21 @@ function handleRimDrag(
 }
 
 async function reverseGeocode(lng: number, lat: number): Promise<string> {
+  const isOnline = await probeHealth();
+  if (!isOnline) {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  }
   try {
     const res = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=address,place&limit=1`
     );
 
     if (!res.ok) {
-      console.error(`Reverse geocode failed: ${res.status} ${res.statusText}`);
       return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     }
     const json = await res.json();
     return json.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   } catch (err) {
-    console.error('Reverse geocode error', err);
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   }
 }
