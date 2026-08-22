@@ -90,6 +90,7 @@ export default function Login() {
         return;
       }
 
+      sessionStorage.setItem('justLoggedIn', '1');
       window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed. Email or password incorrect.';
