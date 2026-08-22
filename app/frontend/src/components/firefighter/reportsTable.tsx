@@ -3,8 +3,8 @@ import { useRouter } from 'next/router';
 import { ReportStatus } from '../../types/Report';
 import { StatusBadge } from '../admin/reportStatusBadge';
 import { FirefighterReportTable } from '../../types/FirefighterReports';
-import { FormatDate } from "../../lib/FormatDate";
-import { VerificationNotes } from "../../lib/VerificationNotes";
+import { FormatDate } from '../../lib/FormatDate';
+import { VerificationNotes } from '../../lib/VerificationNotes';
 
 interface ReportsTableProp {
   readonly requests: FirefighterReportTable[];
