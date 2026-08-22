@@ -1,6 +1,8 @@
 // All API communication and playback state for fire simulation
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { offlineStore, OfflinePredictionOverlay } from '../lib/offlineStore';
+import { probeHealth } from '../lib/offline/shared';
 
 export interface WeatherParams {
   wind_u: number;
@@ -148,46 +150,77 @@ export function useSimulation() {
       setCurrentTick(0);
       stopAutoPlay();
 
-      const body: SimulationRequest = {
-        lat,
-        lng,
-        fire_id: fireId,
-        grid_h: 30,
-        grid_w: 30,
-        nSteps,
-        n_ignition_points: 1,
-        weather,
-        static: staticParams,
-        dca: dcaParams,
-      };
+      const isOnline = await probeHealth(API_BASE);
 
-      try {
-        const res = await fetch(`${API_BASE}/api/simulate`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
+      if (isOnline) {
+        const body: SimulationRequest = {
+          lat,
+          lng,
+          fire_id: fireId,
+          grid_h: 30,
+          grid_w: 30,
+          nSteps,
+          n_ignition_points: 1,
+          weather,
+          static: staticParams,
+          dca: dcaParams,
+        };
 
-        if (!res.ok) {
-          const detail = await res.text();
-          throw new Error(`Server error ${res.status}: ${detail}`);
+        try {
+          const res = await fetch(`${API_BASE}/api/simulate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: controller.signal,
+          });
+
+          if (!res.ok) {
+            const detail = await res.text();
+            throw new Error(`Server error ${res.status}: ${detail}`);
+          }
+
+          const data: SimulationResult = await res.json();
+          setResult(data);
+
+          if (autoplay) {
+            startAutoPlay(data.n_steps_run);
+          } else {
+            setStatus('paused');
+          }
+        } catch (err) {
+          if (err instanceof Error && err.name === 'AbortError') return;
+          const msg = err instanceof Error ? err.message : String(err);
+          setError(msg);
+          setStatus('error');
         }
-
-        const data: SimulationResult = await res.json();
-        setResult(data);
-
-        if (autoplay) {
-          startAutoPlay(data.n_steps_run);
-        } else {
-          setStatus('paused');
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') return;
-        const msg = err instanceof Error ? err.message : String(err);
-        setError(msg);
-        setStatus('error');
       }
+
+      if (fireId) {
+        const cachedOverlay = await offlineStore.getCachedPredictionOverlay(fireId);
+        if (cachedOverlay) {
+          const fallbackResult: SimulationResult = {
+            predictions: [
+              {
+                ref: fireId,
+                lat,
+                lng,
+                history: [],
+                burned_cells: 0,
+                radius_m: 200,
+              },
+            ],
+            grid_h: 30,
+            grid_w: 30,
+            n_steps_run: 1,
+          };
+          setResult(fallbackResult);
+          setStatus('paused');
+          return;
+        }
+      }
+
+      setError('No offline simulation data available for this incident.');
+      setStatus('error');
     },
     [weather, staticParams, dcaParams, autoplay, startAutoPlay, stopAutoPlay]
   );
