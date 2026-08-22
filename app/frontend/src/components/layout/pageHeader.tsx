@@ -1,9 +1,9 @@
-import React, { useState } from "react";
-import { Bell, User } from "lucide-react";
-import { useRouter } from "next/router";
-import { useAuth } from "../../hooks/useAuth";
-import { useNotifications } from "../../hooks/useNotification";
-import { NotificationSidebar } from "../notification/NotificationSidebar";
+import React, { useState } from 'react';
+import { Bell, User } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { useAuth } from '../../hooks/useAuth';
+import { useNotifications } from '../../hooks/useNotification';
+import { NotificationSidebar } from '../notification/NotificationSidebar';
 
 interface PageHeaderProps {
   title: string;

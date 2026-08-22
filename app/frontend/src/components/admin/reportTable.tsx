@@ -2,8 +2,8 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { FireReportMapResponse, ReportStatus } from '../../types/Report';
 import { StatusBadge } from './reportStatusBadge';
-import { FormatDate } from "../../lib/FormatDate";
-import { VerificationNotes } from "../../lib/VerificationNotes";
+import { FormatDate } from '../../lib/FormatDate';
+import { VerificationNotes } from '../../lib/VerificationNotes';
 
 interface FireReportsTableProps {
   readonly reports: FireReportMapResponse[];
