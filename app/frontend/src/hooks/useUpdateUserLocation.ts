@@ -2,7 +2,7 @@ import { useCallback, useRef } from "react";
 
 const MIN_DELTA_DEG = 0.0005;
 
-export function useUpdateUserLocation(){
+export function useUpdateUserLocation(onSynced? : () => void){
     const lastSent = useRef<{ lat: number; lng: number } | null>(null);
 
     return useCallback((lat: number, lng: number) => {
@@ -20,9 +20,12 @@ export function useUpdateUserLocation(){
         }).then((res) => {
             if (!res.ok) {
                 console.warn('Location sync returned an error status', res.status);
+                return;
             }
+
+            onSynced?.();
         }).catch((err) => {
             console.warn('Failed to sync user location');
         });
-    }, []);
+    }, [onSynced]);
 }

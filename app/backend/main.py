@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +21,8 @@ from startup_migrations import run_startup_migrations
 
 from seed import seed
 from src.services.storage import ensure_bucket
+
+from src.services.notifications.websocket_manager import set_main_loop
 
 
 if os.environ.get("SKIP_DB_INIT") != "1":
@@ -87,3 +90,7 @@ def health_check():
 @app.on_event("startup")
 def startup():
     ensure_bucket()
+    
+@app.on_event("startup")
+async def capture_main_loop():
+    set_main_loop(asyncio.get_running_loop())
