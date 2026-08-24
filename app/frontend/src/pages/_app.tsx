@@ -20,7 +20,9 @@ function GlobalToast() {
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+   // Only register in prod
+
+    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service_worker.js').catch(() => {
         // service worker registration fallback
       });
