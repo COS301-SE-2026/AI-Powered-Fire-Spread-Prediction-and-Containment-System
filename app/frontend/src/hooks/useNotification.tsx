@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { FireNotification } from '../types/Notifications';
 import { apiCall } from '@/lib/api';
-import { clear } from 'node:console'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -74,6 +73,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => clearInterval(interval);
   })
 
+  
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
     let cancelled = false;
