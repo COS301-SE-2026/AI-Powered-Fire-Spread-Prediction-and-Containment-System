@@ -273,4 +273,88 @@ class TestNotifyFireAlert:
                 
         assert "4.2km" in created[0].message
         
+class TestCheckProximityForUser:
+    def test_returns_empty_if_user_has_no_location(self, db):
+        user = make_user("u1", has_location=False)
+        result = svc.check_proximity_for_user(db, user)
+        assert result == []
+        db.query.assert_not_called()
+        
+    def test_first_time_in_range_creates_alert(self, db, patched_push):
+        user = make_user("u1")
+        fire = make_fire()
+        
+        fires_query = query_mock(all_result=[fire])
+        distance_query = query_mock(scalar_result=None)
+        
+        db.query.side_effect = [fires_query, distance_query]
+        
+        with patch.object(svc, "point_to_latlng", side_effect=[(-25.75, 28.24), (-25.75, 28.24)]), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                created = svc.check_proximity_for_user(db, user)
+                
+        assert len(created) == 1
+        assert created[0].type == NotificationType.alert
+        patched_push.assert_called_once()
+        
+    def test_moving_into_closer_tier_creates_update(self, db):
+        user = make_user("u1")
+        fire = make_fire()
+        
+        fires_query = query_mock(all_result=[fire])
+        
+        # prev notified at 15km (outer 20km tier), now closer
+        distance_query = query_mock(scalar_result=15.0)
+        db.query.side_effect = [fires_query, distance_query]
+        
+        with patch.object(svc, "point_to_latlng", side_effect=[(-25.75, 28.24), (-25.75, 28.24)]), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                created = svc.check_proximity_for_user(db, user)
+                
+        assert len(created) == 1
+        assert created[0].type == NotificationType.update
+        
+    def test_same_tier_as_before_creates_nothing(self, db):
+        user = make_user("u1")
+        fire = make_fire
+        
+        fires_query = query_mock(all_result=[fire])
+        # prev notified at 3.5km, same 5km tier as new dist
+        distance_query = query_mock(scalar_result=3.5)
+        db.query.side_effect = [fires_query, distance_query]
+        
+        with patch.object(svc, "point_to_latlng", side_effect=[(-25.75, 28.24), (-25.75, 28.24)]), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                created = svc.check_proximity_for_user(db, user)
+                
+        assert created == []
+        
+    def test_moving_to_farther_tier_creates_nothing(self, db):
+        user = make_user("u1")
+        fire = make_fire()
+        
+        fires_query = query_mock(all_result=[fire])
+        
+        # was prev in 5km, now only within wider 10km tier (moving way, hence no re-notification)
+        distance_query = query_mock(scalar_result=3.0)
+        db.query.side_effect = [fires_query, distance_query]
+        
+        with patch.object(svc, "point_to_latlng", side_effect=[(-25.75, 28.24), (-25.75, 28.24)]), \
+            patch.object(svc, "distance_to_fire_edge", return_value=999.0):
+                created = svc.check_proximity_for_user(db, user)
+                
+        assert created == []
+        
+    def test_only_verified_fires_are_considered(self, db):
+        user = make_user("u1")
+        fires_query = query_mock(all_result=[])
+        db.query.side_effect = [fires_query]
+        
+        created = svc.check_proximity_for_user(db, user)
+        
+        assert created == []
+        fires_query.filter.assert_called_once()
+        
     
+        
+        
