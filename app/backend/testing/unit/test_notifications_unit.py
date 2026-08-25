@@ -213,3 +213,64 @@ class TestNotifyFireAlert:
             with pytest.raises(ValueError):
                 svc.notify_fire_alert(db, fire, "New fire")
                 
+    def test_notifies_user_within_tier(self, db, patched_push):
+        fire = make_fire(boundary_radius=0.0)
+        nearby_user = make_user("u1", role=UserRole.user)
+        db.query.return_value = query_mock(all_result=[nearby_user])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+            created = svc.notify_fire_alert(db, fire, "New fire")
+            
+        assert len(created) == 1
+        assert created[0].user_id == "u1"
+        assert created[0].type == NotificationType.alert
+        db.commit.assert_called_once()
+        patched_push.assert_called_once_with(created[0])
+        
+    def test_skips_user_beyond_all_tiers(self, db):
+        fire = make_fire(boundary_radius=0.0)
+        far_user = make_user("u1", role=UserRole.user)
+        db.query.return_value = query_mock(all_result=[far_user])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.objective(svc, "distance_to_fire_edge", return_value=999.0):
+                created = svc.notify_fire_alert(db, fire, "New fire")
+                
+        assert created == []
+        
+    def test_skips_user_with_no_saved_location(self, db):
+        fire = make_fire()
+        no_location_user = make_user("u1", has_location=False)
+        db.query.return_value = query_mock(all_result=[no_location_user])
+        
+        created = svc.notify_fire_alert(db, fire, "New fire")
+        
+        assert created == []
+        
+    def test_admin_gets_wider_radius_than_regular_user(self, db):
+        fire = make_fire(boundary_radius=0.0)
+        admin = make_user("admin1", role=UserRole.admin)
+        regular = make_user("user1", role=UserRole.user)
+        db.query.return_value = query_mock(all_result=[admin, regular])
+        
+        # 30km beyond regular's outermost tier (20km) but within staff's wider 50km max
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=30.0):
+                created = svc.notify_fire_alert(db, fire, "New fire")
+                
+        notified_ids = {n.user_id for n in created}
+        assert notified_ids == {"admin1"}
+        
+    def test_message_includes_distance(self, db):
+        fire = make_fire(boundary_radius=0.0)
+        user = make_user("u1")
+        db.query.return_value = query_mock(all_result=[user])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=4.2):
+                created  = svc.notify_fire_alert(db, fire, "New fire")
+                
+        assert "4.2km" in created[0].message
+        
+    
