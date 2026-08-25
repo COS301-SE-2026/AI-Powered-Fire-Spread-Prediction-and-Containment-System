@@ -93,4 +93,36 @@ class TestSeverityFromBoundaryRadius:
         # guards against regression if boundary_radius is ever passes through as raw string from request data
         assert severity_from_boundary_radius("1.00") == Severity.moderate
         
+# Tier / distance logic
+class TestTierForDistance:
+    THRESHOLDS = [20.0, 10.0, 5.0]
     
+    def test_distance_within_innermost_tier(self):
+        # should resolve to smalles tier it qualifies for, not just first threshold it satisfies
+        assert tier_for_distance(3.0, self.THRESHOLDS) == 5.0
+        
+    def test_distance_in_middle_tier(self):
+        assert tier_for_distance(8.0, self.THRESHOLDS) == 10.0
+    
+    def test_distance_in_outer_tier(self):
+        assert tier_for_distance(15.0, self.THRESHOLDS) == 20.0
+
+    def test_distance_beyond_all_tiers_returns_none(self):
+        assert tier_for_distance(25.0, self.THRESHOLDS) is None
+        
+    def test_distance_exactly_on_a_threshold_is_inclusive(self):
+        assert tier_for_distance(5.0, self.THRESHOLDS) == 5.0
+        assert tier_for_distance(10.0, self.THRESHOLDS) == 10.0
+        assert tier_for_distance(20.0, self.THRESHOLDS) == 20.0
+        
+    def test_distance_just_beyond_outermost_threshold(self):
+        assert tier_for_distance(20.01, self.THRESHOLDS) is None
+        
+    def test_zero_distance_resolves_to_innermost_tier(self):
+        assert tier_for_distance(0.0, self.THRESHOLDS) == 5.0
+        
+    def test_empty_thresholds_always_returns_none(self):
+        assert tier_for_distance(0.0, []) is None
+        
+    def test_unordered_thresholds_still_resolve_to_tightest_match(self):
+        assert tier_for_distance(3.0, [5.0, 20.0, 10.0])
