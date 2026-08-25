@@ -421,5 +421,115 @@ class TestMarkNotificationRead:
         assert result is None
         db.commit.assert_not_called()
         
+class TestCheckProximityForGuest:
+    """
+    check_proximity_for_guest is stateless (no user_id, nothing persisted, no push()).
+    These tests verify that statelessness alongside actual matching logic since that's the property 
+    that makes it safe for an unauthenticated caller in first place
+    """
+    
+    def test_returns_empty_when_no_verified_fires_exist(self, db):
+        db.query.return_value = query_mock(all_result=[])
+        results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+        assert results == []
+        
+    def test_fire_within_range_is_returned(self, db):
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+
+        assert len(results) == 1
+        assert results[0].fireId == fire.id
+        assert results[0].distance == 3.0
+        assert results[0].type == NotificationType.alert
+        
+    def test_fire_beyond_all_tiers_is_excluded(self, db):
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=999.0):
+                results = svc.check_proximity_for_guest(db, -25.75, 28,24)
+                
+        assert results == []
+        
+    def test_fire_with_no_location_is_skipped(self, db)    :
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=None):
+            results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+            
+        assert results == []
+        
+    def test_uses_regular_user_thresholds_not_staff(self, db):
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=30.0):
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+                
+        assert results == []
+        
+    def test_multiple_fires_in_range_are_all_returned(self, db):
+        fire1 = make_fire(id="fire1")
+        fire2 = make_fire(id="fire2")
+        db.query.return_value = query_mock(all_result=[fire1, fire2])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+                
+        assert {r.fireId for r in results} == {"fire-1", "fire-2"}
+        
+    def test_id_is_synthesized_and_prefixed(self, db):
+        fire = make_fire(id="fire-42")
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+                
+        assert results[0].id == "guest-fire-42"
+        
+    def test_message_includes_distance(self, db):
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=4.2):
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+                
+        assert "4.2km" in results[0].message
+        
+    def test_nothing_is_predicted(self, db, patched_push):
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                svc.check_proximity_for_guest(db, -25.75, 28.24)
+                
+        db.add.assert_not_called()
+        db.commit.assert_not_called()
+        patched_push.assert_not_called()
+        
+    def test_result_is_marked_unread(self, db):
+        # Meaningless for a guest in practice, but schema requires it and it should default
+        # sanely rather than being left underfined
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[fire])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
+            patch.object(svc, "distance_to_fire_edge", return_value=3.0):
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
+                
+        assert results[0].read is False
+        
+        
         
         
