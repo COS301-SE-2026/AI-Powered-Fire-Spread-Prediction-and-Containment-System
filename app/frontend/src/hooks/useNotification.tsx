@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import type { FireNotification } from '../types/Notifications';
-import { apiCall } from '@/lib/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -22,6 +21,7 @@ type NotificationState = Readonly <{
     isLoading: boolean;
     error: string | null;
     markAsRead: (id: string) => void;
+    refetchAfterAction: () => Promise<void>;
     activeToast: FireNotification | null;
     showToast: (notification: FireNotification) => void;
     dismissToast: () => void;
@@ -71,7 +71,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       });
     }, 60_000);
     return () => clearInterval(interval);
-  })
+  }, [])
 
   const fetchNotifications = useCallback(async (options: { toastIfNew: boolean }) => {
     try{
@@ -110,44 +110,23 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchNotifications() {
-      try {
-        const res = await fetch('/api/notifications', { credentials: 'include' });
-        if (!res.ok) throw new Error (`Failed to load notifications (${res.status})`);
-        const data: NotificationListResponse = await res.json();
-        if (cancelled) return;
-
-        setNotifications(data.notifications);
-        knownIdsRef.current = new Set(data.notifications.map((n) => n.id));
-        setLocationEnabled(data.locationEnabled);
-        setError(null);
-
-        // only toast on genuine login and not every page refresh
+    async function initialLoad(){
         const justLoggedIn = sessionStorage.getItem('justLoggedIn') === '1';
         if (justLoggedIn) {
           sessionStorage.removeItem('justLoggedIn');
-
-          // surface most recent unread notification immediately.
-          // only display one toast (most urgent) at a time not stacked
-          const mostRecentUnread = data.notifications.find((n) => !n.read);
-          if (mostRecentUnread){
-            showToast(mostRecentUnread);
-          }
-
         }
-      } catch (err) {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Failed to load notifications');
-      } finally {
-        if (!cancelled) setIsLoading(false);
-      }
+
+        if (!cancelled){
+          await fetchNotifications({ toastIfNew: justLoggedIn});
+        }
+
     }
 
-    fetchNotifications();
+    initialLoad();
     return () => {
       cancelled = true;
     };
-  }, [showToast]);
+  }, [fetchNotifications]);
 
   // Live push over WebSocket. Auth comes from same access_token cookie
   // REST calls use, browsers attach it to WS handshake automatically so no token neeeds to be passed here
@@ -203,12 +182,13 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       isLoading,
       error,
       markAsRead,
+      refetchAfterAction,
       activeToast,
       showToast,
       dismissToast,
       previewToast,
     }),
-    [notifications, unreadCount, locationEnabled, isLoading, error, markAsRead, activeToast, showToast, dismissToast, previewToast],
+    [notifications, unreadCount, locationEnabled, isLoading, error, markAsRead, refetchAfterAction, activeToast, showToast, dismissToast, previewToast],
   );
 
   return (
