@@ -164,4 +164,52 @@ class TestDistanceToFireEdge:
         distance = distance_to_fire_edge(0.0, 0.0, 0.1, 0.0, boundary_radius=Decimal("2.00"))
         assert distance == pytest.approx(11.12 - 2.0, abs=0.1)
         
+# Service functions (mock session)
+DEFAULT_POINT = from_shape(Point(28.24, -25.75), srid=4326) 
+
+def make_user(id, role=UserRole.user, has_location=True):
+    return User(id=id, name="Test", surname="User", email=f"{id}@test.com", id_number="0000000000000", role=role, location_geom=DEFAULT_POINT if has_location else None)
+
+def make_fire(id="fire-1", status=ReportStatus.verified, boundary_radius=1.0):
+    return FireReports(id=id, reference_number=f"REF-{id}", location_text="Test Location", location_geom=DEFAULT_POINT, boundary_radius=boundary_radius, status=status)
+
+def query_mock(*, all_result=None, first_result=None, scalar_result=None):
+    """
+    Chainable mock supporting .filter().all()/.first()/.scalar()/.distinct().all(),
+    matching the query patterns acctually used in notifications.py
+    """
+    m = MagicMock()
+    m.filter.return_value = m
+    m.distinct.return_value = m
+    m.all.return_value = all_result if all_result is not None else []
+    m.first.return_value = first_result
+    m.scalar.return_value = scalar_result
+    return m
+
+@pytest.fixture(autouse=True)
+def patch_push():
+    """
+    Every test in this section gets push() replaced with a no-op mock.
+    None of these should depend on a real event loop or WebSocket connection to run or
+    to make assertions
+    """
+    with patch.object(svc, "push") as mock_push:
+        yield mock_push
         
+@pytest.fixture
+def db():
+    return MagicMock()
+
+class TestNotifyFireAlert:
+    def test_returns_empty_list_for_unverified_report(self, db):
+        fire = make_fire(status=ReportStatus.pending)
+        result = svc.notify_fire_alert(db, fire, "New Fire")
+        assert result == []
+        db.query.assert_not_called()
+        
+    def test_raises_if_fire_has_no_location(self, db):
+        fire = make_fire()
+        with patch.object(svc, "point_to_latlng", return_value=None):
+            with pytest.raises(ValueError):
+                svc.notify_fire_alert(db, fire, "New fire")
+                
