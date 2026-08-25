@@ -5,24 +5,24 @@ import pytest
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 
-from src.enums.notification_type import NotificationType
-from src.enums.report_status import ReportStatus
-from src.enums.severity import Severity
-from src.enums.user_role import UserRole
+from enums.notification_type import NotificationType
+from enums.report_status import ReportStatus
+from enums.severity import Severity
+from enums.user_role import UserRole
 
-from src.models.reported_fires import FireReports
-from src.models.users import User
+from models.reported_fires import FireReports
+from models.users import User
 
-from src.services.notifications import notifications as svc
-from src.services.notifications.geo import haversine_km, point_to_latlng
-from src.services.notifications.notifications import (
+from services.notifications import notifications as svc
+from services.notifications.geo import haversine_km, point_to_latlng
+from services.notifications.notifications import (
     STAFF_TIER_THRESHOLDS_KM,
     TIER_THRESHOLDS_KM,
     distance_to_fire_edge,
     tier_for_distance,
     tier_thresholds_for_role,
 )
-from src.services.notifications.severity import (
+from services.notifications.severity import (
     HIGH_MAX_KM,
     LOW_MAX_KM,
     MODERATE_MAX_KM,
@@ -187,7 +187,7 @@ def query_mock(*, all_result=None, first_result=None, scalar_result=None):
     return m
 
 @pytest.fixture(autouse=True)
-def patch_push():
+def patched_push():
     """
     Every test in this section gets push() replaced with a no-op mock.
     None of these should depend on a real event loop or WebSocket connection to run or
@@ -234,7 +234,7 @@ class TestNotifyFireAlert:
         db.query.return_value = query_mock(all_result=[far_user])
         
         with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
-            patch.objective(svc, "distance_to_fire_edge", return_value=999.0):
+            patch.object(svc, "distance_to_fire_edge", return_value=999.0):
                 created = svc.notify_fire_alert(db, fire, "New fire")
                 
         assert created == []
@@ -316,7 +316,7 @@ class TestCheckProximityForUser:
         
     def test_same_tier_as_before_creates_nothing(self, db):
         user = make_user("u1")
-        fire = make_fire
+        fire = make_fire()
         
         fires_query = query_mock(all_result=[fire])
         # prev notified at 3.5km, same 5km tier as new dist
@@ -380,13 +380,13 @@ class TestNotifyFireUpdate:
                 
         assert len(created) == 2
         assert all(n.type == NotificationType.update for n in created)
-        assert patch_push.call_count == 2
+        assert patched_push.call_count == 2
         
     def test_user_with_no_location_still_gets_notified_at_zero_distance(self, db):
         fire = make_fire()
         user = make_user("u1", has_location=False)
         
-        user_ids_query = query_mock(all_result=[("u1")])
+        user_ids_query = query_mock(all_result=[("u1",)])
         users_query = query_mock(all_result=[user])
         db.query.side_effect = [user_ids_query, users_query]
         
@@ -452,7 +452,7 @@ class TestCheckProximityForGuest:
         
         with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
             patch.object(svc, "distance_to_fire_edge", return_value=999.0):
-                results = svc.check_proximity_for_guest(db, -25.75, 28,24)
+                results = svc.check_proximity_for_guest(db, -25.75, 28.24)
                 
         assert results == []
         
@@ -476,8 +476,8 @@ class TestCheckProximityForGuest:
         assert results == []
         
     def test_multiple_fires_in_range_are_all_returned(self, db):
-        fire1 = make_fire(id="fire1")
-        fire2 = make_fire(id="fire2")
+        fire1 = make_fire(id="fire-1")
+        fire2 = make_fire(id="fire-2")
         db.query.return_value = query_mock(all_result=[fire1, fire2])
         
         with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)), \
