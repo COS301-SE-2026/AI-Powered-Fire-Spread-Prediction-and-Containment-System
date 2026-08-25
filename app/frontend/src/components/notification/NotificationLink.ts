@@ -7,5 +7,7 @@ export function NotificationLink(fireId: string, role: UserRole | null): string 
     if (role === 'firefighter'){
         return `/firefighter/dashboard?fire=${fireId}`;
     }
-    return `/user/live-map?fire=${fireId}`;
+    return `/users/live-map?fire=${fireId}`;
+
+    return`/guests/live-map?fire=${fireId}`;
 }
