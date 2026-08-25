@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -184,6 +185,52 @@ def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
         push(n)
         
     return created
+
+def check_proximity_for_guest(db: Session, latitude: float, longitude: float) -> list[NotificationOut]:
+    """
+    Stateless proximity check for guests. They have no account hence no persisted notifications.
+    Computes matched directly against currently verified fires and hands them straight back in response.
+    
+    This has no history of what a guest has already seen; every call returns every fire currently within
+    range. Frontend responsible for not re-toasting the same fire twice in a browsing session.
+    
+    Guests have same TIER_THRESHOLDS_KM as registered user.
+    """
+    
+    thresholds = TIER_THRESHOLDS_KM
+    verified_fired = db.query(FireReports).filter(FireReports.status == ReportStatus.verified).all()
+    
+    matches: list[NotificationOut] = []
+    for fire_report in verified_fired:
+        fire_latlng = point_to_latlng(fire_report.location_geom)
+        if fire_latlng is None:
+            continue
+        
+        distance = distance_to_fire_edge(latitude, longitude, fire_latlng[0], fire_latlng[1], fire_report.boundary_radius)
+        tier = tier_for_distance(distance, thresholds)
+        if tier is None:
+            continue
+        
+        severity = severity_from_boundary_radius(fire_report.boundary_radius)
+        message = f"Fire reported near {fire_report.location_text} ({distance:.1f}km away)"
+        
+        # Synchronized directly. Prefixed so it can never collide with a genuine notification
+        # id if a guest later registers
+        matches.append(
+            NotificationOut(
+                id=f"guest-{fire_report.id}",
+                fireId=fire_report.id,
+                fireLocation=fire_report.location_text,
+                distance=round(distance, 1),
+                type=NotificationType.alert,
+                severity=severity,
+                message=message,
+                time=datetime.now(timezone.utc),
+                read=False,
+            )
+        )
+        
+    return matches
     
 def notify_fire_update(db: Session, fire_report: FireReports, message: str) -> list[Notification]:
     """

@@ -12,8 +12,10 @@ import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
-
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+import { useGuestNotifications } from '@/hooks/useGuestNotifications';
+import { useNotifications } from '@/hooks/useNotification';
+import { useAuth } from '@/hooks/useAuth';
 
 
 interface MapProps {
@@ -52,7 +54,10 @@ export function FireMap({
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
-  const updateUserLocation = useUpdateUserLocation();
+  const { isAuth, isLoading: isAuthLoading } = useAuth();
+  const { refetchAfterAction, showToast } = useNotifications();
+  const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
+  const checkGuestNotifications = useGuestNotifications(showToast);
 
   useEffect(() => {
     async function syncFires() {
@@ -140,8 +145,15 @@ export function FireMap({
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
-    updateUserLocation(lat, lng);
-  }, [lat, lng, updateUserLocation]);
+
+    console.log('Firemap location effect:', {lat, lng, isAuth, isAuthLoading});
+
+    if (isAuth) {
+      updateUserLocation(lat, lng);
+    } else {
+      checkGuestNotifications(lat, lng);
+    }
+  }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
 
   const circleFeatures = useMemo(
     () =>
