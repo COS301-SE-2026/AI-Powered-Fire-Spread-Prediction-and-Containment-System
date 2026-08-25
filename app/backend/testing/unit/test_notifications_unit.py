@@ -29,6 +29,7 @@ from src.services.notifications.severity import (
     severity_from_boundary_radius,
 )
 
+# Geo helpers
 class TestHaversineKm:
     def test_same_point_is_zero_distance(self):
         assert haversine_km(-25.75, 28.24, -25.75, 28.24) == pytest.approx(0.0, abs=1e-6)
@@ -47,3 +48,16 @@ class TestHaversineKm:
         # A point and its exact  antipode are the max possible distance apart
         distance = haversine_km(0, 0, 0, 180)
         assert distance == pytest.approx(20015, abs=5) # ~half of earth's circumference
+
+class TestPointToLatLng:
+    def test_none_geometry_returns_none(self):
+        assert point_to_latlng(None) is None
+        
+    def test_extracts_lat_lng_from_point_geometry(self):
+        # test to guard against lat and lng points being accidentlly flipped
+        geom = from_shape(Point(28.24, -25.75), srid=4326)
+        lat, lng = point_to_latlng(geom)
+        assert lat == pytest.approx(-25.75)
+        assert lng == pytest.approx(28.24)
+        
+    
