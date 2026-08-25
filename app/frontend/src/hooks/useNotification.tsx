@@ -73,6 +73,38 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => clearInterval(interval);
   })
 
+  const fetchNotifications = useCallback(async (options: { toastIfNew: boolean }) => {
+    try{
+      const res = await fetch('/api/notifications', {credentials: 'include'});
+      if (!res.ok) throw new Error(`Failed to load notifications (${res.status})`);
+      const data: NotificationListResponse = await res.json();
+
+      const previouslyKnown = knownIdsRef.current;
+      const newlyArrived = data.notifications.filter((n) => !previouslyKnown.has(n.id));
+
+      setNotifications(data.notifications);
+      knownIdsRef.current = new Set(data.notifications.map((n) => n.id));
+      setLocationEnabled(data.locationEnabled);
+      setError(null);
+
+      if (options.toastIfNew) {
+        const toastCandidate = newlyArrived.find((n) => !n.read) ?? data.notifications.find((n) => !n.read);
+
+        if (toastCandidate){
+          showToast(toastCandidate);
+        }
+      }
+    } catch (err){
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [showToast]);
+
+  const refetchAfterAction = useCallback(async () => {
+    await fetchNotifications({ toastIfNew: true });
+  }, [fetchNotifications]);
+
   
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
@@ -129,7 +161,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
         const incoming = payload.data as FireNotification;
         if (knownIdsRef.current.has(incoming.id)) {
-          return;
+          return; // already have it - skip, don't re-toast a duplicate
         }
         knownIdsRef.current.add(incoming.id);
 
