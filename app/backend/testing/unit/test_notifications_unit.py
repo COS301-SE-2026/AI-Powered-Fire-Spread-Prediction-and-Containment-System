@@ -126,3 +126,17 @@ class TestTierForDistance:
         
     def test_unordered_thresholds_still_resolve_to_tightest_match(self):
         assert tier_for_distance(3.0, [5.0, 20.0, 10.0])
+        
+class TestTierThresholdsForRole:
+    def test_regular_user_gets_standard_thresholds(self):
+        assert tier_thresholds_for_role(UserRole.user) == TIER_THRESHOLDS_KM
+    
+    def test_admin_gets_staff_thresholds(self):
+        assert tier_thresholds_for_role(UserRole.admin) == STAFF_TIER_THRESHOLDS_KM
+        
+    def test_firefighter_gets_staff_thresholds(self):
+        assert tier_thresholds_for_role(UserRole.firefighter) == STAFF_TIER_THRESHOLDS_KM
+    
+    def test_staff_thresholds_reach_further_than_user_thresholds(self):
+        assert max(STAFF_TIER_THRESHOLDS_KM) > max(TIER_THRESHOLDS_KM)
+        
