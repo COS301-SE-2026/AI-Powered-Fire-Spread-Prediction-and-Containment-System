@@ -404,6 +404,22 @@ class TestNotifyFireUpdate:
             with pytest.raises(ValueError):
                 svc.notify_fire_update(db, fire, "Contained")
                 
-
+class TestMarkNotificationRead:
+    def test_marks_matching_notification_as_read(self, db):
+        notification = MagicMock(read=False)
+        db.query.return_value = query_mock(first_result=notification)
+        
+        result = svc.mark_notification_read(db, "user1", "notif1")
+        
+        assert result is notification
+        assert notification.read is True
+        db.commit.assert_called_once()
+        
+    def test_returns_none_if_not_found(self, db):
+        db.query.return_value = query_mock(first_result=None)
+        result = svc.mark_notification_read(db, "user1", "nonexistent")
+        assert result is None
+        db.commit.assert_not_called()
+        
         
         
