@@ -28,3 +28,22 @@ from src.services.notifications.severity import (
     MODERATE_MAX_KM,
     severity_from_boundary_radius,
 )
+
+class TestHaversineKm:
+    def test_same_point_is_zero_distance(self):
+        assert haversine_km(-25.75, 28.24, -25.75, 28.24) == pytest.approx(0.0, abs=1e-6)
+        
+    def test_known_distance_pretoria_to_johannesburg(self):
+        # PTA CBD to JHB CBD should be approx 55km
+        distance = haversine_km(-25.7461, 28.1881, -26.2041, 28.0473)
+        assert distance == pytest.approx(55, abs=5)
+        
+    def test_distance_is_symmetric(self):
+        a_to_b = haversine_km(-25.75, 28.24, -26.20, 28.05)
+        b_to_a = haversine_km(-26.20, 28.05, -25.75, 28.24)
+        assert a_to_b == pytest.approx(b_to_a, abs=1e9)
+        
+    def test_antipodal_points_approach_half_earch_circumference(self):
+        # A point and its exact  antipode are the max possible distance apart
+        distance = haversine_km(0, 0, 0, 180)
+        assert distance == pytest.approx(20015, abs=5) # ~half of earth's circumference
