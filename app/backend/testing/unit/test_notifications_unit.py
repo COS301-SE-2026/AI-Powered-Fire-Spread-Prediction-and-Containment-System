@@ -355,6 +355,55 @@ class TestCheckProximityForUser:
         assert created == []
         fires_query.filter.assert_called_once()
         
-    
+class TestNotifyFireUpdate:
+    def test_returns_empty_if_no_one_previously_notified(self, db):
+        fire = make_fire()
+        db.query.return_value = query_mock(all_result=[])
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)):
+            created = svc.notify_fire_update(db, fire, "Update")
+        
+        assert created == []
+        
+    def test_notifies_every_previously_tracked_user(self, db, patched_push):
+        fire = make_fire()
+        user1 = make_user("u1")
+        user2 = make_user("u2")
+        
+        user_ids_query = query_mock(all_result=[("u1",), ("u2",)])
+        users_query = query_mock(all_result=[user1, user2])
+        db.query.side_effect = [user_ids_query, users_query]
+        
+        with patch.object(svc, "point_to_latlng", return_value=(-25.75, 28.24)),\
+            patch.object(svc, "distance_to_fire_edge", return_value=2.0):
+                created = svc.notify_fire_update(db, fire, "Contained")
+                
+        assert len(created) == 2
+        assert all(n.type == NotificationType.update for n in created)
+        assert patch_push.call_count == 2
+        
+    def test_user_with_no_location_still_gets_notified_at_zero_distance(self, db):
+        fire = make_fire()
+        user = make_user("u1", has_location=False)
+        
+        user_ids_query = query_mock(all_result=[("u1")])
+        users_query = query_mock(all_result=[user])
+        db.query.side_effect = [user_ids_query, users_query]
+        
+        with patch.object(svc, "point_to_latlng") as mock_p2ll:
+            mock_p2ll.side_effect = [(-25.75, 28.24), None]
+            created = svc.notify_fire_update(db, fire, "Contained")
+            
+        assert len(created) == 1
+        assert created[0].distance == 0.0
+        assert created[0].message == "Contained"
+        
+    def test_raises_if_fire_has_no_location(self, db):
+        fire = make_fire()
+        with patch.object(svc, "point_to_latlng", return_value=None):
+            with pytest.raises(ValueError):
+                svc.notify_fire_update(db, fire, "Contained")
+                
+
         
         
