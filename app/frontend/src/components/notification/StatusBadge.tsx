@@ -1,6 +1,6 @@
-import React from "react";
-import { SeverityBadge } from "./NotificationBadge";
-import { FireNotification } from "../../types/Notifications";
+import React from 'react';
+import { SeverityBadge } from './NotificationBadge';
+import { FireNotification } from '../../types/Notifications';
 
 interface NotificationBadgeProps {
     readonly severity: FireNotification['severity'];

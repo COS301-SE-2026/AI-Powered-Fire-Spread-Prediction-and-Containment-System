@@ -2,7 +2,8 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { FireReportMapResponse, ReportStatus } from '../../types/Report';
 import { StatusBadge } from './reportStatusBadge';
-import { FormatDate } from "../shared/FormatDate";
+import { FormatDate } from '../../lib/FormatDate';
+import { VerificationNotes } from '../../lib/VerificationNotes';
 
 interface FireReportsTableProps {
   readonly reports: FireReportMapResponse[];
@@ -24,6 +25,7 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
                         <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Ref</th>
                         <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Location</th>
                         <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Status</th>
+                        <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Reason</th>
                         <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Size</th>
                         <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Reported</th>
                         <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">Reporter</th>
@@ -33,7 +35,7 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
                 <tbody>
                     {filtered.length === 0 ? (
                         <tr>
-                            <td colSpan={7} className="px-4 py-8 text-center text-sm font-bold text-error">
+                            <td colSpan={8} className="px-4 py-8 text-center text-sm font-bold text-error">
                                 No requests found
                             </td>
                         </tr>
@@ -43,6 +45,7 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
                                 <td className="px-4 text-sm text-text-primary">{report.reference_number}</td>
                                 <td className="px-4 text-sm text-text-primary">{report.location_text}</td>
                                 <td className="px-4 text-sm text-text-primary"><StatusBadge status={report.status} /></td>
+                                <td className="px-4 text-sm text-text-primary">{VerificationNotes(report.verification_notes)}</td>
                                 <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
                                 <td className="px-4 text-sm text-text-primary">
                                     {FormatDate(report.submitted_at)}

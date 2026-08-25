@@ -23,6 +23,7 @@ def get_fire_reports(db: Session):
                 "boundary_radius": float(fire.boundary_radius),
                 "submitted_at": fire.submitted_at,
                 "reporter": fire.reporter,
+                "verification_notes": fire.verification_notes,
                 "lat": shape.y,
                 "lng": shape.x,
             }
@@ -60,6 +61,7 @@ def search_report_table(db: Session, key: str):
                 "boundary_radius": float(fire.boundary_radius),
                 "submitted_at": fire.submitted_at,
                 "reporter": fire.reporter,
+                "verification_notes": fire.verification_notes,
                 "lat": shape.y,
                 "lng": shape.x,
             }
@@ -86,6 +88,7 @@ def get_single_fire_report(db: Session, ref: str):
         "reporter": request.reporter,
         "description": request.description,
         "image_url": request.image_url,
+        "verification_notes": request.verification_notes,
         "lat": shape.y,
         "lng": shape.x,
     }

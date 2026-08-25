@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { AlertTriangle, Bell, RefreshCw, X } from 'lucide-react';
 import Link from 'next/link';
 import type { FireNotification } from '../../types/Notifications';
-import { FormatDate } from '../shared/FormatDate';
+import { FormatDate } from '../../lib/FormatDate';
 import { useAuth } from '../../hooks/useAuth';
 import { NotificationLink } from './NotificationLink';
 
