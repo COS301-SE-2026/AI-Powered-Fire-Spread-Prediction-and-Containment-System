@@ -140,3 +140,28 @@ class TestTierThresholdsForRole:
     def test_staff_thresholds_reach_further_than_user_thresholds(self):
         assert max(STAFF_TIER_THRESHOLDS_KM) > max(TIER_THRESHOLDS_KM)
         
+class TestDistanceToFireEdge:
+    def test_user_outside_boundary_gets_positive_distance(self):
+        # ~11.1km apart at equator for 0.1 degree f latitude
+        distance = distance_to_fire_edge(0.0, 0.0, 0.1, 0.0, boundary_radius=2.0)
+        assert distance == pytest.approx(11.12 - 2.0, abs=0.1)
+        
+    def test_user_inside_boundary_clamps_to_zero_no_negative(self):
+        # center to center dist is small. large boundary_radius shouldn't produce negative "dist to edge"
+        distance = distance_to_fire_edge(0.0, 0.0, 0.01, 0.0, boundary_radius=50.0)
+        assert distance == 0.0
+        
+    def test_user_exactly_at_fire_center(self):
+        distance = distance_to_fire_edge(-25.75, 28.24, -25.75, 28.24, boundary_radius=1.0)
+        assert distance == 0.0
+        
+    def test_zero_boundary_radius_equals_plain_haversine_distance(self):
+        center_distance = haversine_km(-25.75, 28.24, -25.80, 28.30)
+        edge_distance = distance_to_fire_edge(-25.75, 28.24, -25.80, 28.30, boundary_radius=0.0)
+        assert edge_distance == pytest.approx(center_distance)
+        
+    def test_accepts_decimal_boundary_radius(self):
+        distance = distance_to_fire_edge(0.0, 0.0, 0.1, 0.0, boundary_radius=Decimal("2.00"))
+        assert distance == pytest.approx(11.12 - 2.0, abs=0.1)
+        
+        
