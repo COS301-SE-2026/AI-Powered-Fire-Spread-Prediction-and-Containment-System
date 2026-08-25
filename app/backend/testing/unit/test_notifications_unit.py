@@ -530,6 +530,21 @@ class TestCheckProximityForGuest:
                 
         assert results[0].read is False
         
+class TestMarkAllRead:
+    def test_marks_all_unread_and_returns_count(self, db):
+        n1, n2 = MagicMock(read=False), MagicMock(read=False)
+        db.query.return_value = query_mock(all_result=[n1, n2])
         
+        count = svc.mark_all_read(db, "user1")
+        
+        assert count == 2
+        assert n1.read is True
+        assert n2.read is True
+        db.commit.assert_called_once()
+        
+    def test_returns_zero_when_nothing_unread(self, db):
+        db.query.return_value = query_mock(all_result=[])
+        count = svc.mark_all_read(db, "user1")
+        assert count == 0
         
         
