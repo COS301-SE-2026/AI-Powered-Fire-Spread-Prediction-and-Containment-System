@@ -60,4 +60,37 @@ class TestPointToLatLng:
         assert lat == pytest.approx(-25.75)
         assert lng == pytest.approx(28.24)
         
+# Severity derivation
+class TestSeverityFromBoundaryRadius:
+    def test_zero_radius_is_low(self):
+        assert severity_from_boundary_radius(0) == Severity.low
+    
+    def test_at_low_boundary_is_low(self):
+        assert severity_from_boundary_radius(LOW_MAX_KM) == Severity.low
+        
+    def test_just_above_low_boundary_is_moderate(self):
+        assert severity_from_boundary_radius(LOW_MAX_KM + 0.01) == Severity.moderate
+        
+    def test_at_moderate_boundary_is_moderate(self):
+        assert severity_from_boundary_radius(MODERATE_MAX_KM) == Severity.moderate
+        
+    def test_just_above_moderate_boundary_is_high(self):
+        assert severity_from_boundary_radius(MODERATE_MAX_KM + 0.01) == Severity.high
+        
+    def test_at_high_boundary_is_high(self):
+        assert severity_from_boundary_radius(HIGH_MAX_KM) == Severity.high
+        
+    def test_just_above_high_boundary_is_extreme(self):
+        assert severity_from_boundary_radius(HIGH_MAX_KM + 0.01) == Severity.extreme
+        
+    def test_very_large_radius_is_extreme(self):
+        assert severity_from_boundary_radius(1000) == Severity.extreme
+        
+    def test_accepta_decimal_input(self):
+        assert severity_from_boundary_radius(Decimal("3.20")) == Severity.high
+        
+    def test_accepts_string_input(self):
+        # guards against regression if boundary_radius is ever passes through as raw string from request data
+        assert severity_from_boundary_radius("1.00") == Severity.moderate
+        
     
