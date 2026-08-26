@@ -52,7 +52,7 @@ def push(notification: Notification) -> None:
     }
     loop = get_main_loop()
     if loop is None:
-        logger.warning("push() called before main_loop was set, notification %s for user %s was not delivered live",)
+        logger.warning("push() called before main_loop was set, notification %s for user %s was not delivered live",notification.id, notification.user_id)
         return
     
     future = asyncio.run_coroutine_threadsafe(manager.send_to_user(notification.user_id, payload), loop)

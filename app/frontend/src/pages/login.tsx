@@ -16,12 +16,11 @@ const fieldClass = (hasError?: string) => {
   return 'input input-neutral focus:border-primary w-full';
 };
 
-  const ROLE_REDIRECTS: Record<string, string> = {
-    admin: '/admin/dashboard',
-    firefighter: '/firefighter/dashboard',
-    user: '/users/live-map',
-  };
-
+const ROLE_REDIRECTS: Record<string, string> = {
+  admin: '/admin/dashboard',
+  firefighter: '/firefighter/dashboard',
+  user: '/users/live-map',
+};
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -33,7 +32,7 @@ export default function Login() {
   const { isAuth, role, isLoading: isAuthLoading } = useAuth();
 
   useEffect(() => {
-    if (!isAuthLoading && isAuth && role){
+    if (!isAuthLoading && isAuth && role) {
       router.push(ROLE_REDIRECTS[role] ?? '/');
     }
   }, [isAuthLoading, isAuth, role, router]);
@@ -78,7 +77,7 @@ export default function Login() {
 
         const match = errBody?.detail?.match(/(\d+)\s*seconds?/);
         if (match) {
-          setCooldown(parseInt(match[1], 10))
+          setCooldown(parseInt(match[1], 10));
         }
         return;
       }
@@ -93,7 +92,8 @@ export default function Login() {
       sessionStorage.setItem('justLoggedIn', '1');
       window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Login failed. Email or password incorrect.';
+      const message =
+        err instanceof Error ? err.message : 'Login failed. Email or password incorrect.';
       setApiError(message);
     } finally {
       setIsLoading(false);
@@ -107,7 +107,7 @@ export default function Login() {
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setInterval(() => {
-      setCooldown((prev) => (prev > 1 ? prev -  1 : 0));
+      setCooldown((prev) => (prev > 1 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
@@ -179,7 +179,7 @@ export default function Login() {
             >
               {isLoading ? (
                 <>
-                  <span className='loading loading-spinner loading-sm' />
+                  <span className="loading loading-spinner loading-sm" />
                   Logging in...
                 </>
               ) : cooldown > 0 ? (

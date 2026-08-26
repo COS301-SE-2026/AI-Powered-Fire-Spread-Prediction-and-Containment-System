@@ -207,7 +207,7 @@ def make_report(
         image_url=image_url,
         photo_hash=photo_hash,
         location_geom=point_wkt,
-        boundary_radius=0.2,
+        boundary_radius=boundary_radius,
         status=status,
         status_index=status_index,
         submitted_at=submitted_at or datetime.now(timezone.utc)

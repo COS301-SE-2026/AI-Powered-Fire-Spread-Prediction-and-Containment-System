@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react';
 import type { FireNotification } from '../types/Notifications';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
@@ -14,18 +22,18 @@ function getWebSocketUrl(path: string): string {
   return httpBase.replace(/^http/, 'ws') + path;
 }
 
-type NotificationState = Readonly <{
-    notifications: readonly FireNotification[];
-    unreadCount: number;
-    locationEnabled: boolean;
-    isLoading: boolean;
-    error: string | null;
-    markAsRead: (id: string) => void;
-    refetchAfterAction: () => Promise<void>;
-    activeToast: FireNotification | null;
-    showToast: (notification: FireNotification) => void;
-    dismissToast: () => void;
-    previewToast: (notification: FireNotification) => void;
+type NotificationState = Readonly<{
+  notifications: readonly FireNotification[];
+  unreadCount: number;
+  locationEnabled: boolean;
+  isLoading: boolean;
+  error: string | null;
+  markAsRead: (id: string) => void;
+  refetchAfterAction: () => Promise<void>;
+  activeToast: FireNotification | null;
+  showToast: (notification: FireNotification) => void;
+  dismissToast: () => void;
+  previewToast: (notification: FireNotification) => void;
 }>;
 
 const NotificationsContext = createContext<NotificationState | null>(null);
@@ -58,7 +66,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read && isWithinRetention(n.time)).length,
-    [notifications],
+    [notifications]
   );
 
   // periodically drops notifications older than 24h retention window
@@ -71,55 +79,57 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       });
     }, 60_000);
     return () => clearInterval(interval);
-  }, [])
+  }, []);
 
-  const fetchNotifications = useCallback(async (options: { toastIfNew: boolean }) => {
-    try{
-      const res = await fetch('/api/notifications', {credentials: 'include'});
-      if (!res.ok) throw new Error(`Failed to load notifications (${res.status})`);
-      const data: NotificationListResponse = await res.json();
+  const fetchNotifications = useCallback(
+    async (options: { toastIfNew: boolean }) => {
+      try {
+        const res = await fetch('/api/notifications', { credentials: 'include' });
+        if (!res.ok) throw new Error(`Failed to load notifications (${res.status})`);
+        const data: NotificationListResponse = await res.json();
 
-      const previouslyKnown = knownIdsRef.current;
-      const newlyArrived = data.notifications.filter((n) => !previouslyKnown.has(n.id));
+        const previouslyKnown = knownIdsRef.current;
+        const newlyArrived = data.notifications.filter((n) => !previouslyKnown.has(n.id));
 
-      setNotifications(data.notifications);
-      knownIdsRef.current = new Set(data.notifications.map((n) => n.id));
-      setLocationEnabled(data.locationEnabled);
-      setError(null);
+        setNotifications(data.notifications);
+        knownIdsRef.current = new Set(data.notifications.map((n) => n.id));
+        setLocationEnabled(data.locationEnabled);
+        setError(null);
 
-      if (options.toastIfNew) {
-        const toastCandidate = newlyArrived.find((n) => !n.read) ?? data.notifications.find((n) => !n.read);
+        if (options.toastIfNew) {
+          const toastCandidate =
+            newlyArrived.find((n) => !n.read) ?? data.notifications.find((n) => !n.read);
 
-        if (toastCandidate){
-          showToast(toastCandidate);
+          if (toastCandidate) {
+            showToast(toastCandidate);
+          }
         }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load notifications');
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err){
-      setError(err instanceof Error ? err.message : 'Failed to load notifications');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [showToast]);
+    },
+    [showToast]
+  );
 
   const refetchAfterAction = useCallback(async () => {
     await fetchNotifications({ toastIfNew: true });
   }, [fetchNotifications]);
 
-  
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
     let cancelled = false;
 
-    async function initialLoad(){
-        const justLoggedIn = sessionStorage.getItem('justLoggedIn') === '1';
-        if (justLoggedIn) {
-          sessionStorage.removeItem('justLoggedIn');
-        }
+    async function initialLoad() {
+      const justLoggedIn = sessionStorage.getItem('justLoggedIn') === '1';
+      if (justLoggedIn) {
+        sessionStorage.removeItem('justLoggedIn');
+      }
 
-        if (!cancelled){
-          await fetchNotifications({ toastIfNew: justLoggedIn});
-        }
-
+      if (!cancelled) {
+        await fetchNotifications({ toastIfNew: justLoggedIn });
+      }
     }
 
     initialLoad();
@@ -162,9 +172,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
   const markAsRead = useCallback((id: string): void => {
     // optimistic local update (UI reflects 'read' immediately rather than waitng on network round trip)
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
 
     fetch(`/api/notifications/${id}/read`, {
       method: 'POST',
@@ -188,20 +196,28 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       dismissToast,
       previewToast,
     }),
-    [notifications, unreadCount, locationEnabled, isLoading, error, markAsRead, refetchAfterAction, activeToast, showToast, dismissToast, previewToast],
+    [
+      notifications,
+      unreadCount,
+      locationEnabled,
+      isLoading,
+      error,
+      markAsRead,
+      refetchAfterAction,
+      activeToast,
+      showToast,
+      dismissToast,
+      previewToast,
+    ]
   );
 
-  return (
-    <NotificationsContext.Provider value={value}>
-      {children}
-    </NotificationsContext.Provider>
-  );
+  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;
 }
 
 export function useNotifications(): NotificationState {
-    const context = useContext(NotificationsContext);
-    if (!context) {
-      throw new Error('useNotifications must be used within a NotificationProvider');
-    }
-    return context;
+  const context = useContext(NotificationsContext);
+  if (!context) {
+    throw new Error('useNotifications must be used within a NotificationProvider');
+  }
+  return context;
 }
