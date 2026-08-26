@@ -3,8 +3,7 @@
   "private": true,
   "workspaces": [
     "app/backend/src",
-    "app/frontend/src",
-    "app/pwa"
+    "app/frontend/src"
   ],
   "scripts": {
     "dev": "yarn --cwd app/frontend/src dev",
