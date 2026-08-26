@@ -4,6 +4,7 @@ import numpy as np
 
 from .load_real_dataset import RealDatasetConfig, load_real_dataset
 
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--csv", default=RealDatasetConfig.hotspots_csv)
@@ -29,6 +30,7 @@ def main() -> None:
 
     print(f"wrote {args.out}")
     print(f"  X {X.shape} | fires {len(np.unique(fire_ids))} | pos_rate {y.mean():.5f}")
+
 
 if __name__ == "__main__":
     main()

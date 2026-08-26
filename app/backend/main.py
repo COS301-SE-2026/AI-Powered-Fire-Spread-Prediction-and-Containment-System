@@ -24,7 +24,6 @@ from src.services.storage import ensure_bucket
 
 from src.services.notifications.websocket_manager import set_main_loop
 
-
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
 
@@ -90,7 +89,8 @@ def health_check():
 @app.on_event("startup")
 def startup():
     ensure_bucket()
-    
+
+
 @app.on_event("startup")
 async def capture_main_loop():
     set_main_loop(asyncio.get_running_loop())

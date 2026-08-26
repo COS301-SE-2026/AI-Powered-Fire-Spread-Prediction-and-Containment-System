@@ -7,8 +7,8 @@ from models.users import User
 from services.storage import upload_image
 from services.verification.photo_hashing import hash_photo
 
-
 router = APIRouter(prefix="/api/uploads", tags=["Uploads"])
+
 
 @router.post(
     "/photo", responses={400: {"description": "Invalid file type or file size to big"}}

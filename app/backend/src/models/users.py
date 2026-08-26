@@ -25,8 +25,10 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_2fa_enabled = Column(Boolean, default=False)
     totp_secret = Column(String, nullable=True)
-    
-    location_geom = Column(Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=True)
+
+    location_geom = Column(
+        Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=True
+    )
 
     fire_reports = relationship("FireReports", back_populates="user")
     role_requests = relationship(

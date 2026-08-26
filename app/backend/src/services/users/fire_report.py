@@ -136,7 +136,7 @@ def status_change(report_ref: str, status: ReportStatus, db: Session):
 
     if not report:
         raise ValueError(f"Report with id {report_ref} does not exist")
-    
+
     previous_status = report.status
 
     report.status = status
@@ -144,7 +144,7 @@ def status_change(report_ref: str, status: ReportStatus, db: Session):
     report.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(report)
-    
+
     if status == ReportStatus.verified and previous_status != ReportStatus.verifies:
         notify_fire_alert(
             db, report, f"Fire reported at {report.location_text} has been verified"

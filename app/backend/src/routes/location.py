@@ -11,16 +11,18 @@ from services.notifications.notifications import check_proximity_for_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
+
 @router.patch("/me/location")
 def update_my_location(
     payload: UserLocationIn,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    user.location_geom = from_shape(Point(payload.longitude, payload.latitude), srid=4326)
+    user.location_geom = from_shape(
+        Point(payload.longitude, payload.latitude), srid=4326
+    )
     db.commit()
     db.refresh(user)
-    
+
     check_proximity_for_user(db, user)
     return {"status": "ok"}
-

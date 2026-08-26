@@ -11,9 +11,7 @@ from services.users import fire_report
 from dependencies.auth import get_current_admin_user
 
 router = APIRouter(
-    prefix="/api/admin",
-    tags=["Admin"],
-    dependencies=[Depends(get_current_admin_user)]
+    prefix="/api/admin", tags=["Admin"], dependencies=[Depends(get_current_admin_user)]
 )
 
 dbSession = Annotated[Session, Depends(get_db)]
