@@ -161,8 +161,7 @@ def test_user_never_alerted_gets_no_updated(db):
     assert never_notified.id not in {n.user_id for n in updated}
     assert updated == []
 
-
-
+# check_proximity_for_guest
 def test_check_proximity_for_guest_persists_nothing(db, patched_push):
     make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
     
@@ -171,5 +170,14 @@ def test_check_proximity_for_guest_persists_nothing(db, patched_push):
     after = db.query(Notification).count()
     
     assert len(results) == 1
+    assert results[0].fireId == fire.id
     assert before == after == 0
     patched_push.assery_not_called()
+    
+def test_excludes_fires_beyond_regular_user_tier(db):
+    make_report(db, lat=0.0, lng=0.28, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    results = svc.check_proximity_for_guest(db, 0.0, 0.0)
+    assert results == []
+    
+# mark_notification_read / mark_all_read
