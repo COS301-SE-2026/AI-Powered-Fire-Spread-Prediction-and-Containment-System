@@ -138,7 +138,30 @@ def test_user_with_no_location_short_circuits_before_any_query(db):
     created = svc.check_proximity_for_user(db, user)
     assert created == []
     
+# notify_fire_update
+def test_notifies_everyone_with_an_existing_notification_for_that_fire(db, patched_push):
+    user1 = make_user(db, lat=-25.75, lng=28.24)
+    user2 = make_user(db, lat=-25.75, lng=28.24)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
     
+    svc.notify_fire_alert(db, fire, "New fire nearby")
+    patched_push.reset_mock()
+    
+    updated = svc.notify_fire_update(db, fire, "Fire contained")
+    
+    updated_user_ids = {n.user_id for n in updated}
+    assert updated_user_ids == {user1.id, user2.id}
+    assert all(n.type == NotificationType.update for n in updated)
+    
+def test_user_never_alerted_gets_no_updated(db):
+    never_notified = make_user(db, lat=50.0, lng=50.0)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    updated = svc.notify_fire_update(db, fire, "Fire contained")
+    assert never_notified.id not in {n.user_id for n in updated}
+    assert updated == []
+
+
 
 def test_check_proximity_for_guest_persists_nothing(db, patched_push):
     make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
