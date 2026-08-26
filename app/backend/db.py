@@ -31,3 +31,7 @@ def init_db():
     from models.notification import Notification
 
     Base.metadata.create_all(bind=engine)
+
+    from startup_migrations import run_startup_migrations
+    run_startup_migrations(engine)
+

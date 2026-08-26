@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css'
-import { NotificationsProvider, useNotifications } from "../hooks/useNotification";
+import { NotificationsProvider, useNotifications } from '../hooks/useNotification';
 import { NotificationToast } from '../components/notification/NotificationToast';
 import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
@@ -20,7 +20,7 @@ function GlobalToast() {
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
-    // Only register in prod
+   // Only register in prod
 
     if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service_worker.js').catch(() => {
