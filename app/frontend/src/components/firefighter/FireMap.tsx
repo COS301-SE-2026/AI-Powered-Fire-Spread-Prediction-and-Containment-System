@@ -91,6 +91,7 @@ export function FireMap({
               size: c.size ?? c.boundary_radius ?? 0.2,
               reported: c.submitted_at ? new Date(c.submitted_at).toISOString() : new Date().toISOString(),
               reporter: c.reporter_name || 'Anonymous',
+              verification_notes: null,
               lat: c.lat,
               lng: c.lng,
             }))

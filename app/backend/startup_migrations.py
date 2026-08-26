@@ -19,4 +19,40 @@ def run_startup_migrations(engine: Engine) -> None:
                 """
             )
         )
+        # for fire report verification
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS priority VARCHAR NOT NULL DEFAULT 'normal';
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS system_verified BOOLEAN NOT NULL DEFAULT false;
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS verification_notes TEXT;
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS photo_hash VARCHAR(64);
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS idx_fire_reports_photo_hash ON fire_reports (photo_hash);
+                """
+            )
+        )
         conn.commit()
