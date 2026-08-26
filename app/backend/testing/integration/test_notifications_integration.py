@@ -163,7 +163,7 @@ def test_user_never_alerted_gets_no_updated(db):
 
 # check_proximity_for_guest
 def test_check_proximity_for_guest_persists_nothing(db, patched_push):
-    make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
     
     before = db.query(Notification).count()
     results = svc.check_proximity_for_guest(db, -25.75, 28.24)
@@ -222,5 +222,34 @@ def test_mark_all_read_only_affects_that_users_notifications(db):
     assert user1_notification.read is True
     assert user2_notification.read is False
     
+@pytest.mark.timeout(5)
+def test_websocket_receives_a_real_push_notification(db, client):
+    user = make_user(db, lat=-25.75, lng=28.24)
+    fire = make_report(db, lat=25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    token = create_access_token({"user_id": user.id})
+    
+    def test_get_db():
+        yield db
+        
+    with patch.object(notifications_route, "get_db", side_effect=test_get_db):
+        client.cookies.set("access_token", token)
+        with client.websocket_connect("/api/notifications/ws") as websocket:
+            svc.notify_fire_alert(db, fire, "New fire nearby")
+            message = websocket.receive_json()
+        
+    assert message["event"] == "notification"
+    assert message["data"]["fireId"] == fire.id
+    
+def test_websocket_rejects_missing_auth_cookie(client):
+    with pytest.raises(Exception):
+        with client.websocket_connect("/api/notification/ws"):
+            pass
+
+def test_websocket_rejects_invalid_token(client):
+    client.cookies.set("access_token", "not-a-real-token")
+    with pytest.raises(Exception):
+        with client.websocket_connect("/api/notification/ws"):
+            pass
     
     
