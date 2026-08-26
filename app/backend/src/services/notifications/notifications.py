@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
@@ -15,6 +16,7 @@ from .geo import haversine_km, point_to_latlng
 from .severity import severity_from_boundary_radius
 from .websocket_manager import manager, get_main_loop
 
+logger = logging.getLogger(__name__)
 
 TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0]
 
@@ -48,12 +50,20 @@ def push(notification: Notification) -> None:
         "event": "notification",
         "data": NotificationOut.from_model(notification).model_dump(mode="json"),
     }
-    
     loop = get_main_loop()
     if loop is None:
-        return  # main loop never got caught
+        logger.warning("push() called before main_loop was set, notification %s for user %s was not delivered live",)
+        return
     
-    asyncio.run_coroutine_threadsafe(manager.send_to_user(notification.user_id, payload), loop)
+    future = asyncio.run_coroutine_threadsafe(manager.send_to_user(notification.user_id, payload), loop)
+    
+    def log_if_failed(f: asyncio.Future) -> None:
+        exc = f.exception()
+        if exc is not None:
+            logger.error("Failed to push notification %s to user %s: %s", notification.id, notification.user_id, exc,)
+            
+    
+    future.add_done_callback(log_if_failed)
         
 def notify_fire_alert(db: Session, fire_report: FireReports, message: str) -> list[Notification]:
     """
@@ -156,13 +166,13 @@ def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
         
         if is_first_notification_for_fire:
             personalized_message = (
-                f"Fire reported at {fire_report.location_text} is within {new_tier:.0f}km"
+                f"Fire reported at {fire_report.location_text} is within {new_tier:.0f}km "
                 f"{distance:.1f}km away"
             )
             notify_type = NotificationType.alert
         else:
             personalized_message = (
-                f"Fire at {fire_report.location_text} is within {new_tier:.0f}km"
+                f"Fire at {fire_report.location_text} is within {new_tier:.0f}km "
                 f"({distance:.1f}km away) "
             )
             notify_type = NotificationType.update
