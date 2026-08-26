@@ -181,3 +181,46 @@ def test_excludes_fires_beyond_regular_user_tier(db):
     assert results == []
     
 # mark_notification_read / mark_all_read
+def test_mark_motification_read_persists_the_flag(db):
+    user = make_user(db, lat=-25.75, lng=28.24)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    [notification] = svc.notify_fire_alert(db, fire, "New fire nearby")
+    assert notification.read is False
+    
+    svc.mark_notification_read(db, user.id, notification.id)
+    
+    refetched = db.query(Notification).filter_by(id=notification.id).first()
+    assert refetched.read is True
+    
+def test_wrong_user_id_does_not_mark_it_read(db):
+    user = make_user(db, lat=-25.75, lng=28.24)
+    other_user = make_user(db)
+    
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    [notification] = svc.notify_fire_alert(db, fire, "New fire nearby")
+    
+    result = svc.mark_notification_read(db, other_user.id, notification.id)
+    
+    assert result is None
+    refetched = db.query(Notification).filter_by(id=notification.id).first()
+    assert refetched.read is False
+    
+def test_mark_all_read_only_affects_that_users_notifications(db):
+    user1 = make_user(db, lat=-25.75, lng=28.24)
+    user2 = make_user(db, lat=-25.75, lng=28.24)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    svc.notify_fire_alert(db, fire, "New fire nearby")
+    count = svc.mark_all_read(db, user1.id)
+    
+    assert count == 1
+    
+    user1_notification = db.query(Notification).filter_by(user_id=user1.id).first()
+    user2_notification = db.query(Notification).filter_by(user_id=user2.id).first()
+    
+    assert user1_notification.read is True
+    assert user2_notification.read is False
+    
+    
+    
