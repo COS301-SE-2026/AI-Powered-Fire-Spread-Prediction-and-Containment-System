@@ -20,11 +20,15 @@ export default function FirefighterDashboard() {
     error: lineError,
   } = useContainmentLine(() => setDrawMode(false));
 
-    return(
-        <FirefighterSideBar hideLoginRegister>
-            <div className="flex flex-col p-6">
-              <NotificationToastHost />
-                <PageHeader title="Firefighter Dashboard" subtitle="Tshwane District • Real-time Monitoring" showIcons/>
+  return (
+    <FirefighterSideBar hideLoginRegister>
+      <div className="flex flex-col p-6">
+        <NotificationToastHost />
+        <PageHeader
+          title="Firefighter Dashboard"
+          subtitle="Tshwane District • Real-time Monitoring"
+          showIcons
+        />
 
         {/* Main Grid container */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">

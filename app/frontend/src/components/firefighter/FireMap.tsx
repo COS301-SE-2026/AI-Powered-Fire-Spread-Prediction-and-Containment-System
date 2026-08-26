@@ -6,6 +6,9 @@ import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Map, Marker, Popup, Layer, Source, MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
+import { useGuestNotifications } from '@/hooks/useGuestNotifications';
+import { useNotifications } from '@/hooks/useNotification';
+import { useAuth } from '@/hooks/useAuth';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -13,10 +16,6 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
-import { useGuestNotifications } from '@/hooks/useGuestNotifications';
-import { useNotifications } from '@/hooks/useNotification';
-import { useAuth } from '@/hooks/useAuth';
-
 
 interface MapProps {
   lat: number;
@@ -89,7 +88,9 @@ export function FireMap({
               location: c.location_text,
               status: c.status as ReportStatus,
               size: c.size ?? c.boundary_radius ?? 0.2,
-              reported: c.submitted_at ? new Date(c.submitted_at).toISOString() : new Date().toISOString(),
+              reported: c.submitted_at
+                ? new Date(c.submitted_at).toISOString()
+                : new Date().toISOString(),
               reporter: c.reporter_name || 'Anonymous',
               verification_notes: null,
               lat: c.lat,
@@ -147,7 +148,7 @@ export function FireMap({
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
 
-    console.log('Firemap location effect:', {lat, lng, isAuth, isAuthLoading});
+    console.log('Firemap location effect:', { lat, lng, isAuth, isAuthLoading });
 
     if (isAuth) {
       updateUserLocation(lat, lng);

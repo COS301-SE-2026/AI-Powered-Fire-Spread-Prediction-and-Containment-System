@@ -8,7 +8,7 @@ from enums.report_status import ReportStatus
 from enums.user_role import UserRole
 from enums.severity import Severity
 from models.notification import  Notification
-from routes import notifications as notifications_route
+from src.routes import notifications as notifications_route
 from services.notifications  import notifications as svc
 
 from conftest import make_report, make_user
@@ -35,7 +35,7 @@ def test_notify_fire_alert_persists_a_real_row(db, patched_push):
     
 def test_distance_is_computed_from_real_geometry(db):
     user = make_user(db, lat=0.0, lng=0.0)
-    fire = make_report(db, lat=0.1, lng=0.0)
+    fire = make_report(db, lat=0.1, lng=0.0, status=ReportStatus.verified, boundary_radius=0.0)
     
     created = svc.notify_fire_alert(db, fire, "New fire nearby")
     
@@ -123,7 +123,7 @@ def test_moving_closer_creates_a_real_update_row(db):
     all_rows = db.query(Notification).filter_by(user_id=user.id).order_by(Notification.time).all()
     assert len(all_rows) == 2
     assert all_rows[0].type == NotificationType.alert
-    assert all_rows[1].type == Notification.update
+    assert all_rows[1].type == NotificationType.update
     
 def test_only_verified_fires_are_ever_considered(db):
     user = make_user(db, lat=-25.75, lng=28.24)
@@ -223,18 +223,35 @@ def test_mark_all_read_only_affects_that_users_notifications(db):
     assert user2_notification.read is False
     
 @pytest.mark.timeout(5)
-def test_websocket_receives_a_real_push_notification(db, client):
-    user = make_user(db, lat=-25.75, lng=28.24)
-    fire = make_report(db, lat=25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+def test_websocket_receives_a_real_in_app_notification(db, client):
+    import asyncio
+    import threading
+    from services.notifications.websocket_manager import set_main_loop
     
+    user = make_user(db, lat=-25.75, lng=28.24)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
     token = create_access_token({"user_id": user.id})
+    
     
     def test_get_db():
         yield db
         
+    loop_ready = threading.Event()
+    found_loop: list[asyncio.AbstractEventLoop] = []
+    
+    async def grab_loop():
+        found_loop.append(asyncio.get_running_loop())
+        loop_ready.set()
+        
     with patch.object(notifications_route, "get_db", side_effect=test_get_db):
         client.cookies.set("access_token", token)
         with client.websocket_connect("/api/notifications/ws") as websocket:
+            
+            client.portal.call(grab_loop)
+            assert loop_ready.wait(timeout=2)
+            
+            set_main_loop(found_loop[0])
+            
             svc.notify_fire_alert(db, fire, "New fire nearby")
             message = websocket.receive_json()
         

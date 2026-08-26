@@ -12,13 +12,13 @@ export default function ReportTable() {
   const [searchKey, setSearchKey] = useState('');
   const { reports, loading, error } = useFirefighterReports(searchKey);
 
-    return (
-        <FirefighterSideBar>
-            <div className="p-4 flex flex-col h-full w-full gap-y-3">
-                <PageHeader title="Reported Fires" subtitle="View the reported fires" showIcons/>
-                {/* Header + filter + search */}
-                <div className="flex justify-between items-center">
-                        <StatusTableFilter filter={statusFilter} onChange={setStatusFilter}/>
+  return (
+    <FirefighterSideBar>
+      <div className="p-4 flex flex-col h-full w-full gap-y-3">
+        <PageHeader title="Reported Fires" subtitle="View the reported fires" showIcons />
+        {/* Header + filter + search */}
+        <div className="flex justify-between items-center">
+          <StatusTableFilter filter={statusFilter} onChange={setStatusFilter} />
 
           <TableSearchBar value={searchKey} onChange={setSearchKey} />
         </div>
