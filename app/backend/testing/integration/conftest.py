@@ -59,8 +59,8 @@ def create_tables():
     Base.metadata.create_all(
         bind=engine,
         tables=[
-            User.__table__, 
-            RoleRequest.__table__, 
+            User.__table__,
+            RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
@@ -71,8 +71,8 @@ def create_tables():
     Base.metadata.drop_all(
         bind=engine,
         tables=[
-            User.__table__, 
-            RoleRequest.__table__, 
+            User.__table__,
+            RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
@@ -87,11 +87,11 @@ def db():
     transaction = connection.begin()
 
     session = TestingSessionLocal(bind=connection)
-    
+
     session.begin_nested()
-    
+
     from sqlalchemy import event
-    
+
     @event.listens_for(session, "after_transaction_end")
     def restart_savepoint(sess, trans):
         if trans.nested and not trans._parent.nested:
@@ -210,7 +210,7 @@ def make_report(
         boundary_radius=boundary_radius,
         status=status,
         status_index=status_index,
-        submitted_at=submitted_at or datetime.now(timezone.utc)
+        submitted_at=submitted_at or datetime.now(timezone.utc),
     )
     db.add(report)
     db.commit()
@@ -286,9 +286,10 @@ def small_grids():
 
     return _make
 
+
 # for verification integration test cause we cant use env for mapbox token in deplyment
 @pytest.fixture(autouse=True)
 def mock_on_land():
-    """ prevent tests from depending on live mapbox API """
+    """prevent tests from depending on live mapbox API"""
     with patch("services.verification.rejection_checks.on_land", return_value=True):
         yield

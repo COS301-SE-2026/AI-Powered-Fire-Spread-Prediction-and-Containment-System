@@ -5,10 +5,14 @@ from sqlalchemy.orm import Session
 
 from dependencies.auth import ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
 from db import get_db
-from schemas.auth import LoginRequest, LoginResponse, MeResponse, Two_FA_Required_Response
+from schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    MeResponse,
+    Two_FA_Required_Response,
+)
 from services.auth.login import login_user
 from models.users import User
-
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -37,7 +41,11 @@ def login_route(
         path="/",
     )
 
-    return {"access_token": result["access_token"], "role": result["role"],}
+    return {
+        "access_token": result["access_token"],
+        "role": result["role"],
+    }
+
 
 @router.get("/me", response_model=MeResponse)
 def me_route(user: User = Depends(get_current_user)):

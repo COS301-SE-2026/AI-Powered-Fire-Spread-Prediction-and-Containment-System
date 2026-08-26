@@ -14,14 +14,13 @@ from models.users import User
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
 if not SECRET_KEY:
-    raise RuntimeError(
-        "JWT key environment variable not set"
-    )
+    raise RuntimeError("JWT key environment variable not set")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
 
 def hash_password(password: str) -> str:
     """Return bcrypt hash of the password."""
@@ -35,6 +34,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         plain_password.encode("utf-8"), hashed_password.encode("utf-8")
     )
 
+
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     """Create JWT access token."""
     to_encode = data.copy()
@@ -43,6 +43,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     )
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 def decode_token(token: str) -> Optional[str]:
     """
@@ -55,6 +56,7 @@ def decode_token(token: str) -> Optional[str]:
         return payload.get("user_id")
     except JWTError:
         return None
+
 
 def extract_token(request: Request) -> Optional[str]:
     token = request.cookies.get("access_token")
@@ -97,6 +99,7 @@ def require_role(*allowed_roles):
                 detail="You do not have permission to access this resource",
             )
         return user
+
     return role_checker
 
 

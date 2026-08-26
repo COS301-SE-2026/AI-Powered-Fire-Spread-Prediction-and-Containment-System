@@ -2,8 +2,9 @@
 
 import enum
 
+
 class Severity(str, enum.Enum):
     low = "low"
     moderate = "moderate"
-    high = "high" 
+    high = "high"
     extreme = "extreme"

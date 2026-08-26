@@ -33,5 +33,5 @@ def init_db():
     Base.metadata.create_all(bind=engine)
 
     from startup_migrations import run_startup_migrations
-    run_startup_migrations(engine)
 
+    run_startup_migrations(engine)

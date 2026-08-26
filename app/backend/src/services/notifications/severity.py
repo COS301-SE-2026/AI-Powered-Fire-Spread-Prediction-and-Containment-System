@@ -11,9 +11,10 @@ MODERATE_MAX_KM = 2.0
 HIGH_MAX_KM = 5.0
 # Anything higher than HIGH_MAX_KM is 'extreme'
 
+
 def severity_from_boundary_radius(boundary_radius: Decimal | float) -> Severity:
     radius = float(boundary_radius)
-    
+
     if radius <= LOW_MAX_KM:
         return Severity.low
     if radius <= MODERATE_MAX_KM:
