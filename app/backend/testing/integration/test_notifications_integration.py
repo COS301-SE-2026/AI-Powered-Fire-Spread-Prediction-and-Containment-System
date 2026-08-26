@@ -2,16 +2,22 @@ from unittest.mock import patch
 
 import pytest
 
+from dependencies.auth import create_access_token
 from enums.notification_type import NotificationType
 from enums.report_status import ReportStatus
 from enums.user_role import UserRole
+from enums.severity import Severity
 from models.notification import  Notification
+from routes import notifications as notifications_route
 from services.notifications  import notifications as svc
 
 from conftest import make_report, make_user
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def patched_push():
+    """
+    Request this only in tests that assert something about push()
+    """
     with patch.object(svc, "push") as mock_push:
         yield mock_push
         
@@ -27,16 +33,37 @@ def test_notify_fire_alert_persists_a_real_row(db, patched_push):
     assert row.type == NotificationType.alert
     patched_push.assert_called_once()
     
-def test_check_proximity_for_user_does_not_duplicate_on_repeat_call(db):
-    user = make_user(db, lat=-25.75, lng=28.24)
-    make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+def test_distance_is_computed_from_real_geometry(db):
+    user = make_user(db, lat=0.0, lng=0.0)
+    fire = make_report(db, lat=0.1, lng=0.0)
     
-    first_call = svc.check_proximity_for_user(db, user)
-    second_call = svc.check_proximity_for_user(db, user)
+    created = svc.notify_fire_alert(db, fire, "New fire nearby")
     
-    assert len(first_call) == 1
-    assert second_call == []
-    assert db.query(Notification).filter_by(user_id=user.id).count() == 1
+    assert len(created) == 1
+    assert created[0].distance == pytest.approx(11.12, abs=0.1)
+    
+def test_user_outside_every_tier_gets_nothing(db):
+    make_user(db, lat=0.0, lng=0.0)
+    fire = make_report(db, lat=10.0, lng=10.0, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    created = svc.notify_fire_alert(db, fire, "New nearby fire")
+    assert created == []
+    assert db.query(Notification).count() == 0
+    
+def test_user_with_no_location_is_skipped(db):
+    make_user(db)
+    fire = make_report(db, status=ReportStatus.verified)
+    
+    created = svc.notify_fire_alert(db, fire, "New fire nearby")
+    assert created == []
+    
+def test_unverified_report_notifies_nobody(db):
+    make_user(db, lat=-25.75, lng=28.24)
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.pending)
+    
+    created = svc.notify_fire_alert(db, fire, "New fire nearby")
+    assert created == []
+    assert db.query(Notification).count() == 0
     
 def test_admin_gets_wider_radius_than_regular_user(db):
     admin = make_user(db, role=UserRole.admin, lat=0.0, lng=0.28)
@@ -50,6 +77,69 @@ def test_admin_gets_wider_radius_than_regular_user(db):
     assert regular.id not in notified_ids
     assert regular.id not in notified_ids
     
+def test_severity_reflects_real_boundary_radius(db):
+    make_user(db, lat=-25.75, lng=28.24)    
+    fire = make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=6.0)
+    
+    created = svc.notify_fire_alert(db, fire, "New fire nearby")
+    assert created[0].severity == Severity.extreme
+    
+# check_proximity_for_user
+def test_first_time_in_range_persists_an_alery(db):
+    user = make_user(db, lat=-25.75, lng=28.24)
+    make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    created = svc.check_proximity_for_user(db, user)
+    row = db.query(Notification).filter_by(user_id=user.id).first()
+    assert row.type == NotificationType.alert
+    
+def test_check_proximity_for_user_does_not_duplicate_on_repeat_call(db):
+    user = make_user(db, lat=-25.75, lng=28.24)
+    make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    first_call = svc.check_proximity_for_user(db, user)
+    second_call = svc.check_proximity_for_user(db, user)
+    
+    assert len(first_call) == 1
+    assert second_call == []
+    assert db.query(Notification).filter_by(user_id=user.id).count() == 1
+    
+def test_moving_closer_creates_a_real_update_row(db):
+    user = make_user(db, lat=0.0, lng=0.0)
+    fire = make_report(db, lat=0.0, lng=0.15, status=ReportStatus.verified, boundary_radius=0.0)
+    
+    first_call = svc.check_proximity_for_user(db, user)
+    assert len(first_call) == 1
+    assert first_call[0].type == NotificationType.alert
+    
+    # move user closer to same fire
+    user.location_geom = "SRID=4326;POINT(0.148 0.0)" # ~0.2km from fire now
+    db.commit()
+    
+    second_call = svc.check_proximity_for_user(db, user)
+    assert len(second_call) == 1
+    assert second_call[0].type == NotificationType.update
+    
+    all_rows = db.query(Notification).filter_by(user_id=user.id).order_by(Notification.time).all()
+    assert len(all_rows) == 2
+    assert all_rows[0].type == NotificationType.alert
+    assert all_rows[1].type == Notification.update
+    
+def test_only_verified_fires_are_ever_considered(db):
+    user = make_user(db, lat=-25.75, lng=28.24)
+    make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.pending, boundary_radius=0.0)
+    make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.rejected, boundary_radius=0.0)
+    
+    created = svc.check_proximity_for_user(db, user)
+    assert created == []
+    
+def test_user_with_no_location_short_circuits_before_any_query(db):
+    user = make_user(db)
+    created = svc.check_proximity_for_user(db, user)
+    assert created == []
+    
+    
+
 def test_check_proximity_for_guest_persists_nothing(db, patched_push):
     make_report(db, lat=-25.75, lng=28.24, status=ReportStatus.verified, boundary_radius=0.0)
     
