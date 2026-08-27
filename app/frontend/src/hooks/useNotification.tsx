@@ -74,12 +74,15 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     const interval = setInterval(() => {
       setNotifications((prev) => {
         const kept = prev.filter((n) => isWithinRetention(n.time));
-        knownIdsRef.current = new Set(kept.map((n) => n.id));
         return kept;
       });
     }, 60_000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    knownIdsRef.current = new Set(notifications.map((n) => n.id));
+  }, [notifications]);
 
   const fetchNotifications = useCallback(
     async (options: { toastIfNew: boolean }) => {
