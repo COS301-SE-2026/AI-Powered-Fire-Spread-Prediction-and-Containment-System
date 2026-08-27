@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 
 const navItems = [
@@ -84,7 +85,22 @@ export function LandingNavbar() {
             })}
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">daisyUI</a>
+        <Link
+            href='#home'
+            className='flex items-center gap-2.5 px-2 py-1 group rounded-lg hover:opacity-90'
+        >
+            <Image
+                src='/images/logo-small.png'
+                alt="FireAway logo"
+                width={36}
+                height={36}
+                priority
+                className='object-contain transition-transform group-hover:scale-105'
+            />
+            <span className='font-display font-bold text-xl uppecase tracking-wider text-text-primary group-hover:text-primary transition-colors'>
+                FIREAWAY
+            </span>
+        </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 font-display uppercase tracking-wide text-lg">
