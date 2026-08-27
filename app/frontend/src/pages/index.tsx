@@ -11,7 +11,8 @@ export default function LandingPage() {
   const router = useRouter();
 
   return(
-    <div className='relative min-h-screen bg-carbon-bg'>
+    <div className='relative min-h-screen w-full max-w-full bg-carbon-bg'>
+      <LandingNavbar/>
 
       {/* Section for the top op landing page */}
       <section id='home' className="min-h-screen">
