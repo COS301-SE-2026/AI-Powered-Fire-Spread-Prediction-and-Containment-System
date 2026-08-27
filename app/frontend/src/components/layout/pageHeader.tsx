@@ -76,7 +76,6 @@ export function PageHeader({
           onClose={() => setIsNotifOpen(false)}
           notifications={notifications}
           onRead={markAsRead}
-          locationEnabled={locationEnabled}
         />
       )}
     </>

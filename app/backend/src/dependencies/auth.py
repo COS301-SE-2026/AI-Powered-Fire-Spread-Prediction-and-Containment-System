@@ -12,9 +12,7 @@ from db import get_db
 from enums.user_role import UserRole
 from models.users import User
 
-SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
-if not SECRET_KEY:
-    raise RuntimeError("JWT key environment variable not set")
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
@@ -37,6 +35,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     """Create JWT access token."""
+    if not SECRET_KEY:
+        raise RuntimeError("JWT_SECRET_KEY environment variable not set")
+    to_encode = data.copy()
+    
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -51,6 +53,9 @@ def decode_token(token: str) -> Optional[str]:
     Used by notifications WebSocket handshake where there is no cookie and no Request object
     to pull a header from.
     """
+    if not SECRET_KEY:
+        return None
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("user_id")
