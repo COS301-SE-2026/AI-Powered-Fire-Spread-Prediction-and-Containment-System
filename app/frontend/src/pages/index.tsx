@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import EmberField from '../components/ui/EmberEffect';
 import { LandingNavbar } from "@/components/shared/LandingNavbar";
+import { Team } from "@/components/shared/Team";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -81,8 +82,20 @@ export default function LandingPage() {
       </section>
 
       {/* Section on team and who we are */}
-      <section id='team' className="min-h-screen">
-
+      <section id='team' className="min-h-screen p-12">
+        <div className='w-full max-w-6xl mx-auto px-6'>
+          {/* Section header */}
+          <div className='text-center max-w-2xl mx-auto mb-16'>
+            <span className='text-5xl font-display uppercase tracking-widest text-primary mb-2 inline-block'>
+              The Team
+            </span>
+            <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary'>
+              Meet the people behind FireAway
+            </h2>
+          </div>
+          <Team/>
+        </div>
+        
       </section>
 
       {/* General footer not sure what to add here yet*/}
