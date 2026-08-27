@@ -1,6 +1,47 @@
+import Link from "next/link";
+import { useState, useEffect } from "react";
+
+const navItems = [
+    { label: 'Home', href: '#home', id: 'home'},
+    { label: 'About', href: '#about', id: 'about'},
+    { label: 'How it works', href: '#how-it-works', id: 'how-it-works'},
+    { label: 'Features', href: '#features', id: 'features'},
+    { label: 'Meet the Team', href: '#team', id: 'team'}
+]
+
 export function LandingNavbar() {
+    const [activeSection, setActiveSection] = useState('home');
+
+    {/* tracking of which section is visible in navbar */}
+    useEffect(() => {
+        const sectionElements = navItems
+        .map((item) => document.getElementById(item.id))
+        .filter((el): el is HTMLElement => el !== null);
+
+        const observerOptions: IntersectionObserverInit = {
+            root: null,
+            rootMargin: '-20% 0px -60% 0px',
+            threshold: 0,
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if(entry.isIntersecting){
+                    setActiveSection(entry.target.id);
+                }
+            });
+        }, observerOptions)
+
+        sectionElements.forEach((el) => observer.observe(el));
+
+        return () => {
+            sectionElements.forEach((el) => observer.unobserve(el))
+        }
+    }, []);
+
+
   return (
-    <div className="p-8">
+    <div className="fixed top-0 left-0 right-0 z-50 p-4 md:px-8">
     <div className="navbar bg-base-100 shadow-sm bg-carbon-side/80 backdrop-blur-md rounded-xl border border-carbon-stroke">
       <div className="navbar-start">
         <div className="dropdown">
@@ -21,50 +62,56 @@ export function LandingNavbar() {
               />{' '}
             </svg>
           </div>
+
           <ul
             tabIndex={-1}
             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow font-display uppercase tracking-wide text-lg"
           >
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>Home</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>About</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>How it works</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>Features</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>Meet the team</a>
-            </li>
+            {navItems.map((item) => {
+                const isActive = activeSection === item.id;
+                return(
+                    <li key={item.id}>
+                        <Link
+                            href={item.href}
+                            className={`transition-colors ${
+                                isActive ? 'text-text-primary font-bold bg-carbon-stroke/50' : 'text-text-muted hover:text-text-primary'
+                            }`}
+                        >
+                            {item.label}
+                        </Link>
+                    </li>
+                );
+            })}
           </ul>
         </div>
         <a className="btn btn-ghost text-xl">daisyUI</a>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 font-display uppercase tracking-wide text-lg">
-          <li>
-              <a className='text-text-muted hover:text-text-primary'>Home</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>About</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>How it works</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>Features</a>
-            </li>
-            <li>
-              <a className='text-text-muted hover:text-text-primary'>Meet the team</a>
-            </li>
+          {navItems.map((item) => {
+                const isActive = activeSection === item.id;
+                return(
+                    <li key={item.id}>
+                        <Link
+                            href={item.href}
+                            className={`transition-colors ${
+                                isActive ? 'text-text-primary font-bold bg-carbon-stroke/50' : 'text-text-muted hover:text-text-primary'
+                            }`}
+                        >
+                            {item.label}
+                        </Link>
+                    </li>
+                );
+            })}
         </ul>
       </div>
       <div className="navbar-end">
-        <a className='btn btn-primary uppercase text-text-primary font-display text-lg'>Get Started</a>
+        <Link
+            href='/start'
+            className='btn btn-primary uppercase text-text-primary font-display text-lg'
+        >
+            Get Started
+        </Link>
       </div>
     </div>
     </div>
