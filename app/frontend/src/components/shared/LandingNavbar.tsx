@@ -5,7 +5,6 @@ import { useState, useEffect } from "react";
 const navItems = [
     { label: 'Home', href: '#home', id: 'home'},
     { label: 'About', href: '#about', id: 'about'},
-    { label: 'How it works', href: '#how-it-works', id: 'how-it-works'},
     { label: 'Features', href: '#features', id: 'features'},
     { label: 'Meet the Team', href: '#team', id: 'team'}
 ]

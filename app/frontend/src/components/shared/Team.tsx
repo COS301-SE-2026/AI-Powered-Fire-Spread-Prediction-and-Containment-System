@@ -46,7 +46,7 @@ export function Team() {
             {teamMembers.map((member, idx) => (
                 <div key={idx} className="hover-3d cursor-pointer group">
                     {/* content */}
-                    <figure className="w-80 rounded-2xl overflow-hidden bg-carbon-card border border-carbon-stroke group-hover:border-primary/50 shadow-2xl relative">
+                    <figure className="w-88 rounded-2xl overflow-hidden bg-carbon-card border border-carbon-stroke group-hover:border-primary/50 shadow-2xl relative">
                         <img 
                             src={member.image}
                             alt={member.name}
