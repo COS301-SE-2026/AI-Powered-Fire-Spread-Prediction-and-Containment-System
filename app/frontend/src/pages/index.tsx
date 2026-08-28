@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import EmberField from '../components/ui/EmberEffect';
 import { LandingNavbar } from "@/components/shared/LandingNavbar";
 import { Team } from "@/components/shared/Team";
+import { Features } from "@/components/shared/Feautures";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -67,26 +68,21 @@ export default function LandingPage() {
       </section>
 
       {/* Section for about of our project */}
-      <section id='about' className="min-h-screen">
-
-      </section>
-
-      {/* Takes you to the help menu or a rough idea of how it works */}
-      <section id='how-it-works' className="min-h-screen">
+      <section id='about' className="min-h-screen relative z-10 py-18 px-6 flex items-center">
 
       </section>
 
       {/* Section on the features of our app*/}
-      <section id='features' className="min-h-screen">
-
+      <section id='features' className="min-h-screen relative z-10 py-18 px-6 flex items-center">
+        <Features/>
       </section>
 
       {/* Section on team and who we are */}
-      <section id='team' className="min-h-screen p-12">
-        <div className='w-full max-w-6xl mx-auto px-6'>
+      <section id='team' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
+        <div className='w-full max-w-7xl mx-auto px-6'>
           {/* Section header */}
           <div className='text-center max-w-2xl mx-auto mb-16'>
-            <span className='text-5xl font-display uppercase tracking-widest text-primary mb-2 inline-block'>
+            <span className='text-base font-mono uppercase tracking-widest text-torch mb-2 inline-block'>
               The Team
             </span>
             <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary'>
