@@ -1,6 +1,6 @@
-import Link from "next/link";
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import Link from 'next/link';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 const navItems = [
     { label: 'Home', href: '#home', id: 'home'},
@@ -41,31 +41,31 @@ export function LandingNavbar() {
 
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 p-4 md:px-8">
-    <div className="navbar bg-base-100 shadow-sm bg-carbon-side/80 backdrop-blur-md rounded-xl border border-carbon-stroke">
-      <div className="navbar-start">
-        <div className="dropdown">
-          <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
+    <div className='fixed top-0 left-0 right-0 z-50 p-4 md:px-8'>
+    <div className='navbar bg-base-100 shadow-sm bg-carbon-side/80 backdrop-blur-md rounded-xl border border-carbon-stroke'>
+      <div className='navbar-start'>
+        <div className='dropdown'>
+          <div tabIndex={0} role='button' className='btn btn-ghost lg:hidden'>
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+              xmlns='http://www.w3.org/2000/svg'
+              className='h-5 w-5'
+              fill='none'
+              viewBox='0 0 24 24'
+              stroke='currentColor'
             >
               {' '}
               <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                strokeWidth='2'
+                d='M4 6h16M4 12h8m-8 6h16'
               />{' '}
             </svg>
           </div>
 
           <ul
             tabIndex={-1}
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow font-display uppercase tracking-wide text-lg"
+            className='menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow font-display uppercase tracking-wide text-lg'
           >
             {navItems.map((item) => {
                 const isActive = activeSection === item.id;
@@ -90,7 +90,7 @@ export function LandingNavbar() {
         >
             <Image
                 src='/images/logo-small.png'
-                alt="FireAway logo"
+                alt='FireAway logo'
                 width={36}
                 height={36}
                 priority
@@ -101,8 +101,8 @@ export function LandingNavbar() {
             </span>
         </Link>
       </div>
-      <div className="navbar-center hidden lg:flex">
-        <ul className="menu menu-horizontal px-1 font-display uppercase tracking-wide text-lg">
+      <div className='navbar-center hidden lg:flex'>
+        <ul className='menu menu-horizontal px-1 font-display uppercase tracking-wide text-lg'>
           {navItems.map((item) => {
                 const isActive = activeSection === item.id;
                 return(
@@ -120,7 +120,7 @@ export function LandingNavbar() {
             })}
         </ul>
       </div>
-      <div className="navbar-end">
+      <div className='navbar-end'>
         <Link
             href='/start'
             className='btn btn-primary uppercase text-text-primary font-display text-lg'

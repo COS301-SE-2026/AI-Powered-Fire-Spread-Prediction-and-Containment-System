@@ -1,14 +1,14 @@
 'use client';
 
-import React from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/router";
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/router';
 import EmberField from '../components/ui/EmberEffect';
-import { LandingNavbar } from "@/components/shared/LandingNavbar";
-import { Team } from "@/components/shared/Team";
-import { Features } from "@/components/shared/Feautures";
-import { About } from "@/components/shared/About";
+import { LandingNavbar } from '@/components/shared/LandingNavbar';
+import { Team } from '@/components/shared/Team';
+import { Features } from '@/components/shared/Feautures';
+import { About } from '@/components/shared/About';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -26,14 +26,14 @@ export default function LandingPage() {
       <LandingNavbar/>
 
       {/* Section for the top op landing page */}
-      <section id='home' className="relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-6 pt-32 pb-16 max-w-5xl mx-auto">
+      <section id='home' className='relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-6 pt-32 pb-16 max-w-5xl mx-auto'>
         
         <div className='relative mb-8 group'>
           <div className='absolute -inset-6 bg-gradient-to-tr from-primary/30 via-secondary/20 to-accent/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none '/>
 
           <Image
             src='/images/logo-large.png'
-            alt="FireAway Large Logo"
+            alt='FireAway Large Logo'
             width={400}
             height={400}
             priority
@@ -69,12 +69,12 @@ export default function LandingPage() {
       </section>
 
       {/* Section for about of our project */}
-      <section id='about' className="min-h-screen relative z-10 py-18 px-6 flex items-center">
+      <section id='about' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
         <About/>
       </section>
 
       {/* Section on the features of our app*/}
-      <section id='features' className="min-h-screen relative z-10 py-18 px-6 flex items-center">
+      <section id='features' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
         <Features/>
       </section>
 
@@ -96,7 +96,7 @@ export default function LandingPage() {
       </section>
 
       {/* General footer not sure what to add here yet*/}
-      <footer className="footer sm:footer-horizontal footer-center bg-base-300 text-base-content p-4">
+      <footer className='footer sm:footer-horizontal footer-center bg-base-300 text-base-content p-4'>
         <aside>
           <p>Copyright © {new Date().getFullYear()} - Group Elephant Limited</p>
         </aside>
