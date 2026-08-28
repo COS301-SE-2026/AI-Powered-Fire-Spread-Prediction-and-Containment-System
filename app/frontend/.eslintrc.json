@@ -1,4 +1,5 @@
 {
+  "ignorePatterns": ["src/service-worker/"],
   "plugins": ["filenames"],
   "extends": ["airbnb", "next/core-web-vitals", "prettier"],
   "rules": {
