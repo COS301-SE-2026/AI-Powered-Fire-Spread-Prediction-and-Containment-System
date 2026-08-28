@@ -1,11 +1,16 @@
 const withSerwistInit = require("@serwist/next").default;
 
 const withSerwist = withSerwistInit({
-  cacheOnFrontEndNav: true,
   swSrc: "src/service-worker/index.ts",
   swDest: "public/sw.js",
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === "development",
+  additionalPrecacheEntries: [
+    { url: "/admin/live-map", revision: "1" },
+    { url: "/users/live-map", revision: "1" },
+    { url: "/guests/live-map", revision: "1" },
+    { url: "/firefighter/dashboard", revision: "1" },
+  ],
 });
 
 /** @type {import('next').NextConfig} */
@@ -18,9 +23,9 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '9000',
+        protocol: process.env.MINIO_PROTOCOL ||'http',
+        hostname: process.env.MINIO_PUBLIC_HOSTNAME || 'localhost',
+        port: process.env.MINIO_PUBLIC_PORT || '9000',
         pathname: '/fire-reports/**',
       },
     ],

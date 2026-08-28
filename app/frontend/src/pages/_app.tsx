@@ -7,6 +7,7 @@ import { NotificationToast } from '../components/notification/NotificationToast'
 import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
 import { OfflineBar } from '../components/shared/OfflineBar';
+import Head from 'next/head';
 
 function GlobalToast() {
   const { activeToast, dismissToast } = useNotifications();
@@ -22,11 +23,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
    // Only register in prod
 
-    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service_worker.js').catch(() => {
-        // service worker registration fallback
-      });
-    }
+    // if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    //   navigator.serviceWorker.register('/service_worker.js').catch(() => {
+    //     // service worker registration fallback
+    //   });
+    // }
 
     offlineStore.init();
 
@@ -44,9 +45,14 @@ function MyApp({ Component, pageProps }: AppProps) {
       window.removeEventListener('online', handleReconnection);
     };
   }, []);
-  
+
   return (
     <NotificationsProvider>
+      <Head>
+        <link rel='manifest' href='/manifest.json' />
+        <meta name='theme-color' content='#ff4904' />
+        <meta name='apple-mobile-web-app-title' content='Fireaway' />
+      </Head>
       <Component {...pageProps} />
       <GlobalToast />
       <OfflineBar />

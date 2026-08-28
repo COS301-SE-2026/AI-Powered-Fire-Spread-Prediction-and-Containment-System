@@ -54,3 +54,4 @@ app/datasets/raw_data/*
 app/datasets/processed/
 
 --out
+public/sw.js
