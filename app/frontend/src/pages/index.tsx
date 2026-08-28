@@ -8,6 +8,7 @@ import EmberField from '../components/ui/EmberEffect';
 import { LandingNavbar } from "@/components/shared/LandingNavbar";
 import { Team } from "@/components/shared/Team";
 import { Features } from "@/components/shared/Feautures";
+import { About } from "@/components/shared/About";
 
 export default function LandingPage() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function LandingPage() {
 
       {/* Section for about of our project */}
       <section id='about' className="min-h-screen relative z-10 py-18 px-6 flex items-center">
-
+        <About/>
       </section>
 
       {/* Section on the features of our app*/}
@@ -85,7 +86,7 @@ export default function LandingPage() {
             <span className='text-base font-mono uppercase tracking-widest text-torch mb-2 inline-block'>
               The Team
             </span>
-            <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary'>
+            <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary font-display'>
               Meet the people behind FireAway
             </h2>
           </div>

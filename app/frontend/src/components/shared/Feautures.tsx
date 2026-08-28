@@ -104,7 +104,7 @@ export function Features() {
                 <span className='text-base font-mono uppercase tracking-widest text-torch mb-2 inline-block'>
                     Tactical Capabilities
                 </span>
-                <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary'>
+                <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary font-display'>
                     Engineerd for Extreme Conditions
                 </h2>
                 <p className='text-text-muted text-base sm:text-lg'>
