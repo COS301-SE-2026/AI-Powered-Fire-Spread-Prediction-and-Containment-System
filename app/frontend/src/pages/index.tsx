@@ -4,11 +4,11 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import EmberField from '../components/ui/EmberEffect';
 import { LandingNavbar } from '@/components/shared/LandingNavbar';
 import { Team } from '@/components/shared/Team';
 import { Features } from '@/components/shared/Feautures';
 import { About } from '@/components/shared/About';
+import EmberField from '../components/ui/EmberEffect';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -73,7 +73,7 @@ export default function LandingPage() {
         <About/>
       </section>
 
-      {/* Section on the features of our app*/}
+      {/* Section on the features of our app */}
       <section id='features' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
         <Features/>
       </section>
@@ -95,7 +95,7 @@ export default function LandingPage() {
         
       </section>
 
-      {/* General footer not sure what to add here yet*/}
+      {/* General footer not sure what to add here yet */}
       <footer className='footer sm:footer-horizontal footer-center bg-base-300 text-base-content p-4'>
         <aside>
           <p>Copyright © {new Date().getFullYear()} - Group Elephant Limited</p>
