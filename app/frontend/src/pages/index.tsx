@@ -60,7 +60,7 @@ export default function LandingPage() {
             GET STARTED
           </Link>
           <Link
-            href='#about'
+            href='/help_menu/help_menu'
             className='w-full sm:w-auto btn btn-ghost bg-carbon-side/70 border border-carbon-stroke hover:bg-carbon-stroke text-text-primary px-8 text-base font-display uppercase tracking-wide backdrop-blur-sm'
           >
             Learn More
