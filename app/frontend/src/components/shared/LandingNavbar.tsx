@@ -12,7 +12,6 @@ const navItems = [
 export function LandingNavbar() {
     const [activeSection, setActiveSection] = useState('home');
 
-    {/* tracking of which section is visible in navbar */}
     useEffect(() => {
         const sectionElements = navItems
         .map((item) => document.getElementById(item.id))
