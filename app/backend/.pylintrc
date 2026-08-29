@@ -1,5 +1,10 @@
 [MASTER]
 ignore=testing_config
+ignore-paths=
+    .venv/.*,
+    __pycache__/.*,
+    .pytest_cache/.*,
+    artifact_store/.*
 
 [MESSAGES CONTROL]
 disable=
@@ -9,7 +14,10 @@ disable=
     W0511
 
 [FORMAT]
-max-line-length=100
+max-line-length=120
 
 [DESIGN]
 max-args=10
+
+[REPORTS]
+fail-under=8.0
