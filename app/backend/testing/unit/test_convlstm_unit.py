@@ -1,6 +1,7 @@
 import pytest
 import torch
 from app.ml.training.losses import SmoothL1DeltaLoss
+from app.ml.traing.metrics import MetricTracker
 #First I test the loss function, then the metrics
 def test_smooth_l1_delta_loss_initialization():
     """ Tests default and custom beta initialization"""
@@ -55,3 +56,86 @@ def test_smooth_l1_delta_loss_multidimensional():
     # By default, PyTorch's SmoothL1Loss reduces the output to a single scalar mean
     assert loss.dim() == 0
     assert loss.item() >= 0
+
+def test_metric_tracker_initialization():
+    """Test that the tracker initializes with correct shapes and zeroes"""
+    variables =["temp", "humid" ]
+    num_steps = 3
+    tracker =MetricTracker(variables =variables, num_steps = num_steps)
+    assert tracker.variables ==variables
+    assert tracker.num_steps ==num_steps
+    assert tracker._sq_err_model.shape == (2, 3)
+    assert tracker._sq_err_persistence.shape == (2, 3)
+    assert tracker._count.shape == (2, 3)
+    assert np.all(tracker._count == 0)
+def test_metric_tracker_update_accumulation():
+    """Test that errors and counts accumulate correctly across multiple batches."""
+    tracker = MetricTracker(variables=["wind_u"], num_steps=1)
+
+    pred = np.full((2, 1, 1, 2, 2), 2.0)
+    target = np.full((2, 1, 1, 2, 2), 1.0)
+    persistence = np.full((2, 1, 1, 2, 2), 0.0)
+    # Model error = (2-1)^2 = 1.0 per pixel.
+    # Persistence error = (0-1)^2 = 1.0 per pixel.
+    # Total pixels evaluated = 2 (batch) * 2 * 2 (spatial) = 8.
+    tracker.update(pred, target, persistence)
+
+    assert tracker._count[0, 0] == 8
+    assert tracker._sq_err_model[0, 0] == 8.0
+    assert tracker._sq_err_persistence[0, 0] == 8.0
+
+    # Run a second identical batch to verify continuous accumulation
+    tracker.update(pred, target, persistence)
+    assert tracker._count[0, 0] == 16
+    assert tracker._sq_err_model[0, 0] == 16.0
+def test_metric_tracker_compute_perfect_model():
+    """Test compute when the model perfectly predicts the target."""
+    tracker = MetricTracker(variables=["wind_u"], num_steps=1)
+
+    pred = np.full((1, 1, 1, 1, 1), 5.0)
+    target = np.full((1, 1, 1, 1, 1), 5.0)
+    persistence = np.full((1, 1, 1, 1, 1), 0.0)
+
+    tracker.update(pred, target, persistence)
+    results = tracker.compute()
+
+    assert "wind_u" in results
+    assert 1 in results["wind_u"]
+
+    metrics = results["wind_u"][1]
+    assert metrics["model_rmse"] == 0.0
+    assert metrics["persistence_rmse"] == 5.0
+    assert metrics["skill"] == 1.0  # Formula: 1.0 - (0.0 / 5.0)
+
+
+def test_metric_tracker_compute_negative_skill():
+    """Test compute when the model performs worse than the persistence baseline."""
+    tracker = MetricTracker(variables=["wind_u"], num_steps=1)
+
+    pred = np.full((1, 1, 1, 1, 1), 10.0)
+    target = np.full((1, 1, 1, 1, 1), 5.0)
+    persistence = np.full((1, 1, 1, 1, 1), 4.0)
+
+    tracker.update(pred, target, persistence)
+    metrics = tracker.compute()["wind_u"][1]
+
+    # Model RMSE = 5.0, Persistence RMSE = 1.0
+    # Skill = 1.0 - (5.0 / 1.0) = -4.0
+    assert metrics["model_rmse"] == 5.0
+    assert metrics["persistence_rmse"] == 1.0
+    assert metrics["skill"] == -4.0
+
+
+def test_metric_tracker_zero_persistence():
+    """Test compute gracefully handles zero persistence error by returning NaN skill."""
+    tracker = MetricTracker(variables=["wind_u"], num_steps=1)
+
+    pred = np.full((1, 1, 1, 1, 1), 5.0)
+    target = np.full((1, 1, 1, 1, 1), 5.0)
+    persistence = np.full((1, 1, 1, 1, 1), 5.0)
+
+    tracker.update(pred, target, persistence)
+    metrics = tracker.compute()["wind_u"][1]
+
+    assert metrics["persistence_rmse"] == 0.0
+    assert math.isnan(metrics["skill"])
