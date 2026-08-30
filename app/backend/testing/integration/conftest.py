@@ -1,6 +1,7 @@
 import os
 import sys
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,8 @@ from sqlalchemy.orm import sessionmaker
 
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
+
+from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -34,7 +37,7 @@ from models.role_request import RoleRequest
 from models.users import User
 
 # seed data
-from app.backend.seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
+from app.backend.seed import REGIONAL_LOCATIONS as SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -162,6 +165,10 @@ def make_report(
     status=ReportStatus.pending,
     status_index=1,
     reference_number=None,
+    submitted_at=None,
+    image_url="https://example.com/fire.jpg",
+    photo_hash=None,
+    description=None,
 ):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
@@ -170,11 +177,14 @@ def make_report(
         user_id=user.id if user else None,
         reporter_ip="127.0.0.1",
         location_text="Test location",
-        image_url="https://example.com/fire.jpg",
+        description=description,
+        image_url=image_url,
+        photo_hash=photo_hash,
         location_geom=point_wkt,
         boundary_radius=0.2,
         status=status,
         status_index=status_index,
+        submitted_at=submitted_at or datetime.now(timezone.utc)
     )
     db.add(report)
     db.commit()
@@ -249,3 +259,10 @@ def small_grids():
         return weather, static, burn
 
     return _make
+
+# for verification integration test cause we cant use env for mapbox token in deplyment
+@pytest.fixture(autouse=True)
+def mock_on_land():
+    """ prevent tests from depending on live mapbox API """
+    with patch("services.verification.rejection_checks.on_land", return_value=True):
+        yield

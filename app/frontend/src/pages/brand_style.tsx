@@ -28,6 +28,7 @@ import { SearchBarComponents } from '../components/brandStyle/componentSearchBar
 import LayoutSpacing from '../components/brandStyle/LayoutSpacing';
 import { DesignTokenTable } from '../components/brandStyle/StyleTokens';
 import VoiceAndToneSection from '../components/brandStyle/VoiceAndToneSection';
+import { ChangeLog } from '../components/brandStyle/ChangeLog';
 
 // brand colours
 const primary: ColourToken = {
@@ -559,6 +560,12 @@ export default function StyleGuidePage() {
             <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Layout & Spacing</h2>
 
             <LayoutSpacing />
+          </section>
+
+          <section id="changelog" className="mb-10 scroll-mt-8">
+            <h2 className="mb-8 pb-4 border-b border-carbon-stroke">Change Log</h2>
+
+            <ChangeLog />
           </section>
         </div>
       </main>

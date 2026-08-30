@@ -68,7 +68,8 @@ export default function HelpPage() {
       <div className="flex flex-col p-6">
         <PageHeader
           title="Help Menu"
-          subtitle="Find answers, tutorials and support resources for the Fire Away system"
+          subtitle='Find answers, tutorials and support resources for the Fire Away system'
+          showIcons
         />
       </div>
       <div className="flex flex-col p-6 gap-3  ">
