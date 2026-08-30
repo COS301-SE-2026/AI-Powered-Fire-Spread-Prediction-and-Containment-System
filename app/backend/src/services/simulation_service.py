@@ -3,6 +3,7 @@ import logging
 import math
 
 import numpy as np
+import torch
 from fastapi import HTTPException
 
 from app.backend.src.ai.dca import run_dca
@@ -20,23 +21,36 @@ MIN_GRID_DIMENSION = 10
 MAX_GRID_DIMENSION = 800
 
 DEFAULT_DCA_PARAMS = {
-    "a": 0.015,
-    "p_h": 0.06,
-    "c_1": 0.04,
-    "c_2": 0.03,
-    "p_continue": 0.6,
+    "a": torch.tensor(0.015),
+    "p_h": torch.tensor(0.06),
+    "c_1": torch.tensor(0.04),
+    "c_2": torch.tensor(0.03),
+    "p_continue": torch.tensor(0.6),
 }
+
 
 def grid_dimensions_for_extent(
     lat_extent_deg: float, lon_extent_deg: float, lat: float, target_cell_size_m: float = TARGET_CELL_SIZE_M
 ) -> tuple[int, int]:
-    """Calculates grid dimensions based on irl targer cell size"""
+    """Calculates grid dimensions based on real-world target cell size.
+
+    Args:
+        lat_extent_deg (float): Latitude extent in degrees.
+        lon_extent_deg (float): Longitude extent in degrees.
+        lat (float): Central latitude for projection scaling.
+        target_cell_size_m (float): Target size of one cell in meters.
+
+    Returns:
+        tuple[int, int]: The calculated height and width (H, W) for the grid.
+    """
     lat_extent_m = lat_extent_deg * METRES_PER_DEG_LAT
     lon_extent_m = lon_extent_deg * METRES_PER_DEG_LAT * math.cos(math.radians(lat))
+
     grid_h = int(np.clip(round(lat_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
     grid_w = int(np.clip(round(lon_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
 
     return grid_h, grid_w
+
 
 def burned_area_radius_m(
     burned_cells: int, grid_h: int, grid_w: int, lat_extent_deg: float, lon_extent_deg: float
@@ -47,7 +61,8 @@ def burned_area_radius_m(
     cell_h_m = (lat_extent_deg / grid_h) * METRES_PER_DEG_LAT
     cell_w_m = (lon_extent_deg / grid_w) * METRES_PER_DEG_LAT
     return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
-    
+
+
 class SimulationService:
     """Service handling the orchestration of fire spread simulations."""
 
@@ -55,12 +70,25 @@ class SimulationService:
         try:
             self.weather_bridge = WeatherForecastBridge.load("LATEST")
         except FileNotFoundError as exc:
-            logger.error("SimulationService failed to initialize weather bridge: %s", exc)
-            raise RuntimeError("Simulation dependencies missing") from exc
+            logger.warning("Weather model checkpoint not found; relying on real-time weather fallback: %s", exc)
+            self.weather_bridge = None
 
     async def execute_single_fire_simulation(
         self, fire: any, automatic_steps: int, semaphore: asyncio.Semaphore
     ) -> dict:
+        """Executes the DCA pipeline for a single fire entity.
+
+        Args:
+            fire (any): The database model instance representing the fire.
+            automatic_steps (int): The number of simulation ticks to run.
+            semaphore (asyncio.Semaphore): Concurrency limiter.
+
+        Returns:
+            dict: The prediction data payload containing history and metadata.
+
+        Raises:
+            HTTPException: If the simulation process fails internally.
+        """
         async with semaphore:
             boundary_m = float(fire.boundary_radius) * 1000.0
 
@@ -79,7 +107,7 @@ class SimulationService:
 
             resolved = await asyncio.to_thread(resolve_tile_paths, min_lon, min_lat, max_lon, max_lat)
 
-            static_grids, initial_weather = await load_real_inference_data(
+            static_grids, weather_data = await load_real_inference_data(
                 b04_path=resolved.b04_path,
                 b08_path=resolved.b08_path,
                 b11_path=resolved.b11_path,
@@ -92,46 +120,49 @@ class SimulationService:
                 target_shape=(grid_h, grid_w),
             )
 
-            input_hours = 6
-            history_tensor = np.stack(
-                [
-                    np.stack(
-                        [
-                            initial_weather["wind_u"],
-                            initial_weather["wind_v"],
-                            initial_weather["temperature"],
-                            initial_weather["dryness"],
-                        ],
-                        axis=0,
-                    )
-                ]
-                * input_hours,
-                axis=0,
-            )
-
-            hours_needed = max(1, int(np.ceil(automatic_steps / 4)))
-            smoothed_weather_sequence = self.weather_bridge.forecast_for_simulation(
-                history_tensor=history_tensor, rollout_steps=hours_needed, substeps_per_hour=4
-            )
-
-            weather_grids_list = []
-            for i in range(0, len(smoothed_weather_sequence), 4):
-                frame = smoothed_weather_sequence[i]
-                weather_grids_list.append(
-                    {
-                        "wind_u": frame[0],
-                        "wind_v": frame[1],
-                        "temperature": frame[2],
-                        "relative_humidity": frame[3],
-                    }
+            if self.weather_bridge is not None:
+                input_hours = 6
+                history_tensor = np.stack(
+                    [
+                        np.stack(
+                            [
+                                weather_data["wind_u"],
+                                weather_data["wind_v"],
+                                weather_data["temperature"],
+                                weather_data["dryness"],
+                            ],
+                            axis=0,
+                        )
+                    ]
+                    * input_hours,
+                    axis=0,
                 )
+
+                hours_needed = max(1, int(np.ceil(automatic_steps / 4)))
+                smoothed_weather = self.weather_bridge.forecast_for_simulation(
+                    history_tensor=history_tensor, rollout_steps=hours_needed, substeps_per_hour=4
+                )
+
+                weather_grids = []
+                for i in range(0, len(smoothed_weather), 4):
+                    frame = smoothed_weather[i]
+                    weather_grids.append(
+                        {
+                            "wind_u": frame[0],
+                            "wind_v": frame[1],
+                            "temperature": frame[2],
+                            "relative_humidity": frame[3],
+                        }
+                    )
+            else:
+                weather_grids = weather_data
 
             ignition_mask = build_boundary_ignition_mask(grid_h, grid_w, cell_size_m, boundary_m)
 
             try:
                 history = await asyncio.to_thread(
                     run_dca,
-                    weather_grids=weather_grids_list,
+                    weather_grids=weather_grids,
                     static_grids=static_grids,
                     n_steps=automatic_steps,
                     ignition_mask=ignition_mask,
