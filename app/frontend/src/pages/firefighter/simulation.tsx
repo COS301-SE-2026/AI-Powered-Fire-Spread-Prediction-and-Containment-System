@@ -58,14 +58,17 @@ export default function ReportTable() {
     pause();
   }
 
-    const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-    const totalHours = hasResult ? (maxSlider / 2) : 48;
-    return (
-        <FirefighterSideBar>
-            <div className='p-4 flex flex-col h-full w-full gap-y-3'>
-
-                {/* Page header and subtitle */}
-                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
+  const maxSlider = Math.max(totalTicks - 1, 1); // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
+  const totalHours = hasResult ? maxSlider / 2 : 48;
+  return (
+    <FirefighterSideBar>
+      <div className="p-4 flex flex-col h-full w-full gap-y-3">
+        {/* Page header and subtitle */}
+        <PageHeader
+          title="Fire Simulation"
+          subtitle="Simulate fire spread and prevention methods"
+          showIcons
+        />
 
         <div className="flex flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
@@ -230,22 +233,26 @@ export default function ReportTable() {
                     </div>
                   </div>
 
-                                    {/* Select a fire to run simulation on */}
-                                    <div className='border-t border-carbon-stroke/40 pt-3'>
-                                        <p className='text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2'>
-                                            Target Fire
-                                        </p>
-                                        <select
-                                            className='select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral-content w-full'
-                                            value={selectedFireId ?? ''}
-                                            onChange={(e) => setSelectedFireId(e.target.value || null)}
-                                        >
-                                            <option value=''>All verified fires</option>
-                                            {fires.filter(f => f.status === 'verified').map(f => (
-                                                <option key={f.ref} value={f.ref} className='bg-carbon-bg text-neutral'>{f.location ?? f.ref}</option>
-                                            ))}
-                                        </select>
-                                    </div>
+                  {/* Select a fire to run simulation on */}
+                  <div className="border-t border-carbon-stroke/40 pt-3">
+                    <p className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
+                      Target Fire
+                    </p>
+                    <select
+                      className="select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral-content w-full"
+                      value={selectedFireId ?? ''}
+                      onChange={(e) => setSelectedFireId(e.target.value || null)}
+                    >
+                      <option value="">All verified fires</option>
+                      {fires
+                        .filter((f) => f.status === 'verified')
+                        .map((f) => (
+                          <option key={f.ref} value={f.ref} className="bg-carbon-bg text-neutral">
+                            {f.location ?? f.ref}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
 
                   {/* Weather inputs */}
                   <div className="border-t border-carbon-stroke/40 pt-3">

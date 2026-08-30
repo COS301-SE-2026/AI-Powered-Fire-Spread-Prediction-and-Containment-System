@@ -1,11 +1,14 @@
-""" Combine rejection checks, corroboration, spam detection, reporter trust score  for auto-verification   """
+"""Combine rejection checks, corroboration, spam detection, reporter trust score  for auto-verification"""
 
 from sqlalchemy.orm import Session
 
 from models.reported_fires import FireReports
 from services.verification.rejection_checks import rejection_check
 from services.verification.report_corroboration import corroborating_reports
-from services.verification.report_spam_detection import abnormal_rate, duplicate_photo_hash
+from services.verification.report_spam_detection import (
+    abnormal_rate,
+    duplicate_photo_hash,
+)
 from services.verification.reporter_trust import reporter_trust_score
 
 # Tresholds
@@ -17,11 +20,12 @@ AUTO_REJECT = "auto_reject"
 AUTO_VERIFY = "auto_verify"
 MANUAL_REVIEW = "manual_review"
 
+
 def auto_verify_report(report: FireReports, session: Session) -> tuple[str, str, dict]:
-    """ Runs verification signals on reports and return (decision, reason, signals)
-        - decision: AUTO_REJECT, AUTO_VERIFY, MANUAL_REVIEW
-        - reason: machine readable explanation
-        - signals: dict of raw signal values  """
+    """Runs verification signals on reports and return (decision, reason, signals)
+    - decision: AUTO_REJECT, AUTO_VERIFY, MANUAL_REVIEW
+    - reason: machine readable explanation
+    - signals: dict of raw signal values"""
 
     not_rejected, rejection_reason = rejection_check(report, session)
     spam_by_rate = abnormal_rate(report, session)

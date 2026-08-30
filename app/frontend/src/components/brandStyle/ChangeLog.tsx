@@ -1,16 +1,17 @@
 type ChangelogProps = Readonly<{
-    date: string;
-    version: string;
-    change: string;
-    rationale: string;
+  date: string;
+  version: string;
+  change: string;
+  rationale: string;
 }>;
 
 const entries: ChangelogProps[] = [
- {
+  {
     date: 'July',
     version: '1.0',
     change: 'Initial version',
-    rationale: 'Decided on the brand identity for Demo 1: wireframe-stage colour palette, typography choices, and logo rules.',
+    rationale:
+      'Decided on the brand identity for Demo 1: wireframe-stage colour palette, typography choices, and logo rules.',
   },
   {
     date: 'August',
@@ -29,7 +30,8 @@ const entries: ChangelogProps[] = [
   {
     date: 'August',
     version: '1.1',
-    change: 'Expanded Components section to cover real UI states (buttons, inputs, checkboxes, range, alerts, toasts, tables, status badges/cards)',
+    change:
+      'Expanded Components section to cover real UI states (buttons, inputs, checkboxes, range, alerts, toasts, tables, status badges/cards)',
     rationale:
       'Demo 1 only covered a handful of components in isolation. These are the components actually shipped in the working app, shown with their real variants and states.',
   },
@@ -50,37 +52,35 @@ const entries: ChangelogProps[] = [
 ];
 
 function Rows() {
-    const rows = [];
-    for (let i = 0; i < entries.length; i++) {
-        const entry = entries[i];
-        rows.push (
-            <tr key={`${entry.version}-${i}`} className="border-b border-carbon-stroke/50 align-top">
-                <td className="py-2 pr-4 whitespace-nowrap">{entry.date}</td>
-                <td className="py-2 pr-4 whitespace-nowrap">{entry.version}</td>
-                <td className="py-2 pr-4 ">{entry.change}</td>
-                <td className="py-2 text-text-muted">{entry.rationale}</td>
-            </tr>
-        );
-    }
-    return rows;
+  const rows = [];
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    rows.push(
+      <tr key={`${entry.version}-${i}`} className="border-b border-carbon-stroke/50 align-top">
+        <td className="py-2 pr-4 whitespace-nowrap">{entry.date}</td>
+        <td className="py-2 pr-4 whitespace-nowrap">{entry.version}</td>
+        <td className="py-2 pr-4 ">{entry.change}</td>
+        <td className="py-2 text-text-muted">{entry.rationale}</td>
+      </tr>
+    );
+  }
+  return rows;
 }
 
 export function ChangeLog() {
-    return (
-        <div className="flex flex-col gap-4">
-            <table className="w-full test-left border-collapse">
-                <thead>
-                    <tr className="border-b border-carbon-stroke">
-                        <th className="py-2 pr-4 font-bold">Date</th>
-                        <th className="py-2 pr-4 font-bold">Version</th>
-                        <th className="py-2 pr-4 font-bold">Change</th>
-                        <th className="py-2 font-bold">Rationale</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {Rows()}
-                </tbody>
-            </table>
-        </div>
-    );
+  return (
+    <div className="flex flex-col gap-4">
+      <table className="w-full test-left border-collapse">
+        <thead>
+          <tr className="border-b border-carbon-stroke">
+            <th className="py-2 pr-4 font-bold">Date</th>
+            <th className="py-2 pr-4 font-bold">Version</th>
+            <th className="py-2 pr-4 font-bold">Change</th>
+            <th className="py-2 font-bold">Rationale</th>
+          </tr>
+        </thead>
+        <tbody>{Rows()}</tbody>
+      </table>
+    </div>
+  );
 }

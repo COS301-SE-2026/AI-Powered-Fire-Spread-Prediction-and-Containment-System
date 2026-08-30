@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +8,7 @@ from fastapi.responses import JSONResponse
 from src.ai.simulation_api import router as simulation_router
 from db import init_db
 from src.routes import image_uploads
+from src.routes import router as notifications_and_location_router
 
 from src.routes.admin import router as admin_router
 from src.routes.firefighter import router as firefighter_router
@@ -14,8 +16,13 @@ from src.routes.users import router as user_router
 from src.routes.guests import router as guest_router
 from src.routes.auth import router as auth_router
 
+from db import engine
+from startup_migrations import run_startup_migrations
+
 from seed import seed
 from src.services.storage import ensure_bucket
+
+from src.services.notifications.websocket_manager import set_main_loop
 
 if os.environ.get("SKIP_DB_INIT") != "1":
     init_db()
@@ -31,6 +38,11 @@ app = FastAPI(
 )
 
 # app = FastAPI(root_path="/api")
+
+
+@app.on_event("startup")
+def on_startup():
+    run_startup_migrations(engine)
 
 
 @app.exception_handler(ValueError)
@@ -53,6 +65,7 @@ app.include_router(user_router)
 app.include_router(guest_router)
 app.include_router(image_uploads.router)
 app.include_router(simulation_router)
+app.include_router(notifications_and_location_router)
 
 
 @app.get("/")
@@ -76,3 +89,8 @@ def health_check():
 @app.on_event("startup")
 def startup():
     ensure_bucket()
+
+
+@app.on_event("startup")
+async def capture_main_loop():
+    set_main_loop(asyncio.get_running_loop())

@@ -19,11 +19,10 @@ export default function ReportedFiresPage() {
       report.reporter_name.toLowerCase().includes(search.toLowerCase())
   );
 
-    return(
-        <AdminSideBar>
-            <div className="p-6 flex flex-col h-full w-full">
-
-                <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" showIcons/>
+  return (
+    <AdminSideBar>
+      <div className="p-6 flex flex-col h-full w-full">
+        <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" showIcons />
 
         <div className="flex items-center justify-between mb-4">
           <ReportFilterTabs filter={filter} onChange={setFilter} />

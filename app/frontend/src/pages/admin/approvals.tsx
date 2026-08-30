@@ -27,20 +27,20 @@ export default function RoleApprovalPage() {
     setSelectedRequest(null);
   };
 
-    if (loading) {
-        return (
-            <AdminSideBar>
-                <div className="p-6 flex justify-center items-center min-h-[60vh]">
-                    <span className="loading loading-spinner loading-lg text-primary" />
-                </div>
-            </AdminSideBar>
-        );
-    }
-    return(
-        <AdminSideBar>
-            <div className="p-6 flex flex-col h-full w-full">
-                {/* Header + filter */}
-                <PageHeader title="Role Approvals" subtitle="Manage user role requests" showIcons />
+  if (loading) {
+    return (
+      <AdminSideBar>
+        <div className="p-6 flex justify-center items-center min-h-[60vh]">
+          <span className="loading loading-spinner loading-lg text-primary" />
+        </div>
+      </AdminSideBar>
+    );
+  }
+  return (
+    <AdminSideBar>
+      <div className="p-6 flex flex-col h-full w-full">
+        {/* Header + filter */}
+        <PageHeader title="Role Approvals" subtitle="Manage user role requests" showIcons />
 
         <RoleFilterTabs filter={filter} onChange={setFilter} />
 

@@ -79,7 +79,7 @@ export function SideBar({
 
           {!hideLogout && (
             <button
-              onClick = {() => {
+              onClick={() => {
                 logout();
               }}
               className="p-2 text-text-primary hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4"
