@@ -42,12 +42,18 @@ export interface SimulationRequest {
 }
 
 export interface Prediction {
-  ref: string;
-  lat: number;
-  lng: number;
-  history: number[][];
-  burned_cells: number;
-  radius_m: number;
+    ref: string;
+    lat: number;
+    lng: number;
+    history: number[][];
+    burned_cells: number;
+    radius_m: number;
+    truncated: boolean;
+    lat_extent_deg: number;
+    lon_extent_deg: number;
+    grid_h: number;
+    grid_w: number;
+    cell_size_m: number;
 }
 
 export interface SimulationResult {
@@ -207,6 +213,12 @@ export function useSimulation() {
                 history: [],
                 burned_cells: 0,
                 radius_m: 200,
+                truncated: false,
+                lat_extent_deg: 0.05,
+                lon_extent_deg: 0.05,
+                grid_h: 30,
+                grid_w: 30,
+                cell_size_m: 15.0,
               },
             ],
             grid_h: 30,
