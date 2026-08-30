@@ -13,7 +13,6 @@ class StaticDatasetConfig:
     dem_path: str = "app/datasets/processed/static/sa_dem.vrt"
     out_path: str = "app/datasets/processed/static/static_tensor.npz"
     resolution_deg: float = 0.5
-    cell_size_m: float = 30.0
 
 def build_static_tensor(cfg: StaticDatasetConfig = StaticDatasetConfig()) -> Path:
     out_path = Path(cfg.out_path)
@@ -35,7 +34,7 @@ def build_static_tensor(cfg: StaticDatasetConfig = StaticDatasetConfig()) -> Pat
         dem_path=cfg.dem_path,
         min_lon=SA_LON_MIN, min_lat=SA_LAT_MIN,
         max_lon=SA_LON_MAX, max_lat=SA_LAT_MAX,
-        target_shape=(H, W), cell_size_m=cfg.cell_size_m,
+        target_shape=(H, W),
     )
     aspect_rad = np.radians(terrain["aspect"])
     static_tensor = np.stack([

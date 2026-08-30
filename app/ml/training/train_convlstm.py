@@ -198,8 +198,8 @@ def build_normalizers(
     raw_frames, delta_frames = [], []
     for p in npz_paths:
         data = np.load(p)
-        hourly = data["hourly_tensor"]
-        timestamps = [str(t) for t in data["hourly_timestamps"]]
+        hourly = data["hourly_tensor"][::24]
+        timestamps = [str(t) for t in data["hourly_timestamps"][::24]]
         hs, hc = _hour_angle(timestamps)
         full = attach_static_and_time(hourly, static_tensor, hs, hc)  # (T,9,H,W)
         raw_frames.append(full)
