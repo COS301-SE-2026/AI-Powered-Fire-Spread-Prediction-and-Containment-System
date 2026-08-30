@@ -8,11 +8,8 @@ from services.admin import role_request
 from dependencies.auth import get_current_admin_user
 from models.users import User
 
-
 router = APIRouter(
-    prefix="/api/admin",
-    tags=["Admin"],
-    dependencies=[Depends(get_current_admin_user)]
+    prefix="/api/admin", tags=["Admin"], dependencies=[Depends(get_current_admin_user)]
 )
 
 
@@ -22,7 +19,11 @@ def get_role_requests(db: Session = Depends(get_db)):
 
 
 @router.put("/role-requests/{request_id}/approve", response_model=RoleRequestResponse)
-def approve_role_request(request_id: str, db: Session = Depends(get_db), admin: User = Depends(get_current_admin_user)):
+def approve_role_request(
+    request_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
     admin_id = admin.id
     try:
         request = role_request.approve_role_request(request_id, admin_id, db)
@@ -36,7 +37,11 @@ def approve_role_request(request_id: str, db: Session = Depends(get_db), admin: 
 
 
 @router.put("/role-requests/{request_id}/reject", response_model=RoleRequestResponse)
-def reject_role_request(request_id: str, db: Session = Depends(get_db), admin: User = Depends(get_current_admin_user)):
+def reject_role_request(
+    request_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
     admin_id = admin.id
     try:
         request = role_request.reject_role_request(request_id, admin_id, db)
@@ -50,7 +55,11 @@ def reject_role_request(request_id: str, db: Session = Depends(get_db), admin: U
 
 
 @router.put("/role-requests/{request_id}/revoke", response_model=RoleRequestResponse)
-def revoke_role_request(request_id: str, db: Session = Depends(get_db), admin: User = Depends(get_current_admin_user)):
+def revoke_role_request(
+    request_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin_user),
+):
     admin_id = admin.id
     try:
         request = role_request.revoke_role_request(request_id, admin_id, db)

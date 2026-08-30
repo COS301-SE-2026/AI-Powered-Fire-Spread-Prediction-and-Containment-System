@@ -9,6 +9,7 @@ from models.reported_fires import FireReports
 from models.users import User
 from models.role_request import RoleRequest
 
+
 def as_aware(dt: datetime | None) -> datetime | None:
     if dt is None:
         return None
@@ -16,6 +17,7 @@ def as_aware(dt: datetime | None) -> datetime | None:
     if dt.tzinfo is None:
         return dt.replace(tzinfo=timezone.utc)
     return dt
+
 
 def calculate_time_ago(
     reported_at: datetime,
@@ -45,6 +47,7 @@ def calculate_time_ago(
 
     return f"{days} days ago"
 
+
 def get_top_metrics(db: Session) -> dict:
     active_fires = (
         db.query(func.count(FireReports.id))
@@ -68,7 +71,8 @@ def get_top_metrics(db: Session) -> dict:
         "system_status": system_status,
     }
 
-def get_recent_activity(db:Session, limit: int = 7) -> list[dict]:
+
+def get_recent_activity(db: Session, limit: int = 7) -> list[dict]:
     recent_fires = (
         db.query(FireReports)
         .order_by(FireReports.submitted_at.desc())
@@ -113,13 +117,12 @@ def get_recent_activity(db:Session, limit: int = 7) -> list[dict]:
 
     return activity_log
 
-def get_weekly_incident_counts(db:Session, days: int = 7) -> list[dict]:
+
+def get_weekly_incident_counts(db: Session, days: int = 7) -> list[dict]:
     since = datetime.now(timezone.utc) - timedelta(days=days)
 
     recent_week_fires = (
-        db.query(FireReports)
-        .filter(FireReports.submitted_at >= since)
-        .all()
+        db.query(FireReports).filter(FireReports.submitted_at >= since).all()
     )
 
     day_order = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -128,7 +131,7 @@ def get_weekly_incident_counts(db:Session, days: int = 7) -> list[dict]:
         day_name = report.submitted_at.strftime("%a")
         if day_name in counts_by_day:
             counts_by_day[day_name] += 1
-    
+
     weekly_incidents = [{"day": day, "count": counts_by_day[day]} for day in day_order]
 
     return weekly_incidents
@@ -143,6 +146,7 @@ def get_system_metrics(db: Session) -> dict:
     }
 
     return system_metrics
+
 
 def dashboard_summary(db: Session) -> dict:
     return {

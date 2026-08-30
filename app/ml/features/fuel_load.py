@@ -167,7 +167,12 @@ def _read_window_single(
                 "EPSG:4326", src.crs, min_lon, min_lat, max_lon, max_lat
             )
         else:
-            b_min_lon, b_min_lat, b_max_lon, b_max_lat = min_lon, min_lat, max_lon, max_lat 
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = (
+                min_lon,
+                min_lat,
+                max_lon,
+                max_lat,
+            )
         window = from_bounds(
             b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform
         )

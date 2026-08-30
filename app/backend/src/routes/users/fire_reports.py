@@ -29,7 +29,7 @@ def get_reported_fires(
 def create_fire_report(
     report: FireReportCreate,
     request: Request,
-    background_tasks: BackgroundTasks, # used to run auto verification
+    background_tasks: BackgroundTasks,  # used to run auto verification
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[Optional[User], Depends(get_current_user_optional)],
 ):

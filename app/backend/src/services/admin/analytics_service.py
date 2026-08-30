@@ -11,6 +11,7 @@ from models.role_request import RoleRequest
 from schemas.admin_analytics import AnalyticsOverviewResponse, KPIs
 from schemas.role_request import RoleRequestResponse, UserSummary
 
+
 def get_kpis(db: Session) -> KPIs:
 
     total_users = db.query(User).filter(User.is_active == True).count()
@@ -41,10 +42,10 @@ def get_kpis(db: Session) -> KPIs:
         total_admins=total_admins,
     )
 
+
 def get_pending_role_reqs(db: Session, limit: int = 20) -> list[RoleRequestResponse]:
     if limit <= 0:
         raise ValueError("limit has to be a positive value")
-
 
     pending_requests = (
         db.query(RoleRequest)
@@ -59,9 +60,9 @@ def get_pending_role_reqs(db: Session, limit: int = 20) -> list[RoleRequestRespo
         user = db.query(User).filter(User.id == req.user_id).first()
         if user:
             pending_responses.append(
-                    RoleRequestResponse(
-                        request_id=req.request_id,
-                        user=UserSummary(
+                RoleRequestResponse(
+                    request_id=req.request_id,
+                    user=UserSummary(
                         id=user.id,
                         name=user.name,
                         surname=user.surname,
@@ -77,6 +78,7 @@ def get_pending_role_reqs(db: Session, limit: int = 20) -> list[RoleRequestRespo
                 )
             )
     return pending_responses
+
 
 def analytics_overview(db: Session) -> AnalyticsOverviewResponse:
     return AnalyticsOverviewResponse(
