@@ -22,6 +22,7 @@ from enums.report_priority import ReportPriority
 
 class FireReports(Base):
     __tablename__ = "fire_reports"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True)
     reference_number = Column(String(20), unique=True, nullable=False)
