@@ -15,10 +15,10 @@ export function SideBar({
   hideLoginRegister?: boolean;
 }>) {
   return (
-    <div className="drawer lg:drawer-open">
+    <div className="drawer lg:drawer-open h-screen">
       <input id="mobile-nav-drawer" type="checkbox" className="drawer-toggle" />
 
-      <div className="drawer-content flex flex-col min-h-screen bg-carbon-bg text-text-primary font-body antialiased relative z-0">
+      <div className="drawer-content flex flex-col h-screen min-h-0 overflow-hidden bg-carbon-bg text-text-primary font-body antialiased relative z-0">
         {/* background */}
         <div className="global-atmos">
           <div className="ga-bloom-primary" />
@@ -37,9 +37,9 @@ export function SideBar({
           </label>
         </div>
 
-        <div className="flex flex-1">
-          <div className="flex-1 flex flex-col min-h-screen overflow-y-auto overflow-x-hidden relative z-10">
-            <main className="p-6 flex flex-col w-full max-w-450 mx-auto flex-1">{children}</main>
+        <div className="flex flex-1 min-h-0">
+          <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overflow-x-hidden relative z-10">
+            <main className="p-2 flex flex-col w-full max-w-450 mx-auto flex-1 min-h-0">{children}</main>
           </div>
         </div>
       </div>
@@ -50,11 +50,11 @@ export function SideBar({
 
         <aside className="flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen w-64 lg:w-23 lg:hover:w-64 transition-all duration-300 ease-in group shrink-0 shadow-2xl shadow-black/50">
           {/* logos */}
-          <div className='flex items-center justify-start lg:justify-center lg:group-hover:justify-start group-hover:px-6 mt-6 mb-4 px-2 shrink-0 transition-all duration-300 w-full'>
+          <div className='flex items-center justify-center group-hover:px-6 mt-6 mb-4 px-2 shrink-0 transition-all duration-300 w-full'>
             <img
               src="/images/logo-small.png"
               alt="FireAway"
-              className="h-12 w-10 object-contain hidden lg:blockk lg:group-hover:hidden"
+              className="h-12 w-10 object-contain hidden lg:block lg:group-hover:hidden"
             />
             <img
               src="/images/logo-large.png"
@@ -65,7 +65,7 @@ export function SideBar({
 
           {/* main nav */}
           <div className="w-full grow overflow-y-auto overflow-x-hidden scrollbar-hide">
-            <ul className="menu w-full px-3 space-y-2 flex flex-col items-start lg:items-center lg:group-hover:items-start">
+            <ul className="menu w-full px-3 space-y-2 flex flex-col items-center lg:group-hover:items-start">
               {items}
             </ul>
           </div>
@@ -90,7 +90,7 @@ export function SideBar({
             )}*/}
 
           {/* footer */}
-          <div className="w-full p-4 border-t border-carbon-card flex flex-col items-start lg:items-center lg:group-hover:items-start gap-2 lg:group-hover:px-6 transition-all bg-carbon-side shrink-0">
+          <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center lg:group-hover:items-start gap-2 lg:group-hover:px-6 transition-all bg-carbon-side shrink-0">
             {/* {!hideLoginRegister && (
               <Link
                 href="/"
