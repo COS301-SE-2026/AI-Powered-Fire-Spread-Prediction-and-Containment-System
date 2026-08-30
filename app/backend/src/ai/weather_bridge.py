@@ -31,14 +31,17 @@ class WeatherForecastBridge:
             logger.error("Static tensor missing at %s", static_path)
             raise FileNotFoundError(f"Static tensor missing at {static_path}. Run build_static_dataset first.")
         self.static_tensor = np.load(static_path)["static_tensor"]
-        npz_paths = sorted(
-            str(p) for p in Path("app/datasets/processed/weather_tensors").glob("weather_tensors_*.npz")
-        )
-        if not npz_paths:
-            logger.error("No processed weather tensors found for normalizer fitting.")
-            raise FileNotFoundError("No processed weather tensors found for normalizer fitting.")
+        if not hasattr(self, "raw_norm") or self.raw_norm is None:
+            npz_paths = sorted(
+                str(p) for p in Path("app/datasets/processed/weather_tensors").glob("weather_tensors_*.npz")
+                if p.name != "weather_tensors.npz" and p.stat().st_size > 0
+            )
+            if not npz_paths:
+                logger.error("No processed weather tensors found for normalizer fitting.")
+                raise FileNotFoundError("No processed weather tensors found for normalizer fitting.")
 
-        self.raw_norm, self.delta_norm = build_normalizers(npz_paths, self.static_tensor)
+            # Slice to only the first available year to avoid loading all 18+ dataset files during init
+            self.raw_norm, self.delta_norm = build_normalizers(npz_paths[:1], self.static_tensor)
 
         config = WeatherDeltaModelConfig(input_dim=10)
         self.model = WeatherDeltaModel(config)
@@ -55,7 +58,6 @@ class WeatherForecastBridge:
         except Exception as exc:
             logger.error("Failed to load model weights: %s", exc)
             raise RuntimeError(f"Failed to initialize WeatherDeltaModel: {exc}") from exc
-
     def forecast_for_simulation(
         self, history_tensor: np.ndarray, rollout_steps: int = 4, substeps_per_hour: int = 4
     ) -> np.ndarray:
