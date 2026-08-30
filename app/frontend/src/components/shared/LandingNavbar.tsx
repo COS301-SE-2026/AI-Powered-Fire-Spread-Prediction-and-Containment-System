@@ -40,7 +40,7 @@ export function LandingNavbar() {
 
 
   return (
-    <div className='fixed top-0 left-0 right-0 z-50 p-4 md:px-8'>
+    <div className='fixed top-0 left-0 right-0 z-50 '>
     <div className='navbar bg-base-100 shadow-sm bg-carbon-side/80 backdrop-blur-md rounded-xl border border-carbon-stroke'>
       <div className='navbar-start'>
         <div className='dropdown'>
