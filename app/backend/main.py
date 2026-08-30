@@ -4,10 +4,11 @@ import asyncio
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 
-from src.ai.simulation_api import router as simulation_router
+from ai.simulation_api import router as simulation_router
 from db import init_db
-from src.routes import image_uploads
+from routes import image_uploads
 from src.routes import router as notifications_and_location_router
 
 from src.routes.admin import router as admin_router
@@ -20,21 +21,28 @@ from db import engine
 from startup_migrations import run_startup_migrations
 
 from seed import seed
-from src.services.storage import ensure_bucket
+from services.storage import ensure_bucket
 
 from src.services.notifications.websocket_manager import set_main_loop
 
-if os.environ.get("SKIP_DB_INIT") != "1":
-    init_db()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    ensure_bucket()
 
-if os.environ.get("SKIP_SEED") != "1":
-    seed()
+    if os.environ.get("SKIP_DB_INIT") != "1":
+        init_db()
+
+    if os.environ.get("SKIP_SEED") != "1":
+        seed()
+
+    yield
 
 app = FastAPI(
     title="FireAway API",
     description="Backend for the AI-Powered Fire Spread Prediction and Containment System",
     version="1.0.0",
     redirect_slashes=False,
+    lifespan=lifespan
 )
 
 # app = FastAPI(root_path="/api")
