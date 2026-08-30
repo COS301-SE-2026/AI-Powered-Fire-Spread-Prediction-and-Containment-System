@@ -1,4 +1,5 @@
 import uuid
+import sys
 from datetime import datetime, timedelta, timezone
 
 from dependencies.auth import hash_password
@@ -8,6 +9,7 @@ from enums.role_request_status import RequestStatus
 from enums.user_role import UserRole
 from models.reported_fires import FireReports
 from models.role_request import RoleRequest
+from models.containment_lines import ContainmentLines
 
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from models.users import User
@@ -369,243 +371,41 @@ SEED_ROLE_REQUESTS = [
 DEFAULT_IMG = "https://placehold.co/600x400/png?text=Fire+Report"
 DEFAULT_IP = "192.168.1.10"
 
-# 18 Fire Reports around Pretoria
-SEED_FIRE_REPORTS = [
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-001",
-        "user_id": "usr_01",
-        "location_text": "LC de Villiers Sports Grounds, Hatfield",
-        "description": "Brush fire starting near the northern fence along the road.",
-        "location_geom": "SRID=4326;POINT(28.2435 -25.7480)",
-        "boundary_radius": 0.5,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-002",
-        "user_id": None,
-        "location_text": "Groenkloof Nature Reserve",
-        "description": "Heavy smoke visible from the main hiking trail.",
-        "location_geom": "SRID=4326;POINT(28.2000 -25.7800)",
-        "boundary_radius": 2.0,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.pending,
-        "status_index": 1,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-003",
-        "user_id": "usr_09",
-        "location_text": "Struben Dam Bird Sanctuary",
-        "description": "Small contained fire, looks like an abandoned braai.",
-        "location_geom": "SRID=4326;POINT(28.2933 -25.7681)",
-        "boundary_radius": 0.1,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.received,
-        "status_index": 0,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-004",
-        "user_id": "usr_10",
-        "location_text": "Rietvlei Nature Reserve",
-        "description": "Large veld fire spreading quickly towards the eastern border.",
-        "location_geom": "SRID=4326;POINT(28.2800 -25.8800)",
-        "boundary_radius": 3.5,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-005",
-        "user_id": None,
-        "location_text": "Moreleta Kloof Nature Reserve",
-        "description": "Smell of smoke and ash falling, but can't see the flames.",
-        "location_geom": "SRID=4326;POINT(28.2890 -25.8180)",
-        "boundary_radius": 1.0,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.received,
-        "status_index": 0,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-006",
-        "user_id": "usr_11",
-        "location_text": "Faerie Glen Nature Reserve",
-        "description": "Fire on the ridge, moving up the hill.",
-        "location_geom": "SRID=4326;POINT(28.2930 -25.7760)",
-        "boundary_radius": 1.5,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-007",
-        "user_id": "usr_12",
-        "location_text": "Wonderboom Nature Reserve",
-        "description": "Smoke coming from the northern slope of the Magaliesberg.",
-        "location_geom": "SRID=4326;POINT(28.1900 -25.6800)",
-        "boundary_radius": 2.5,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.pending,
-        "status_index": 1,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-008",
-        "user_id": "usr_13",
-        "location_text": "Pretoria National Botanical Garden",
-        "description": "Fire near the eastern boundary wall.",
-        "location_geom": "SRID=4326;POINT(28.2700 -25.7300)",
-        "boundary_radius": 0.3,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-009",
-        "user_id": None,
-        "location_text": "Roodeplaat Dam Nature Reserve",
-        "description": "Veld fire near the southern picnic site.",
-        "location_geom": "SRID=4326;POINT(28.3600 -25.6300)",
-        "boundary_radius": 4.0,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-010",
-        "user_id": "usr_14",
-        "location_text": "Fountains Valley Recreation Resort",
-        "description": "Thick smoke near the train tracks.",
-        "location_geom": "SRID=4326;POINT(28.1960 -25.7820)",
-        "boundary_radius": 0.8,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.received,
-        "status_index": 0,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-011",
-        "user_id": "usr_15",
-        "location_text": "Vacant lot, Erasmuskloof",
-        "description": "Grass fire near the highway offramp.",
-        "location_geom": "SRID=4326;POINT(28.2600 -25.8100)",
-        "boundary_radius": 0.2,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-012",
-        "user_id": None,
-        "location_text": "Centurion field near N1",
-        "description": "Large grass fire causing poor visibility on the N1.",
-        "location_geom": "SRID=4326;POINT(28.1800 -25.8500)",
-        "boundary_radius": 1.2,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.pending,
-        "status_index": 1,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-013",
-        "user_id": "usr_16",
-        "location_text": "Pretoria West Industrial Area",
-        "description": "Chemical smoke rising from an industrial yard.",
-        "location_geom": "SRID=4326;POINT(28.1500 -25.7500)",
-        "boundary_radius": 0.5,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-014",
-        "user_id": "usr_17",
-        "location_text": "Atterbury Road grass verge",
-        "description": "Small fire on the side of the road, looks like someone threw a cigarette.",
-        "location_geom": "SRID=4326;POINT(28.3100 -25.7900)",
-        "boundary_radius": 0.1,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.received,
-        "status_index": 0,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-015",
-        "user_id": "usr_18",
-        "location_text": "Silver Lakes boundary",
-        "description": "Fire in the open field approaching the estate wall.",
-        "location_geom": "SRID=4326;POINT(28.3500 -25.7600)",
-        "boundary_radius": 1.8,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-016",
-        "user_id": "usr_19",
-        "location_text": "Menlyn Maine construction site brush",
-        "description": "Debris fire getting out of control due to wind.",
-        "location_geom": "SRID=4326;POINT(28.2800 -25.7800)",
-        "boundary_radius": 0.4,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.pending,
-        "status_index": 1,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-017",
-        "user_id": None,
-        "location_text": "Lynnwood Road crossing",
-        "description": "Rubbish burning under the bridge, spreading to dry grass.",
-        "location_geom": "SRID=4326;POINT(28.2500 -25.7600)",
-        "boundary_radius": 0.2,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.received,
-        "status_index": 0,
-    },
-    {
-        "id": str(uuid.uuid4()),
-        "reference_number": "FR-2026-018",
-        "user_id": "usr_20",
-        "location_text": "Voortrekker Monument hillside",
-        "description": "Flames visible on the southern slope from the highway.",
-        "location_geom": "SRID=4326;POINT(28.1700 -25.7700)",
-        "boundary_radius": 3.0,
-        "image_url": DEFAULT_IMG,
-        "reporter_ip": DEFAULT_IP,
-        "status": ReportStatus.verified,
-        "status_index": 2,
-    },
+# 18 spread out realistic locations across Guateng and North West for fires
+REGIONAL_LOCATIONS = [
+    {"name": "LC de Villiers Sports Grounds", "lat": -25.7480, "lng": 28.2435, "desc": "Brush fire near northern fence.", "radius": 0.5},
+    {"name": "Silkaatsnek Nature Reserve, Hartbeespoort", "lat": -25.6900, "lng": 27.9100, "desc": "Mountain ridge fire climbing towards towers.", "radius": 2.0},
+    {"name": "Oak Avenue Farmlands, Cullinan", "lat": -25.6700, "lng": 28.5300, "desc": "Grassland fire burning through dry crop residues.", "radius": 0.1},
+    {"name": "Rietvlei Nature Reserve, Irene", "lat": -25.8800, "lng": 28.2800, "desc": "Large veld fire spreading toward eastern border.", "radius": 3.5},
+    {"name": "Dinokeng Game Reserve North", "lat": -25.3800, "lng": 28.3800, "desc": "Bushveld blaze near reserve perimeter.", "radius": 1.0},
+    {"name": "Buffelspoort Valley, Magaliesberg", "lat": -25.7500, "lng": 27.4800, "desc": "Wildfire burning across steep mountain slopes.", "radius": 1.5},
+    {"name": "Crocodile River Banks, Brits", "lat": -25.6200, "lng": 27.7700, "desc": "Dense reed fire near citrus orchards.", "radius": 2.5},
+    {"name": "Pretoria National Botanical Garden", "lat": -25.7300, "lng": 28.2700, "desc": "Fire near eastern boundary wall.", "radius": 0.3},
+    {"name": "Roodeplaat Dam Nature Reserve", "lat": -25.6300, "lng": 28.3600, "desc": "Veld fire near southern picnic site.", "radius": 4.0},
+    {"name": "Main Road Verge, Kyalami", "lat": -25.9800, "lng": 28.0700, "desc": "Thick smoke near electrical sub-station.", "radius": 0.8},
+    {"name": "Kromdraai Slopes, Cradle of Humankind", "lat": -25.9700, "lng": 27.7600, "desc": "Grass fire burning along rocky slopes.", "radius": 0.2},
+    {"name": "Roodekrans Ridge, Krugersdorp", "lat": -26.0800, "lng": 27.8400, "desc": "Large grass fire causing smoke drift.", "radius": 1.2},
+    {"name": "Pretoria West Industrial Area", "lat": -25.7500, "lng": 28.1500, "desc": "Chemical smoke rising from industrial yard.", "radius": 0.5},
+    {"name": "Atterbury Road Verge, Pretoria East", "lat": -25.7900, "lng": 28.3100, "desc": "Roadside spot fire spreading into dry brush.", "radius": 0.1},
+    {"name": "Silver Lakes Boundary", "lat": -25.7600, "lng": 28.3500, "desc": "Fire in open field approaching estate wall.", "radius": 1.8},
+    {"name": "R21 Corridor, Serengeti North", "lat": -26.0200, "lng": 28.2700, "desc": "Grass fire blowing smoke across highway.", "radius": 0.4},
+    {"name": "M17 Open Veld, Mabopane", "lat": -25.5200, "lng": 28.0500, "desc": "Uncontrolled rubbish and tall grass burn.", "radius": 0.2},
+    {"name": "Suikerbosrand Nature Reserve, Heidelberg", "lat": -26.5100, "lng": 28.2500, "desc": "Massive mountain veld fire consuming open land.", "radius": 3.0},
 ]
+
+STATUS_CYCLES = [
+    ReportStatus.received,
+    ReportStatus.pending,
+    ReportStatus.verified,
+    ReportStatus.rejected,
+]
+
+STATUS_LEVEL_MAP = {
+    ReportStatus.received: 0,
+    ReportStatus.pending: 1,
+    ReportStatus.verified: 2,
+    ReportStatus.rejected: 2
+}
 
 
 def seed_users(db):
@@ -668,42 +468,61 @@ def seed_role_requests(db):
 
 
 def seed_fire_reports(db):
-    for data in SEED_FIRE_REPORTS:
+    user_ids = [f"usr_{i:02d}" for i in range(1, 21)] + [None, None, None]
+
+    for index, loc in enumerate(REGIONAL_LOCATIONS, start=1):
+        ref = f"FR-2026-{index:03d}"
+
         existing = (
             db.query(FireReports)
-            .filter(FireReports.reference_number == data["reference_number"])
+            .filter(FireReports.reference_number == ref)
             .first()
         )
 
         if existing:
-            print(f"  SKIP  fire report {data['reference_number']} (already exists)")
+            print(f"  SKIP  fire report {ref} (already exists)")
             continue
 
+        status = STATUS_CYCLES[(index - 1) % len(STATUS_CYCLES)]
+        status_idx = STATUS_LEVEL_MAP[status]
+        assigned_user = user_ids[(index-1) % len(user_ids)]
+
         report = FireReports(
-            id=data["id"],
-            reference_number=data["reference_number"],
-            user_id=data["user_id"],
-            reporter_ip=data.get("reporter_ip"),
-            location_text=data["location_text"],
-            description=data["description"],
-            image_url=data["image_url"],
-            location_geom=data["location_geom"],
-            boundary_radius=data["boundary_radius"],
-            status=data["status"],
-            status_index=data["status_index"],
+            id=str(uuid.uuid4()),
+            reference_number=ref,
+            user_id=assigned_user,
+            reporter_ip=DEFAULT_IP,
+            location_text=loc["name"],
+            description=loc["desc"],
+            image_url=DEFAULT_IMG,
+            location_geom=f"SRID=4326;POINT({loc['lng']} {loc['lat']})",
+            boundary_radius=loc["radius"],
+            status=status,
+            status_index=status_idx,
         )
         db.add(report)
         print(
-            f"  ADD   fire report -> {data['reference_number']} at {data['location_text']}"
+            f"  ADD   fire report -> {ref} at {loc['name']}"
         )
 
+def wipe_all_data(db):
+    print(" Wiping database for a reseed")
 
-def seed():
+    db.query(ContainmentLines).delete()
+    db.query(FireReports).delete()
+    db.query(RoleRequest).delete()
+    db.query(User).delete()
+    db.flush()
+    print("All databases cleared")
+
+def seed(reseed: bool = False):
     print("Creating tables if they don't exist...")
-    Base.metadata.create_all(bind=engine)
 
     db = SessionLocal()
     try:
+        if reseed:
+            wipe_all_data(db)
+        
         print("\nSeeding users...")
         seed_users(db)
 
@@ -725,4 +544,5 @@ def seed():
 
 
 if __name__ == "__main__":
-    seed()
+    is_reseed = "--reseed" in sys.argv
+    seed(reseed=is_reseed)
