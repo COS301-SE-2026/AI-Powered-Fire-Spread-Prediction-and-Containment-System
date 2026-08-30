@@ -4,9 +4,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from ml.features.temporal_targets import TemporalTargetBuilder
-from ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
-from ml.training.train_convlstm import build_normalizers
+from app.ml.features.temporal_targets import TemporalTargetBuilder
+from app.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
+from app.ml.training.train_convlstm import build_normalizers
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class WeatherForecastBridge:
         npz_paths = sorted(
             str(p) for p in Path("app/datasets/processed/weather_tensors").glob("weather_tensors_*.npz")
         )
-        if not npz_paths.exists():
+        if not npz_paths:
             logger.error("No processed weather tensors found for normalizer fitting.")
             raise FileNotFoundError("No processed weather tensors found for normalizer fitting.")
 
