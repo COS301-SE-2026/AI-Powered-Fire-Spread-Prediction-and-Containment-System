@@ -166,6 +166,19 @@ export function FireMap({
     }));
   }, [selectedFireId, activeFires]);
 
+  useEffect(() => {
+    if(!mapRef.current)
+      return undefined;
+    const map = mapRef.current.getMap();
+    const container = map.getContainer();
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize();
+    });
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
   const EXTENT_DEG = 0.05;
 
   const girdFeautures = useMemo(() => {
