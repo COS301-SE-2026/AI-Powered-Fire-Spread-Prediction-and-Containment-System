@@ -1,7 +1,9 @@
 import pytest
 import torch
+import numpy as np
+import math
 from app.ml.training.losses import SmoothL1DeltaLoss
-from app.ml.traing.metrics import MetricTracker
+from app.ml.training.metrics import MetricTracker
 #First I test the loss function, then the metrics
 def test_smooth_l1_delta_loss_initialization():
     """ Tests default and custom beta initialization"""
