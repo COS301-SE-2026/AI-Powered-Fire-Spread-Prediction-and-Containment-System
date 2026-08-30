@@ -7,10 +7,9 @@ import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 import { PageHeader } from '../layout/pageHeader';
 
-    const ReportMap = dynamic(
-        () => import('./reportMapCard').then(mod => mod.ReportMap),
-        { ssr: false }
-    );
+const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.ReportMap), {
+  ssr: false,
+});
 
 interface ViewProps {
   reportRef: string;

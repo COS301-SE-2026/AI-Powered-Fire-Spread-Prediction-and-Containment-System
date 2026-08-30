@@ -42,25 +42,6 @@ export function SideBar({
           <ul className="menu w-full px-3 space-y-2 flex flex-col items-center group-hover:items-start">
             {items}
           </ul>
-
-          {/* settings section */}
-          <div className="w-full border-t border-carbon-card bg-carbon-side shrink-0 flex flex-col px-3 py-4 gap-2">
-            <span className="text-[10px] font-bold tracking-widest text-text-primary uppercase block text-center group-hover:hidden">
-              SYS
-            </span>
-            <span className="text-[10px] font-bold tracking-widest text-text-primary uppercase hidden group-hover:block text-left px-2">
-              SYSTEM SETTINGS
-            </span>
-          </div>
-
-          {!hideLogout && (
-            <button className="py-3 px-4 rounded-xl flex items-center justify-center group-hover:justify-start gap-5 hover:bg-smoke-hover active:scale-[0.98] transition-all w-full text-left">
-              <Settings className="size-6 text-text-primary group-hover:text-ignite shrink-0 transition-colors" />
-              <span className="text-sm font-semibold hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
-                Global Settings
-              </span>
-            </button>
-          )}
         </div>
 
         {/* footer */}
@@ -79,7 +60,7 @@ export function SideBar({
 
           {!hideLogout && (
             <button
-              onClick = {() => {
+              onClick={() => {
                 logout();
               }}
               className="p-2 text-text-primary hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4"

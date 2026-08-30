@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2 } from 'lucide-react';
+import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity } from 'lucide-react';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
@@ -8,11 +8,9 @@ import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { PageHeader } from '../../components/layout/pageHeader';
 
-export default function ReportTable() {
+export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
-  const [selectedFireId, setSelectedFireId] = useState(null);
-  const selectedFire = fires.find((f) => f.ref === selectedFireId) ?? null;
-  const [timeline, setTimeline] = useState(0);
+  const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation] = useState(defaultLocation);
@@ -22,6 +20,7 @@ export default function ReportTable() {
     loading: savingLine,
     error: lineError,
   } = useContainmentLine(() => setDrawMode(false));
+
   const {
     status,
     error,
@@ -31,17 +30,9 @@ export default function ReportTable() {
     seekToTick,
     play,
     pause,
-    autoplay,
-    setAutoPlay,
     totalTicks,
-    gridH,
-    gridW,
-    weather,
-    setWeather,
-    staticParams,
-    setStaticParams,
-    dcaParams,
-    setDcaParams,
+    stopRunning,
+    clearMap
   } = useSimulation();
 
   const isLoading = status === 'loading';
@@ -49,8 +40,15 @@ export default function ReportTable() {
   const hasResult = totalTicks > 0;
 
   function handleRun() {
-    const target = selectedFire ?? userLocation;
-    runSimulation(target.lat, target.lng, 48, selectedFireId);
+      runSimulation(selectedFireId, 288);
+  }
+
+  function handleStop(){
+    stopRunning();
+  }
+
+  function handleClear(){
+    clearMap();
   }
 
   function handleReset() {
@@ -58,14 +56,17 @@ export default function ReportTable() {
     pause();
   }
 
-    const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-    const totalHours = hasResult ? (maxSlider / 2) : 48;
-    return (
-        <FirefighterSideBar>
-            <div className='p-4 flex flex-col h-full w-full gap-y-3'>
-
-                {/* Page header and subtitle */}
-                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
+  const maxSlider = Math.max(totalTicks - 1, 1); // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
+  const totalHours = hasResult ? maxSlider / 4 : 72;
+  return (
+    <FirefighterSideBar hideLoginRegister>
+      <div className="p-4 flex flex-col h-full w-full gap-y-3">
+        {/* Page header and subtitle */}
+        <PageHeader
+          title="Fire Simulation"
+          subtitle="Simulate fire spread and prevention methods"
+          showIcons
+        />
 
         <div className="flex flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
@@ -80,7 +81,7 @@ export default function ReportTable() {
                 {/* Live tick badge */}
                 {hasResult && (
                   <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
-                    TICK {currentTick} / {totalTicks - 1}
+                    TICK {currentTick + 1} / {totalTicks}
                   </span>
                 )}
               </div>
@@ -111,76 +112,94 @@ export default function ReportTable() {
                 </div>
               )}
 
-              <div className="w-full h-full">
+              <div className='w-full h-full'>
                 <FireMap
                   lat={userLocation.lat}
                   lng={userLocation.lng}
                   drawMode={drawMode}
                   onDrawComplete={submitLine}
                   clearDrawings={clearDrawings}
-                  burnGridH={gridH}
-                  burnGridW={gridW}
                   predictions={predictions}
                   currentTick={currentTick}
                   selectedFireId={selectedFireId}
                   onSelectFire={setSelectedFireId}
+                  showKey
                 />
               </div>
-            </div>
+          </div>
 
             {/* simulation vars and buttons */}
-            <div className="flex gap-2 items-stretched">
+            <div className="flex gap-3 items-stretched">
               {/* buttons to start simulation or draw page */}
-              <div className="flex flex-col gap-6 shrink-0 h-auto justify-between">
+              <div className="flex flex-col gap-3 shrink-0 w-80">
                 <button
                   type="button"
                   onClick={() => setDrawMode(true)}
-                  className="btn btn-primary rounded-lg btn-outline btn-wide btn-xl p-2 flex-1"
+                  className="btn btn-primary btn-outline w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold tracking-wide"
                 >
-                  <Pencil size={28} />
+                  <Pencil size={20} />
                   Draw Containment
                 </button>
 
-                {/* Run/pause/resume button */}
-                {!hasResult || status === 'idle' || status === 'error' ? (
+                {/* Run/Cancel */}
+                <button
+                  type="button"
+                  onClick={isLoading? handleStop : handleRun}
+                  disabled={hasResult && !isLoading && status !== 'error'}
+                  className={`btn rounded-xl btn-outline w-full flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-30 disable:pointer-events-none ${
+                    isLoading? 'btn-error' : 'btn-accent'}`}
+                  title={isLoading ? 'Cancel Simulation Request' : undefined}
+                >
+                  {isLoading? (
+                    <Square size={20}/>
+                  ) : (
+                    <CirclePlay size={24}/>
+                  )}
+
+                  {isLoading ? 'Cancel Simulation' : 'RUN'}
+                </button>
+                
+                {/* Pause and Resume buttons */}
+                <div className='flex gap-2'>
+                  <button
+                    onClick={isPlaying ? pause : play}
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-accent rounded-xl btn-outline flex-1 disabled:opacity-30 disabled:pointer-events-none'
+                  >
+                    {isPlaying ? <Pause size={20}/> : <CirclePlay size={20}/>}
+                    {isPlaying ? 'Pause' : 'Resume'}
+                  </button>
+                  <button
+                    onClick={handleStop}
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-error rounded-xl btn-outline flex-1 disabled:opacity-30 disabled:pointer-events-none'
+                    title='Stop Simulation'
+                  >
+                    <Square size={20}/>
+                    Stop
+                  </button>
+                </div>
+
+                {/* Rerun and clear buttons */}
+                <div className='flex gap-2'>
                   <button
                     onClick={handleRun}
-                    disabled={isLoading}
-                    className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1 disabled-opacity-50"
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-outline rounded-xl flex-1 text-neautral/60 disabled:opacity-30 disabled:pointer-events-none'
+                    title='Re-run Simulation'
                   >
-                    {isLoading ? (
-                      <Loader2 className="animate-spin" size={24} />
-                    ) : (
-                      <CirclePlay size={24} />
-                    )}
-                    {isLoading ? 'Running...' : 'RUN'}
+                    <RotateCcw size={20}/>
+                    Re-run
                   </button>
-                ) : isPlaying ? (
                   <button
-                    onClick={pause}
-                    className="btn btn-accent rounded-lg btn-outline btn-wide btn-xl p-2 flex-1"
+                    onClick={handleClear}
+                    disabled={!hasResult || isLoading}
+                    className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
-                    <Pause size={24} />
-                    Pause
+                    <Trash2 size={20}/>
+                    Clear Map
                   </button>
-                ) : (
-                  <div className="flex gap-2 flex-1">
-                    <button
-                      onClick={play}
-                      className="btn btn-accent rounded-lg btn-outline btn-xl p-2 flex-1"
-                    >
-                      <CirclePlay size={22} />
-                      Resume
-                    </button>
-                    <button
-                      onClick={handleRun}
-                      className="btn btn-outline rounded-lg btn-xl p-2 flex-1 text-neutral/60"
-                      title="Re-run simulation"
-                    >
-                      <RotateCcw size={18} />
-                    </button>
-                  </div>
-                )}
+                </div>
               </div>
 
               {/* input variables */}
@@ -194,18 +213,8 @@ export default function ReportTable() {
                   <div className="flex flex-col gap-1 p-2">
                     <div className="flex flex-row items-center justify-between">
                       <span className="text-sm text-text-muted p-1">
-                        {hasResult ? `Tick ${currentTick} of ${totalTicks - 1}` : 'Not yet run'}
+                        {hasResult ? `Tick ${currentTick + 1} of ${totalTicks}` : 'Not yet run'}
                       </span>
-                      {/* Auto Update Checkbox */}
-                      <label className="flex gap-1 p-2">
-                        <span className="text-sm text-text-muted">Auto Play:</span>
-                        <input
-                          type="checkbox"
-                          checked={autoplay}
-                          onChange={(e) => setAutoPlay(e.target.checked)}
-                          className="checkbox checkbox-sm rounded-lg"
-                        />
-                      </label>
                     </div>
 
                     <div className="w-full">
@@ -230,121 +239,25 @@ export default function ReportTable() {
                     </div>
                   </div>
 
-                                    {/* Select a fire to run simulation on */}
-                                    <div className='border-t border-carbon-stroke/40 pt-3'>
-                                        <p className='text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2'>
-                                            Target Fire
-                                        </p>
-                                        <select
-                                            className='select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral-content w-full'
-                                            value={selectedFireId ?? ''}
-                                            onChange={(e) => setSelectedFireId(e.target.value || null)}
-                                        >
-                                            <option value=''>All verified fires</option>
-                                            {fires.filter(f => f.status === 'verified').map(f => (
-                                                <option key={f.ref} value={f.ref} className='bg-carbon-bg text-neutral'>{f.location ?? f.ref}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                  {/* Weather inputs */}
+                  {/* Select a fire to run simulation on */}
                   <div className="border-t border-carbon-stroke/40 pt-3">
                     <p className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
-                      Weather Params
+                      Target Fire
                     </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted"> Wind U (m/s)</span>
-                        <input
-                          type="number"
-                          step={0.5}
-                          value={weather.wind_u}
-                          onChange={(e) =>
-                            setWeather({ ...weather, wind_u: Number(e.target.value) })
-                          }
-                          className="input input-sm input-bordered rounded-lg bg-carbon-bg text-neutral w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">Wind V (m/s)</span>
-                        <input
-                          type="number"
-                          step={0.5}
-                          value={weather.wind_v}
-                          onChange={(e) =>
-                            setWeather({ ...weather, wind_v: Number(e.target.value) })
-                          }
-                          className="input input-sm input-boardered rounded-lg bg-carbon-bg text-neutral w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">Humidity (%)</span>
-                        <input
-                          type="number"
-                          step={1}
-                          min={0}
-                          max={100}
-                          value={weather.rel_humidity}
-                          onChange={(e) =>
-                            setWeather({ ...weather, rel_humidity: Number(e.target.value) })
-                          }
-                          className="input input-sm input-boardered rounded-lg bg-carbon-bg rext-neutral w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">Temp (degrees celcius)</span>
-                        <input
-                          type="number"
-                          step={1}
-                          value={weather.temperature}
-                          onChange={(e) =>
-                            setWeather({ ...weather, temperature: Number(e.target.value) })
-                          }
-                          className="input input-sm input-boardered rounded-lg bg-carbon-bg text-netral w-full"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Fuel Params */}
-                  <div className="border-t boarder-carbon-stroke/40 pt-3">
-                    <p className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
-                      fuel Conditions
-                    </p>
-                    <div className="grid grid-col-2 gap-2">
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">
-                          Fuel Load: {staticParams.fuel_load.toFixed(2)}
-                        </span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.05}
-                          value={staticParams.fuel_load}
-                          onChange={(e) =>
-                            setStaticParams({ ...staticParams, fuel_load: Number(e.target.value) })
-                          }
-                          className="range range-xs w-full"
-                        />
-                      </label>
-                      <label className="flex flex-col gap-1">
-                        <span className="text-xs text-text-muted">
-                          Dryness: {staticParams.dryness.toFixed(2)}
-                        </span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={1}
-                          step={0.05}
-                          value={staticParams.dryness}
-                          onChange={(e) =>
-                            setStaticParams({ ...staticParams, dryness: Number(e.target.value) })
-                          }
-                          className="range range-xs w-full"
-                        />
-                      </label>
-                    </div>
+                    <select
+                      className="select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral-content w-full"
+                      value={selectedFireId ?? ''}
+                      onChange={(e) => setSelectedFireId(e.target.value || null)}
+                    >
+                      <option value="">All verified fires</option>
+                      {fires
+                        .filter((f) => f.status === 'verified')
+                        .map((f) => (
+                          <option key={f.ref} value={f.ref} className="bg-carbon-bg text-neutral">
+                            {f.location ?? f.ref}
+                          </option>
+                        ))}
+                    </select>
                   </div>
                 </div>
               </div>

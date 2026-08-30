@@ -54,7 +54,6 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
         .all()
     )  # * 1000 because ST_DWithin uses meters not km
 
-
     formatted_result = []
     for fire, distance_m in request:  # distance in meters again
         shape = to_shape(fire.location_geom)
