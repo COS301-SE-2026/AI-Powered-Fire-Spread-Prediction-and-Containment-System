@@ -20,6 +20,7 @@ export interface FireReportMapResponse {
   size: number;
   submitted_at: string;
   reporter_name: string | null;
+  verification_notes: string | null;
 }
 
 export interface FireReportDetailResponse {
