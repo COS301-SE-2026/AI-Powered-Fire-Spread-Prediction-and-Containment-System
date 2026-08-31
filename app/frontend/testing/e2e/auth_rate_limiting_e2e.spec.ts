@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Auth Rate Limiting UI', () => {
     test('Display rate limit warning when recieve HTTP 429', async ({ page }) => {
-        //intercept login route
+        // intercept login route
         await page.route('**/auth/login*', async (route) => {
             await route.fulfill({
                 status: 429,
