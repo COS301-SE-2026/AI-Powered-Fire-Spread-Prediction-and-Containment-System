@@ -45,7 +45,37 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>([]);
+  const storageKey = selectedFireId ? `containment_lines_${selectedFireId}` : 'containment_lines_general';
+
+  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
+    if(typeof window === 'undefined') return [];
+    try{
+      const stored = sessionStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    }catch{
+      return [];
+    }
+  });
+
+  // sync it to its parent component
+  useEffect(() => {
+    if(containmentLine.length > 0){
+      onContainmentChange?.(containmentLine.map((l) => l.wkt))
+    }
+  }, [])
+
+  // update the session storage whenever a containment line is changed
+  useEffect(() => {
+    try{
+      if (containmentLine.length > 0){
+        sessionStorage.setItem(storageKey, JSON.stringify(containmentLine));
+      }else{
+        sessionStorage.removeItem(storageKey);
+      }
+    }catch {
+      console.warn(" failed to save the session storage")
+    }
+  }, [containmentLine, storageKey])
 
   useEffect(() => {
     async function syncFires() {
@@ -150,12 +180,19 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   }, [drawMode, handleDrawCreate]);
 
   // Reset the containment lines on clear
+  const initialMount = useRef(true);
   useEffect(() => {
-    if (!drawRef.current) return;
-    drawRef.current.deleteAll();
+    if (initialMount.current){
+      initialMount.current = false;
+      return;
+    }
+    if(drawRef.current){
+      drawRef.current.deleteAll();
+    }
     setContainmentLine([]);
+    sessionStorage.removeItem(storageKey)
     onContainmentChange?.([]);
-  }, [clearDrawings, onContainmentChange]);
+  }, [clearDrawings, storageKey, onContainmentChange]);
 
   // GeoJson collection for mapbox
   const containmentFeatures = useMemo(() => ({
@@ -297,36 +334,6 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         </Marker>
       ))}
 
-      {/* Containment Lines */}
-      {containmentLine.length > 0 && (
-        <Source
-          id='containment-lines'
-          type='geojson'
-          data={containmentFeatures}
-        >
-          <Layer
-            id='containment-line-glow'
-            type='line'
-            paint={{
-              'line-color': '#38bdf8',
-              'line-width': 6,
-              'line-opacity': 0.4,
-            }}
-          />
-
-          <Layer
-            id='containment-line-center'
-            type='line'
-            paint={{
-              'line-color': '#0284c7',
-              'line-width': 2.5,
-              'line-dasharray': [2, 1],
-            }}
-          />
-
-        </Source>
-      )}
-
       {/* Circles around markers */}
       {circleFeatures.length > 0 && (
         <Source
@@ -382,6 +389,36 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               'line-width': 0.5,
             }}
           />
+        </Source>
+      )}
+
+      {/* Containment Lines */}
+      {containmentLine.length > 0 && (
+        <Source
+          id='containment-lines'
+          type='geojson'
+          data={containmentFeatures}
+        >
+          <Layer
+            id='containment-line-glow'
+            type='line'
+            paint={{
+              'line-color': '#38bdf8',
+              'line-width': 6,
+              'line-opacity': 0.4,
+            }}
+          />
+
+          <Layer
+            id='containment-line-center'
+            type='line'
+            paint={{
+              'line-color': '#0284c7',
+              'line-width': 2.5,
+              'line-dasharray': [2, 1],
+            }}
+          />
+
         </Source>
       )}
 

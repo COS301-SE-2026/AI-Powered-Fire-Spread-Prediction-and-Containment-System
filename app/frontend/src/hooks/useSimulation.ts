@@ -74,7 +74,7 @@ export function useSimulation() {
 
     // API call
     const runSimulation = useCallback(
-        async (fireId: string | null = null, nSteps = 288) => {
+        async (fireId: string | null = null, nSteps = 288, containmentLines: string[] = []) => {
             abortRef.current?.abort();
             const controller = new AbortController();
             abortRef.current = controller;
@@ -87,11 +87,16 @@ export function useSimulation() {
             try {
                 let data: SimulationResult;
 
+                const req = {
+                  n_steps: nSteps,
+                  containment_lines: containmentLines,
+                }
+
                 if(fireId) {
                     const resp = await fetch(`${API_BASE}/api/simulate/fire/${fireId}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json'},
-                        body: JSON.stringify({n_steps : nSteps}),
+                        body: JSON.stringify(req),
                         signal: controller.signal,
                     });
 
@@ -106,6 +111,7 @@ export function useSimulation() {
                     const resp = await fetch(`${API_BASE}/api/simulate`, {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json' },
+                        body: JSON.stringify(req),
                         signal: controller.signal,
                     });
                     

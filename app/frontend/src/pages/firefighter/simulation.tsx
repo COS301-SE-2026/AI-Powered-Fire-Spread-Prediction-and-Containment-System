@@ -14,7 +14,10 @@ export default function Simulation() {
   const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation] = useState(defaultLocation);
-  const [clearDrawings] = useState(0);
+  const [clearDrawings, setClearDrawings] = useState(0);
+
+  const [containmentLines, setContainmentLines] = useState<string[]>([]);
+
   const {
     submitLine,
     loading: savingLine,
@@ -40,7 +43,7 @@ export default function Simulation() {
   const hasResult = totalTicks > 0;
 
   function handleRun() {
-      runSimulation(selectedFireId, 288);
+      runSimulation(selectedFireId, 288, containmentLines);
   }
 
   function handleStop(){
@@ -49,6 +52,8 @@ export default function Simulation() {
 
   function handleClear(){
     clearMap();
+    setClearDrawings((prev) => prev + 1);
+    setContainmentLines([]);
   }
 
   function handleReset() {
@@ -115,6 +120,7 @@ export default function Simulation() {
                   lng={userLocation.lng}
                   drawMode={drawMode}
                   onDrawComplete={submitLine}
+                  onContainmentChange={setContainmentLines}
                   clearDrawings={clearDrawings}
                   predictions={predictions}
                   currentTick={currentTick}
