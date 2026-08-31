@@ -25,7 +25,7 @@
     "test:e2e:backend": "pytest -q app/backend/testing_config/e2e",
     "pwa:start": "yarn --cwd app/pwa start",
     "test:xgboost:unit": "pytest app/backend/tests/ai/test_xgboost_model_unit.py -v",
-    "test:xgboost:integration": "pytest app/backend/tests/ai/test_xgboost_model_integration.py -v"
+    "test:xgboost:integration": "pytest app/backend/tests/ai/test_xgboost_model_integration.py -v",
     "test:xgboost:unit": "pytest app/backend/tests/ai/test_xgboost_model_unit.py -v",
     "test:xgboost:integration": "pytest app/backend/tests/ai/test_xgboost_model_integration.py -v"
   },
@@ -45,7 +45,4 @@
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.1"
   }
-    "react-dom": "18.3.1"
-  },
-  "packageManager": "yarn@1.22.22"
 }
