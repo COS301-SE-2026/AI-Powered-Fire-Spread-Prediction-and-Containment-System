@@ -34,7 +34,7 @@ export function PageHeader({
 
   return (
     <>
-      <header className="mb-4">
+      <header className="mb-4 mt-2">
         <div className='flex items-start justify-between gap-1'>
           <div className='min-w-0'>
             <h1 className=" text-text-primary uppercase">{title}</h1>

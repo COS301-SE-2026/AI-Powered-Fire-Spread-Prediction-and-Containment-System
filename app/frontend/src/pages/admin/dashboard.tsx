@@ -99,7 +99,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
         <DashboardMetrics metrics={topMetrics} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-fullp-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-full p-2">
           <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between">
             <div className="w-full">
               <h2 className="text-medium font-bold uppercase tracking-wider text-text-muted mb-4 font-display">
@@ -129,7 +129,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
             </div>
           </section>
 
-          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px]">
+          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px] ">
             <div className="w-full">
               <h2 className="text-medium font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
                 Incidents this week
