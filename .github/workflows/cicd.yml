@@ -12,6 +12,7 @@ jobs:
         working-directory: app/backend/testing
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+      JWT_SECRET_KEY: your-super-secret-key-change-this
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: miniosupersecretpassword
       MINIO_BUCKET: fire-reports
@@ -87,6 +88,7 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
+      JWT_SECRET_KEY: your-super-secret-key-change-this
       MINIO_ENDPOINT: localhost:9000
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: miniosupersecretpassword
@@ -276,7 +278,7 @@ jobs:
           VALKEY_PORT: 6379
         run: |
           cd app/backend
-          PYTHONPATH=src nohup uvicorn main:app --host 0.0.0.0 --port 8000 &
+          PYTHONPATH=.:src:..:../ml uvicorn main:app --host 0.0.0.0 --port 8000 &
           for i in {1..30}; do
             curl -sf http://localhost:8000/docs > /dev/null && break
             sleep 1

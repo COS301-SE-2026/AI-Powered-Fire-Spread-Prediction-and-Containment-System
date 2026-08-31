@@ -1,1 +1,0 @@
-# POST /simulations, GET /simulations/{id}/ticks

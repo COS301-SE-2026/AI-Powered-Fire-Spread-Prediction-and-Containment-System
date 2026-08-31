@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
-import 'mapbox-gl/dist/mapbox-gl.css'
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { NotificationsProvider, useNotifications } from '../hooks/useNotification';
 import { NotificationToast } from '../components/notification/NotificationToast';
 import { offlineStore } from '../lib/offlineStore';
@@ -20,9 +20,13 @@ function GlobalToast() {
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
-   // Only register in prod
+    // Only register in prod
 
-    if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    if (
+      process.env.NODE_ENV === 'production' &&
+      typeof window !== 'undefined' &&
+      'serviceWorker' in navigator
+    ) {
       navigator.serviceWorker.register('/service_worker.js').catch(() => {
         // service worker registration fallback
       });
@@ -44,7 +48,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       window.removeEventListener('online', handleReconnection);
     };
   }, []);
-  
+
   return (
     <NotificationsProvider>
       <Component {...pageProps} />

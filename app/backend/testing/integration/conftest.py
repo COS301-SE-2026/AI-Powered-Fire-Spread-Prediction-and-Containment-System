@@ -13,6 +13,8 @@ from sqlalchemy.orm import sessionmaker
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
+from models.notification import Notification
+
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -26,7 +28,7 @@ sys.path.insert(0, str(root / "app" / "ml"))
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
-from app.backend.auth import hash_password
+from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
 from app.backend.main import app
 
@@ -37,7 +39,7 @@ from models.role_request import RoleRequest
 from models.users import User
 
 # seed data
-from app.backend.seed import SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
+from app.backend.seed import REGIONAL_LOCATIONS as SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -56,13 +58,25 @@ def create_tables():
 
     Base.metadata.create_all(
         bind=engine,
-        tables=[User.__table__, RoleRequest.__table__, FireReports.__table__],
+        tables=[
+            User.__table__,
+            RoleRequest.__table__,
+            FireReports.__table__,
+            Notification.__table__,
+            ContainmentLines.__table__,
+        ],
     )
     yield
 
     Base.metadata.drop_all(
         bind=engine,
-        tables=[User.__table__, RoleRequest.__table__, FireReports.__table__],
+        tables=[
+            User.__table__,
+            RoleRequest.__table__,
+            FireReports.__table__,
+            Notification.__table__,
+            ContainmentLines.__table__,
+        ],
     )
 
 
@@ -73,6 +87,15 @@ def db():
     transaction = connection.begin()
 
     session = TestingSessionLocal(bind=connection)
+
+    session.begin_nested()
+
+    from sqlalchemy import event
+
+    @event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(sess, trans):
+        if trans.nested and not trans._parent.nested:
+            sess.begin_nested()
 
     try:
         yield session
@@ -121,7 +144,7 @@ def _split_full_name(full_name):
     return parts[0], parts[1]
 
 
-def make_user(db, full_name="Test User", email=None, role="user"):
+def make_user(db, full_name="Test User", email=None, role="user", lat=None, lng=None):
     user_email = email or f"user_{uuid.uuid4()}@example.com"
     name, surname = _split_full_name(full_name)
     user = User(
@@ -136,6 +159,8 @@ def make_user(db, full_name="Test User", email=None, role="user"):
         totp_secret=None,
         is_2fa_enabled=False,
     )
+    if lat is not None and lng is not None:
+        user.location_geom = f"SRID=4326;POINT({lng} {lat})"
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -169,6 +194,7 @@ def make_report(
     image_url="https://example.com/fire.jpg",
     photo_hash=None,
     description=None,
+    boundary_radius=0.2,
 ):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
@@ -181,10 +207,10 @@ def make_report(
         image_url=image_url,
         photo_hash=photo_hash,
         location_geom=point_wkt,
-        boundary_radius=0.2,
+        boundary_radius=boundary_radius,
         status=status,
         status_index=status_index,
-        submitted_at=submitted_at or datetime.now(timezone.utc)
+        submitted_at=submitted_at or datetime.now(timezone.utc),
     )
     db.add(report)
     db.commit()
@@ -260,9 +286,10 @@ def small_grids():
 
     return _make
 
+
 # for verification integration test cause we cant use env for mapbox token in deplyment
 @pytest.fixture(autouse=True)
 def mock_on_land():
-    """ prevent tests from depending on live mapbox API """
+    """prevent tests from depending on live mapbox API"""
     with patch("services.verification.rejection_checks.on_land", return_value=True):
         yield
