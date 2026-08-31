@@ -6,6 +6,7 @@ import { ReportActions } from './reportActions';
 import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 import { PageHeader } from '../layout/pageHeader';
+import { ChevronLeft } from 'lucide-react';
 
 const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.ReportMap), {
   ssr: false,
@@ -34,11 +35,13 @@ export function ViewPage({ reportRef }: Readonly<ViewProps>) {
     );
 
     return (
-        <div className="p-6 flex flex-col h-full w-full">
-            <header className="mb-3 flex items-start justify-between">
-                <PageHeader title={`Report ${report.reference_number}`} subtitle="Viewing fire report details" showIcons />
-                <button type="button" onClick={() => router.back()} className="btn btn-sm btn-outline rounded-lg">Back</button>
-            </header>
+        <div className="p-2 flex flex-col h-full w-full">
+
+            <button type="button" onClick={() => router.back()} aria-label="Back" className="btn btn-sm btn-outline btn-square rounded-lg shrink-0"><ChevronLeft className='w-4 h-4' /></button>
+            <PageHeader title={`Report ${report.reference_number}`} subtitle="Viewing fire report details" showIcons />
+
+
+
             {/* 2 cols */}
             <div className='grid grid-cols-1 lg:grid-cols-12 gap-2 h-full'>
                 {/* left */}
