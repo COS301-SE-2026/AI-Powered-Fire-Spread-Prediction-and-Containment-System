@@ -1,11 +1,11 @@
 import hashlib
 import json
-import blosc2
+import zlib
 import os
 import numpy as np
 import redis
 
-VALKEY_HOST = os.getenv("VALKEY_HOST", "localhost")
+VALKEY_HOST = os.getenv("VALKEY_HOST", "valkey-cache")
 VALKEY_PORT = int(os.getenv("VALKEY_PORT", 6379))
 
 client = redis.Redis(host=VALKEY_HOST, port=VALKEY_PORT, db=0)
@@ -44,10 +44,10 @@ def get_cached_prediction(key: str) -> dict | None:
         meta = json.loads(data[b"meta"].decode("utf-8"))
         compressed_hist = data[b"history"]
 
-        raw_bytes = blosc2.decompress(compressed_hist)
+        raw_bytes = zlib.decompress(compressed_hist)
         history_arr = np.frombuffer(raw_bytes, dtype=np.int64).reshape(meta["n_steps"], meta["grid_h"], meta["grid_w"])
 
-        meta["history"] = [g.ravel.tolist() for g in history_arr]
+        meta["history"] = [g.ravel().tolist() for g in history_arr]
         return meta
     except Exception:
         None
@@ -62,7 +62,7 @@ def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 86400):
             prediction_data["grid_w"],
         )
 
-        compressed_hist = blosc2.compress(history_arr.tobytes(), typesize=history_arr.itemsize, clevel=5)
+        compressed_hist = zlib.compress(history_arr.tobytes(), level=6)
 
         meta = {
             "ref": prediction_data["ref"],
