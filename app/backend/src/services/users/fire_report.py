@@ -10,6 +10,7 @@ from enums.report_status import ReportStatus, status_level
 from models.reported_fires import FireReports
 from schemas.fire_report import FireReportCreate
 from services.storage import get_presigned_url
+from services.notifications import notify_fire_alert, notify_fire_update
 
 
 # this is for hectares takes radius in km
@@ -49,6 +50,7 @@ def get_fire_reports(db: Session, user_id: Optional[str] = None):
                 "submitted_at": report.submitted_at.isoformat(),
                 "boundary_radius": float(report.boundary_radius),
                 "size": calc_size(float(report.boundary_radius)),
+                "verification_notes": report.verification_notes,
                 "reporter_name": (
                     f"{report.user.name} {report.user.surname}"
                     if report.user
@@ -91,6 +93,9 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         "reporter_name": (
             f"{report.user.name} {report.user.surname}" if report.user else "Anonymous"
         ),
+        "priority": report.priority,
+        "system_verified": report.system_verified,
+        "verification_notes": report.verification_notes,
     }
 
 
@@ -111,6 +116,7 @@ def create_fire_report(
         location_text=report.location_text,
         description=report.description,
         image_url=report.image_url,
+        photo_hash=report.photo_hash,
         location_geom=point_wkt,
         boundary_radius=report.boundary_radius,
         status=ReportStatus.pending,
@@ -131,9 +137,19 @@ def status_change(report_ref: str, status: ReportStatus, db: Session):
     if not report:
         raise ValueError(f"Report with id {report_ref} does not exist")
 
+    previous_status = report.status
+
     report.status = status
     report.status_index = status_level.get(status, 0)
     report.updated_at = datetime.now(timezone.utc)
     db.commit()
+    db.refresh(report)
+
+    if status == ReportStatus.verified and previous_status != ReportStatus.verifies:
+        notify_fire_alert(
+            db, report, f"Fire reported at {report.location_text} has been verified"
+        )
+    elif previous_status == ReportStatus.verified:
+        notify_fire_update(db, report, f"Status changed to {status.value}")
 
     return get_fire_report_by_id(report_ref, db)

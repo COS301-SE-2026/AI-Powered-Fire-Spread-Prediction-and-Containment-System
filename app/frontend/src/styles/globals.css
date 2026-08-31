@@ -1,17 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Exo+2:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap');
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @plugin "daisyui" {
   themes: fireaway --default;
 }
 
 @plugin "daisyui/theme" {
-  name: "fireaway";
+  name: 'fireaway';
   default: true;
   color-scheme: dark;
 
-  --color-primary: #FF4904;
+  --color-primary: #ff4904;
   --color-primary-content: #fcfde7;
 
   --color-secondary: #fe8024;
@@ -23,13 +23,13 @@
   --color-neutral: #1e2436;
   --color-neutral-content: #ffffff;
 
-  --color-base-100: #080B12;
-  --color-base-200: #0C0F1A;
+  --color-base-100: #080b12;
+  --color-base-200: #0c0f1a;
   --color-base-300: #101420;
   --color-base-content: #ffffff;
 
   --color-info: #83b8fb;
-  --color-info-content: #080B12;
+  --color-info-content: #080b12;
 
   --color-warning: #ffc100;
   --color-warning-content: #1a0500;
@@ -53,24 +53,24 @@
 /*Use for interactive states, severity levels*/
 @theme {
   --color-char: var(--color-base-content);
-  --color-deep: #5C1800;
+  --color-deep: #5c1800;
   --color-ember: var(--color-error);
   --color-ignite: var(--color-primary);
   --color-flare: var(--color-secondary);
-  --color-torch: #FFAA00;
-  --color-flash: #FFE566;
+  --color-torch: #ffaa00;
+  --color-flash: #ffe566;
 
-  --color-carbon-bg: #080B12; /*page canvas*/
-  --color-carbon-side: #0C0F1A; /*sidebar and nav*/
+  --color-carbon-bg: #080b12; /*page canvas*/
+  --color-carbon-side: #0c0f1a; /*sidebar and nav*/
   --color-carbon-card: #101420; /*cards panels*/
-  --color-carbon-input: #151A26; /*input fields*/
-  --color-carbon-elevated: #161B2A; /* elevated surfaces and models*/
-  --color-carbon-stroke: #1E2436; /* bodrers and dividers*/
-  --color-smoke-hover: #1E2436; /*hover*/
+  --color-carbon-input: #151a26; /*input fields*/
+  --color-carbon-elevated: #161b2a; /* elevated surfaces and models*/
+  --color-carbon-stroke: #1e2436; /* bodrers and dividers*/
+  --color-smoke-hover: #1e2436; /*hover*/
 
-/*fire fighter page*/
-  --color-wind:     #378ADD;
-  --color-humidity: #1D9E75;
+  /*fire fighter page*/
+  --color-wind: #378add;
+  --color-humidity: #1d9e75;
   --color-danger: var(--color-ignite);
   --color-temp: var(--color-torch);
 
@@ -93,10 +93,10 @@
   --color-status-warning: var(--color-torch);
   --color-status-error: var(--color-ignite);
   --color-status-info: var(--color-wind);
-/*---------------------------------------------------------------*/
+  /*---------------------------------------------------------------*/
 
-  --color-text-primary: #EDEAE5;
-  --color-text-muted: #A0ACC0;
+  --color-text-primary: #edeae5;
+  --color-text-muted: #a0acc0;
   --color-text-disabled: #7a87a2;
   --color-text-inverse: #1a0500;
 
@@ -156,7 +156,7 @@
     line-height: 1.7;
   }
 
-    label,
+  label,
   .label {
     font-size: var(--text-label);
     font-weight: 500;
@@ -177,7 +177,7 @@
   }
 
   .sidebar-surface {
-    background: linear-gradient(180deg, #0C0F1A 0%, #0E1018 100%);
+    background: linear-gradient(180deg, #0c0f1a 0%, #0e1018 100%);
     border-right: 1px solid rgba(232, 69, 0, 0.08);
   }
 
@@ -221,4 +221,33 @@
     border-radius: 50%;
     filter: blur(140px);
   }
+}
+
+.carbon-popup .mapboxgl-popup-content {
+  background-color: var(--color-carbon-side);
+  border: 1px solid var(--color-carbon-stroke);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24pa rgba(0, 0, 0, 0.4);
+  padding: 0.75rem;
+}
+
+.carbon-popup .mapboxgl-popup-tip {
+  border-top-color: var(--color-carbon-side);
+  border-bottom-color: var(--color-carbon-side);
+}
+
+.carbon-popup .mapboxgl-popup-close-button {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  top: 4px;
+  right: 4px;
+  padding: 0;
+}
+
+.carbon-popup .mapboxgl-popup-close-button:hover {
+  color: var(--color-text-primary);
+  background: transparent;
 }

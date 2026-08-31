@@ -11,3 +11,9 @@ __pycache__
 build
 dist
 .vscode
+**/.venv
+**/.venv*
+**/.next
+**/.playwright-report
+**/.pytest_cache
+*.log

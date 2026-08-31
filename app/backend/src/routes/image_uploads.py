@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 from dependencies.auth import get_current_user_optional
 from models.users import User
 from services.storage import upload_image
+from services.verification.photo_hashing import hash_photo
 
 router = APIRouter(prefix="/api/uploads", tags=["Uploads"])
 
@@ -26,4 +27,5 @@ async def upload_image_endpoint(
     except ValueError as e:
         raise HTTPException(400, str(e))
 
-    return {"object_key": object_key}
+    photo_hash = hash_photo(contents)
+    return {"object_key": object_key, "photo_hash": photo_hash}

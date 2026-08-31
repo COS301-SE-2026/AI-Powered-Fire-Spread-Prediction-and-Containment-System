@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import { useAuth } from '../hooks/useAuth';
+import { apiCall } from '../lib/api';
+import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
 
 interface RegisterForm {
   name: string;
@@ -36,6 +39,12 @@ const fieldClass = (hasError?: string) =>
     hasError ? 'border-flare' : 'border-carbon-stroke'
   }`;
 
+const ROLE_REQUEST: Record<string, string> = {
+  admin: '/admin/dashboard',
+  firefighter: '/firefighter/dashboard',
+  user: '/users/live-map',
+};
+
 export default function Register() {
   const [form, setForm] = useState<RegisterForm>({
     name: '',
@@ -51,11 +60,18 @@ export default function Register() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { isAuth, role, isLoading: isAuthLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isAuthLoading && isAuth && role) {
+      router.push(ROLE_REQUEST[role] ?? '/');
+    }
+  }, [isAuthLoading, isAuth, role, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: undefined }));
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
   };
 
   const validate = (): boolean => {
@@ -113,30 +129,26 @@ export default function Register() {
     }
     setIsLoading(true);
     try {
-        const res = await fetch(`/api/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-          email: form.email,
-          password: form.password,
-          name: form.name,
-          surname: form.surname,
-          id_number: form.idNumber,
-          licence_number: form.role === 'Firefighter' ? form.licenceNumber : null,
-          role: form.role,
-        }),
-      });
+      const payload: RegisterRequest = {
+        email: form.email,
+        password: form.password,
+        name: form.name,
+        surname: form.surname,
+        id_number: form.idNumber,
+        license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
+      };
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+      const data: TwoFARequiredResponse = await apiCall('api/auth/register', 'POST', payload);
 
-      if (data.requires_2fa && data.otpauth_url){
-        router.push(`/verify-2fa?email=${encodeURIComponent(data.email)}&otpauth_url=${encodeURIComponent(data.otpauth_url)}`);
+      if (data.requires_2fa && data.otpauth_url) {
+        router.push(
+          `/verify-2fa?email=${encodeURIComponent(data.email)}&otpauth_url=${encodeURIComponent(data.otpauth_url)}`
+        );
       } else {
         setApiError('Unexpected response from server');
       }
-    } catch (err: any) {
-      setApiError(err.message);
+    } catch (err: unknown) {
+      setApiError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -163,47 +175,117 @@ export default function Register() {
 
         <div className="w-full max-w-3xl bg-carbon-card border border-carbon-stroke rounded-xl p-6 shadow-2xl backdrop-blur-sm">
           <h2 className="text-2xl font-bold text-text-primary text-center mb-6">Create account</h2>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-3" noValidate>
-
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-3"
+            noValidate
+          >
             <div>
-              <label htmlFor="name" className="block text-sm text-text-primary">Name</label>
-              <input id="name" name="name" placeholder="Name" value={form.name} onChange={handleChange} className={fieldClass(errors.name)} />
+              <label htmlFor="name" className="block text-sm text-text-primary">
+                Name
+              </label>
+              <input
+                id="name"
+                name="name"
+                placeholder="Name"
+                value={form.name}
+                onChange={handleChange}
+                className={fieldClass(errors.name)}
+              />
               {errors.name && <p className="text-flare text-xs mt-1">{errors.name}</p>}
             </div>
 
             <div>
-              <label htmlFor="surname" className="block text-sm text-text-primary">Surname</label>
-              <input id="surname" name="surname" placeholder="Surname" value={form.surname} onChange={handleChange} className={fieldClass(errors.surname)} />
+              <label htmlFor="surname" className="block text-sm text-text-primary">
+                Surname
+              </label>
+              <input
+                id="surname"
+                name="surname"
+                placeholder="Surname"
+                value={form.surname}
+                onChange={handleChange}
+                className={fieldClass(errors.surname)}
+              />
               {errors.surname && <p className="text-flare text-xs mt-1">{errors.surname}</p>}
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="email" className="block text-sm text-text-primary">Email</label>
-              <input id="email" type="email" name="email" placeholder="Email" value={form.email} onChange={handleChange} className={fieldClass(errors.email)} />
+              <label htmlFor="email" className="block text-sm text-text-primary">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                className={fieldClass(errors.email)}
+              />
               {errors.email && <p className="text-flare text-xs mt-1">{errors.email}</p>}
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="idNumber" className="block text-sm text-text-primary">ID/Passport Number</label>
-              <input id="idNumber" name="idNumber" placeholder="13-digit SA ID" value={form.idNumber} onChange={handleChange} className={fieldClass(errors.idNumber)} />
+              <label htmlFor="idNumber" className="block text-sm text-text-primary">
+                ID/Passport Number
+              </label>
+              <input
+                id="idNumber"
+                name="idNumber"
+                placeholder="13-digit SA ID"
+                value={form.idNumber}
+                onChange={handleChange}
+                className={fieldClass(errors.idNumber)}
+              />
               {errors.idNumber && <p className="text-flare text-xs mt-1">{errors.idNumber}</p>}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm text-text-primary">Password</label>
-              <input id="password" type="password" name="password" placeholder="Min 8 chars, 1 uppercase, 1 number" value={form.password} onChange={handleChange} className={fieldClass(errors.password)} />
+              <label htmlFor="password" className="block text-sm text-text-primary">
+                Password
+              </label>
+              <input
+                id="password"
+                type="password"
+                name="password"
+                placeholder="Min 8 chars, 1 uppercase, 1 number"
+                value={form.password}
+                onChange={handleChange}
+                className={fieldClass(errors.password)}
+              />
               {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm text-text-primary">Confirm Password</label>
-              <input id="confirmPassword" type="password" name="confirmPassword" placeholder="Repeat password" value={form.confirmPassword} onChange={handleChange} className={fieldClass(errors.confirmPassword)} />
-              {errors.confirmPassword && <p className="text-flare text-xs mt-1">{errors.confirmPassword}</p>}
+              <label htmlFor="confirmPassword" className="block text-sm text-text-primary">
+                Confirm Password
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                placeholder="Repeat password"
+                value={form.confirmPassword}
+                onChange={handleChange}
+                className={fieldClass(errors.confirmPassword)}
+              />
+              {errors.confirmPassword && (
+                <p className="text-flare text-xs mt-1">{errors.confirmPassword}</p>
+              )}
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="role" className="block text-sm text-text-primary">Role</label>
-              <select id="role" name="role" value={form.role} onChange={handleChange} className={fieldClass()}>
+              <label htmlFor="role" className="block text-sm text-text-primary">
+                Role
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                className={fieldClass()}
+              >
                 <option>User</option>
                 <option>Firefighter</option>
               </select>
@@ -211,20 +293,38 @@ export default function Register() {
 
             {form.role === 'Firefighter' && (
               <div className="md:col-span-2">
-                <label htmlFor="licenceNumber" className="block text-sm text-text-primary">Licence Number</label>
-                <input id="licenceNumber" name="licenceNumber" placeholder="Licence number" value={form.licenceNumber} onChange={handleChange} className={fieldClass(errors.licenceNumber)} />
-                {errors.licenceNumber && <p className="text-flare text-xs mt-1">{errors.licenceNumber}</p>}
+                <label htmlFor="licenceNumber" className="block text-sm text-text-primary">
+                  Licence Number
+                </label>
+                <input
+                  id="licenceNumber"
+                  name="licenceNumber"
+                  placeholder="Licence number"
+                  value={form.licenceNumber}
+                  onChange={handleChange}
+                  className={fieldClass(errors.licenceNumber)}
+                />
+                {errors.licenceNumber && (
+                  <p className="text-flare text-xs mt-1">{errors.licenceNumber}</p>
+                )}
               </div>
             )}
 
-            {apiError && <div className="md:col-span-2 bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">{apiError}</div>}
+            {apiError && (
+              <div className="md:col-span-2 bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">
+                {apiError}
+              </div>
+            )}
 
             <div className="md:col-span-2 mt-2">
-              <button type="submit" disabled={isLoading} className="w-full py-2 bg-primary hover:bg-deep text-white font-bold rounded-md transition disabled:opacity-50">
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-2 bg-primary hover:bg-deep text-white font-bold rounded-md transition disabled:opacity-50"
+              >
                 {isLoading ? 'Registering...' : 'Register now'}
               </button>
             </div>
-
           </form>
         </div>
       </div>

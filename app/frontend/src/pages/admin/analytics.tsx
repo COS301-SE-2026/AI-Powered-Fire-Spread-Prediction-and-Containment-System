@@ -1,68 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Card from '../../components/Card';
-import Badge from '../../components/Badge';
-import { AdminSideBar } from '../../components/admin/adminSidebar';
-interface KPIs {
-  total_users: number;
-  pending_role_requests: number;
-  total_firefighters: number;
-  total_admins: number;
-}
+import Card from '../../components/ui/Card';
+import { AdminSideBar } from '../../components/admin/AdminSideBar';
+import { useAdminAnalytics } from '../../hooks/useAdminAnalytics';
+import { PageHeader } from '../../components/layout/pageHeader';
 
-interface UserSummary {
-  id: string;
-  name: string;
-  surname: string;
-  email: string;
-  license_number: string | null;
-}
-
-interface PendingRequest {
-  request_id: string;
-  user: UserSummary;
-  requested_role: string;
-  current_role: string;
-  status: string;
-  created_at: string;
-  reviewed_at: string | null;
-  reviewed_by: string | null;
-}
-
-interface AnalyticsData {
-  kpis: KPIs;
-  pending_requests: PendingRequest[];
-}
+const dateTimeFormatter = new Intl.DateTimeFormat('en-ZA', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  timeZone: 'Africa/Johannesburg',
+});
 
 export default function AdminAnalyticsPage() {
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { kpis, pendingRequests, loading, error, refetch } = useAdminAnalytics();
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/admin/analytics/overview')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data: AnalyticsData) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error fetching analytics:', err);
-        setError(err.message);
-        setLoading(false);
-      });
+    setUpdatedAt(dateTimeFormatter.format(new Date()));
   }, []);
 
   if (loading) {
     return (
       <AdminSideBar>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
-          <div className="loading loading-spinner loading-lg text-primary">Loading analytics data...</div>
+          <div className="loading loading-spinner loading-lg text-primary">
+            Loading analytics data...
+          </div>
         </div>
       </AdminSideBar>
     );
@@ -87,7 +53,7 @@ export default function AdminAnalyticsPage() {
     );
   }
 
-  if (!data) {
+  if (!kpis) {
     return (
       <AdminSideBar>
         <div className="p-6">No data available</div>
@@ -96,30 +62,26 @@ export default function AdminAnalyticsPage() {
   }
 
   const kpiCards = [
-    { label: 'Total Users', value: data.kpis.total_users.toString() },
-    { label: 'Pending Role Requests', value: data.kpis.pending_role_requests.toString() },
-    { label: 'Total Firefighters', value: data.kpis.total_firefighters.toString() },
-    { label: 'Total Admins', value: data.kpis.total_admins.toString() },
+    { label: 'Total Users', value: kpis.total_users.toString() },
+    { label: 'Pending Role Requests', value: kpis.pending_role_requests.toString() },
+    { label: 'Total Firefighters', value: kpis.total_firefighters.toString() },
+    { label: 'Total Admins', value: kpis.total_admins.toString() },
   ];
 
   return (
     <AdminSideBar>
       <div className="p-6 space-y-6 w-full">
-
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-display font-bold tracking-wider text-text-primary uppercase">
-              Admin Analytics
-            </h1>
-            <p className="text-sm text-text-primary/50">
-              User governance and role management overview
-            </p>
-          </div>
-          <span className="text-sm text-text-primary/40">
-            Updated: {new Date().toLocaleString()}
-          </span>
-        </div>
+        <PageHeader
+          title="Admin Analytics"
+          subtitle="User governance and role management overview"
+          showIcons
+          actions={
+            <span className="text-sm text-text-primary/40">
+              Updated: {new Date().toLocaleString()}
+            </span>
+          }
+        />
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -137,12 +99,12 @@ export default function AdminAnalyticsPage() {
         <Card
           title="Pending Role Requests"
           actions={
-            <Link href="/admin/approvalPage" className="text-sm text-primary hover:underline">
+            <Link href="/admin/approvals" className="text-sm text-primary hover:underline">
               Manage all
             </Link>
           }
         >
-          {data.pending_requests.length === 0 ? (
+          {pendingRequests.length === 0 ? (
             <p className="text-white/40 text-sm">No pending requests</p>
           ) : (
             <div className="overflow-x-auto">
@@ -156,17 +118,20 @@ export default function AdminAnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.pending_requests.map((req) => (
-                    <tr key={req.request_id} className="border-b border-carbon-stroke/50 last:border-0">
+                  {pendingRequests.map((req) => (
+                    <tr
+                      key={req.request_id}
+                      className="border-b border-carbon-stroke/50 last:border-0"
+                    >
                       <td className="py-2 text-text-primary">
                         {req.user.name} {req.user.surname}
                       </td>
                       <td className="py-2 text-white/80">{req.user.email}</td>
                       <td className="py-2">
-                        <Badge label={req.requested_role} state="pending" />
+                        <span className="badge badge-neutral">{req.requested_role}</span>
                       </td>
                       <td className="py-2 text-white/60">
-                        {new Date(req.created_at).toLocaleString()}
+                        {dateTimeFormatter.format(new Date(req.created_at))}
                       </td>
                     </tr>
                   ))}
@@ -175,7 +140,6 @@ export default function AdminAnalyticsPage() {
             </div>
           )}
         </Card>
-
       </div>
     </AdminSideBar>
   );

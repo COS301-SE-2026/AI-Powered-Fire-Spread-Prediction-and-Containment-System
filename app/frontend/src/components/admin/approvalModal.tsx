@@ -1,94 +1,147 @@
-import { RoleRequest, UserSummary } from "../../types/admin";
+import { RoleRequest, UserSummary } from '../../types/RoleRequest';
 import { statusBadge } from './statusBadge';
-import { API_BASE_URL } from "../../config/api";
 
 interface RoleApprovalModalProps {
-    request: RoleRequest;
-    onClose: () => void;
-    onApprove: (id:string) => void;
-    onReject: (id:string) => void;
-    onRevoke: (id:string) => void;
+  request: RoleRequest;
+  onClose: () => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string) => void;
+  onRevoke: (id: string) => void;
 }
 
-export function RoleApprovalModal({ request, onClose, onApprove, onReject, onRevoke }: RoleApprovalModalProps) {
-    const isPending = request.status === 'pending';
+export function RoleApprovalModal({
+  request,
+  onClose,
+  onApprove,
+  onReject,
+  onRevoke,
+}: RoleApprovalModalProps) {
+  const isPending = request.status === 'pending';
 
-    return (
-        <dialog open data-testid="approval-modal" className="modal modal-open backdrop-blur-sm bg-black/40">
-            <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md p-8">
+  return (
+    <dialog
+      open
+      data-testid="approval-modal"
+      className="modal modal-open backdrop-blur-sm bg-black/40"
+    >
+      <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md p-8">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
+          <h3 className="font-display font-bold text-xl tracking-wider text-text-primary uppercase">
+            Role request - {request.user.name} {request.user.surname}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-text-primary/40 hover:text-text-primary transition-colors"
+          >
+            ✕
+          </button>
+        </div>
 
-                {/* Header */}
-                <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
-                    <h3 className="font-display font-bold text-xl tracking-wider text-text-primary uppercase">Role request - {request.user.name } {request.user.surname}</h3>
-                    <button type="button" onClick={onClose} className="text-text-primary/40 hover:text-text-primary transition-colors">✕</button>
-                </div>
+        {/* Info grid */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+              Full Name
+            </p>
+            <p className="text-sm font-semibold text-text-primary">
+              {request.user.name} {request.user.surname}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+              Account Created
+            </p>
+            <p className="text-sm font-semibold text-text-primary">
+              {request.created_at
+                ? new Date(request.created_at).toLocaleDateString('en-ZA', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : '—'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+              Email
+            </p>
+            <p className="text-sm font-semibold text-text-primary">{request.user.email ?? '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+              Status
+            </p>
+            {(() => {
+              const badge = statusBadge[request.status] ?? {};
+              return (
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ?? 'bg-carbon-card'} ${badge.text ?? 'text-text-primary/50'} ${badge.border ?? 'border-carbon-card'}`}
+                >
+                  {request.status}
+                </span>
+              );
+            })()}
+          </div>
+        </div>
 
-                {/* Info grid */}
-                <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
-                    <div>
-                        <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Full Name</p>
-                        <p className="text-sm font-semibold text-text-primary">{request.user.name } {request.user.surname}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Account Created</p>
-                        <p className="text-sm font-semibold text-text-primary">{request.created_at ? new Date(request.created_at).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }): '—'}</p>
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Email</p>
-                        <p className="text-sm font-semibold text-text-primary">{request.user.email ?? '—'}</p>
-                    </div>
-                    <div>
-                    <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Status</p>
-                    {(() => {
-                        const badge = statusBadge[request.status] ?? {};
-                        return (
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ?? 'bg-carbon-card'} ${badge.text ?? 'text-text-primary/50'} ${badge.border ?? 'border-carbon-card'}`}>
-                                {request.status}
-                            </span>
-                        );
-                        })()}
-                    </div>
-                </div>
+        <div className="border-t border-ignite/30 my-4" />
 
-                <div className="border-t border-ignite/30 my-4" />
+        {/* Current role */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
+          <div>
+            <p className="text-xs font-bold tracking-widest text-text-text-primary/40 uppercase mb-1">
+              Current Role
+            </p>
+            <p className="text-sm font-semibold text-text-primary">{request.current_role}</p>
+          </div>
+          <div>
+            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+              Requested Role
+            </p>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
+              {request.requested_role}
+            </span>
+          </div>
+        </div>
 
-                {/* Current role */}
-                <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
-                    <div>
-                        <p className="text-xs font-bold tracking-widest text-text-text-primary/40 uppercase mb-1">Current Role</p>
-                        <p className="text-sm font-semibold text-text-primary">{request.current_role}</p>
-                    </div>
-                        <div>
-                            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">Requested Role</p>
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
-                                {request.requested_role}
-                            </span>
-                        </div>
-                </div>
-
-                {/* Actions */}
-                <div className="border-t border-ignite/30 pt-4 flex justify-end gap-2">
-                    {request.status === 'pending' && (
-                        <>
-                            <button type="button" data-testid="reject-btn" onClick={() => onReject(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
-                                Reject
-                            </button>
-                            <button type="submit" data-testid="approve-btn" onClick={() => onApprove(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors">
-                                Approve
-                            </button>
-                        </>
-                    )}
-                    {request.status === 'approved' && (
-                        <button data-testid="revoke-btn" onClick={() => onRevoke(request.request_id)} className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors">
-                            Revoke
-                        </button>
-                    )}
-                </div>
-
-            </div>
-            <form method="dialog" className="modal-backdrop">
-                <button onClick={onClose}>close</button>
-            </form>
-        </dialog>
-    );
+        {/* Actions */}
+        <div className="border-t border-ignite/30 pt-4 flex justify-end gap-2">
+          {request.status === 'pending' && (
+            <>
+              <button
+                type="button"
+                data-testid="reject-btn"
+                onClick={() => onReject(request.request_id)}
+                className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors"
+              >
+                Reject
+              </button>
+              <button
+                type="submit"
+                data-testid="approve-btn"
+                onClick={() => onApprove(request.request_id)}
+                className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors"
+              >
+                Approve
+              </button>
+            </>
+          )}
+          {request.status === 'approved' && (
+            <button
+              data-testid="revoke-btn"
+              onClick={() => onRevoke(request.request_id)}
+              className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors"
+            >
+              Revoke
+            </button>
+          )}
+        </div>
+      </div>
+      <form method="dialog" className="modal-backdrop">
+        <button onClick={onClose}>close</button>
+      </form>
+    </dialog>
+  );
 }

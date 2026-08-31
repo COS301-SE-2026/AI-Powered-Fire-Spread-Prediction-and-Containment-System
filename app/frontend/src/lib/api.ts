@@ -1,17 +1,18 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
-export async function apiCall(
-  endpoint: string,
-  method: string = "GET",
-  body: any = null,
-) {
+export async function apiCall(endpoint: string, method: string = 'GET', body: unknown = null) {
   const res = await fetch(`${API_URL}${endpoint}`, {
     method,
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.detail || "Something went wrong");
+  if (!res.ok) throw new Error(data.detail || 'Something went wrong');
   return data;
+}
+
+export async function logout() {
+  await apiCall('/api/auth/logout', 'POST');
+  window.location.href = '/login';
 }

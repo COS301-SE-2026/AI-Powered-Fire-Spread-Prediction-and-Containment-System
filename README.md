@@ -27,24 +27,20 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 
 
 # Documentation
-<details>
-  <summary><h2>Demo 1</h2></summary>
-  
-  * [System Requirements Specification](docs/Demo\1//AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
-  * [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
-  * [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
-  * [Demo 1 Video](https://drive.google.com/file/d/16Z-MCgUCJp-F70VOWNHeQ-Bj-QO6Uusz/view?usp=sharing)
-</details>
+## Demo 1
+- [System Requirements Specification](docs/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
+- [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
+- [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
+- [Demo 1 Video](https://drive.google.com/file/d/16Z-MCgUCJp-F70VOWNHeQ-Bj-QO6Uusz/view?usp=sharing)
 
 ## Demo 2
-- [System Requirements Specification](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_SRS_v2.pdf)
-- [Software Architecture Specification](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications_v1.pdf)
-- [Coding Standards Document](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards_v1.pdf)
-- [Testing Policy](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy_v1.pdf)
-- [User Manual](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_User_Manual_v1.pdf)
-- [Brand Style Guide](docs/Demo\2/Brand\Style\Guide\Demo2.pdf)
+- [System Requirements Specification](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_SRS_v2.pdf)
+- [Software Architecture Specification](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications_v1.pdf)
+- [Coding Standards Document](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards_v1.pdf)
+- [Testing Policy](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy_v1.pdf)
+- [User Manual](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_User_Manual_v1.pdf)
+- [Brand Style Guide](docs/Demo_2/Brand\Style\Guide\Demo2.pdf)
 - [Demo 2 Video](https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing)
-  
 
 # Meet Our Team
 
