@@ -70,7 +70,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <AdminSideBar>
-      <div className="p-6 space-y-6 w-full">
+      <div className="p-2 space-y-6 w-full">
         {/* Header */}
         <PageHeader
           title="Admin Analytics"
@@ -80,7 +80,7 @@ export default function AdminAnalyticsPage() {
             <span className="text-sm text-text-muted">
               Updated: {updatedAt ?? '-'}
             </span>
-            
+
           }
         />
 

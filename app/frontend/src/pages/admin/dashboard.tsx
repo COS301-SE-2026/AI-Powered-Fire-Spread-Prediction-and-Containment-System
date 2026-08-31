@@ -99,7 +99,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
         <DashboardMetrics metrics={topMetrics} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-fullp-2">
           <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between">
             <div className="w-full">
               <h2 className="text-medium font-bold uppercase tracking-wider text-text-muted mb-4 font-display">
