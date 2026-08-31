@@ -4,6 +4,12 @@ import numpy as np
 import math
 from app.ml.training.losses import SmoothL1DeltaLoss
 from app.ml.training.metrics import MetricTracker
+from app.ml.training.dataset import (
+    WeatherDatasetSplitConfig,
+    WeatherRolloutDataset,
+    _hour_angle,
+    attach_static_and_time,
+)
 #First I test the loss function, then the metrics
 def test_smooth_l1_delta_loss_initialization():
     """ Tests default and custom beta initialization"""
@@ -141,3 +147,147 @@ def test_metric_tracker_zero_persistence():
 
     assert metrics["persistence_rmse"] == 0.0
     assert math.isnan(metrics["skill"])
+
+# now I test the dataset.py
+class DummyNormalizer:
+    """mock normalizer for unit tests"""
+    def transform(self, frame: np.ndarray) -> np.ndarray:
+        return frame
+
+@pytest.fixture
+def dummy_static_tensor():
+    """Generates a 4-channel static tensor (Elevation, Slope, SinAspect, CosAspect)."""
+    return np.zeros((4, 10, 10), dtype=np.float32)
+
+@pytest.fixture
+def dummy_npz_file(tmp_path):
+    """Creates a temporary .npz dataset file with 24 hourly timestamps."""
+    npz_path = tmp_path / "weather_tensors_2026.npz"
+
+    T, H, W = 24, 10, 10
+    hourly_tensor = np.ones((T, 4, H, W), dtype=np.float32)
+    hourly_deltas = np.full((T, 4, H, W), 0.1, dtype=np.float32)
+
+    #timestamps are in Jan
+    timestamps = [
+        f"2026-01-01T{h:02d}:00:00" if h < 24 else f"2026-01-02T{h-24:02d}:00:00"
+        for h in range(T)
+    ]
+
+    np.savez_compressed(
+        npz_path,
+        hourly_tensor=hourly_tensor,
+        hourly_timestamps=np.array(timestamps, dtype="U19"),
+        hourly_deltas=hourly_deltas,
+    )
+    return str(npz_path)
+
+#1. the follwoning tests are just to check that the utility funcitons work
+def test_hour_angle_midnight_and_noon_returns_expected_trig_values():
+    """Test _hour_angle converts midnight to (0, 1) and noon to (0, -1)
+    since this is how polar cordinates work"""
+    timestamps = ["2026-01-01T00:00:00", "2026-01-01T12:00:00"]
+    sin_vals, cos_vals = _hour_angle(timestamps)
+
+    # Midnight (00:00): sin(0) = 0.0, cos(0) = 1.0
+    assert pytest.approx(sin_vals[0], abs=1e-4) == 0.0
+    assert pytest.approx(cos_vals[0], abs=1e-4) == 1.0
+
+    # Noon (12:00): sin(pi) = 0.0, cos(pi) = -1.0
+    assert pytest.approx(sin_vals[1], abs=1e-4) == 0.0
+    assert pytest.approx(cos_vals[1], abs=1e-4) == -1.0
+
+
+def test_attach_static_and_time_3d_dynamic_returns_concatenated_shape(dummy_static_tensor):
+    """Test 3D dynamic tensor (4 channels) attaches static (4) and time (2) -> 10 channels."""
+    dynamic_3d = np.zeros((4, 10, 10), dtype=np.float32)
+    result = attach_static_and_time(dynamic_3d, dummy_static_tensor, hour_sin=0.0, hour_cos=1.0)
+
+    # Shape: (4 dynamic + 4 static + 1 sin + 1 cos, H=10, W=10) = (10, 10, 10)
+    assert result.shape == (10, 10, 10)
+
+
+def test_attach_static_and_time_4d_dynamic_returns_concatenated_shape(dummy_static_tensor):
+    """Test 4D dynamic tensor sequence (T, 4, H, W) attaches static and time correctly."""
+    T, H, W = 6, 10, 10
+    dynamic_4d = np.zeros((T, 4, H, W), dtype=np.float32)
+    hour_sin = np.zeros(T, dtype=np.float32)
+    hour_cos = np.ones(T, dtype=np.float32)
+
+    result = attach_static_and_time(dynamic_4d, dummy_static_tensor, hour_sin, hour_cos)
+
+    # Shape: (T=6, 10 channels, H=10, W=10)
+    assert result.shape == (6, 10, H, W)
+
+
+def test_attach_static_and_time_invalid_ndim_raises_value_error(dummy_static_tensor):
+    """Test passing invalid tensor dimensions (e.g. 2D) raises ValueError."""
+    invalid_dynamic = np.zeros((10, 10), dtype=np.float32)
+    with pytest.raises(ValueError, match="Unexpected dynamic tensor ndim"):
+        attach_static_and_time(invalid_dynamic, dummy_static_tensor, 0.0, 1.0)
+
+
+#2 the following tests check indexing and dataset mechanics
+
+def test_weather_rollout_dataset_len_valid_indices(dummy_npz_file, dummy_static_tensor):
+    """Test dataset length matches valid sliding window count based on T, input_hours, rollout_steps."""
+    split_cfg = WeatherDatasetSplitConfig(input_hours=6, rollout_steps=4)
+    dataset = WeatherRolloutDataset(
+        npz_paths=[dummy_npz_file],
+        static_tensor=dummy_static_tensor,
+        raw_normalizer=DummyNormalizer(),
+        delta_normalizer=DummyNormalizer(),
+        cfg=split_cfg,
+    )
+
+    # Total timestamps = 24.
+    # Valid indices: input_hours - 1 (5) to T - 1 - rollout_steps + 1 (20)
+    # Expected samples = 24 - 6 - 4 + 1 = 15.
+    assert len(dataset) == 15
+
+
+def test_weather_rollout_dataset_getitem_returns_correct_tensor_shapes_and_types(
+    dummy_npz_file, dummy_static_tensor
+):
+    """Test __getitem__ returns correctly formatted PyTorch Tensors with accurate window shapes."""
+    split_cfg = WeatherDatasetSplitConfig(input_hours=6, rollout_steps=4)
+    dataset = WeatherRolloutDataset(
+        npz_paths=[dummy_npz_file],
+        static_tensor=dummy_static_tensor,
+        raw_normalizer=DummyNormalizer(),
+        delta_normalizer=DummyNormalizer(),
+        cfg=split_cfg,
+    )
+
+    sample = dataset[0]
+
+    assert isinstance(sample["input_seq"], torch.Tensor)
+    assert sample["input_seq"].shape == (6, 10, 10, 10)  # (InputHours=6, Channels=10, H=10, W=10)
+
+    assert isinstance(sample["anchor_dynamic_raw"], torch.Tensor)
+    assert sample["anchor_dynamic_raw"].shape == (4, 10, 10)  # Anchor frame (4 weather vars)
+
+    assert isinstance(sample["future_dynamic_raw"], torch.Tensor)
+    assert sample["future_dynamic_raw"].shape == (4, 4, 10, 10)  # (Rollout=4, Vars=4, H=10, W=10)
+
+    assert isinstance(sample["future_deltas_norm"], torch.Tensor)
+    assert sample["future_deltas_norm"].shape == (4, 4, 10, 10)
+
+    assert sample["future_hour_sin"].shape == (4,)
+    assert sample["future_hour_cos"].shape == (4,)
+
+
+def test_weather_rollout_dataset_split_by_month_invalid_month_raises_error(
+    dummy_npz_file, dummy_static_tensor
+):
+    """Test split_by_month raises ValueError when requesting a month not present in dataset."""
+    dataset = WeatherRolloutDataset(
+        npz_paths=[dummy_npz_file],
+        static_tensor=dummy_static_tensor,
+        raw_normalizer=DummyNormalizer(),
+        delta_normalizer=DummyNormalizer(),
+    )
+
+    # Data is only in January. Requesting month 12 should fail.
+    with pytest.raises(ValueError, match="matched no samples"):
+        dataset.split_by_month(val_months={12})
