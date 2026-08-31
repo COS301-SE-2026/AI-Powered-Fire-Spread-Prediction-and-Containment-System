@@ -51,3 +51,41 @@ def get_cached_prediction(key: str) -> dict | None:
         return meta
     except Exception:
         None
+
+def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 86400):
+    """Stores the prediction metadata and compressed grid history in valkey"""
+
+    try:
+        history_arr = np.array(prediction_data["history"], dtype=np.int64).reshape(
+            len(prediction_data["history"]),
+            prediction_data["grid_h"],
+            prediction_data["grid_w"],
+        )
+
+        compressed_hist = blosc2.compress(history_arr.tobytes(), typesize=history_arr.itemsize, clevel=5)
+
+        meta = {
+            "ref": prediction_data["ref"],
+            "lat": prediction_data["lat"],
+            "lng": prediction_data["lng"],
+            "burned_cells": prediction_data["burned_cells"],
+            "radius_m": prediction_data["radius_m"],
+            "truncated": prediction_data["truncated"],
+            "lat_extent_deg": prediction_data["lat_extent_deg"],
+            "lon_extent_deg": prediction_data["lon_extent_deg"],
+            "grid_h": prediction_data["grid_h"],
+            "grid_w": prediction_data["grid_w"],
+            "cell_size_m": prediction_data["cell_size_m"],
+            "n_steps": len(prediction_data["history"]),
+        }
+
+        client.hset(
+            key,
+            mapping={
+                "meta": json.dumps(meta),
+                "history": compressed_hist
+            }
+        )
+        client.expire(key, ttl_seconds)
+    except Exception:
+        pass
