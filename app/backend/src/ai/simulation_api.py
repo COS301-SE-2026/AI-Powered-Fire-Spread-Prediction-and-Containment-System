@@ -77,6 +77,7 @@ class SimulationResponse(BaseModel):
 
 class OnDemandSimRequest(BaseModel):
     n_steps: int = Field(288, ge=1, le=288, description="Number of sim steps")
+    containment_lines: list[str] = Field(default_factory=list, description="List of WKT containment lines")
 
 def burned_area_radius_m(
     burned_cells: int, H: int, W: int, lat_extent_deg: float, lon_extent_deg: float
@@ -89,10 +90,11 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
-async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore, containment_lines: list[str] | None=None) -> Prediction:
     """
     Executes the whole DCA pipeline for a single fire
     """
+    lines = containment_lines or []
     boundary_m = float(fire.boundary_radius) * 1000
 
     min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
@@ -119,6 +121,9 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         n_steps=automatic_steps,
         cell_size_m=cell_size_m
     )
+
+    if lines:
+        cache_key = f"{cache_key}:lines_{hash(tuple(lines))}"
 
     cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
     if cached_result is not None:
@@ -147,6 +152,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         ignition_mask = build_boundary_ignition_mask(
             H, W, cell_size_m, boundary_m
         )
+        grid_bounds = (min_lon, min_lat, max_lon, max_lat)
 
         try:
             history = await asyncio.to_thread(
@@ -155,6 +161,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
                 static_grids=static_grids,
                 n_steps=automatic_steps,
                 ignition_mask=ignition_mask,
+                containment_lines=lines,
+                grid_bounds=grid_bounds,
                 params=DEFAULT_DCA_PARAMS,
                 cell_size_m=cell_size_m
             )
@@ -260,4 +268,4 @@ async def run_single_fire_simulation(
         raise HTTPException(status_code=404, detail=f"Verified fire {fire_id} not found")
 
     semaphore = asyncio.Semaphore(1)
-    return await simulate_single_fire(fire, req.n_steps, semaphore)
+    return await simulate_single_fire(fire, req.n_steps, semaphore, req.containment_lines)
