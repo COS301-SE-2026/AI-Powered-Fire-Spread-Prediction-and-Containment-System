@@ -152,6 +152,35 @@ def _resample_to_shape(
             return dst.read(1, out_shape=out_shape, resampling=resampling)
 
 
+def _read_window_single(
+    file_path: str,
+    min_lon: float,
+    min_lat: float,
+    max_lon: float,
+    max_lat: float,
+    out_shape: tuple[int, int],
+    resampling: Resampling,
+) -> np.ndarray:
+    """Read from single / remote bucket.
+    Only fetches the bytes covering the window"""
+    with rasterio.open(file_path) as src:
+        if src.crs is not None and src.crs.to_epsg() != 4326:
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = transform_bounds(
+                "EPSG:4326", src.crs, min_lon, min_lat, max_lon, max_lat
+            )
+        else:
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = (
+                min_lon,
+                min_lat,
+                max_lon,
+                max_lat,
+            )
+        window = from_bounds(
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform
+        )
+        return src.read(1, window=window, out_shape=out_shape, resampling=resampling)
+
+
 def _read_worldcover_window(
     worldcover_map_path: Optional[str],
     min_lon: float,

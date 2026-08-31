@@ -1,6 +1,13 @@
 import numpy as np
 import pytest
 
+from models.users import User
+from models.reported_fires import FireReports
+from models.notification import Notification
+from models.containment_lines import ContainmentLines
+from models.role_request import RoleRequest
+
+
 @pytest.fixture
 def small_grids():
     def _make(H=5, W=5):

@@ -56,14 +56,17 @@ export default function Simulation() {
     pause();
   }
 
-    const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-    const totalHours = hasResult ? (maxSlider / 4) : 72;
-    return (
-        <FirefighterSideBar hideLoginRegister>
-            <div className='p-4 flex flex-col h-full w-full gap-y-3'>
-
-                {/* Page header and subtitle */}
-                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
+  const maxSlider = Math.max(totalTicks - 1, 1); // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
+  const totalHours = hasResult ? maxSlider / 4 : 72;
+  return (
+    <FirefighterSideBar hideLoginRegister>
+      <div className="p-4 flex flex-col h-full w-full gap-y-3">
+        {/* Page header and subtitle */}
+        <PageHeader
+          title="Fire Simulation"
+          subtitle="Simulate fire spread and prevention methods"
+          showIcons
+        />
 
         <div className="flex flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
