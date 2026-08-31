@@ -196,7 +196,7 @@ export default function Simulation() {
                   </button>
                   <button
                     onClick={handleClear}
-                    disabled={!hasResult || isLoading}
+                    disabled={isLoading}
                     className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
                     <Trash2 size={20}/>

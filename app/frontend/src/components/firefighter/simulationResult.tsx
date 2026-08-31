@@ -7,6 +7,8 @@ interface SimulationResultsProps {
   predictions?: Prediction[];
   currentTick?: number;
   status?: SimulationStatus;
+  containmentLines?: string[];
+  selectedFireId?: string | null;
 }
 
 function countStates(grid: number[] | undefined) {
@@ -24,6 +26,8 @@ export function SimulationResults({
   predictions = [],
   currentTick = 0,
   status = 'idle',
+  containmentLines = [],
+  selectedFireId = null,
 }: SimulationResultsProps) {
   const { environmentVariables } = useNearbyFires();
 
@@ -155,7 +159,10 @@ export function SimulationResults({
       {/* logged containment lines */}
       <div>
         <p className="text-sm uppercase py-2">containment lines logged</p>
-        <LoggedContainmentLine />
+        <LoggedContainmentLine 
+          lines={containmentLines}
+          selectedFireId={selectedFireId}
+        />
       </div>
     </div>
   );

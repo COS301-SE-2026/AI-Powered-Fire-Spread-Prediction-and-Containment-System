@@ -57,12 +57,17 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     }
   });
 
-  // sync it to its parent component
   useEffect(() => {
-    if(containmentLine.length > 0){
-      onContainmentChange?.(containmentLine.map((l) => l.wkt))
+    try{
+      const stored = sessionStorage.getItem(storageKey);
+      const lines = stored ? JSON.parse(stored) : [];
+      setContainmentLine(lines);
+      onContainmentChange?.(lines.map((line: SavedContainmentLine) => line.wkt));
+    }catch {
+      setContainmentLine([]);
+      onContainmentChange?.([]);
     }
-  }, [])
+  }, [storageKey])
 
   // update the session storage whenever a containment line is changed
   useEffect(() => {
@@ -75,7 +80,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     }catch {
       console.warn(" failed to save the session storage")
     }
-  }, [containmentLine, storageKey])
+  }, [containmentLine])
 
   useEffect(() => {
     async function syncFires() {
@@ -150,6 +155,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       });
 
       onDrawComplete(wkt);
+
+      if(drawRef.current) {
+        drawRef.current.deleteAll();
+      }
     },
     [onDrawComplete, onContainmentChange]
   );
@@ -192,7 +201,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     setContainmentLine([]);
     sessionStorage.removeItem(storageKey)
     onContainmentChange?.([]);
-  }, [clearDrawings, storageKey, onContainmentChange]);
+  }, [clearDrawings]);
 
   // GeoJson collection for mapbox
   const containmentFeatures = useMemo(() => ({
@@ -376,7 +385,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             paint={{
               'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
               'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
-              'fill-antialias': true,
+              'fill-antialias': false,
             }}
           />
 
@@ -405,7 +414,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             paint={{
               'line-color': '#38bdf8',
               'line-width': 6,
-              'line-opacity': 0.4,
+              'line-opacity': 0.7,
             }}
           />
 
