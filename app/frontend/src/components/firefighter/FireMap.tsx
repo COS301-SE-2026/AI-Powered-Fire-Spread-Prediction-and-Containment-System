@@ -14,12 +14,18 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 
+interface SavedContainmentLine {
+  id: string;
+  wkt: string;
+  feature: Feature<LineString>;
+}
 
 interface MapProps{
     lat: number;
     lng: number;
     drawMode: boolean;
     onDrawComplete: (line: string) => void;
+    onContainmentChange?: (wktLines: string[]) => void;
     clearDrawings: number;
     burnGrid?: number[] | null;
     predictions?: Prediction[];
@@ -38,6 +44,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+
+  const [contianmentLine, setContainmentLine] = useState<SavedContainmentLine[]>([]);
+  const [showContainmentLine, setShowContainmentLine] = useState<boolean>(true);
 
   useEffect(() => {
     async function syncFires() {
