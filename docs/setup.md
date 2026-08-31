@@ -124,11 +124,6 @@ docker compose logs -f frontend
 
 - Run the commands from the root of the repository to execute them in the correct context:
 
-```bash
-yarn dev
-yarn build
-yarn lint
-```
 
 - To run from app/backend:
 
@@ -136,6 +131,7 @@ yarn lint
 yarn test # runs all test files in the tests folder
 yarn start
 yarn dev
+yarn lint   # runs pylint locally
 ```
 
 - To run from app/frontend:
