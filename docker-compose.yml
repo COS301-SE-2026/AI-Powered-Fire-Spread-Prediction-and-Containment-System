@@ -81,23 +81,24 @@ services:
   frontend:
     build:
       context: ./app/frontend
-      dockerfile: Dockerfile
+      dockerfile: app/frontend/Dockerfile
     container_name: next-frontend
     restart: unless-stopped
     env_file:
       - .env
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     volumes:
-      - ./app/frontend:/app:Z
-      - frontend_node_modules:/app/node_modules:Z
+      - ./app/frontend:/repo/app/frontend:Z
+      - frontend_node_modules:/repo/app/frontend/node_modules:Z
     expose:
       - "3000"
     environment:
       NODE_ENV: development
     command: ["sh", "-c", "yarn install && yarn dev"]
     healthcheck:
-      test: ["CMD-SHELL", "wget -q0- http://localhost:3000 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
