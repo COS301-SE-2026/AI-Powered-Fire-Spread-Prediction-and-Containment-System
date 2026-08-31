@@ -149,7 +149,7 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run pylint
-        run: PYTHONPATH=src:. pylint src --fail-under=8.0
+        run: PYTHONPATH=src:. pylint --recursive=y . --fail-under=8.0
 
   frontend-build:
     name: Frontend Build
