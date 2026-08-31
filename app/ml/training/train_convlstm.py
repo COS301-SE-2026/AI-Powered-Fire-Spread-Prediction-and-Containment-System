@@ -58,10 +58,10 @@ class Trainer:
         delta_normalizer: DeltaNormalizer,
         cfg: TrainConfig,
     ):
-    """
-    maps model to the gpu/cpu
-    pre-loads static terrain and normalization stats for easy memory access
-    """
+        """
+        maps model to the gpu/cpu
+        pre-loads static terrain and normalization stats for easy memory access
+        """
         self.model = model.to(cfg.device)
         self.train_loader = train_loader
         self.val_loader = val_loader

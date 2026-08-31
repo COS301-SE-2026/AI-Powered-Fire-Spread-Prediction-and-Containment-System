@@ -12,6 +12,7 @@ from app.ml.training.dataset import (
     _hour_angle,
     attach_static_and_time,
 )
+
 #First I test the loss function, then the metrics
 def test_smooth_l1_delta_loss_initialization():
     """ Tests default and custom beta initialization"""
@@ -40,29 +41,30 @@ def test_smooth_l1_delta_loss_l2_region():
     target =torch.tensor([1.0])
     loss = loss_fn(pred, target)
     assert pytest.approx(loss.item(), 0.0001) == 0.125
-    
+
 def test_smooth_l1_delta_loss_l1_region():
     """Test the L1 (MAE) region where absolute error is greater than beta."""
     beta = 1.0
     loss_fn = SmoothL1DeltaLoss(beta=beta)
-    
+
     # Error is 2.0, which is > beta (1.0).
     # Formula: |err| - 0.5 * beta = 2.0 - 0.5 = 1.5
     pred = torch.tensor([3.0])
     target = torch.tensor([1.0])
-    
+
     loss = loss_fn(pred, target)
     assert pytest.approx(loss.item(), 0.0001) == 1.5
+
 def test_smooth_l1_delta_loss_multidimensional():
     """Test that the loss handles 4D tensors (Batch, Channel, H, W) correctly."""
     loss_fn = SmoothL1DeltaLoss()
-    
+
     # Simulating a batch size of 2, 4 weather variables, 10x10 map grid
     pred = torch.randn(2, 4, 10, 10)
     target = torch.randn(2, 4, 10, 10)
-    
+
     loss = loss_fn(pred, target)
-    
+
     # By default, PyTorch's SmoothL1Loss reduces the output to a single scalar mean
     assert loss.dim() == 0
     assert loss.item() >= 0
@@ -199,7 +201,6 @@ def test_hour_angle_midnight_and_noon_returns_expected_trig_values():
     assert pytest.approx(sin_vals[1], abs=1e-4) == 0.0
     assert pytest.approx(cos_vals[1], abs=1e-4) == -1.0
 
-
 def test_attach_static_and_time_3d_dynamic_returns_concatenated_shape(dummy_static_tensor):
     """Test 3D dynamic tensor (4 channels) attaches static (4) and time (2) -> 10 channels."""
     dynamic_3d = np.zeros((4, 10, 10), dtype=np.float32)
@@ -207,7 +208,6 @@ def test_attach_static_and_time_3d_dynamic_returns_concatenated_shape(dummy_stat
 
     # Shape: (4 dynamic + 4 static + 1 sin + 1 cos, H=10, W=10) = (10, 10, 10)
     assert result.shape == (10, 10, 10)
-
 
 def test_attach_static_and_time_4d_dynamic_returns_concatenated_shape(dummy_static_tensor):
     """Test 4D dynamic tensor sequence (T, 4, H, W) attaches static and time correctly."""
@@ -221,13 +221,11 @@ def test_attach_static_and_time_4d_dynamic_returns_concatenated_shape(dummy_stat
     # Shape: (T=6, 10 channels, H=10, W=10)
     assert result.shape == (6, 10, H, W)
 
-
 def test_attach_static_and_time_invalid_ndim_raises_value_error(dummy_static_tensor):
     """Test passing invalid tensor dimensions (e.g. 2D) raises ValueError."""
     invalid_dynamic = np.zeros((10, 10), dtype=np.float32)
     with pytest.raises(ValueError, match="Unexpected dynamic tensor ndim"):
         attach_static_and_time(invalid_dynamic, dummy_static_tensor, 0.0, 1.0)
-
 
 #2 the following tests check indexing and dataset mechanics
 
@@ -295,3 +293,109 @@ def test_weather_rollout_dataset_split_by_month_invalid_month_raises_error(
         dataset.split_by_month(val_months={12})
 
 def test_tf_p_for_epoch_start_returns_start_value():
+    """Test that at epoch 0, the teacher forcing probability is exactly tf_p_start."""
+    cfg = TrainConfig(tf_p_start=1.0, tf_p_end=0.0, tf_p_anneal_epochs=10)
+    result = tf_p_for_epoch(0, cfg)
+    assert pytest.approx(result, abs=1e-4) == 1.0
+
+def test_tf_p_for_epoch_midpoint_returns_interpolated_value():
+    """Test that halfway through the anneal schedule, the probability is perfectly split."""
+    cfg = TrainConfig(tf_p_start=1.0, tf_p_end=0.0, tf_p_anneal_epochs=10)
+    result = tf_p_for_epoch(5, cfg)
+    assert pytest.approx(result, abs=1e-4) == 0.5
+
+def test_tf_p_for_epoch_after_anneal_returns_end_value():
+    """Test that after the anneal epochs have passed, the probability clamps to tf_p_end."""
+    cfg = TrainConfig(tf_p_start=1.0, tf_p_end=0.0, tf_p_anneal_epochs=10)
+    result = tf_p_for_epoch(15, cfg)
+    assert pytest.approx(result, abs=1e-4) == 0.0
+
+class DummyWeatherDeltaModel(nn.Module):
+    """dummy model to test the training loop without loading ConvLSTM."""
+    def __init__(self):
+        super().__init__()
+        #single trainable parameter so we can check backpropagation
+        self.dummy_layer = nn.Linear(1, 1) 
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        B, T, C, H, W = x.shape
+        #Return a tensor matching the expected future deltas shape: (B, 4, H, W)
+        base_output = torch.zeros((B, 4, H, W), device=x.device)
+        return base_output + self.dummy_layer(torch.zeros(1, device=x.device))[0]
+
+class DummyStats:
+    def __init__(self, channels: int):
+        self.mean = np.zeros(channels, dtype=np.float32)
+        self.std = np.ones(channels, dtype=np.float32)
+
+class DummyNorm:
+    def __init__(self, channels: int):
+        self.stats = DummyStats(channels)
+
+@pytest.fixture
+def dummy_train_batch():
+    """Generates a perfectly shaped tensor payload imitating a DataLoader batch."""
+    B, T, H, W = 2, 6, 8, 8
+    return {
+        "input_seq": torch.zeros((B, T, 10, H, W), dtype=torch.float32),
+        "anchor_dynamic_raw": torch.zeros((B, 4, H, W), dtype=torch.float32),
+        "future_dynamic_raw": torch.zeros((B, 4, 4, H, W), dtype=torch.float32), # (B, Rollout, Vars, H, W)
+        "future_deltas_norm": torch.zeros((B, 4, 4, H, W), dtype=torch.float32),
+        "future_hour_sin": torch.zeros((B, 4), dtype=torch.float32),
+        "future_hour_cos": torch.zeros((B, 4), dtype=torch.float32),
+    }
+
+def test_trainer_train_epoch_updates_model_parameters(dummy_train_batch):
+    """Test that running a training epoch successfully executes backpropagation and updates weights."""
+    cfg = TrainConfig(device="cpu", rollout_steps=4, epochs=1)
+    model = DummyWeatherDeltaModel()
+    static_tensor = np.zeros((4, 8, 8), dtype=np.float32)
+    
+    # Mock data loaders that yield exactly one batch
+    train_loader = [dummy_train_batch]
+    val_loader = []
+
+    trainer = Trainer(
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        static_tensor=static_tensor,
+        raw_normalizer=DummyNorm(channels=10),    # FIX: 10 channels for raw inputs
+        delta_normalizer=DummyNorm(channels=4),   # FIX: 4 channels for deltas
+        cfg=cfg
+    )
+    # Capture the weight of the dummy parameter before training
+    param_before = model.dummy_layer.weight.clone()
+    # We modify the target slightly so the loss isn't zero (forcing a gradient)
+    dummy_train_batch["future_deltas_norm"] += 1.0 
+    loss = trainer.train_epoch(epoch=0)
+    # Capture the weight after training
+    param_after = model.dummy_layer.weight.clone()
+    assert loss > 0.0
+    # If backprop was successful, the optimizer should have shifted the weights
+    assert not torch.equal(param_before, param_after)
+
+def test_trainer_validate_epoch_computes_metrics_without_crashing(dummy_train_batch):
+    """Test that the validation loop correctly executes inference and returns metric dictionaries."""
+    cfg = TrainConfig(device="cpu", rollout_steps=4, epochs=1)
+    model = DummyWeatherDeltaModel()
+    static_tensor = np.zeros((4, 8, 8), dtype=np.float32)
+
+    train_loader = []
+    val_loader = [dummy_train_batch] # Inject the batch into the validation loader
+
+    trainer = Trainer(
+        model=model,
+        train_loader=train_loader,
+        val_loader=val_loader,
+        static_tensor=static_tensor,
+        raw_normalizer=DummyNorm(channels=10),    # FIX: 10 channels for raw inputs
+        delta_normalizer=DummyNorm(channels=4),   # FIX: 4 channels for deltas
+        cfg=cfg
+    )
+    val_loss, val_metrics = trainer.validate_epoch()
+
+    assert val_loss >= 0.0
+    # Validate the dictionary structure returned by MetricTracker
+    assert isinstance(val_metrics, dict)
+    assert "wind_u" in val_metrics
