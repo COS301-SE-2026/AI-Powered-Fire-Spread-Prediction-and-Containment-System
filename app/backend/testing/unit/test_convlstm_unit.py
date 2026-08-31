@@ -2,6 +2,8 @@ import pytest
 import torch
 import numpy as np
 import math
+import torch.nn as nn
+from app.ml.training.train_convlstm import tf_p_for_epoch, TrainConfig, Trainer
 from app.ml.training.losses import SmoothL1DeltaLoss
 from app.ml.training.metrics import MetricTracker
 from app.ml.training.dataset import (
@@ -291,3 +293,5 @@ def test_weather_rollout_dataset_split_by_month_invalid_month_raises_error(
     # Data is only in January. Requesting month 12 should fail.
     with pytest.raises(ValueError, match="matched no samples"):
         dataset.split_by_month(val_months={12})
+
+def test_tf_p_for_epoch_start_returns_start_value():

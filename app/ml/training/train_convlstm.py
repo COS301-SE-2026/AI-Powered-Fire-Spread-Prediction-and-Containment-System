@@ -36,6 +36,10 @@ class TrainConfig:
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
 def tf_p_for_epoch(epoch: int, cfg: TrainConfig) -> float:
+    """
+    calculates "teacher forcing" probability ofr current epoch
+    it linearly decays prob from tf_p_start to _tf_p_end over a set number of epochs
+    """
     if cfg.tf_p_anneal_epochs <= 0:
         return cfg.tf_p_end
     frac = min(epoch / cfg.tf_p_anneal_epochs, 1.0)
@@ -43,6 +47,7 @@ def tf_p_for_epoch(epoch: int, cfg: TrainConfig) -> float:
 
 
 class Trainer:
+    """this encapsulates the whole training process for the model"""
     def __init__(
         self,
         model: WeatherDeltaModel,
@@ -53,6 +58,10 @@ class Trainer:
         delta_normalizer: DeltaNormalizer,
         cfg: TrainConfig,
     ):
+    """
+    maps model to the gpu/cpu
+    pre-loads static terrain and normalization stats for easy memory access
+    """
         self.model = model.to(cfg.device)
         self.train_loader = train_loader
         self.val_loader = val_loader
@@ -86,6 +95,10 @@ class Trainer:
         return (full_raw - self.raw_mean) / self.raw_std
 
     def _rollout(self, batch: dict, tf_p: float) -> dict:
+        """
+        steps through the multi-hour forecast window one step at a time.
+        At each step, it predicts the next weather delta
+         """
         window = batch["input_seq"].to(self.device)
         current_dynamic_raw = batch["anchor_dynamic_raw"].to(self.device)
         future_dynamic_raw = batch["future_dynamic_raw"].to(self.device)
@@ -128,6 +141,7 @@ class Trainer:
 
 
     def train_epoch(self, epoch: int) -> float:
+        """Sets the model to training mode and iterates over the entire training DataLoader"""
         self.model.train()
         tf_p = tf_p_for_epoch(epoch, self.cfg)
         total_loss, n_batches = 0.0, 0
@@ -143,6 +157,10 @@ class Trainer:
         return total_loss / max(n_batches, 1)
 
     def validate_epoch(self) -> tuple[float, dict]:
+        """
+        Sets the model to evaluation mode (disabling gradients) and processes
+        the validation DataLoader
+        """
         self.model.eval()
         total_loss, n_batches = 0.0, 0
         tracker = MetricTracker(num_steps=self.cfg.rollout_steps)
@@ -160,6 +178,11 @@ class Trainer:
         return total_loss / max(n_batches, 1), tracker.compute()
 
     def fit(self, num_epochs: int, early_stopping_patience: int = 10) -> None:
+        """
+        calls train_epoch and validate_epoch sequentially,
+        prints the progress to the console, tracks the best validation loss,
+        and stops training early if the model fails to improve after a set number of epochs
+        """
         epochs_without_improvement = 0
         for epoch in range(num_epochs):
             train_loss = self.train_epoch(epoch)
@@ -179,6 +202,12 @@ class Trainer:
                     break
 
     def save_checkpoint(self, epoch: int, val_metrics: dict, is_best: bool = False) -> None:
+        """
+        Whenever the validation loss reaches a new low, this method serializes 
+        the model weights to a
+        model.pt file and dumps the performance metrics to a metadata.json
+        file inside the app/artifact_store/weather_convlstm/LATEST directory.
+        """
         if not is_best:
             return
         out_dir = Path("app/artifact_store/weather_convlstm/LATEST")
@@ -195,6 +224,11 @@ class Trainer:
 def build_normalizers(
     npz_paths: list[str], static_tensor: np.ndarray
 ) -> tuple[RawChannelNormalizer, DeltaNormalizer]:
+    """
+    loops through raw .npz to extract a subset of the historical frames and target deltas
+    it attaches the static terrain and cyclic time embeddings to these frames, then fits the 2 normalizers
+    so they can sclae data correctly before it hits the NN
+    """
     raw_frames, delta_frames = [], []
     for p in npz_paths:
         data = np.load(p)
@@ -216,6 +250,10 @@ def build_normalizers(
 
 
 def main() -> None:
+    """
+    the CLI entrypoint for the script
+    parses CL arguments, sets random seeds, loads datasets, configs DataLoader instances
+    """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--weather-tensors-dir", default=TrainConfig.weather_tensors_dir)
     ap.add_argument("--static-tensor-path", default=TrainConfig.static_tensor_path)
