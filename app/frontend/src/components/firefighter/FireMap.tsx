@@ -46,15 +46,14 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
   const checkGuestNotifications = useGuestNotifications(showToast);
 
-  const verifiedFires = useMemo(
-    () => fires.filter((f) => f.status?.toLowerCase() === 'verified'),
-    [fires]
-  );
-
   useEffect(() => {
     async function syncFires() {
       if (fires && fires.length > 0) {
-        setActiveFires(fires);
+        const verifiedFires = fires.filter(
+          (f) => f.status?.toLowerCase() === 'verified'
+        );
+
+        setActiveFires(verifiedFires);
         const mapped: FireReportMapResponse[] = fires.map((f) => ({
           id: f.ref,
           reference_number: f.ref,
@@ -75,8 +74,11 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       if (!isOnline) {
         const cached = await offlineStore.getCachedIncidents();
         if (cached && cached.length > 0) {
+          const verifiedCached = cached.filter(
+            (c) => c.status?.toLowerCase() === 'verified'
+          );
           setActiveFires(
-            cached.map((c) => ({
+            verifiedCached.map((c) => ({
               ref: c.reference_number,
               location: c.location_text,
               status: c.status as ReportStatus,
