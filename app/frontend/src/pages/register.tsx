@@ -39,11 +39,11 @@ const fieldClass = (hasError?: string) =>
     hasError ? 'border-flare' : 'border-carbon-stroke'
   }`;
 
-  const ROLE_REQUEST: Record<string, string> = {
-    admin: '/admin/dashboard',
-    firefighter: '/firefighter/dashboard',
-    user: '/users/live-map'
-  };
+const ROLE_REQUEST: Record<string, string> = {
+  admin: '/admin/dashboard',
+  firefighter: '/firefighter/dashboard',
+  user: '/users/live-map',
+};
 
 export default function Register() {
   const [form, setForm] = useState<RegisterForm>({
@@ -130,13 +130,13 @@ export default function Register() {
     setIsLoading(true);
     try {
       const payload: RegisterRequest = {
-          email: form.email,
-          password: form.password,
-          name: form.name,
-          surname: form.surname,
-          id_number: form.idNumber,
-          license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
-        };
+        email: form.email,
+        password: form.password,
+        name: form.name,
+        surname: form.surname,
+        id_number: form.idNumber,
+        license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
+      };
 
       const data: TwoFARequiredResponse = await apiCall('api/auth/register', 'POST', payload);
 

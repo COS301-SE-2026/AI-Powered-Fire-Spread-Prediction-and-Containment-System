@@ -1,4 +1,4 @@
-""" This checks if 2 fire reports is of the same fire """
+"""This checks if 2 fire reports is of the same fire"""
 
 from datetime import timedelta
 
@@ -15,9 +15,10 @@ from models.reported_fires import FireReports
 WINDOW = timedelta(hours=12)
 RADIUS_METERS = 2000
 
+
 # anonymous reports can never corroborate another report(no identity) they can receive corroboration from other registered user
 def corroborating_reports(report: FireReports, session: Session) -> list[str]:
-    """ finds fire reports from other users near this fires location and time. Return list of IDs """
+    """finds fire reports from other users near this fires location and time. Return list of IDs"""
 
     start_time = report.submitted_at - WINDOW
     end_time = report.submitted_at + WINDOW
@@ -29,7 +30,6 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
         if report.user_id is None
         else FireReports.user_id != report.user_id
     )
-
 
     query = select(FireReports.id).where(
         identity,

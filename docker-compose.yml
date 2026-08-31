@@ -44,7 +44,6 @@ services:
       - VALKEY_HOST=valkey
       - MINIO_ENDPOINT=minio:9000
       - PYTHONPATH=/app/src:/app
-      - VALKEY_HOST=valkey
       - VALKEY_PORT=6379
     restart: unless-stopped
     env_file:
@@ -58,6 +57,7 @@ services:
         condition: service_healthy
     volumes:
       - ./app/backend:/app:Z
+      - ./app/ml:/app/ml:Z
       - ./artifact_store:/app/artifact_store:Z
       - /app/.venv
     ports:
@@ -117,6 +117,21 @@ services:
       
   
   
+  reseed:
+    build:
+      context: ./app/backend
+      dockerfile: Dockerfile
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app/src:/app
+    volumes:
+      - ./app/backend:/app:Z
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "seed.py", "--reseed"]
 
   # pwa:
   #   build:
