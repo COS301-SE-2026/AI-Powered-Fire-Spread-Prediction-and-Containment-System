@@ -35,7 +35,7 @@ interface MapProps{
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false, onContainmentChange}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -45,8 +45,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-  const [contianmentLine, setContainmentLine] = useState<SavedContainmentLine[]>([]);
-  const [showContainmentLine, setShowContainmentLine] = useState<boolean>(true);
+  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>([]);
 
   useEffect(() => {
     async function syncFires() {
@@ -107,9 +106,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       if (line.geometry.type !== 'LineString') return;
       const coords = (line.geometry as LineString).coordinates;
       const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+
+      const newLine: SavedContainmentLine = {
+        id: String(line.id ?? Date.now()),
+        wkt,
+        feature: line as Feature<LineString>
+      }
+
+      setContainmentLine((prev) => {
+        const updated = [...prev, newLine];
+        onContainmentChange?.(updated.map((l) => l.wkt));
+        return updated;
+      });
+
       onDrawComplete(wkt);
     },
-    [onDrawComplete]
+    [onDrawComplete, onContainmentChange]
   );
 
   useEffect(() => {
@@ -137,10 +149,19 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     };
   }, [drawMode, handleDrawCreate]);
 
+  // Reset the containment lines on clear
   useEffect(() => {
     if (!drawRef.current) return;
     drawRef.current.deleteAll();
-  }, [clearDrawings]);
+    setContainmentLine([]);
+    onContainmentChange?.([]);
+  }, [clearDrawings, onContainmentChange]);
+
+  // GeoJson collection for mapbox
+  const containmentFeatures = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: containmentLine.map((l) => l.feature)
+  }), [containmentLine]);
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
@@ -275,6 +296,36 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </Marker>
       ))}
+
+      {/* Containment Lines */}
+      {containmentLine.length > 0 && (
+        <Source
+          id='containment-lines'
+          type='geojson'
+          data={containmentFeatures}
+        >
+          <Layer
+            id='containment-line-glow'
+            type='line'
+            paint={{
+              'line-color': '#38bdf8',
+              'line-width': 6,
+              'line-opacity': 0.4,
+            }}
+          />
+
+          <Layer
+            id='containment-line-center'
+            type='line'
+            paint={{
+              'line-color': '#0284c7',
+              'line-width': 2.5,
+              'line-dasharray': [2, 1],
+            }}
+          />
+
+        </Source>
+      )}
 
       {/* Circles around markers */}
       {circleFeatures.length > 0 && (
