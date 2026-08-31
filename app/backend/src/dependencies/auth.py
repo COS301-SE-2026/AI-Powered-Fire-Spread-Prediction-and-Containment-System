@@ -1,15 +1,67 @@
-# This is for any route that needs to check if person is logged and has correct role
-# Reads cookie, decodes token and either blocks or allows request
+import os
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import bcrypt
 from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from auth import ALGORITHM, SECRET_KEY
 from db import get_db
 from enums.user_role import UserRole
 from models.users import User
+
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")
+
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
+
+
+def hash_password(password: str) -> str:
+    """Return bcrypt hash of the password."""
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify plain password against stored hash."""
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
+
+
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+    """Create JWT access token."""
+    if not SECRET_KEY:
+        raise RuntimeError("JWT_SECRET_KEY environment variable not set")
+    to_encode = data.copy()
+    
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (
+        expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def decode_token(token: str) -> Optional[str]:
+    """
+    Returns user_id claim if token is valid, else None.
+    Used by notifications WebSocket handshake where there is no cookie and no Request object
+    to pull a header from.
+    """
+    if not SECRET_KEY:
+        return None
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("user_id")
+    except JWTError:
+        return None
+
 
 def extract_token(request: Request) -> Optional[str]:
     token = request.cookies.get("access_token")
@@ -52,6 +104,7 @@ def require_role(*allowed_roles):
                 detail="You do not have permission to access this resource",
             )
         return user
+
     return role_checker
 
 

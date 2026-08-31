@@ -10,18 +10,20 @@ export default function GuestPublicDashboard() {
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
   const { userLocation, nearbyFires } = useNearbyFires();
 
-    return (
-        <UserSideBar>
-            <div className="flex flex-col p-6 relative h-full overflow-hidden">
-
-                {/* Public View Header */}
-                <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons
-                    // actions = {
-                    //     <button type="button" onClick={() => setIsAlertsOpen(true)}>
-                    //         View Alerts
-                    //     </button>
-                    // }
-                />
+  return (
+    <UserSideBar>
+      <div className="flex flex-col p-6 relative h-full overflow-hidden">
+        {/* Public View Header */}
+        <PageHeader
+          title="Incident Map"
+          subtitle="Public Fire Map View"
+          showIcons
+          // actions = {
+          //     <button type="button" onClick={() => setIsAlertsOpen(true)}>
+          //         View Alerts
+          //     </button>
+          // }
+        />
 
         {/* Grid */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start h-full pb-10">

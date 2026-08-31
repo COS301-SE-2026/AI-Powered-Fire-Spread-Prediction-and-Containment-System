@@ -109,7 +109,7 @@ export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) 
   return (
     <div className="flex flex-col p-2">
       <header>
-      <PageHeader title="Report a fire" showIcons={showHeaderIcons} />
+        <PageHeader title="Report a fire" showIcons={showHeaderIcons} />
         <div className="mt-2">
           <StepIndicator />
         </div>

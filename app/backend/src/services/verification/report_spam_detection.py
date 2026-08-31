@@ -1,4 +1,4 @@
-""" Flags reuse photos & abnormally fast submission rates from a single user  """
+"""Flags reuse photos & abnormally fast submission rates from a single user"""
 
 from datetime import timedelta
 
@@ -11,24 +11,30 @@ from models.reported_fires import FireReports
 WINDOW = timedelta(hours=1)
 MAX_REPORTS = 3
 
+
 def abnormal_rate(report: FireReports, session: Session) -> bool:
-    """ Checks if user has submitted more than MAX_REPORTS within WINDOW """
+    """Checks if user has submitted more than MAX_REPORTS within WINDOW"""
     if report.user_id is None:
         return False
 
     start = report.submitted_at - WINDOW
 
-    query = select(func.count()).select_from(FireReports).where(
-        FireReports.user_id == report.user_id,
-        FireReports.submitted_at >= start,
-        FireReports.submitted_at <= report.submitted_at,
+    query = (
+        select(func.count())
+        .select_from(FireReports)
+        .where(
+            FireReports.user_id == report.user_id,
+            FireReports.submitted_at >= start,
+            FireReports.submitted_at <= report.submitted_at,
+        )
     )
     result = session.execute(query)
     count = result.scalar_one()
     return count > MAX_REPORTS
 
+
 def duplicate_photo_hash(report: FireReports, session: Session) -> list[str]:
-    """ Find users that used same exact photo. Returns IDs of matching reports  """
+    """Find users that used same exact photo. Returns IDs of matching reports"""
 
     if not report.photo_hash:
         return []
@@ -42,4 +48,3 @@ def duplicate_photo_hash(report: FireReports, session: Session) -> list[str]:
 
     result = session.execute(query)
     return [row[0] for row in result.all()]
-

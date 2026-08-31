@@ -9,6 +9,7 @@ import { GuestReports } from '../../components/guest/GuestReports';
 import { GuestActions } from '../../components/guest/GuestActions';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 
 const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -36,6 +37,7 @@ export default function GuestPublicDashboard() {
     <SideBar items={guestNavItems} hideLogout>
       <div className="flex flex-col px-1 py-1 sm:px-1 sm:py-1 lg:px-6 lg:py-6">
         {/* Header */}
+        <NotificationToastHost />
         <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons={false} />
 
         {/* Grid */}

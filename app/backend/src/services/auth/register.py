@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from auth import hash_password
+from dependencies.auth import hash_password
 from models.users import User
 from schemas.auth import RegisterRequest
 

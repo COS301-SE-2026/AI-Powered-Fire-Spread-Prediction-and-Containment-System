@@ -52,12 +52,15 @@ class FireReports(Base):
     containment_lines = relationship("ContainmentLines", back_populates="fire_report")
 
     # for the autoverification of fire reports
-    priority = Column(Enum(ReportPriority), default=ReportPriority.normal, nullable=False)
+    priority = Column(
+        Enum(ReportPriority), default=ReportPriority.normal, nullable=False
+    )
     system_verified = Column(Boolean, default=False, nullable=False)
     verification_notes = Column(Text, nullable=True)
 
     # for verification of the photo hash
     photo_hash = Column(String(64), nullable=True, index=True)
+
     @property
     def reporter(self) -> str:
         if self.user is None:
