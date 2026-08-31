@@ -1,7 +1,7 @@
 import pyotp
 from sqlalchemy.orm import Session
 
-from app.backend.auth import create_access_token
+from app.backend.src.dependencies.auth import create_access_token
 from app.backend.src.models.users import User
 from app.backend.src.schemas.auth import Two_FA_Verify_Request
 

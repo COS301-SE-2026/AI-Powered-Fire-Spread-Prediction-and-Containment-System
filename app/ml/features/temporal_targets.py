@@ -1,7 +1,7 @@
-
 from __future__ import annotations
 
 import numpy as np
+
 
 class TemporalTargetBuilder:
     """
@@ -11,7 +11,8 @@ class TemporalTargetBuilder:
     substeps_per_hour = 4, this class can create data every 15 minutes
     using linear interpolation.
     """
-    def __init__(self, substeps_per_hour: int = 4, method: str = "linear"): 
+
+    def __init__(self, substeps_per_hour: int = 4, method: str = "linear"):
         if method != "linear":
             raise NotImplementedError("Only linear interpolation is implemented.")
         self.substeps_per_hour = substeps_per_hour
@@ -20,7 +21,9 @@ class TemporalTargetBuilder:
     def interpolate(self, hourly_dynamic: np.ndarray) -> np.ndarray:
         T, C, H, W = hourly_dynamic.shape
         if T < 2:
-            raise ValueError("Input array must have at least 2 time steps for interpolation.")
+            raise ValueError(
+                "Input array must have at least 2 time steps for interpolation."
+            )
         n = self.substeps_per_hour
         out_len = (T - 1) * n + 1
         out = np.zeros((out_len, C, H, W), dtype=hourly_dynamic.dtype)
@@ -38,13 +41,15 @@ class TemporalTargetBuilder:
 
     def quarter_hourly_timestamps(self, hourly_timestamps: list[str]) -> list[str]:
         from datetime import datetime, timedelta
- 
+
         n = self.substeps_per_hour
         step_minutes = 60 // n
         out: list[str] = []
         parsed = [datetime.fromisoformat(ts) for ts in hourly_timestamps]
         for i in range(len(parsed) - 1):
             for k in range(n):
-                out.append((parsed[i] + timedelta(minutes=step_minutes * k)).isoformat())
+                out.append(
+                    (parsed[i] + timedelta(minutes=step_minutes * k)).isoformat()
+                )
         out.append(parsed[-1].isoformat())
         return out

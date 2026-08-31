@@ -17,7 +17,12 @@ class MetricTracker:
         self._sq_err_persistence = np.zeros(shape, dtype=np.float64)
         self._count = np.zeros(shape, dtype=np.int64)
 
-    def update(self, pred_frames: np.ndarray, target_frames: np.ndarray, persistence_frames: np.ndarray) -> None:
+    def update(
+        self,
+        pred_frames: np.ndarray,
+        target_frames: np.ndarray,
+        persistence_frames: np.ndarray,
+    ) -> None:
         model_sq = (pred_frames - target_frames) ** 2
         persistence_sq = (persistence_frames - target_frames) ** 2
         for c in range(len(self.variables)):
@@ -34,7 +39,11 @@ class MetricTracker:
                 n = max(self._count[c, s], 1)
                 model_rmse = float(np.sqrt(self._sq_err_model[c, s] / n))
                 persistence_rmse = float(np.sqrt(self._sq_err_persistence[c, s] / n))
-                skill = 1.0 - (model_rmse / persistence_rmse) if persistence_rmse > 1e-8 else float("nan")
+                skill = (
+                    1.0 - (model_rmse / persistence_rmse)
+                    if persistence_rmse > 1e-8
+                    else float("nan")
+                )
                 results[var][s + 1] = {
                     "model_rmse": model_rmse,
                     "persistence_rmse": persistence_rmse,

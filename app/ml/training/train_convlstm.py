@@ -1,20 +1,26 @@
 from __future__ import annotations
- 
+
 import argparse
 import random
 from dataclasses import dataclass, field
 from pathlib import Path
- 
+
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, random_split
- 
+
 from app.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
 from app.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
-from app.ml.training.dataset import WeatherDatasetSplitConfig, WeatherRolloutDataset, attach_static_and_time, _hour_angle
+from app.ml.training.dataset import (
+    WeatherDatasetSplitConfig,
+    WeatherRolloutDataset,
+    attach_static_and_time,
+    _hour_angle,
+)
 from app.ml.training.losses import SmoothL1DeltaLoss
 from app.ml.training.metrics import MetricTracker
- 
+
+
 @dataclass
 class TrainConfig:
     weather_tensors_dir: str = "app/datasets/processed/weather_tensors"
@@ -35,6 +41,7 @@ class TrainConfig:
     seed: int = 7
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
+
 def tf_p_for_epoch(epoch: int, cfg: TrainConfig) -> float:
     """
     calculates "teacher forcing" probability ofr current epoch
@@ -48,6 +55,7 @@ def tf_p_for_epoch(epoch: int, cfg: TrainConfig) -> float:
 
 class Trainer:
     """this encapsulates the whole training process for the model"""
+
     def __init__(
         self,
         model: WeatherDeltaModel,
@@ -69,22 +77,46 @@ class Trainer:
         self.device = cfg.device
 
         self.loss_fn = SmoothL1DeltaLoss()
-        self.optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay)
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=cfg.epochs)
+        self.optimizer = torch.optim.AdamW(
+            model.parameters(), lr=cfg.lr, weight_decay=cfg.weight_decay
+        )
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            self.optimizer, T_max=cfg.epochs
+        )
 
-        self.static_tensor = torch.from_numpy(static_tensor.astype(np.float32)).to(self.device)
+        self.static_tensor = torch.from_numpy(static_tensor.astype(np.float32)).to(
+            self.device
+        )
 
         delta_mean, delta_std = delta_normalizer.stats.mean, delta_normalizer.stats.std
-        self.delta_mean = torch.from_numpy(delta_mean.astype(np.float32)).view(1, -1, 1, 1).to(self.device)
-        self.delta_std = torch.from_numpy(delta_std.astype(np.float32)).view(1, -1, 1, 1).to(self.device)
+        self.delta_mean = (
+            torch.from_numpy(delta_mean.astype(np.float32))
+            .view(1, -1, 1, 1)
+            .to(self.device)
+        )
+        self.delta_std = (
+            torch.from_numpy(delta_std.astype(np.float32))
+            .view(1, -1, 1, 1)
+            .to(self.device)
+        )
 
         raw_mean, raw_std = raw_normalizer.stats.mean, raw_normalizer.stats.std
-        self.raw_mean = torch.from_numpy(raw_mean.astype(np.float32)).view(1, -1, 1, 1).to(self.device)
-        self.raw_std = torch.from_numpy(raw_std.astype(np.float32)).view(1, -1, 1, 1).to(self.device)
+        self.raw_mean = (
+            torch.from_numpy(raw_mean.astype(np.float32))
+            .view(1, -1, 1, 1)
+            .to(self.device)
+        )
+        self.raw_std = (
+            torch.from_numpy(raw_std.astype(np.float32))
+            .view(1, -1, 1, 1)
+            .to(self.device)
+        )
 
         self.best_val_loss = float("inf")
 
-    def _attach_and_normalize(self, dynamic_raw: torch.Tensor, hour_sin: torch.Tensor, hour_cos: torch.Tensor) -> torch.Tensor:
+    def _attach_and_normalize(
+        self, dynamic_raw: torch.Tensor, hour_sin: torch.Tensor, hour_cos: torch.Tensor
+    ) -> torch.Tensor:
         """dynamic_raw: (B,4,H,W); hour_sin/hour_cos: (B,). Returns
         normalized (B,9,H,W) ready to append to the input window."""
         B, _, H, W = dynamic_raw.shape
@@ -98,7 +130,7 @@ class Trainer:
         """
         steps through the multi-hour forecast window one step at a time.
         At each step, it predicts the next weather delta
-         """
+        """
         window = batch["input_seq"].to(self.device)
         current_dynamic_raw = batch["anchor_dynamic_raw"].to(self.device)
         future_dynamic_raw = batch["future_dynamic_raw"].to(self.device)
@@ -116,7 +148,9 @@ class Trainer:
             pred_frames_raw.append(next_dynamic_raw_pred)
 
             use_teacher = random.random() < tf_p
-            next_dynamic_raw = future_dynamic_raw[:, step] if use_teacher else next_dynamic_raw_pred
+            next_dynamic_raw = (
+                future_dynamic_raw[:, step] if use_teacher else next_dynamic_raw_pred
+            )
 
             next_full_norm = self._attach_and_normalize(
                 next_dynamic_raw, future_hour_sin[:, step], future_hour_cos[:, step]
@@ -124,13 +158,18 @@ class Trainer:
             window = torch.cat([window[:, 1:], next_full_norm.unsqueeze(1)], dim=1)
             current_dynamic_raw = next_dynamic_raw
 
-        pred_deltas_norm = torch.stack(pred_deltas_norm, dim=1)  # (B,rollout_steps,4,H,W)
+        pred_deltas_norm = torch.stack(
+            pred_deltas_norm, dim=1
+        )  # (B,rollout_steps,4,H,W)
         pred_frames_raw = torch.stack(pred_frames_raw, dim=1)
 
-        loss = sum(
-            self.loss_fn(pred_deltas_norm[:, s], future_deltas_norm[:, s])
-            for s in range(self.cfg.rollout_steps)
-        ) / self.cfg.rollout_steps
+        loss = (
+            sum(
+                self.loss_fn(pred_deltas_norm[:, s], future_deltas_norm[:, s])
+                for s in range(self.cfg.rollout_steps)
+            )
+            / self.cfg.rollout_steps
+        )
 
         return {
             "loss": loss,
@@ -138,7 +177,6 @@ class Trainer:
             "target_frames_raw": future_dynamic_raw,
             "anchor_raw": batch["anchor_dynamic_raw"].to(self.device),
         }
-
 
     def train_epoch(self, epoch: int) -> float:
         """Sets the model to training mode and iterates over the entire training DataLoader"""
@@ -149,7 +187,9 @@ class Trainer:
             self.optimizer.zero_grad()
             out = self._rollout(batch, tf_p)
             out["loss"].backward()
-            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.cfg.grad_clip_norm)
+            torch.nn.utils.clip_grad_norm_(
+                self.model.parameters(), self.cfg.grad_clip_norm
+            )
             self.optimizer.step()
             total_loss += out["loss"].item()
             n_batches += 1
@@ -169,7 +209,7 @@ class Trainer:
                 out = self._rollout(batch, tf_p=0.0)
                 total_loss += out["loss"].item()
                 n_batches += 1
- 
+
                 pred = out["pred_frames_raw"].cpu().numpy()
                 target = out["target_frames_raw"].cpu().numpy()
                 anchor = out["anchor_raw"].cpu().numpy()
@@ -188,8 +228,10 @@ class Trainer:
             train_loss = self.train_epoch(epoch)
             val_loss, val_metrics = self.validate_epoch()
             tf_p = tf_p_for_epoch(epoch, self.cfg)
-            print(f"epoch {epoch:03d}  tf_p={tf_p:.2f}  train_loss={train_loss:.4f}  val_loss={val_loss:.4f}")
- 
+            print(
+                f"epoch {epoch:03d}  tf_p={tf_p:.2f}  train_loss={train_loss:.4f}  val_loss={val_loss:.4f}"
+            )
+
             is_best = val_loss < self.best_val_loss
             if is_best:
                 self.best_val_loss = val_loss
@@ -198,12 +240,16 @@ class Trainer:
             else:
                 epochs_without_improvement += 1
                 if epochs_without_improvement >= early_stopping_patience:
-                    print(f"Early stopping at epoch {epoch} (no improvement for {early_stopping_patience} epochs)")
+                    print(
+                        f"Early stopping at epoch {epoch} (no improvement for {early_stopping_patience} epochs)"
+                    )
                     break
 
-    def save_checkpoint(self, epoch: int, val_metrics: dict, is_best: bool = False) -> None:
+    def save_checkpoint(
+        self, epoch: int, val_metrics: dict, is_best: bool = False
+    ) -> None:
         """
-        Whenever the validation loss reaches a new low, this method serializes 
+        Whenever the validation loss reaches a new low, this method serializes
         the model weights to a
         model.pt file and dumps the performance metrics to a metadata.json
         file inside the app/artifact_store/weather_convlstm/LATEST directory.
@@ -214,9 +260,16 @@ class Trainer:
         out_dir.mkdir(parents=True, exist_ok=True)
         torch.save(self.model.state_dict(), out_dir / "model.pt")
         import json
- 
+
         (out_dir / "metadata.json").write_text(
-            json.dumps({"epoch": epoch, "val_loss": self.best_val_loss, "val_metrics": val_metrics}, indent=2)
+            json.dumps(
+                {
+                    "epoch": epoch,
+                    "val_loss": self.best_val_loss,
+                    "val_metrics": val_metrics,
+                },
+                indent=2,
+            )
         )
         print(f"  saved checkpoint -> {out_dir}")
 
@@ -270,7 +323,9 @@ def main() -> None:
     torch.manual_seed(cfg.seed)
     random.seed(cfg.seed)
 
-    npz_paths = sorted(str(p) for p in Path(cfg.weather_tensors_dir).glob("weather_tensors_*.npz"))
+    npz_paths = sorted(
+        str(p) for p in Path(cfg.weather_tensors_dir).glob("weather_tensors_*.npz")
+    )
     if not npz_paths:
         raise FileNotFoundError(
             f"No weather_tensors_*.npz found in {cfg.weather_tensors_dir} — "
@@ -287,13 +342,19 @@ def main() -> None:
 
     raw_norm, delta_norm = build_normalizers(npz_paths, static_tensor)
 
-    split_cfg = WeatherDatasetSplitConfig(input_hours=cfg.input_hours, rollout_steps=cfg.rollout_steps)
-    full_dataset = WeatherRolloutDataset(npz_paths, static_tensor, raw_norm, delta_norm, split_cfg)
+    split_cfg = WeatherDatasetSplitConfig(
+        input_hours=cfg.input_hours, rollout_steps=cfg.rollout_steps
+    )
+    full_dataset = WeatherRolloutDataset(
+        npz_paths, static_tensor, raw_norm, delta_norm, split_cfg
+    )
 
     n_val = int(len(full_dataset) * cfg.val_fraction)
     n_train = len(full_dataset) - n_val
     train_set, val_set = random_split(
-        full_dataset, [n_train, n_val], generator=torch.Generator().manual_seed(cfg.seed)
+        full_dataset,
+        [n_train, n_val],
+        generator=torch.Generator().manual_seed(cfg.seed),
     )
     # NOTE: random_split here is a placeholder — the real framing calls for
     # a TIME-BASED split (contiguous months/fire-seasons), not a random one,
@@ -303,13 +364,16 @@ def main() -> None:
     train_loader = DataLoader(train_set, batch_size=cfg.batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=cfg.batch_size, shuffle=False)
 
-    model_cfg = WeatherDeltaModelConfig(hidden_dims=cfg.hidden_dims, kernel_size=cfg.kernel_size)
+    model_cfg = WeatherDeltaModelConfig(
+        hidden_dims=cfg.hidden_dims, kernel_size=cfg.kernel_size
+    )
     model = WeatherDeltaModel(model_cfg)
 
-    trainer = Trainer(model, train_loader, val_loader, static_tensor, raw_norm, delta_norm, cfg)
+    trainer = Trainer(
+        model, train_loader, val_loader, static_tensor, raw_norm, delta_norm, cfg
+    )
     trainer.fit(cfg.epochs)
 
 
 if __name__ == "__main__":
     main()
-

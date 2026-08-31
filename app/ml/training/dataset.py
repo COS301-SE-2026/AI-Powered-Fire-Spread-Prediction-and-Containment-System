@@ -11,12 +11,15 @@ from app.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
 
 
 def _hour_angle(timestamps: list[str]) -> tuple[np.ndarray, np.ndarray]:
-    """this function take the ISO-formatted timestamp strings 
-    and converts them to cyclic time embeddings, meaning it allows the model to understand 
-    the cyclical nature of time, i.e. every day starts at the beginnign, so 23:00 and 01:00 are 
+    """this function take the ISO-formatted timestamp strings
+    and converts them to cyclic time embeddings, meaning it allows the model to understand
+    the cyclical nature of time, i.e. every day starts at the beginnign, so 23:00 and 01:00 are
     close to eachother, very cool"""
     hours = np.array(
-        [datetime.fromisoformat(ts).hour + datetime.fromisoformat(ts).minute / 60.0 for ts in timestamps],
+        [
+            datetime.fromisoformat(ts).hour + datetime.fromisoformat(ts).minute / 60.0
+            for ts in timestamps
+        ],
         dtype=np.float32,
     )
     angle = 2 * np.pi * hours / 24.0
@@ -24,7 +27,10 @@ def _hour_angle(timestamps: list[str]) -> tuple[np.ndarray, np.ndarray]:
 
 
 def attach_static_and_time(
-    dynamic: np.ndarray, static: np.ndarray, hour_sin: np.ndarray | float, hour_cos: np.ndarray | float
+    dynamic: np.ndarray,
+    static: np.ndarray,
+    hour_sin: np.ndarray | float,
+    hour_cos: np.ndarray | float,
 ) -> np.ndarray:
     """
     takes the dynamic weather features and static terrain features, combines them into
@@ -39,8 +45,12 @@ def attach_static_and_time(
         T, _, H, W = dynamic.shape
         C_static = static.shape[0]
         static_rep = np.broadcast_to(static, (T, C_static, H, W))
-        hs = np.asarray(hour_sin, dtype=np.float32).reshape(T, 1, 1, 1) * np.ones((1, 1, H, W), dtype=np.float32)
-        hc = np.asarray(hour_cos, dtype=np.float32).reshape(T, 1, 1, 1) * np.ones((1, 1, H, W), dtype=np.float32)
+        hs = np.asarray(hour_sin, dtype=np.float32).reshape(T, 1, 1, 1) * np.ones(
+            (1, 1, H, W), dtype=np.float32
+        )
+        hc = np.asarray(hour_cos, dtype=np.float32).reshape(T, 1, 1, 1) * np.ones(
+            (1, 1, H, W), dtype=np.float32
+        )
         return np.concatenate([dynamic, static_rep, hs, hc], axis=1)
     raise ValueError(f"Unexpected dynamic tensor ndim {dynamic.ndim}")
 
@@ -50,8 +60,10 @@ class WeatherDatasetSplitConfig:
     input_hours: int = 6
     rollout_steps: int = 4
 
+
 # This class handles the heavy lifting of slicing the data
 # into valid training batches :)
+
 
 class WeatherRolloutDataset(Dataset):
     def __init__(
@@ -62,7 +74,7 @@ class WeatherRolloutDataset(Dataset):
         delta_normalizer: DeltaNormalizer,
         cfg: WeatherDatasetSplitConfig = WeatherDatasetSplitConfig(),
     ):
-        """ obv initializes class
+        """obv initializes class
         stores normalizers into static tensors, then loads hourly npz. arrays"""
         self.cfg = cfg
         self.static_tensor = static_tensor.astype(np.float32)
@@ -84,11 +96,11 @@ class WeatherRolloutDataset(Dataset):
                 self._index.append((file_idx, h))
 
     def __len__(self) -> int:
-        #get length
+        # get length
         return len(self._index)
 
     def __getitem__(self, idx: int) -> dict:
-        #gets item at index 
+        # gets item at index
         file_idx, h = self._index[idx]
         cfg = self.cfg
 
@@ -99,7 +111,9 @@ class WeatherRolloutDataset(Dataset):
         window_dynamic = hourly[h - cfg.input_hours + 1 : h + 1]
         window_ts = [str(t) for t in hourly_ts[h - cfg.input_hours + 1 : h + 1]]
         w_sin, w_cos = _hour_angle(window_ts)
-        input_seq = attach_static_and_time(window_dynamic, self.static_tensor, w_sin, w_cos)
+        input_seq = attach_static_and_time(
+            window_dynamic, self.static_tensor, w_sin, w_cos
+        )
         input_seq_norm = self._normalize_sequence(input_seq)
 
         anchor_dynamic_raw = hourly[h]
@@ -112,9 +126,15 @@ class WeatherRolloutDataset(Dataset):
 
         return {
             "input_seq": torch.from_numpy(input_seq_norm.astype(np.float32)),
-            "anchor_dynamic_raw": torch.from_numpy(anchor_dynamic_raw.astype(np.float32)),
-            "future_dynamic_raw": torch.from_numpy(future_dynamic_raw.astype(np.float32)),
-            "future_deltas_norm": torch.from_numpy(future_deltas_norm.astype(np.float32)),
+            "anchor_dynamic_raw": torch.from_numpy(
+                anchor_dynamic_raw.astype(np.float32)
+            ),
+            "future_dynamic_raw": torch.from_numpy(
+                future_dynamic_raw.astype(np.float32)
+            ),
+            "future_deltas_norm": torch.from_numpy(
+                future_deltas_norm.astype(np.float32)
+            ),
             "future_hour_sin": torch.from_numpy(future_hs),
             "future_hour_cos": torch.from_numpy(future_hc),
         }
@@ -125,10 +145,14 @@ class WeatherRolloutDataset(Dataset):
 
     def _normalize_deltas(self, deltas: np.ndarray) -> np.ndarray:
         """helper that applies the DeltaNormalizer to the target outputs"""
-        return np.stack([self.delta_normalizer.transform(frame) for frame in deltas], axis=0)
+        return np.stack(
+            [self.delta_normalizer.transform(frame) for frame in deltas], axis=0
+        )
 
-    def split_by_month(self, val_months: set[int]) -> tuple["torch.utils.data.Subset", "torch.utils.data.Subset"]:
-        """instead of random shuffle, this function splits the dataset into training and validation 
+    def split_by_month(
+        self, val_months: set[int]
+    ) -> tuple["torch.utils.data.Subset", "torch.utils.data.Subset"]:
+        """instead of random shuffle, this function splits the dataset into training and validation
         sets strictly by month"""
         from datetime import datetime as _dt
 
@@ -146,6 +170,8 @@ class WeatherRolloutDataset(Dataset):
                 "months actually present in the fetched data."
             )
         if not train_idx:
-            raise ValueError(f"val_months={val_months} matched every sample — nothing left to train on.")
+            raise ValueError(
+                f"val_months={val_months} matched every sample — nothing left to train on."
+            )
 
         return Subset(self, train_idx), Subset(self, val_idx)

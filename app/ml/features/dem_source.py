@@ -47,7 +47,18 @@ def get_overlapping_tiles(
 
 
 class _TileInfo:
-    __slots__ = ("path", "left", "bottom", "right", "top", "width", "height", "crs", "dtype", "nodata")
+    __slots__ = (
+        "path",
+        "left",
+        "bottom",
+        "right",
+        "top",
+        "width",
+        "height",
+        "crs",
+        "dtype",
+        "nodata",
+    )
 
     def __init__(self, path, bounds, width, height, crs, dtype, nodata):
         self.path = path
@@ -121,9 +132,12 @@ def build_dem_vrt(
     nodata = infos[0].nodata
 
     gdal_dtype = {
-        "float32": "Float32", "float64": "Float64",
-        "int16": "Int16", "int32": "Int32",
-        "uint16": "UInt16", "uint8": "Byte",
+        "float32": "Float32",
+        "float64": "Float64",
+        "int16": "Int16",
+        "int32": "Int32",
+        "uint16": "UInt16",
+        "uint8": "Byte",
     }.get(str(dtype), "Float32")
 
     sources_xml = []

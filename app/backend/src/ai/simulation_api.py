@@ -46,7 +46,9 @@ class SimulationResponse(BaseModel):
 
 
 class OnDemandSimRequest(BaseModel):
-    nSteps: int = Field(288, ge=1, le=288, alias="n_steps", description="Number of sim steps")
+    nSteps: int = Field(
+        288, ge=1, le=288, alias="n_steps", description="Number of sim steps"
+    )
 
     class Config:
         populate_by_name = True
@@ -76,7 +78,9 @@ async def run_simulation(db: Session = Depends(get_db)) -> SimulationResponse:
 
     prediction_dicts = await asyncio.gather(
         *(
-            simulation_service.execute_single_fire_simulation(fire, automatic_steps, semaphore)
+            simulation_service.execute_single_fire_simulation(
+                fire, automatic_steps, semaphore
+            )
             for fire in verified_fires
         )
     )
@@ -110,15 +114,24 @@ async def run_single_fire_simulation(
             func.ST_X(FireReports.location_geom).label("lng"),
             FireReports.boundary_radius,
         )
-        .filter(FireReports.reference_number == fire_id, FireReports.status == ReportStatus.verified)
+        .filter(
+            FireReports.reference_number == fire_id,
+            FireReports.status == ReportStatus.verified,
+        )
         .first()
     )
 
     if fire is None:
-        logger.warning("Simulation requested for unknown or unverified fire: %s", fire_id)
-        raise HTTPException(status_code=404, detail=f"Verified fire {fire_id} not found")
+        logger.warning(
+            "Simulation requested for unknown or unverified fire: %s", fire_id
+        )
+        raise HTTPException(
+            status_code=404, detail=f"Verified fire {fire_id} not found"
+        )
 
     semaphore = asyncio.Semaphore(1)
-    prediction_dict = await simulation_service.execute_single_fire_simulation(fire, req.nSteps, semaphore)
+    prediction_dict = await simulation_service.execute_single_fire_simulation(
+        fire, req.nSteps, semaphore
+    )
 
     return Prediction(**prediction_dict)

@@ -21,6 +21,7 @@ from app.ml.features.terrain import extract_terrain_features
 
 os.environ.setdefault("AWS_NO_SIGN_REQUEST", "YES")
 
+
 @dataclass
 class RealDatasetConfig:
     hotspots_csv: str = "app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv"
@@ -120,6 +121,7 @@ def _optional(value) -> str | None:
     """Manifest blanks read back as '' or NaN; both mean 'stream from S3'."""
     return value if isinstance(value, str) and value.strip() else None
 
+
 def _static_features_for_fire(
     cfg, row, min_lon, min_lat, max_lon, max_lat
 ) -> dict[str, np.ndarray]:
@@ -176,6 +178,7 @@ def _rasterize_points(
     grid[row[valid], col[valid]] = True
     return grid
 
+
 def candidate_mask(burn: np.ndarray, dilation: int | None) -> np.ndarray:
     unburned = burn == UNBURNED
 
@@ -225,7 +228,9 @@ def load_real_dataset(
         in_event = (
             df["longitude"].between(min_lon, max_lon)
             & df["latitude"].between(min_lat, max_lat)
-            & df["datetime"].between(pd.Timestamp(event.ticks[0]), pd.Timestamp(event.ticks[-1]))
+            & df["datetime"].between(
+                pd.Timestamp(event.ticks[0]), pd.Timestamp(event.ticks[-1])
+            )
         )
 
         fire_df = df[in_event].sort_values("datetime")
@@ -250,19 +255,25 @@ def load_real_dataset(
         burn = np.zeros(cfg.target_shape, dtype=np.int8)
 
         for i in range(len(daily) - 1):
-            day_t, day_t1 = daily[i], daily[i+1]
+            day_t, day_t1 = daily[i], daily[i + 1]
 
             hotspots_t = _rasterize_points(
                 day_t["latitude"].to_numpy(),
                 day_t["longitude"].to_numpy(),
-                min_lon, min_lat, max_lon, max_lat,
+                min_lon,
+                min_lat,
+                max_lon,
+                max_lat,
                 cfg.target_shape,
             )
 
             hotspots_t1 = _rasterize_points(
                 day_t1["latitude"].to_numpy(),
                 day_t1["longitude"].to_numpy(),
-                min_lon, min_lat, max_lon, max_lat,
+                min_lon,
+                min_lat,
+                max_lon,
+                max_lat,
                 cfg.target_shape,
             )
 
@@ -284,7 +295,9 @@ def load_real_dataset(
 
             x_parts.append(x_tick[mask])
             y_parts.append(ignited_by_t1.ravel()[mask].astype(np.int8))
-            id_parts.append(np.full(int(mask.sum()), int(event.fire_id), dtype=np.int64))
+            id_parts.append(
+                np.full(int(mask.sum()), int(event.fire_id), dtype=np.int64)
+            )
 
             burn[burn == BURNING] = BURNED
             burn[hotspots_t1] = BURNING

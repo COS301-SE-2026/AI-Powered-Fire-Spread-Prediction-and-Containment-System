@@ -12,7 +12,6 @@ from app.backend.src.ai.features import grid_to_fmatrix, neighbour_features, shi
 from app.backend.src.ai.schema import BURNED, BURNING, UNBURNED
 
 
-
 @dataclass
 class SynthConfig:
     H: int = 64

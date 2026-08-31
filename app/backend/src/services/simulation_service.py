@@ -30,7 +30,10 @@ DEFAULT_DCA_PARAMS = {
 
 
 def grid_dimensions_for_extent(
-    lat_extent_deg: float, lon_extent_deg: float, lat: float, target_cell_size_m: float = TARGET_CELL_SIZE_M
+    lat_extent_deg: float,
+    lon_extent_deg: float,
+    lat: float,
+    target_cell_size_m: float = TARGET_CELL_SIZE_M,
 ) -> tuple[int, int]:
     """Calculates grid dimensions based on real-world target cell size.
 
@@ -46,14 +49,30 @@ def grid_dimensions_for_extent(
     lat_extent_m = lat_extent_deg * METRES_PER_DEG_LAT
     lon_extent_m = lon_extent_deg * METRES_PER_DEG_LAT * math.cos(math.radians(lat))
 
-    grid_h = int(np.clip(round(lat_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
-    grid_w = int(np.clip(round(lon_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
+    grid_h = int(
+        np.clip(
+            round(lat_extent_m / target_cell_size_m),
+            MIN_GRID_DIMENSION,
+            MAX_GRID_DIMENSION,
+        )
+    )
+    grid_w = int(
+        np.clip(
+            round(lon_extent_m / target_cell_size_m),
+            MIN_GRID_DIMENSION,
+            MAX_GRID_DIMENSION,
+        )
+    )
 
     return grid_h, grid_w
 
 
 def burned_area_radius_m(
-    burned_cells: int, grid_h: int, grid_w: int, lat_extent_deg: float, lon_extent_deg: float
+    burned_cells: int,
+    grid_h: int,
+    grid_w: int,
+    lat_extent_deg: float,
+    lon_extent_deg: float,
 ) -> float:
     """Calculates the estimated radius of the burned area in meters."""
     if burned_cells <= 0:
@@ -70,7 +89,10 @@ class SimulationService:
         try:
             self.weather_bridge = WeatherForecastBridge.load("LATEST")
         except FileNotFoundError as exc:
-            logger.warning("Weather model checkpoint not found; relying on real-time weather fallback: %s", exc)
+            logger.warning(
+                "Weather model checkpoint not found; relying on real-time weather fallback: %s",
+                exc,
+            )
             self.weather_bridge = None
 
     async def execute_single_fire_simulation(
@@ -93,19 +115,30 @@ class SimulationService:
             boundary_m = float(fire.boundary_radius) * 1000.0
 
             min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
-                lat=fire.lat, lng=fire.lng, boundary_radius_m=boundary_m, n_steps=automatic_steps
+                lat=fire.lat,
+                lng=fire.lng,
+                boundary_radius_m=boundary_m,
+                n_steps=automatic_steps,
             )
 
             lat_extent_deg = max_lat - min_lat
             lon_extent_deg = max_lon - min_lon
 
-            grid_h, grid_w = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, fire.lat)
+            grid_h, grid_w = grid_dimensions_for_extent(
+                lat_extent_deg, lon_extent_deg, fire.lat
+            )
 
             cell_size_lat_m = (lat_extent_deg / grid_h) * METRES_PER_DEG_LAT
-            cell_size_lon_m = (lon_extent_deg / grid_w) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
+            cell_size_lon_m = (
+                (lon_extent_deg / grid_w)
+                * METRES_PER_DEG_LAT
+                * math.cos(math.radians(fire.lat))
+            )
             cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2.0
 
-            resolved = await asyncio.to_thread(resolve_tile_paths, min_lon, min_lat, max_lon, max_lat)
+            resolved = await asyncio.to_thread(
+                resolve_tile_paths, min_lon, min_lat, max_lon, max_lat
+            )
 
             static_grids, weather_data = await load_real_inference_data(
                 b04_path=resolved.b04_path,
@@ -140,7 +173,9 @@ class SimulationService:
 
                 hours_needed = max(1, int(np.ceil(automatic_steps / 4)))
                 smoothed_weather = self.weather_bridge.forecast_for_simulation(
-                    history_tensor=history_tensor, rollout_steps=hours_needed, substeps_per_hour=4
+                    history_tensor=history_tensor,
+                    rollout_steps=hours_needed,
+                    substeps_per_hour=4,
                 )
 
                 weather_grids = []
@@ -157,7 +192,9 @@ class SimulationService:
             else:
                 weather_grids = weather_data
 
-            ignition_mask = build_boundary_ignition_mask(grid_h, grid_w, cell_size_m, boundary_m)
+            ignition_mask = build_boundary_ignition_mask(
+                grid_h, grid_w, cell_size_m, boundary_m
+            )
 
             try:
                 history = await asyncio.to_thread(
@@ -171,7 +208,9 @@ class SimulationService:
                 )
             except Exception as exc:
                 logger.error("DCA execution failed for fire %s: %s", fire.id, exc)
-                raise HTTPException(status_code=500, detail=f"Simulation failed for fire {fire.id}") from exc
+                raise HTTPException(
+                    status_code=500, detail=f"Simulation failed for fire {fire.id}"
+                ) from exc
 
             final_grid = history[-1]
             burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
@@ -183,7 +222,9 @@ class SimulationService:
                 "lng": fire.lng,
                 "history": [g.ravel().tolist() for g in history],
                 "burned_cells": burned_cells,
-                "radius_m": burned_area_radius_m(burned_cells, grid_h, grid_w, lat_extent_deg, lon_extent_deg),
+                "radius_m": burned_area_radius_m(
+                    burned_cells, grid_h, grid_w, lat_extent_deg, lon_extent_deg
+                ),
                 "truncated": truncated,
                 "lat_extent_deg": lat_extent_deg,
                 "lon_extent_deg": lon_extent_deg,

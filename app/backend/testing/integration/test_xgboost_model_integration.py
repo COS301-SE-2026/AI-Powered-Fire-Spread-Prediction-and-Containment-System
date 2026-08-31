@@ -10,7 +10,13 @@ from app.ml.training.train_ignition import group_split, train
 
 from app.backend.src.ai import artifact_store
 from app.backend.src.ai.ignition import IgnitionScorer
-from app.backend.src.ai.schema import BURNED, BURNING, FEATURES, SCHEMA_VERSION, UNBURNED
+from app.backend.src.ai.schema import (
+    BURNED,
+    BURNING,
+    FEATURES,
+    SCHEMA_VERSION,
+    UNBURNED,
+)
 
 
 # Shared fixture. (scope="module" -> Trains once per pytest run)

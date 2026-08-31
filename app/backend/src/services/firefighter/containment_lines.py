@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from geoalchemy2.elements import WKTElement
-from geoalchemy2.functions import ST_ClosestPoint, ST_Distance, ST_GeomFromText
+from geoalchemy2.functions import ST_Distance, ST_GeomFromText
 from geoalchemy2.shape import to_shape
 from geoalchemy2.types import Geography
 from sqlalchemy.orm import Session

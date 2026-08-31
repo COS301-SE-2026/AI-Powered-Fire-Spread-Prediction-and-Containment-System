@@ -3,14 +3,18 @@ from typing import Annotated, Union
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
-from app.backend.auth import ACCESS_TOKEN_EXPIRE_MINUTES
+from app.backend.src.dependencies.auth import ACCESS_TOKEN_EXPIRE_MINUTES
 from app.backend.db import get_db
-from app.backend.src.schemas.auth import LoginRequest, LoginResponse, MeResponse, Two_FA_Required_Response
+from app.backend.src.schemas.auth import (
+    LoginRequest,
+    LoginResponse,
+    MeResponse,
+    Two_FA_Required_Response,
+)
 from app.backend.src.services.auth.login import login_user
 
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
-
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -39,7 +43,11 @@ def login_route(
         path="/",
     )
 
-    return {"access_token": result["access_token"], "role": result["role"],}
+    return {
+        "access_token": result["access_token"],
+        "role": result["role"],
+    }
+
 
 @router.get("/me", response_model=MeResponse)
 def me_route(user: User = Depends(get_current_user)):

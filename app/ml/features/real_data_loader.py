@@ -51,7 +51,7 @@ async def load_real_inference_data(
             max_lon=max_lon,
             max_lat=max_lat,
             target_shape=target_shape,
-        )
+        ),
     )
 
     # comb into unified 'static' feature dict

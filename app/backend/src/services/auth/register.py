@@ -2,7 +2,7 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from app.backend.auth import hash_password
+from app.backend.src.dependencies.auth import hash_password
 from app.backend.src.models.users import User
 from app.backend.src.schemas.auth import RegisterRequest
 

@@ -32,6 +32,8 @@ HOURLY_VARS = [
     "wind_speed_10m",
     "wind_direction_10m",
 ]
+
+
 def calculate_wind_components(
     wind_speed: float, wind_dir_deg: float
 ) -> tuple[float, float]:
@@ -62,7 +64,7 @@ def fetch_historical_weather(
         "longitude": longitude,
         "start_date": start_date,
         "end_date": end_date,
-        "hourly": HOURLY_VARS
+        "hourly": HOURLY_VARS,
     }
 
     try:
@@ -152,11 +154,13 @@ def get_weather_at_timestamp(
         ),
     }
 
+
 """
 Grid fetching stuff below. 
 We need the whole SA mesh over many years rather than just a single point. 
 Functions above are not changed in terms of functionality.
 """
+
 
 def calculate_wind_components_vectorized(
     wind_speed: np.ndarray, wind_dir_deg: np.ndarray
@@ -170,7 +174,10 @@ def calculate_wind_components_vectorized(
     wind_v = -wind_speed * np.cos(rad)
     return np.round(wind_u, 4), np.round(wind_v, 4)
 
-def build_sa_grid_coords(resolution_deg: float = 0.5) -> list[tuple[np.ndarray, np.ndarray]]:
+
+def build_sa_grid_coords(
+    resolution_deg: float = 0.5,
+) -> list[tuple[np.ndarray, np.ndarray]]:
     """
     Builds a grid of lat/lon coordinates covering South Africa.
     Returns two 2D arrays: latitudes and longitudes.
@@ -180,10 +187,12 @@ def build_sa_grid_coords(resolution_deg: float = 0.5) -> list[tuple[np.ndarray, 
     lon_min, lon_max = 16.0, 33.0
     lats = np.arange(lat_max, lat_min - resolution_deg, -resolution_deg)
     lons = np.arange(lon_min, lon_max + resolution_deg, resolution_deg)
-    lat_grid, lon_grid = np.meshgrid(lats, lons, indexing='ij')
+    lat_grid, lon_grid = np.meshgrid(lats, lons, indexing="ij")
     return list(zip(lat_grid.ravel().tolist(), lon_grid.ravel().tolist()))
 
+
 import time
+
 
 def fetch_historical_weather_grid_year(
     coords: list[tuple[float, float]],
@@ -201,17 +210,23 @@ def fetch_historical_weather_grid_year(
     done_coords = set()
     if out_file.exists():
         existing = pd.read_csv(out_file, usecols=["latitude", "longitude"])
-        done_coords = set(zip(existing["latitude"].round(4), existing["longitude"].round(4)))
+        done_coords = set(
+            zip(existing["latitude"].round(4), existing["longitude"].round(4))
+        )
         print(f"Resuming: {len(done_coords)} points already saved in {out_file}")
 
-    remaining = [c for c in coords if (round(c[0], 4), round(c[1], 4)) not in done_coords]
-    print(f"Fetching historical weather grid for {region_name} ({len(remaining)}/{len(coords)} points remaining) for year {year}")
+    remaining = [
+        c for c in coords if (round(c[0], 4), round(c[1], 4)) not in done_coords
+    ]
+    print(
+        f"Fetching historical weather grid for {region_name} ({len(remaining)}/{len(coords)} points remaining) for year {year}"
+    )
 
     n_chunks = (len(remaining) + chunk_size - 1) // chunk_size
     header_written = out_file.exists()
 
     for i in range(0, len(remaining), chunk_size):
-        chunk = remaining[i:i + chunk_size]
+        chunk = remaining[i : i + chunk_size]
         chunk_num = i // chunk_size + 1
         print(f"  chunk {chunk_num}/{n_chunks} ({len(chunk)} points)...")
         latitudes, longitudes = zip(*chunk)
@@ -220,7 +235,7 @@ def fetch_historical_weather_grid_year(
             "longitude": longitudes,
             "start_date": start_date,
             "end_date": end_date,
-            "hourly": HOURLY_VARS
+            "hourly": HOURLY_VARS,
         }
 
         data = None
@@ -232,8 +247,10 @@ def fetch_historical_weather_grid_year(
                 break
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429:
-                    wait = base_delay * (2 ** attempt)
-                    print(f"    429 rate limited, retrying in {wait:.0f}s (attempt {attempt+1}/{max_retries})")
+                    wait = base_delay * (2**attempt)
+                    print(
+                        f"    429 rate limited, retrying in {wait:.0f}s (attempt {attempt+1}/{max_retries})"
+                    )
                     time.sleep(wait)
                 else:
                     print(f"    HTTP error for chunk {chunk_num}: {e}")
@@ -243,7 +260,9 @@ def fetch_historical_weather_grid_year(
                 break
 
         if data is None:
-            print(f"    giving up on chunk {chunk_num} for now — rerun later to pick up remaining points")
+            print(
+                f"    giving up on chunk {chunk_num} for now — rerun later to pick up remaining points"
+            )
             time.sleep(base_delay)
             continue
 
@@ -278,7 +297,9 @@ def fetch_historical_weather_grid_year(
 
         if chunk_frames:
             chunk_result = pd.concat(chunk_frames, ignore_index=True)
-            chunk_result.to_csv(out_file, mode="a", header=not header_written, index=False)
+            chunk_result.to_csv(
+                out_file, mode="a", header=not header_written, index=False
+            )
             header_written = True
             print(f"    saved {len(chunk_result):,} rows -> {out_file}")
 
@@ -286,12 +307,14 @@ def fetch_historical_weather_grid_year(
 
     return pd.read_csv(out_file) if out_file.exists() else pd.DataFrame()
     start_date, end_date = f"{year}-01-01", f"{year}-12-31"
-    print(f"Fetching historical weather grid for {region_name} ({len(coords)} points) for year {year}")
+    print(
+        f"Fetching historical weather grid for {region_name} ({len(coords)} points) for year {year}"
+    )
 
     frames = []
     n_chunks = (len(coords) + chunk_size - 1) // chunk_size
     for i in range(0, len(coords), chunk_size):
-        chunk = coords[i:i + chunk_size]
+        chunk = coords[i : i + chunk_size]
         chunk_num = i // chunk_size + 1
         print(f"  chunk {chunk_num}/{n_chunks} ({len(chunk)} points)...")
         latitudes, longitudes = zip(*chunk)
@@ -300,7 +323,7 @@ def fetch_historical_weather_grid_year(
             "longitude": longitudes,
             "start_date": start_date,
             "end_date": end_date,
-            "hourly": HOURLY_VARS
+            "hourly": HOURLY_VARS,
         }
 
         data = None
@@ -312,8 +335,10 @@ def fetch_historical_weather_grid_year(
                 break
             except httpx.HTTPStatusError as e:
                 if e.response.status_code == 429:
-                    wait = base_delay * (2 ** attempt)
-                    print(f"    429 rate limited, retrying in {wait:.0f}s (attempt {attempt+1}/{max_retries})")
+                    wait = base_delay * (2**attempt)
+                    print(
+                        f"    429 rate limited, retrying in {wait:.0f}s (attempt {attempt+1}/{max_retries})"
+                    )
                     time.sleep(wait)
                 else:
                     print(f"    HTTP error for chunk {chunk_num}: {e}")
@@ -354,7 +379,9 @@ def fetch_historical_weather_grid_year(
             df["longitude"] = lon
             frames.append(df)
 
-        time.sleep(base_delay)  # pace ourselves even on success, to avoid tripping the limit again
+        time.sleep(
+            base_delay
+        )  # pace ourselves even on success, to avoid tripping the limit again
 
     if not frames:
         print("No data fetched for any coordinates.")
@@ -366,13 +393,18 @@ def fetch_historical_weather_grid_year(
     result.to_csv(out_file, index=False)
     print(f"Saved {len(result):,} hourly weather records to: {out_file}")
     return result
+
+
 def fetch_historical_weather_grid_sa(
     start_year: int, end_year: int, resolution_deg: float = 0.5
 ) -> None:
     coords = build_sa_grid_coords(resolution_deg)
-    print(f"Fetching weather data for {len(coords)} grid points at {resolution_deg}° resolution from {start_year} to {end_year}")
+    print(
+        f"Fetching weather data for {len(coords)} grid points at {resolution_deg}° resolution from {start_year} to {end_year}"
+    )
     for year in range(start_year, end_year + 1):
         fetch_historical_weather_grid_year(coords, year, region_name="south_africa")
+
 
 if __name__ == "__main__":
     # fetch one year of weather for Pta, SA

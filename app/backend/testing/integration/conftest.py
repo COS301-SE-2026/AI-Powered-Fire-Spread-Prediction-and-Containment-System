@@ -14,14 +14,16 @@ os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
 
-with patch("app.backend.src.services.simulation_service.WeatherForecastBridge") as mock_bridge:
+with patch(
+    "app.backend.src.services.simulation_service.WeatherForecastBridge"
+) as mock_bridge:
     mock_instance = MagicMock()
     mock_bridge.load.return_value = mock_instance
     from app.backend.main import app
 
-from app.backend.auth import hash_password
+from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
- 
+
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.reported_fires import FireReports
@@ -29,6 +31,7 @@ from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
 
 from app.backend.seed import SEED_USERS, seed_fire_reports
+
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
 )
@@ -46,7 +49,7 @@ def create_tables():
         conn.exec_driver_sql("CREATE SCHEMA public;")
         conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO postgres;")
         conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO public;")
-        
+
         # Reinitialize spatial extensions and tables
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
         print(Base.metadata.tables.keys())
@@ -69,6 +72,15 @@ def db():
     transaction = connection.begin()
 
     session = TestingSessionLocal(bind=connection)
+
+    session.begin_nested()
+
+    from sqlalchemy import event
+
+    @event.listens_for(session, "after_transaction_end")
+    def restart_savepoint(sess, trans):
+        if trans.nested and not trans._parent.nested:
+            sess.begin_nested()
 
     try:
         yield session
@@ -117,7 +129,7 @@ def _split_full_name(full_name):
     return parts[0], parts[1]
 
 
-def make_user(db, full_name="Test User", email=None, role="user"):
+def make_user(db, full_name="Test User", email=None, role="user", lat=None, lng=None):
     user_email = email or f"user_{uuid.uuid4()}@example.com"
     name, surname = _split_full_name(full_name)
     user = User(
@@ -132,6 +144,8 @@ def make_user(db, full_name="Test User", email=None, role="user"):
         totp_secret=None,
         is_2fa_enabled=False,
     )
+    if lat is not None and lng is not None:
+        user.location_geom = f"SRID=4326;POINT({lng} {lat})"
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -165,6 +179,7 @@ def make_report(
     image_url="https://example.com/fire.jpg",
     photo_hash=None,
     description=None,
+    boundary_radius=0.2,
 ):
     point_wkt = f"SRID=4326;POINT({lng} {lat})"
     report = FireReports(
@@ -177,10 +192,10 @@ def make_report(
         image_url=image_url,
         photo_hash=photo_hash,
         location_geom=point_wkt,
-        boundary_radius=0.2,
+        boundary_radius=boundary_radius,
         status=status,
         status_index=status_index,
-        submitted_at=submitted_at or datetime.now(timezone.utc)
+        submitted_at=submitted_at or datetime.now(timezone.utc),
     )
     db.add(report)
     db.commit()
@@ -239,6 +254,9 @@ def small_grids():
 
 @pytest.fixture(autouse=True)
 def mock_on_land():
-    """ prevent tests from depending on live mapbox API """
-    with patch("app.backend.src.services.verification.rejection_checks.on_land", return_value=True):
+    """prevent tests from depending on live mapbox API"""
+    with patch(
+        "app.backend.src.services.verification.rejection_checks.on_land",
+        return_value=True,
+    ):
         yield

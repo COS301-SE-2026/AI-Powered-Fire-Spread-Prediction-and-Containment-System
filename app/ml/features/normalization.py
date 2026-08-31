@@ -6,27 +6,32 @@ from pathlib import Path
 
 import numpy as np
 
+
 @dataclass
 class _ChannelStats:
     mean: np.ndarray = field(default_factory=lambda: np.zeros(0, dtype=np.float64))
     std: np.ndarray = field(default_factory=lambda: np.ones(0, dtype=np.float64))
 
-    def to_dict(self)-> dict:
+    def to_dict(self) -> dict:
         return {"mean": self.mean.tolist(), "std": self.std.tolist()}
 
     @classmethod
-    def from_dict(cls, d:dict)->"_ChannelStats":
-        return cls(mean=np.array(d["mean"]), std = np.array(d["std"]))
+    def from_dict(cls, d: dict) -> "_ChannelStats":
+        return cls(mean=np.array(d["mean"]), std=np.array(d["std"]))
+
+
 class _BaseNormalizer:
     def __init__(self):
-        self.stats=_ChannelStats()
+        self.stats = _ChannelStats()
 
-    def fit(self, tensor: np.array)->None:
+    def fit(self, tensor: np.array) -> None:
         C = tensor.shape[-3]
         flat = np.moveaxis(tensor, -3, 0).reshape(C, -1)
-        mean = flat.mean(axis = 1)
-        std = flat.std(axis = 1)
-        std = np.where(std < 1e-8, 1.0, std)  # 1e-8 is equivalent to zero sortof, but we avoid div by zero :)
+        mean = flat.mean(axis=1)
+        std = flat.std(axis=1)
+        std = np.where(
+            std < 1e-8, 1.0, std
+        )  # 1e-8 is equivalent to zero sortof, but we avoid div by zero :)
         self.stats = _ChannelStats(mean=mean, std=std)
 
     def transform(self, tensor: np.ndarray) -> np.ndarray:
@@ -46,8 +51,10 @@ class _BaseNormalizer:
     def load(self, path: str) -> None:
         self.stats = _ChannelStats.from_dict(json.loads(Path(path).read_text()))
 
+
 class RawChannelNormalizer(_BaseNormalizer):
     pass
+
 
 class DeltaNormalizer(_BaseNormalizer):
     pass
