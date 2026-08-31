@@ -11,6 +11,10 @@ from app.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
 
 
 def _hour_angle(timestamps: list[str]) -> tuple[np.ndarray, np.ndarray]:
+    """this function take the ISO-formatted timestamp strings 
+    and converts them to cyclic time embeddings, meaning it allows the model to understand 
+    the cyclical nature of time, i.e. every day starts at the beginnign, so 23:00 and 01:00 are 
+    close to eachother, very cool"""
     hours = np.array(
         [datetime.fromisoformat(ts).hour + datetime.fromisoformat(ts).minute / 60.0 for ts in timestamps],
         dtype=np.float32,
@@ -22,6 +26,10 @@ def _hour_angle(timestamps: list[str]) -> tuple[np.ndarray, np.ndarray]:
 def attach_static_and_time(
     dynamic: np.ndarray, static: np.ndarray, hour_sin: np.ndarray | float, hour_cos: np.ndarray | float
 ) -> np.ndarray:
+    """
+    takes the dynamic weather features and static terrain features, combines them into
+    a big array, along with the cyclical time features
+    """
     if dynamic.ndim == 3:
         _, H, W = dynamic.shape
         hs = np.full((1, H, W), hour_sin, dtype=np.float32)
@@ -42,6 +50,8 @@ class WeatherDatasetSplitConfig:
     input_hours: int = 6
     rollout_steps: int = 4
 
+# This class handles the heavy lifting of slicing the data
+# into valid training batches :)
 
 class WeatherRolloutDataset(Dataset):
     def __init__(
@@ -52,6 +62,8 @@ class WeatherRolloutDataset(Dataset):
         delta_normalizer: DeltaNormalizer,
         cfg: WeatherDatasetSplitConfig = WeatherDatasetSplitConfig(),
     ):
+        """ obv initializes class
+        stores normalizers into static tensors, then loads hourly npz. arrays"""
         self.cfg = cfg
         self.static_tensor = static_tensor.astype(np.float32)
         self.raw_normalizer = raw_normalizer
@@ -72,9 +84,11 @@ class WeatherRolloutDataset(Dataset):
                 self._index.append((file_idx, h))
 
     def __len__(self) -> int:
+        #get length
         return len(self._index)
 
     def __getitem__(self, idx: int) -> dict:
+        #gets item at index 
         file_idx, h = self._index[idx]
         cfg = self.cfg
 
@@ -106,13 +120,16 @@ class WeatherRolloutDataset(Dataset):
         }
 
     def _normalize_sequence(self, seq: np.ndarray) -> np.ndarray:
+        """helper that applies normalizer to a sequecnce of input frames"""
         return np.stack([self.raw_normalizer.transform(frame) for frame in seq], axis=0)
 
     def _normalize_deltas(self, deltas: np.ndarray) -> np.ndarray:
+        """helper that applies the DeltaNormalizer to the target outputs"""
         return np.stack([self.delta_normalizer.transform(frame) for frame in deltas], axis=0)
 
     def split_by_month(self, val_months: set[int]) -> tuple["torch.utils.data.Subset", "torch.utils.data.Subset"]:
-
+        """instead of random shuffle, this function splits the dataset into training and validation 
+        sets strictly by month"""
         from datetime import datetime as _dt
 
         from torch.utils.data import Subset
