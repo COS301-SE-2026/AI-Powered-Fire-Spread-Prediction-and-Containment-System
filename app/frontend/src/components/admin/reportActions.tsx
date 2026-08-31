@@ -37,7 +37,7 @@ export function ReportActions({ reportRef, status, onStatusChange }: ReportActio
       {success && (
         <div
           role="alert"
-          className="alert bg-status-success/10 border border-status-success/30 text-status-success text-sm mb-2"
+          className="alert bg-status-success/10 border border-status-success/30 text-status-success text-medium mb-2"
         >
           <span>{success}</span>
         </div>
@@ -45,7 +45,7 @@ export function ReportActions({ reportRef, status, onStatusChange }: ReportActio
       {error && (
         <div
           role="alert"
-          className="alert bg-status-error/10 border border-status-error/30 text-status-error text-sm mb-2"
+          className="alert bg-status-error/10 border border-status-error/30 text-status-error text-medium mb-2"
         >
           <span>{error}</span>
         </div>
@@ -58,7 +58,7 @@ export function ReportActions({ reportRef, status, onStatusChange }: ReportActio
           </p>
           <button
             type="button"
-            className="btn btn-error btn-sm"
+            className="btn btn-error btn-sm text-lg"
             onClick={handleRevoke}
             disabled={loading}
           >
@@ -69,12 +69,12 @@ export function ReportActions({ reportRef, status, onStatusChange }: ReportActio
 
       {status === 'rejected' && (
         <div className="flex flex-col gap-3">
-          <p className="text-text-muted text-sm">
+          <p className="text-text-muted text-medium">
             This report was rejected. Send to be re-verified.
           </p>
           <button
             type="button"
-            className="btn btn-primary btn-sm"
+            className="btn btn-primary btn-medium text-lg"
             onClick={handleReVerify}
             disabled={loading}
           >
@@ -85,13 +85,13 @@ export function ReportActions({ reportRef, status, onStatusChange }: ReportActio
 
       {(status === 'pending' || status === 'received') && (
         <div className="flex flex-col gap-3">
-          <p className="text-text-muted text-sm">
+          <p className="text-text-muted text-medium">
             Review the fire report. Reject or verify manually.
           </p>
           <div className="flex gap-2">
             <button
               type="button"
-              className="btn btn-primary btn-sm flex-1"
+              className="btn btn-primary btn-sm flex-1 text-lg"
               onClick={handleVerify}
               disabled={loading}
             >
@@ -99,7 +99,7 @@ export function ReportActions({ reportRef, status, onStatusChange }: ReportActio
             </button>
             <button
               type="button"
-              className="btn btn-error btn-sm flex-1"
+              className="btn btn-error btn-sm flex-1 text-lg"
               onClick={handleReject}
               disabled={loading}
             >
