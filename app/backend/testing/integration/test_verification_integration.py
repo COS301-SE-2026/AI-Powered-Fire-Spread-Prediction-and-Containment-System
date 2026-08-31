@@ -3,8 +3,8 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from enums.report_status import ReportStatus
-from services.verification.rejection_checks import (
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.services.verification.rejection_checks import (
     rejection_check,
     valid_location,
     within_boundary,
@@ -13,15 +13,15 @@ from services.verification.rejection_checks import (
     duplicate_submission,
  )
 
-from services.verification. report_corroboration import corroborating_reports
-from services.verification.report_spam_detection import (
+from app.backend.src.services.verification. report_corroboration import corroborating_reports
+from app.backend.src.services.verification.report_spam_detection import (
     abnormal_rate,
     duplicate_photo_hash,
 )
 
-from services. verification. reporter_trust import reporter_trust_score
+from app.backend.src.services. verification. reporter_trust import reporter_trust_score
 
-from services.verification.auto_verification import (
+from app.backend.src.services.verification.auto_verification import (
     auto_verify_report,
     AUTO_REJECT,
     AUTO_VERIFY,

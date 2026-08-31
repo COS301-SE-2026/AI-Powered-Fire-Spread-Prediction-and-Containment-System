@@ -5,18 +5,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
-from ai.simulation_api import router as simulation_router
-from db import init_db
-from routes import image_uploads
+from app.backend.src.ai.simulation_api import router as simulation_router
+from app.backend.db import init_db
+from app.backend.src.routes import image_uploads
 
-from routes.admin import router as admin_router
-from routes.firefighter import router as firefighter_router
-from routes.users import router as user_router
-from routes.guests import router as guest_router
-from routes.auth import router as auth_router
+from app.backend.src.routes.admin import router as admin_router
+from app.backend.src.routes.firefighter import router as firefighter_router
+from app.backend.src.routes.users import router as user_router
+from app.backend.src.routes.guests import router as guest_router
+from app.backend.src.routes.auth import router as auth_router
 
-from seed import seed
-from services.storage import ensure_bucket
+from app.backend.seed import seed
+from app.backend.src.services.storage import ensure_bucket
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

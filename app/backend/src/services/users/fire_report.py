@@ -6,10 +6,10 @@ from typing import Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from enums.report_status import ReportStatus, status_level
-from models.reported_fires import FireReports
-from schemas.fire_report import FireReportCreate
-from services.storage import get_presigned_url
+from app.backend.src.enums.report_status import ReportStatus, status_level
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.schemas.fire_report import FireReportCreate
+from app.backend.src.services.storage import get_presigned_url
 
 
 # this is for hectares takes radius in km

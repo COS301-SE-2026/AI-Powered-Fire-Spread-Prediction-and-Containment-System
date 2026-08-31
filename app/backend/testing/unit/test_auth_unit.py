@@ -6,8 +6,8 @@ import pytest
 from fastapi import HTTPException
 from jose import jwt
 
-from auth import create_access_token, hash_password, verify_password
-from services.auth.login import (
+from app.backend.auth import create_access_token, hash_password, verify_password
+from app.backend.src.services.auth.login import (
     get_delay,
     check_rate_limits,
     record_failure,
@@ -46,7 +46,7 @@ def test_delay_schedule():
     assert get_delay(10) == 0
 
 
-@patch("services.auth.login.valkey_client")
+@patch("app.backend.src.services.auth.login.valkey_client")
 def test_check_rate_limits_under_lockout(mock_valkey):
     mock_valkey.get.side_effect = lambda key: "locked" if "lockout" in key else None
     mock_valkey.ttl.return_value = 1200
@@ -57,7 +57,7 @@ def test_check_rate_limits_under_lockout(mock_valkey):
     assert "locked" in exc_info.value.detail.lower()
 
 
-@patch("services.auth.login.valkey_client")
+@patch("app.backend.src.services.auth.login.valkey_client")
 def test_check_rate_limits_throttled(mock_valkey):
     mock_valkey.get.side_effect = lambda key: "throttled" if "throttle" in key else None
     mock_valkey.ttl.return_value = 25
@@ -68,7 +68,7 @@ def test_check_rate_limits_throttled(mock_valkey):
     assert "25 seconds" in exc_info.value.detail
 
 
-@patch("services.auth.login.valkey_client")
+@patch("app.backend.src.services.auth.login.valkey_client")
 def test_record_failure_triggers_30s_delay_at_attempt_five(mock_valkey):
     mock_valkey.incr.return_value = 5
 
@@ -79,7 +79,7 @@ def test_record_failure_triggers_30s_delay_at_attempt_five(mock_valkey):
     mock_valkey.set.assert_called_with("auth:throttle:test@firecontain.com", "throttled", ex=30)
 
 
-@patch("services.auth.login.valkey_client")
+@patch("app.backend.src.services.auth.login.valkey_client")
 def test_record_failure_triggers_lockout_at_tenth_failure(mock_valkey):
     mock_valkey.incr.return_value = 10
 
@@ -90,7 +90,7 @@ def test_record_failure_triggers_lockout_at_tenth_failure(mock_valkey):
     mock_valkey.set.assert_called_with("auth:lockout:test@firecontain.com", "locked", ex=1800)
 
 
-@patch("services.auth.login.valkey_client")
+@patch("app.backend.src.services.auth.login.valkey_client")
 def test_reset_counters_clears_keys(mock_valkey):
     reset_counters("test@frecontain.com")
     assert mock_valkey.delete.call_count == 2

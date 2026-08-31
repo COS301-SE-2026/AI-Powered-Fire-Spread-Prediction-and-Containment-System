@@ -14,8 +14,8 @@ from geoalchemy2 import Geography
 from sqlalchemy import cast, select
 from sqlalchemy.orm import Session
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
 
 # to log where something fails
 logger = logging.getLogger(__name__)

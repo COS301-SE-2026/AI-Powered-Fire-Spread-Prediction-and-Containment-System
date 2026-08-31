@@ -8,7 +8,7 @@ from geoalchemy2.types import Geography
 from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
-from models.reported_fires import FireReports
+from app.backend.src.models.reported_fires import FireReports
 
 
 def calculate_time_ago(

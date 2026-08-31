@@ -14,7 +14,7 @@ os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
 
-with patch("services.simulation_service.WeatherForecastBridge") as mock_bridge:
+with patch("app.backend.src.services.simulation_service.WeatherForecastBridge") as mock_bridge:
     mock_instance = MagicMock()
     mock_bridge.load.return_value = mock_instance
     from app.backend.main import app
@@ -22,11 +22,11 @@ with patch("services.simulation_service.WeatherForecastBridge") as mock_bridge:
 from app.backend.auth import hash_password
 from app.backend.db import Base, get_db
  
-from enums.report_status import ReportStatus
-from models.containment_lines import ContainmentLines
-from models.reported_fires import FireReports
-from models.role_request import RoleRequest
-from models.users import User
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.containment_lines import ContainmentLines
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.role_request import RoleRequest
+from app.backend.src.models.users import User
 
 from app.backend.seed import SEED_USERS, seed_fire_reports
 TEST_DB_URL = os.getenv(
@@ -49,6 +49,7 @@ def create_tables():
         
         # Reinitialize spatial extensions and tables
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
+        print(Base.metadata.tables.keys())
         Base.metadata.create_all(bind=conn)
 
     yield
@@ -239,5 +240,5 @@ def small_grids():
 @pytest.fixture(autouse=True)
 def mock_on_land():
     """ prevent tests from depending on live mapbox API """
-    with patch("services.verification.rejection_checks.on_land", return_value=True):
+    with patch("app.backend.src.services.verification.rejection_checks.on_land", return_value=True):
         yield
