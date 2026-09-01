@@ -451,6 +451,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               {selectedFire.location}
             </h3>
             <p className="text-xs text-text-muted mt-1">
+              Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
+            </p>
+            <p className="text-xs text-text-muted mt-1">
               Status: <span className="text-neutral-content">{selectedFire.status}</span>
             </p>
             <p className="text-xs text-text-muted">
