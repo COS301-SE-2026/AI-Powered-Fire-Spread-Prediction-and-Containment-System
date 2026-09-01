@@ -1,7 +1,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useFireSelect } from '@/hooks/useFireSelect';
+import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { NearbyReports } from '../shared/nearbyReports';
 import { PageHeader } from '../layout/pageHeader';
 

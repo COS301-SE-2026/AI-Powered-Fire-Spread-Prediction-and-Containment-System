@@ -112,7 +112,7 @@ export function SimulationResults({
         ) : (
           <div className="flex flex-col gap-2">
             {[1, 3, 6, 12, 24, 48, 72].map((hour) => {
-              //const p = predictions[0];
+              // const p = predictions[0];
               const tickHour = hour * 4;
               const radiusses: number[] = [];
 

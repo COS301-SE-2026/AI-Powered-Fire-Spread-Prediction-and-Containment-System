@@ -8,7 +8,7 @@ interface NearbyFireReports {
   readonly onSelectFire?: (ref: string) => void;
 }
 
-export function NearbyReports({ nearbyFires, selectedFireId, onSelectFire }: NearbyFireReports) {
+export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire = undefined }: NearbyFireReports) {
   const fires = (nearbyFires ?? []).filter((f) => f.status?.toLowerCase() === 'verified');
 
   if (fires.length === 0) {
@@ -20,9 +20,8 @@ export function NearbyReports({ nearbyFires, selectedFireId, onSelectFire }: Nea
   }
   return (
     <div className="h-full overflow-y-auto flex flex-col p-2">
-      {fires.map((fire) => {
-        return (
-          <div
+      {fires.map((fire) => (
+          <button
             key={fire.location_text}
             onClick={() => onSelectFire?.(fire.location_text)}
             className={`flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors ${fire.location_text === selectedFireId ? 'bg-carbon-card/70 border-ignite' : '' }`}>
@@ -36,9 +35,8 @@ export function NearbyReports({ nearbyFires, selectedFireId, onSelectFire }: Nea
             <div className="flex items-center gap-2">
               <ChevronRight className="size-4 opacity-30" />
             </div>
-          </div>
-        );
-      })}
+          </button>
+        ))}
     </div>
   );
 }
