@@ -21,6 +21,7 @@ from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
 from ml.features.real_data_loader import load_real_inference_data
 from .simulation import build_boundary_ignition_mask
+from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -76,6 +77,7 @@ class SimulationResponse(BaseModel):
 
 class OnDemandSimRequest(BaseModel):
     n_steps: int = Field(288, ge=1, le=288, description="Number of sim steps")
+    containment_lines: list[str] = Field(default_factory=list, description="List of WKT containment lines")
 
 def burned_area_radius_m(
     burned_cells: int, H: int, W: int, lat_extent_deg: float, lon_extent_deg: float
@@ -88,28 +90,50 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
-async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore, containment_lines: list[str] | None=None) -> Prediction:
     """
     Executes the whole DCA pipeline for a single fire
     """
+    lines = containment_lines or []
+    boundary_m = float(fire.boundary_radius) * 1000
+
+    min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
+        lat=fire.lat,
+        lng=fire.lng,
+        boundary_radius_m=boundary_m,
+        n_steps=automatic_steps
+    )
+
+    lat_extent_deg = max_lat - min_lat
+    lon_extent_deg = max_lon - min_lon
+
+    H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, fire.lat)
+
+    cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
+    cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
+    cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
+
+    cache_key = build_fire_cache_key(
+        ref=fire.reference_number,
+        lat=fire.lat,
+        lng=fire.lng,
+        boundary_radius_m=boundary_m,
+        n_steps=automatic_steps,
+        cell_size_m=cell_size_m,
+        containment_lines=lines
+    )
+
+    if lines:
+        cache_key = f"{cache_key}:lines_{hash(tuple(lines))}"
+
+    cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
+    if cached_result is not None:
+        return Prediction(**cached_result)
+        
     async with semaphore:
-        boundary_m = float(fire.boundary_radius) * 1000
-
-        min_lon, min_lat, max_lon, max_lat = bbox_from_fire(
-            lat=fire.lat,
-            lng=fire.lng,
-            boundary_radius_m=boundary_m,
-            n_steps=automatic_steps
-        )
-
-        lat_extent_deg = max_lat - min_lat
-        lon_extent_deg = max_lon - min_lon
-
-        H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, fire.lat)
-
-        cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
-        cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
-        cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
+        cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
+        if cached_result is not None:
+            return Prediction(**cached_result)
 
         resolved = await asyncio.to_thread(resolve_tile_paths,min_lon, min_lat, max_lon, max_lat)
 
@@ -129,6 +153,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         ignition_mask = build_boundary_ignition_mask(
             H, W, cell_size_m, boundary_m
         )
+        grid_bounds = (min_lon, min_lat, max_lon, max_lat)
 
         try:
             history = await asyncio.to_thread(
@@ -137,6 +162,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
                 static_grids=static_grids,
                 n_steps=automatic_steps,
                 ignition_mask=ignition_mask,
+                containment_lines=lines,
+                grid_bounds=grid_bounds,
                 params=DEFAULT_DCA_PARAMS,
                 cell_size_m=cell_size_m
             )
@@ -148,21 +175,25 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         final_grid = history[-1]
         burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
         truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
-        
-        return Prediction(
-            ref=fire.reference_number,
-            lat=fire.lat,
-            lng=fire.lng,
-            history=[g.ravel().tolist() for g in history],
-            burned_cells=burned_cells,
-            radius_m=burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
-            truncated=truncated,
-            lat_extent_deg=lat_extent_deg,
-            lon_extent_deg=lon_extent_deg,
-            grid_h=H,
-            grid_w=W,
-            cell_size_m=cell_size_m
-        )
+
+        prediction_payload = {
+            "ref":fire.reference_number,
+            "lat":fire.lat,
+            "lng":fire.lng,
+            "history":[g.ravel().tolist() for g in history],
+            "burned_cells":burned_cells,
+            "radius_m":burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
+            "truncated":truncated,
+            "lat_extent_deg":lat_extent_deg,
+            "lon_extent_deg":lon_extent_deg,
+            "grid_h":H,
+            "grid_w":W,
+            "cell_size_m":cell_size_m
+        }
+
+        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload, 1800)
+
+        return Prediction(**prediction_payload)
 
 # The endpoint
 @router.post(
@@ -171,7 +202,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
     responses={500: {"description": "Internal server error simulation failed"}},
 )
 async def run_simulation(
-     db: Session = Depends(get_db)
+    req: OnDemandSimRequest, 
+    db: Session = Depends(get_db)
 ) -> SimulationResponse:
     """
     Endpoint for all verified fires
@@ -195,7 +227,7 @@ async def run_simulation(
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(
-        *(simulate_single_fire(fire, automatic_steps, semaphore) for fire in verified_fires)
+        *(simulate_single_fire(fire, automatic_steps, semaphore, req.containment_lines) for fire in verified_fires)
     )
 
     n_steps_run = max((len(p.history) for p in predictions), default = 0)
@@ -238,4 +270,4 @@ async def run_single_fire_simulation(
         raise HTTPException(status_code=404, detail=f"Verified fire {fire_id} not found")
 
     semaphore = asyncio.Semaphore(1)
-    return await simulate_single_fire(fire, req.n_steps, semaphore)
+    return await simulate_single_fire(fire, req.n_steps, semaphore, req.containment_lines)
