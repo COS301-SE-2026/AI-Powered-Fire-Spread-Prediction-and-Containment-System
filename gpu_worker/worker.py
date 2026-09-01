@@ -1,5 +1,4 @@
 # Polls fire-system-gpu-inference for jobs, runs the fire-spread model and publishes the results to fire-system-gpu-results
-
 import json
 import logging
 import os
@@ -10,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import boto3
+import numpy as np
+import torch
 
 from app.backend.src.ai.dca import run_dca
 
@@ -33,49 +34,52 @@ WAIT_TIME_SECONDS = 20
 
 # How long a message is invisible to other workers while this one processes it.
 # Needs to be longer than model's worst-case inference time, so we gonna have to play around with this value
-VISIBILITY_TIMEOUT_SECONDS = 60
+VISIBILITY_TIMEOUT_SECONDS = 300
 
 sqs = boto3.client("sqs", region_name=AWS_REGION)
 
+# will change after training
+DEFAULT_DCA_PARAMS = {
+    "a": torch.tensor(0.015),
+    "p_h": torch.tensor(0.06),
+    "c_1": torch.tensor(0.04),
+    "c_2": torch.tensor(0.03),
+    "p_continue": torch.tensor(0.6),
+}
 
 def run_inference(job: dict) -> dict:
     # Need to put model call here
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
     # Must return a JSON-serializable dict. Needs enough identifying info (min 'job_id' and 'region_id')so backend's results-consumer background task can key result correctly in Valkey
-
     job_id = job["job_id"]
-    region_id = job["region_id"]
+    ref = job.get("ref", "")
 
-    weather_grids = {
-        "wind_u": job["weather"]["wind_u"],
-        "wind_v": job["weather"]["wind_v"],
-        "rel_humidity": job["weather"]["rel_humidity"],
-        "temperature": job["weather"]["temperature"],
-    }
+    weather_grids = {k: np.array(v, dtype=np.float32) for k, v in job["weather_grids"].items()}
+    static_grids = {k: np.array(v, dtype=np.float32) for k, v in job["static_grids"].items()}
 
-    static_grids = {
-        "elevation": job["static"]["elevation"],
-        "slope": job["static"]["slope"],
-        "aspect_sin": job["static"]["aspect_sin"],
-        "aspect_cos": job["static"]["aspect_cos"],
-        "fuel_load": job["static"]["fuel_load"],
-        "dryness": job["static"]["dryness"],
-    }
-
-    n_steps = job.get("steps", 100)
-    n_ignition_points = job.get("n_ignition_points", 1)
+    ignition_mask = (
+        np.array(job["ignition_mask"], dtype=bool)
+        if job.get("ignition_mask") is not None
+        else None
+    )
 
     history = run_dca(
-        weather_grids,
-        static_grids,
-        n_steps=n_steps,
-        n_ignition_points=n_ignition_points,
+        weather_grids=weather_grids,
+        static_grids=static_grids,
+        cell_size_m=float(job["cell_size_m"]),
+        n_steps=int(job.get("n_steps", 4)),
+        ignition_mask=ignition_mask,
+        containment_lines=job.get("containment_lines", []),
+        grid_bounds=tuple(job["grid_bounds"]) if job.get("grid_bounds") else None,
+        params=DEFAULT_DCA_PARAMS
     )
+
+    flattened_history = [grid.ravel().tolist() for grid in history]
 
     return {
         "job_id": job_id,
-        "region_id": region_id,
-        "history": [grid.tolist() for grid in history],
+        "ref": ref,
+        "history": flattened_history
     }
 
 
