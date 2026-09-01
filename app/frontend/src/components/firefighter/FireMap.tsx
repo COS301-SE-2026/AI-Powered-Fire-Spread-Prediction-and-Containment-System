@@ -29,10 +29,11 @@ interface MapProps{
     currentTick?: number;
     selectedFireId?: string | null;
     onSelectFire?: (ref: string) => void;
+    onDeselect?: () => void;
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -178,11 +179,20 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     }));
   }, [selectedFireId, activeFires]);
 
+  useEffect(() => {
+    if (!selectedFireId){
+      setSelectedFire(null);
+      return;
+    }
+    const fire = activeFires.find((f) => f.ref === selectedFireId);
+    if (fire) setSelectedFire(fire);
+  }, [selectedFireId, activeFires]);
+
   const EXTENT_DEG = 0.05;
 
     const girdFeautures = useMemo(() => {
         if(!predictions?.length) return [];
-        
+
         const features = [];
 
         for (const p of predictions){
@@ -344,7 +354,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         <Popup
           longitude={selectedFire.lng}
           latitude={selectedFire.lat}
-          onClose={() => setSelectedFire(null)}
+          onClose={() => {
+            setSelectedFire(null);
+          onDeselect?.();
+          }}
           className="carbon-popup"
         >
           <div className="p-1">
