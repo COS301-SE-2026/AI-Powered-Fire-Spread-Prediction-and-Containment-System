@@ -17,7 +17,7 @@ export function NearbyReports({ nearbyFires }: NearbyFireReports) {
     );
   }
   return (
-    <div className="h-full overflow-y-auto flex flex-col p-2">
+    <div className="h-194 overflow-y-auto flex flex-col p-2">
       {fires.map((fire) => {
         const status = fire.status === 'received' ? 'pending' : fire.status;
         const style = statusBadge[status] ?? statusBadge.none;
