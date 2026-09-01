@@ -67,7 +67,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       setContainmentLine([]);
       onContainmentChange?.([]);
     }
-  }, [storageKey])
+  }, [storageKey, onContainmentChange])
 
   // update the session storage whenever a containment line is changed
   useEffect(() => {
@@ -77,6 +77,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       }else{
         sessionStorage.removeItem(storageKey);
       }
+      window.dispatchEvent(new Event('containment_lines_updated'));
     }catch {
       console.warn(" failed to save the session storage")
     }
@@ -158,9 +159,12 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
       if(drawRef.current) {
         drawRef.current.deleteAll();
+        if(drawMode){
+          drawRef.current.changeMode('draw_line_string');
+        }
       }
     },
-    [onDrawComplete, onContainmentChange]
+    [onDrawComplete, onContainmentChange, drawMode]
   );
 
   useEffect(() => {

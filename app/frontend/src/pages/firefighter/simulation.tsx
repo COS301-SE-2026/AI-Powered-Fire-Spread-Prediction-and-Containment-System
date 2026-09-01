@@ -22,7 +22,7 @@ export default function Simulation() {
     submitLine,
     loading: savingLine,
     error: lineError,
-  } = useContainmentLine(() => setDrawMode(false));
+  } = useContainmentLine();
 
   const {
     status,
@@ -60,6 +60,8 @@ export default function Simulation() {
     seekToTick(0);
     pause();
   }
+
+  const canClear = hasResult || containmentLines.length > 0 || currentTick > 0;
 
     const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
     const totalHours = hasResult ? (maxSlider / 4) : 72;
@@ -137,7 +139,7 @@ export default function Simulation() {
               <div className="flex flex-col gap-3 shrink-0 w-80">
                 <button
                   type="button"
-                  onClick={() => setDrawMode(true)}
+                  onClick={() => setDrawMode((prev) => !prev)}
                   className="btn btn-primary btn-outline w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold tracking-wide"
                 >
                   <Pencil size={20} />
@@ -196,7 +198,7 @@ export default function Simulation() {
                   </button>
                   <button
                     onClick={handleClear}
-                    disabled={isLoading}
+                    disabled={!canClear || isLoading}
                     className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
                     <Trash2 size={20}/>
@@ -271,6 +273,8 @@ export default function Simulation() {
           <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
             <SimulationResults
               // Pass live stats so panel can show burning/burned counts per tick
+              containmentLines={containmentLines}
+              selectedFireId={selectedFireId}
               predictions={predictions}
               currentTick={currentTick}
               status={status}
