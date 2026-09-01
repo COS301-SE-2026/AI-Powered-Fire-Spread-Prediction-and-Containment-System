@@ -4,11 +4,47 @@ import zlib
 import os
 import numpy as np
 import redis
+from shapely import wkt as shapely_wkt
+from shapely.geometry import box
+from typing import Any, Dict, Optional, List
+
 
 VALKEY_HOST = os.getenv("VALKEY_HOST", "valkey-cache")
 VALKEY_PORT = int(os.getenv("VALKEY_PORT", 6379))
 
 client = redis.Redis(host=VALKEY_HOST, port=VALKEY_PORT, db=0)
+
+def filter_containment_lines(lat: float, lng:float, containment_lines: List[str], extent_buffer_deg: float = 0.15) -> List[str]:
+    """
+    Filters the containment lines and only picks the ones that intersect with a bounding box
+    """
+
+    if not containment_lines:
+        return []
+
+    fire_bounds = box(
+        lng - extent_buffer_deg,
+        lat - extent_buffer_deg,
+        lng + extent_buffer_deg,
+        lat + extent_buffer_deg
+    )
+
+    relevent_lines: List[str] = []
+    for line in containment_lines:
+        trimmed = line.strip()
+
+        if not trimmed:
+            continue
+
+        try:
+            geom = shapely_wkt.loads(trimmed)
+
+            if fire_bounds.intersects(geom):
+                relevent_lines.append(trimmed)
+        except Exception as exc:
+            relevent_lines.append(trimmed)
+
+    return sorted(relevent_lines)
 
 def build_fire_cache_key(
         ref: str,
@@ -17,9 +53,14 @@ def build_fire_cache_key(
         boundary_radius_m: float,
         n_steps: int,
         cell_size_m: float,
+        containment_lines: Optional[List[str]] = None,
         model_version: str = "dca-v1"
 ) -> str:
     """ This function builds a deterministic sha-256 key for a specific fire simulation run"""
+    raw_lines = containment_lines or []
+
+    locationially_relevent_lines = filter_containment_lines(lat, lng, raw_lines) 
+
     payload = {
         "ref": ref,
         "lat": round(lat, 5),
@@ -27,7 +68,8 @@ def build_fire_cache_key(
         "radius_m": round(boundary_radius_m, 2),
         "n_steps": n_steps,
         "cell_size_m": round(cell_size_m, 2),
-        "version": model_version
+        "version": model_version,
+        "containment_lines": locationially_relevent_lines,
     }
 
     encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
@@ -52,7 +94,7 @@ def get_cached_prediction(key: str) -> dict | None:
     except Exception:
         None
 
-def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 86400):
+def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 1800):
     """Stores the prediction metadata and compressed grid history in valkey"""
 
     try:

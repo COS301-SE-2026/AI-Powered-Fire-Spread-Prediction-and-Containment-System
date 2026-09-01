@@ -119,7 +119,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         lng=fire.lng,
         boundary_radius_m=boundary_m,
         n_steps=automatic_steps,
-        cell_size_m=cell_size_m
+        cell_size_m=cell_size_m,
+        containment_lines=lines
     )
 
     if lines:
@@ -190,7 +191,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             "cell_size_m":cell_size_m
         }
 
-        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload)
+        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload, 1800)
 
         return Prediction(**prediction_payload)
 
@@ -201,7 +202,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
     responses={500: {"description": "Internal server error simulation failed"}},
 )
 async def run_simulation(
-     db: Session = Depends(get_db)
+    req: OnDemandSimRequest, 
+    db: Session = Depends(get_db)
 ) -> SimulationResponse:
     """
     Endpoint for all verified fires
@@ -225,7 +227,7 @@ async def run_simulation(
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(
-        *(simulate_single_fire(fire, automatic_steps, semaphore) for fire in verified_fires)
+        *(simulate_single_fire(fire, automatic_steps, semaphore, req.containment_lines) for fire in verified_fires)
     )
 
     n_steps_run = max((len(p.history) for p in predictions), default = 0)
