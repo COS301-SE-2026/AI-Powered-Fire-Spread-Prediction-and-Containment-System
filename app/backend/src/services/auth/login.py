@@ -103,9 +103,7 @@ def login_user(db: Session, request: LoginRequest):
 
     user = db.query(User).filter(func.lower(User.email) == email_key).first()
 
-    hashed = user.hashed_password
-
-    if not user or not verify_password(request.password, hashed):
+    if not user or not verify_password(request.password, user.hashed_password):
         record_failure(email_key)
 
     reset_counters(email_key)

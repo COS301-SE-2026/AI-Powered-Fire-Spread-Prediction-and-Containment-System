@@ -1,15 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
+import { LucideIcon } from 'lucide-react';
+
+interface NavLinkProps {
+  icon: LucideIcon | React.ElementType;
+  label: string;
+  href?: string;
+}
 
 export function NavLink({
   icon: Icon,
   label,
   href,
-}: Readonly<{ icon: React.ComponentType<{ className?: string }>; label: string; href?: string }>) {
+}: Readonly<NavLinkProps>) {
   const content = (
     <>
       <Icon className="size-5 shrink-0 ml-1 group-hover:ml-6 transition-all" />
-      <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 tranition-opacity duration-200 whitespace-nowrap">
+      <span className="text-sm font-medium tracking-wide hidden group-hover:inline opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
         {label}
       </span>
     </>
