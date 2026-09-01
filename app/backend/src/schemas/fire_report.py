@@ -43,6 +43,7 @@ class FireReportDetailResponse(BaseModel):
     description: Optional[str] = None
     image_url: str
     status: ReportStatus
+    status_index: int
     boundary_radius: float
     size: float
     submitted_at: datetime
