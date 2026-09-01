@@ -46,7 +46,7 @@ export default function FirefighterDashboard() {
                 <button
                   type="button"
                   onClick={() => setClearDrawings((c) => c + 1)}
-                  className="text-sm font-medium text-text-primary/60 hover:text-ignite transition-colors"
+                  className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
                 >
                   Clear Lines
                 </button>
