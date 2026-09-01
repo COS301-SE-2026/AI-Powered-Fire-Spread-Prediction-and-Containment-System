@@ -12,9 +12,9 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.backenc.db import get_db
-from app.backenc.src.enums.report_status import ReportStatus
-from app.backenc.src.models.reported_fires import FireReports
+from app.backend.db import get_db
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
 
 from .dca import run_dca
 from .geo import bbox_from_fire, touch_edge
