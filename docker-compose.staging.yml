@@ -11,10 +11,24 @@ services:
 
   backend:
     container_name: staging-python-backend
+    image: ${BACKEND_IMAGE}
     ports: []
     restart: always
     volumes:
       - /app
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     environment:
       NODE_ENV: production
       AWS_REGION: ${AWS_REGION}
@@ -64,13 +78,6 @@ services:
       - caddy_staging_config:/config
     networks:
       - default
-
-  blackboard:
-    image: valkey/valkey:8-alpine
-    container_name: staging-blackboard
-    restart: always
-    volumes:
-      - valkey_staging_data:/data
 
   minio:
     image: minio/minio:latest
