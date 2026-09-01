@@ -11,6 +11,7 @@
 //   await page.getByRole('textbox', { name: 'Password' }).click();
 //   await page.getByRole('textbox', { name: 'Password' }).fill('Password123!');
 //   await page.getByRole('button', { name: 'Login' }).click();
+//   await page.waitForURL('**/admin/**', { timeout: 15000 });
 // }
 // test('test', async ({ page }) => {
 //   await login(page);

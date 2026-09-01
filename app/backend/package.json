@@ -6,6 +6,7 @@
     "test:backend": "cd ../.. && PYTHONPATH=app/backend/src:. pytest app/backend/testing",
     "test:local": "SKIP_DB_INIT=1 SKIP_SEED=1 pytest",
     "test:coverage": "pytest --cov",
-    "test:xgboost:unit": "pytest app/backend/src/tests/test_xgboost_model_unit.py -v "
+    "test:xgboost:unit": "pytest app/backend/src/tests/test_xgboost_model_unit.py -v ",
+    "lint": "PYTHONPATH=src:. pylint --recursive=y ."
   }
 }

@@ -17,3 +17,9 @@ dist
 **/.playwright-report
 **/.pytest_cache
 *.log
+database/
+app/datasets/
+artifact_store/
+app/frontend/node_modules
+app/frontend/.next
+app/pwa/node_modules

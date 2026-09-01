@@ -8,7 +8,7 @@ from geoalchemy2.types import Geography
 from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
-from models.reported_fires import FireReports
+from app.backend.src.models.reported_fires import FireReports
 
 
 def calculate_time_ago(
@@ -54,7 +54,6 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
         .all()
     )  # * 1000 because ST_DWithin uses meters not km
 
-
     formatted_result = []
     for fire, distance_m in request:  # distance in meters again
         shape = to_shape(fire.location_geom)
@@ -74,7 +73,8 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
 
 def calculate_fire_danger(
     temp: float, humidity: float, wind: float
-):  # need to find a calculation to determine fire risk will happen when model for AI is more researched will use XGboost for now acording to meetings
+):  # need to find a calculation to determine fire risk will happen when
+    # model for AI is more researched will use XGboost for now acording to meetings
     return "high"
 
 

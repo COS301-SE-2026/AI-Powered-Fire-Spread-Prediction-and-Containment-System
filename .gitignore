@@ -31,6 +31,7 @@ playwright-report/
 app/frontend/src/.env.local
 **/.env.local
 
+venv/
 .venv/
 .python-version
 

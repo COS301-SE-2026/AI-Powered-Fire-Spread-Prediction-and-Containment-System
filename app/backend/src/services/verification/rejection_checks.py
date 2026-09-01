@@ -1,11 +1,11 @@
-""" Rejection checks for fire reports """
+"""Rejection checks for fire reports"""
+
+import json
+from datetime import datetime, timedelta, timezone
 
 import logging
 import os
 import httpx
-import json
-
-from datetime import datetime, timedelta, timezone
 
 from geoalchemy2.shape import to_shape
 from geoalchemy2.functions import ST_DWithin
@@ -14,8 +14,8 @@ from geoalchemy2 import Geography
 from sqlalchemy import cast, select
 from sqlalchemy.orm import Session
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
 
 # to log where something fails
 logger = logging.getLogger(__name__)
@@ -43,11 +43,13 @@ DUPLICATE_RADIUS_METERS = 500
 
 REQUIRED_FIELDS = ("user_id", "location_geom", "submitted_at", "image_url")
 
+
 class LocationCheckUnavailable(Exception):
-    """ When on_land can't be determined due to failures. """
+    """When on_land can't be determined due to failures."""
+
 
 def get_report_coordinates(report: FireReports) -> tuple[float, float]:
-    " Get lat and lng from report "
+    "Get lat and lng from report"
     if report.location_geom is None:
         return None
     try:
@@ -57,18 +59,21 @@ def get_report_coordinates(report: FireReports) -> tuple[float, float]:
         return None
     return point.y, point.x
 
+
 def within_boundary(lat: float, lng: float) -> bool:
-    """ Checks if coordinates is within the systems service area. True if within bounds """
+    """Checks if coordinates is within the systems service area. True if within bounds"""
     lat_result = AREA_BOUNDS["min_lat"] <= lat <= AREA_BOUNDS["max_lat"]
     lng_result = AREA_BOUNDS["min_lng"] <= lng <= AREA_BOUNDS["max_lng"]
     return lat_result and lng_result
 
+
 def valid_location(lat: float, lng: float) -> bool:
-    """ Check if coordinate is not (0, 0) default true if not (0, 0) """
+    """Check if coordinate is not (0, 0) default true if not (0, 0)"""
     return not (lat == 0.0 and lng == 0.0)
 
+
 def on_land(lat: float, lng: float) -> bool:
-    """ Checks if coordinate is on land using Mapobox Tilequery. True if on land """
+    """Checks if coordinate is on land using Mapobox Tilequery. True if on land"""
     try:
         response = httpx.get(
             f"{MAPBOX_TILEQUERY_URL}/{lng},{lat}.json",
@@ -86,8 +91,9 @@ def on_land(lat: float, lng: float) -> bool:
         logger.warning("on_land check failed for (%s, %s): %s", lat, lng, exc)
         raise LocationCheckUnavailable(f"on_land check failed.") from exc
 
+
 def valid_timestamp(timestamp: datetime) -> bool:
-    """ Check if the timestamp is not in future or past """
+    """Check if the timestamp is not in future or past"""
     if timestamp.tzinfo is None:
         timestamp = timestamp.replace(tzinfo=timezone.utc)
 
@@ -98,39 +104,46 @@ def valid_timestamp(timestamp: datetime) -> bool:
         return False
     return True
 
+
 def duplicate_submission(report: FireReports, session: Session) -> bool:
-    """ Checks if same user has already submitted a report near the location and time. True if duplicate exists """
+    """Checks if same user has already submitted a report near the location and time. True if duplicate exists"""
 
     start_time = report.submitted_at - DUPLICATE_WINDOW
     end_time = report.submitted_at + DUPLICATE_WINDOW
 
     report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
 
-    query = select(FireReports.id).where(
-        FireReports.user_id == report.user_id,
-        FireReports.id != report.id,
-        FireReports.status != ReportStatus.rejected,
-        FireReports.submitted_at >= start_time,
-        FireReports.submitted_at <= end_time,
-        ST_DWithin(
-            cast(FireReports.location_geom, Geography),
-            cast(report_point_wkt, Geography),
-            DUPLICATE_RADIUS_METERS,
-        ),
-    ).limit(1)
+    query = (
+        select(FireReports.id)
+        .where(
+            FireReports.user_id == report.user_id,
+            FireReports.id != report.id,
+            FireReports.status != ReportStatus.rejected,
+            FireReports.submitted_at >= start_time,
+            FireReports.submitted_at <= end_time,
+            ST_DWithin(
+                cast(FireReports.location_geom, Geography),
+                cast(report_point_wkt, Geography),
+                DUPLICATE_RADIUS_METERS,
+            ),
+        )
+        .limit(1)
+    )
 
     result = session.execute(query)
     return result.scalar_one_or_none() is not None
 
+
 def required_fields_present(report: FireReports) -> bool:
-    """ Check that required fields are present """
+    """Check that required fields are present"""
     for field in REQUIRED_FIELDS:
         if getattr(report, field, None) in (None, ""):
             return False
     return True
 
+
 def rejection_check(report: FireReports, session: Session) -> tuple[bool, str | None]:
-    """ Runs checks on fire reports. Returns True if passed or False with message """
+    """Runs checks on fire reports. Returns True if passed or False with message"""
     if not required_fields_present(report):
         return False, "missing_required_field"
 
@@ -159,8 +172,3 @@ def rejection_check(report: FireReports, session: Session) -> tuple[bool, str | 
         return False, "manual_review"
 
     return True, None
-
-
-
-
-

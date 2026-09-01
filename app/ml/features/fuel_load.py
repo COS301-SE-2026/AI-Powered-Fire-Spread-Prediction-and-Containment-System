@@ -11,7 +11,7 @@ from rasterio.merge import merge as rio_merge
 from rasterio.windows import from_bounds
 from rasterio.warp import transform_bounds
 
-from ml.features.geo_utils import stream_cropped_raster, OPTIMIZED_GDAL_ENV
+from app.ml.features.geo_utils import stream_cropped_raster, OPTIMIZED_GDAL_ENV
 
 # Sen2Cor Scene Classification vals, published in 'scl' asset.
 # Use it to mask pixx\els that would otherwise silently corrupt
@@ -152,6 +152,35 @@ def _resample_to_shape(
             return dst.read(1, out_shape=out_shape, resampling=resampling)
 
 
+def _read_window_single(
+    file_path: str,
+    min_lon: float,
+    min_lat: float,
+    max_lon: float,
+    max_lat: float,
+    out_shape: tuple[int, int],
+    resampling: Resampling,
+) -> np.ndarray:
+    """Read from single / remote bucket.
+    Only fetches the bytes covering the window"""
+    with rasterio.open(file_path) as src:
+        if src.crs is not None and src.crs.to_epsg() != 4326:
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = transform_bounds(
+                "EPSG:4326", src.crs, min_lon, min_lat, max_lon, max_lat
+            )
+        else:
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat = (
+                min_lon,
+                min_lat,
+                max_lon,
+                max_lat,
+            )
+        window = from_bounds(
+            b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform
+        )
+        return src.read(1, window=window, out_shape=out_shape, resampling=resampling)
+
+
 def _read_worldcover_window(
     worldcover_map_path: Optional[str],
     min_lon: float,
@@ -164,7 +193,13 @@ def _read_worldcover_window(
     """Read categorical wordlcover raster cropped to bbox"""
     if worldcover_map_path is not None:
         return stream_cropped_raster(
-            worldcover_map_path, min_lon, min_lat, max_lon, max_lat, out_shape, Resampling.nearest
+            worldcover_map_path,
+            min_lon,
+            min_lat,
+            max_lon,
+            max_lat,
+            out_shape,
+            Resampling.nearest,
         )
 
     urls = worldcover_s3_urls_for_bbox(
@@ -184,7 +219,7 @@ def _read_worldcover_window(
         finally:
             for ds in datasets:
                 ds.close()
-        
+
     if mosaic.shape[-2:] == out_shape:
         return mosaic[0]
     return _resample_to_shape(mosaic, out_transform, crs, out_shape, Resampling.nearest)
@@ -245,9 +280,15 @@ def process_sentinal2_and_worldcover(
     for class_val, weight in fuel_weights.items():
         fuel_base[wc_map == class_val] = weight
 
-    b04_dn = stream_cropped_raster(b04_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
-    b08_dn = stream_cropped_raster(b08_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
-    b11_dn = stream_cropped_raster(b11_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
+    b04_dn = stream_cropped_raster(
+        b04_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear
+    )
+    b08_dn = stream_cropped_raster(
+        b08_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear
+    )
+    b11_dn = stream_cropped_raster(
+        b11_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear
+    )
 
     cloud_mask = None
     if scl_path is not None:
@@ -260,9 +301,7 @@ def process_sentinal2_and_worldcover(
             (H, W),
             Resampling.nearest,
         )
-        cloud_mask = np.isin(
-            scl, np.array(sorted(scl_masked_classes), dtype=scl.dtype)
-        )
+        cloud_mask = np.isin(scl, np.array(sorted(scl_masked_classes), dtype=scl.dtype))
 
     b04 = _dn_to_reflectance(b04_dn, s2_reflectance_scale, s2_reflectance_offset)
     b08 = _dn_to_reflectance(b08_dn, s2_reflectance_scale, s2_reflectance_offset)
@@ -282,7 +321,9 @@ def process_sentinal2_and_worldcover(
     fuel_load = np.clip(fuel_base * ndvi_scale, 0.0, 1.0).astype(np.float32)
     if cloud_mask is not None:
         valid = ~cloud_mask
-        fill_val = np.nanmean(np.where(valid, fuel_load, np.nan)) if valid.any() else 0.0
+        fill_val = (
+            np.nanmean(np.where(valid, fuel_load, np.nan)) if valid.any() else 0.0
+        )
         fuel_load = np.where(np.isnan(fuel_load) | cloud_mask, fill_val, fuel_load)
     else:
         fuel_load = np.nan_to_num(fuel_load, nan=0.0)

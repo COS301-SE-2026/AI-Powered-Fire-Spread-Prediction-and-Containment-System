@@ -3,8 +3,9 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from enums.report_status import ReportStatus
-from enums.report_priority import ReportPriority
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.report_priority import ReportPriority
+
 
 class FireReportCreate(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
@@ -14,6 +15,7 @@ class FireReportCreate(BaseModel):
     image_url: Optional[str] = None
     boundary_radius: float = Field(..., gt=0, le=50)
     photo_hash: Optional[str] = None
+
 
 class FireReportMapResponse(BaseModel):
     id: str
@@ -46,7 +48,7 @@ class FireReportDetailResponse(BaseModel):
     submitted_at: datetime
     reporter_name: Optional[str] = None
 
-    #for auto fire report verification
+    # for auto fire report verification
     priority: ReportPriority
     system_verified: bool
     verification_notes: Optional[str] = None
