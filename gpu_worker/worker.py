@@ -5,6 +5,9 @@ import logging
 import os
 import time
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import boto3
 
@@ -94,7 +97,7 @@ def handle_message(message: dict) -> None:
     log.info("Published result for job %s", job_id)
 
     sqs.delete_message(
-        QueueURL=INFERENCE_QUEUE_URL,
+        QueueUrl=INFERENCE_QUEUE_URL,
         ReceiptHandle=message["ReceiptHandle"],
     )
 
@@ -104,7 +107,7 @@ def main() -> None:
     while True:
         try:
             response = sqs.receive_message(
-                QueueURL=INFERENCE_QUEUE_URL,
+                QueueUrl=INFERENCE_QUEUE_URL,
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=WAIT_TIME_SECONDS,
                 VisibilityTimeout=VISIBILITY_TIMEOUT_SECONDS,
