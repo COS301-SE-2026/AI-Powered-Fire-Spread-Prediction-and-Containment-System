@@ -67,3 +67,7 @@ ml/checkpoints/
 .idea/
 .DS_Store
 
+*.rpm
+
+app/gpu-worker/.env
+app/gpu-worker/venv/

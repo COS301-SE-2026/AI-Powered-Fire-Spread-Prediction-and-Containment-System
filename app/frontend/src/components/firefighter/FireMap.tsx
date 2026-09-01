@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source} from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
@@ -17,12 +17,18 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+interface SavedContainmentLine {
+  id: string;
+  wkt: string;
+  feature: Feature<LineString>;
+}
 
 interface MapProps{
     lat: number;
     lng: number;
     drawMode: boolean;
     onDrawComplete: (line: string) => void;
+    onContainmentChange?: (wktLines: string[]) => void;
     clearDrawings: number;
     burnGrid?: number[] | null;
     predictions?: Prediction[];
@@ -34,7 +40,7 @@ interface MapProps{
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false, onContainmentChange}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -43,6 +49,44 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+
+  const storageKey = selectedFireId ? `containment_lines_${selectedFireId}` : 'containment_lines_general';
+
+  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
+    if(typeof window === 'undefined') return [];
+    try{
+      const stored = sessionStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    }catch{
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try{
+      const stored = sessionStorage.getItem(storageKey);
+      const lines = stored ? JSON.parse(stored) : [];
+      setContainmentLine(lines);
+      onContainmentChange?.(lines.map((line: SavedContainmentLine) => line.wkt));
+    }catch {
+      setContainmentLine([]);
+      onContainmentChange?.([]);
+    }
+  }, [storageKey, onContainmentChange])
+
+  // update the session storage whenever a containment line is changed
+  useEffect(() => {
+    try{
+      if (containmentLine.length > 0){
+        sessionStorage.setItem(storageKey, JSON.stringify(containmentLine));
+      }else{
+        sessionStorage.removeItem(storageKey);
+      }
+      window.dispatchEvent(new Event('containment_lines_updated'));
+    }catch {
+      console.warn(" failed to save the session storage")
+    }
+  }, [containmentLine])
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
@@ -107,9 +151,29 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       if (line.geometry.type !== 'LineString') return;
       const coords = (line.geometry as LineString).coordinates;
       const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
+
+      const newLine: SavedContainmentLine = {
+        id: String(line.id ?? Date.now()),
+        wkt,
+        feature: line as Feature<LineString>
+      }
+
+      setContainmentLine((prev) => {
+        const updated = [...prev, newLine];
+        onContainmentChange?.(updated.map((l) => l.wkt));
+        return updated;
+      });
+
       onDrawComplete(wkt);
+
+      if(drawRef.current) {
+        drawRef.current.deleteAll();
+        if(drawMode){
+          drawRef.current.changeMode('draw_line_string');
+        }
+      }
     },
-    [onDrawComplete]
+    [onDrawComplete, onContainmentChange, drawMode]
   );
 
   useEffect(() => {
@@ -137,10 +201,26 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     };
   }, [drawMode, handleDrawCreate]);
 
+  // Reset the containment lines on clear
+  const initialMount = useRef(true);
   useEffect(() => {
-    if (!drawRef.current) return;
-    drawRef.current.deleteAll();
+    if (initialMount.current){
+      initialMount.current = false;
+      return;
+    }
+    if(drawRef.current){
+      drawRef.current.deleteAll();
+    }
+    setContainmentLine([]);
+    sessionStorage.removeItem(storageKey)
+    onContainmentChange?.([]);
   }, [clearDrawings]);
+
+  // GeoJson collection for mapbox
+  const containmentFeatures = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: containmentLine.map((l) => l.feature)
+  }), [containmentLine]);
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
@@ -264,10 +344,14 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       {...viewState}
-      onMove={(evt) => setViewState(evt.viewState)}
+      onMove={
+        (evt) => {setViewState(evt.viewState);}
+      }
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
+      <NavigationControl position='bottom-right' showCompass={false}/>
+
       {activeFires.map((fire) => (
         <Marker
           key={fire.ref}
@@ -335,7 +419,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             paint={{
               'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
               'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
-              'fill-antialias': true,
+              'fill-antialias': false,
             }}
           />
 
@@ -348,6 +432,36 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               'line-width': 0.5,
             }}
           />
+        </Source>
+      )}
+
+      {/* Containment Lines */}
+      {containmentLine.length > 0 && (
+        <Source
+          id='containment-lines'
+          type='geojson'
+          data={containmentFeatures}
+        >
+          <Layer
+            id='containment-line-glow'
+            type='line'
+            paint={{
+              'line-color': '#38bdf8',
+              'line-width': 6,
+              'line-opacity': 0.7,
+            }}
+          />
+
+          <Layer
+            id='containment-line-center'
+            type='line'
+            paint={{
+              'line-color': '#0284c7',
+              'line-width': 2.5,
+              'line-dasharray': [2, 1],
+            }}
+          />
+
         </Source>
       )}
 
@@ -365,6 +479,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
               {selectedFire.location}
             </h3>
+            <p className="text-xs text-text-muted mt-1">
+              Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
+            </p>
             <p className="text-xs text-text-muted mt-1">
               Status: <span className="text-neutral-content">{selectedFire.status}</span>
             </p>
