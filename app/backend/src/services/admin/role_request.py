@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from enums.role_request_status import RequestStatus
-from models.role_request import RoleRequest
-from models.users import User
+from app.backend.src.enums.role_request_status import RequestStatus
+from app.backend.src.models.role_request import RoleRequest
+from app.backend.src.models.users import User
 
 
 def get_role_requests(db: Session):

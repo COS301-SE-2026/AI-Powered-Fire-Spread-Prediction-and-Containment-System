@@ -3,16 +3,16 @@ from typing import Annotated, List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy.orm import Session
 
-from db import get_db
-from dependencies.auth import get_current_user_optional
-from models.users import User
-from schemas.fire_report import (
+from app.backend.db import get_db
+from app.backend.src.dependencies.auth import get_current_user_optional
+from app.backend.src.models.users import User
+from app.backend.src.schemas.fire_report import (
     FireReportCreate,
     FireReportDetailResponse,
     FireReportMapResponse,
 )
-from services.users import fire_report
-from services.verification.verification_runner import run_verification
+from app.backend.src.services.users import fire_report
+from app.backend.src.services.verification.verification_runner import run_verification
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -29,7 +29,7 @@ def get_reported_fires(
 def create_fire_report(
     report: FireReportCreate,
     request: Request,
-    background_tasks: BackgroundTasks, # used to run auto verification
+    background_tasks: BackgroundTasks,  # used to run auto verification
     db: Annotated[Session, Depends(get_db)],
     current_user: Annotated[Optional[User], Depends(get_current_user_optional)],
 ):

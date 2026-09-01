@@ -40,30 +40,30 @@ def build_verified_reports_mask(
 
     return mask
 
+
 def build_boundary_ignition_mask(
-        H: int, W: int, cell_size_m: float, boundary_radius_m: float
+    H: int, W: int, cell_size_m: float, boundary_radius_m: float
 ) -> np.ndarray:
     # marks every fire inside the boundary radius as ignited
     cy, cx = H / 2.0, W / 2.0
     radius_cells = boundary_radius_m / cell_size_m
 
     yy, xx = np.ogrid[0:H, 0:W]
-    dist_cells = np.sqrt((yy - cy) **2 + (xx - cx) **2)
+    dist_cells = np.sqrt((yy - cy) ** 2 + (xx - cx) ** 2)
 
-    return dist_cells <= radius_cells 
+    return dist_cells <= radius_cells
 
 
 def compute_wind_components(
-        wind_u: np.ndarray | torch.Tensor, 
-        wind_v: np.ndarray | torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    wind_u: np.ndarray | torch.Tensor, wind_v: np.ndarray | torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Converts u and v wind components into wind speed(m/s) and degrees to directions
     """
 
     u = torch.as_tensor(wind_u).float()
     v = torch.as_tensor(wind_v).float()
-    
+
     wind_velocity = torch.sqrt(u**2 + v**2)
 
     # u - eastward & v - northward
@@ -72,8 +72,12 @@ def compute_wind_components(
 
     return wind_velocity, wind_towards_deg
 
+
 def build_env_data(
-    weather_grids: dict, static_grids: dict, initial_ignition_mask: np.ndarray, cell_size_m: float
+    weather_grids: dict,
+    static_grids: dict,
+    initial_ignition_mask: np.ndarray,
+    cell_size_m: float,
 ) -> dict:
 
     wind_velocity, wind_towards_direction = compute_wind_components(
@@ -96,14 +100,18 @@ def build_env_data(
 
     return env_dict
 
+
 def update_model_tensors(model, current_weather: dict, device: str | torch.device):
     """
     Updates the models weather during dca loop
     """
 
-    velocity, direction = compute_wind_components(current_weather["wind_u"], current_weather["wind_v"])
+    velocity, direction = compute_wind_components(
+        current_weather["wind_u"], current_weather["wind_v"]
+    )
     model.wind_velocity.copy_(velocity.to(device))
     model.wind_towards_direction.copy_(direction.to(device))
+
 
 def state_to_burn_state(state: torch.Tensor) -> np.ndarray:
     # convert the Pytorchfire [2, H. W] bool state to schema.py's [H,W] int codes

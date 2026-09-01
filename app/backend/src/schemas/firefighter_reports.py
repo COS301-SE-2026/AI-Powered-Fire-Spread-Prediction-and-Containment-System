@@ -3,9 +3,10 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from enums.report_status import ReportStatus
+from app.backend.src.enums.report_status import ReportStatus
 
 from typing import List, Optional
+
 
 # response structure for the reported fires table
 class FirefighterReportTable(BaseModel):
