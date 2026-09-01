@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source} from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { Prediction } from '../../hooks/useSimulation';
@@ -318,10 +318,14 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
       {...viewState}
-      onMove={(evt) => setViewState(evt.viewState)}
+      onMove={
+        (evt) => {setViewState(evt.viewState);}
+      }
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
+      <NavigationControl position='bottom-right' showCompass={false}/>
+
       {activeFires.map((fire) => (
         <Marker
           key={fire.ref}
