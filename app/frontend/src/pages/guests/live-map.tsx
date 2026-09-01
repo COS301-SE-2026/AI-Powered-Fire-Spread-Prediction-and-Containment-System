@@ -10,7 +10,7 @@ import { GuestActions } from '../../components/guest/GuestActions';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
-import { useFireSelect } from '../../hooks/useFireSelect';
+import { useFireSelect } from '../../hooks/useFireSelectGuest';
 
 const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
