@@ -27,13 +27,14 @@ interface MapProps{
     burnGrid?: number[] | null;
     predictions?: Prediction[];
     currentTick?: number;
+    selectedFireLocation?: string | null;
     selectedFireId?: string | null;
     onSelectFire?: (ref: string) => void;
     onDeselect?: () => void;
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null, onSelectFire = undefined, showKey = false}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -168,8 +169,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   );
 
   useEffect(() => {
-    if (!selectedFireId) return;
-    const fire = activeFires.find((f) => f.ref === selectedFireId);
+    if (!selectedFireId && !selectedFireLocation) return;
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     if (!fire) return;
     setViewState((v) => ({
       ...v,
@@ -177,16 +178,16 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       latitude: fire.lat,
       zoom: Math.max(v.zoom, 13),
     }));
-  }, [selectedFireId, activeFires]);
+  }, [selectedFireId, selectedFireLocation, activeFires]);
 
   useEffect(() => {
-    if (!selectedFireId){
+    if (!selectedFireId && !selectedFireLocation){
       setSelectedFire(null);
       return;
     }
-    const fire = activeFires.find((f) => f.ref === selectedFireId);
-    if (fire) setSelectedFire(fire);
-  }, [selectedFireId, activeFires]);
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    setSelectedFire(fire ?? null);
+  }, [selectedFireId, selectedFireLocation, activeFires]);
 
   const EXTENT_DEG = 0.05;
 
