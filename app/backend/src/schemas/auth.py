@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr
 
-from enums.user_role import UserRole
+from app.backend.src.enums.user_role import UserRole
 
 
 class RegisterRequest(BaseModel):

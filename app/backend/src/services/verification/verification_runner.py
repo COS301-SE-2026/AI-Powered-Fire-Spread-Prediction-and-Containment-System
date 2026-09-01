@@ -2,14 +2,13 @@
 
 import logging
 
-from db import SessionLocal
-from enums.report_status import ReportStatus, status_level
-from models.reported_fires import FireReports
-from services.verification.auto_verification import (
+from app.backend.db import SessionLocal
+from app.backend.src.enums.report_status import ReportStatus, status_level
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.services.verification.auto_verification import (
     auto_verify_report,
     AUTO_REJECT,
     AUTO_VERIFY,
-    MANUAL_REVIEW,
 )
 
 logger = logging.getLogger(__name__)

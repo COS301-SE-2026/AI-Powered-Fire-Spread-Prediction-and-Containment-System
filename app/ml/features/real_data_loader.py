@@ -7,9 +7,9 @@ from typing import Optional
 import asyncio
 import numpy as np
 
-from ml.features.fuel_load import process_sentinal2_and_worldcover
-from ml.features.terrain import extract_terrain_features
-from ml.features.weather_adapter import fetch_realtime_weather_features
+from app.ml.features.fuel_load import process_sentinal2_and_worldcover
+from app.ml.features.terrain import extract_terrain_features
+from app.ml.features.weather_adapter import fetch_realtime_weather_features
 
 
 async def load_real_inference_data(
@@ -51,7 +51,7 @@ async def load_real_inference_data(
             max_lon=max_lon,
             max_lat=max_lat,
             target_shape=target_shape,
-        )
+        ),
     )
 
     # comb into unified 'static' feature dict

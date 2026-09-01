@@ -260,75 +260,51 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   const EXTENT_DEG = 0.05;
 
-    const girdFeautures = useMemo(() => {
-        if(!predictions?.length) return [];
-        
-        const features = [];
+  const girdFeautures = useMemo(() => {
+    if (!predictions?.length || !burnGridH || !burnGridW) return [];
 
-        for (const p of predictions){
-            const grid = p.history[currentTick]
-            if(!grid || !p.grid_h || !p.grid_w) continue;
+    const features = [];
+    const cellLonSize = EXTENT_DEG / burnGridW;
+    const cellLatSize = EXTENT_DEG / burnGridH;
 
-            const cellLonSize = p.lon_extent_deg / p.grid_w;
-            const cellLatSize = p.lat_extent_deg / p.grid_h;
-            const minLon = p.lng - p.lon_extent_deg / 2;
-            const maxLat = p.lat + p.lat_extent_deg / 2;
+    for (const p of predictions) {
+      const grid = p.history[currentTick];
+      if (!grid) continue;
 
-            for(let row = 0; row < p.grid_h; row++){
-                for(let col = 0; col < p.grid_w; col++){
-                    const state = grid[row * p.grid_w+ col];
-                    if(state === 0) continue;
+      const minLon = p.lng - EXTENT_DEG / 2;
+      const maxLat = p.lat + EXTENT_DEG / 2;
+
+      for (let row = 0; row < burnGridH; row++) {
+        for (let col = 0; col < burnGridW; col++) {
+          const state = grid[row * burnGridW + col];
+          if (state === 0) continue;
 
           const cellMinLon = minLon + col * cellLonSize;
           const cellMaxLat = maxLat - row * cellLatSize;
 
-                    features.push({
-                        type: 'Feature',
-                        properties: { ref: p.ref, state},
-                        geometry: {
-                            type: 'Polygon',
-                            coordinates: [[
-                                [cellMinLon, cellMaxLat - cellLatSize],
-                                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
-                                [cellMinLon + cellLonSize, cellMaxLat],
-                                [cellMinLon, cellMaxLat],
-                                [cellMinLon, cellMaxLat - cellLatSize],
-                            ]],
-                        }
-                    });
-                }
-            }
+          features.push({
+            type: 'Feature',
+            properties: { ref: p.ref, state },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [
+                [
+                  [cellMinLon, cellMaxLat - cellLatSize],
+                  [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
+                  [cellMinLon + cellLonSize, cellMaxLat],
+                  [cellMinLon, cellMaxLat],
+                  [cellMinLon, cellMaxLat - cellLatSize],
+                ],
+              ],
+            },
+          });
         }
-        return features;
-    }, [predictions, currentTick])
+      }
+    }
+    return features;
+  }, [predictions, currentTick, burnGridH, burnGridW]);
 
   return (
-    <div className='relative w-full h-full'>
-      {/* key for map legend */}
-      {showKey && (
-      <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
-        <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-flare inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Burning cell</span>
-          </div>
-        </div>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-[#46201d] inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Burned cell</span>
-          </div>
-        </div>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-full bg-accent inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Reported Radius</span>
-          </div>
-        </div>
-      </div>
-    )}
-
     <Map
       ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
@@ -486,6 +462,5 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         </Popup>
       )}
     </Map>
-    </div>
   );
 }

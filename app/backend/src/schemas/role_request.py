@@ -3,8 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from enums.role_request_status import RequestStatus
-from enums.user_role import UserRole
+from app.backend.src.enums.role_request_status import RequestStatus
+from app.backend.src.enums.user_role import UserRole
 
 
 class RoleRequestCreate(BaseModel):
