@@ -14,7 +14,7 @@ from app.backend.src.services.simulation_service import SimulationService
 from .dca import run_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
-from ml.features.real_data_loader import load_real_inference_data
+from app.ml.features.real_data_loader import load_real_inference_data
 from .simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
 
