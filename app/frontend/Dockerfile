@@ -13,10 +13,11 @@ COPY . .
 FROM base AS dev
 CMD ["yarn", "dev"]
 
+FROM base AS build
 ARG NEXT_PUBLIC_MAPBOX_TOKEN
 ENV NEXT_PUBLIC_MAPBOX_TOKEN=$NEXT_PUBLIC_MAPBOX_TOKEN
-
 RUN yarn build
 
+FROM build AS production
 EXPOSE 3000
 CMD ["yarn", "start"]
