@@ -1,17 +1,18 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from db import get_db
 from enums.report_status import ReportStatus
+from enums.user_role import UserRole
 from schemas.fire_report import FireReportDetailResponse, FireReportMapResponse
 from services.users import fire_report
 
-from dependencies.auth import get_current_admin_user
+from dependencies.auth import require_role
 
 router = APIRouter(
-    prefix="/api/admin", tags=["Admin"], dependencies=[Depends(get_current_admin_user)]
+    prefix="/api/admin", tags=["Admin"], dependencies=[Depends(require_role(UserRole.admin, UserRole.firefighter))]
 )
 
 dbSession = Annotated[Session, Depends(get_db)]

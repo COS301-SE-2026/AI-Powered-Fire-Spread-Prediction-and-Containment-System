@@ -14,9 +14,10 @@ const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.Repo
 
 interface ViewProps {
   reportRef: string;
+  role?: 'admin' | 'firefighter';
 }
 
-export function ViewPage({ reportRef }: Readonly<ViewProps>) {
+export function ViewPage({ reportRef, role = 'admin' }: Readonly<ViewProps>) {
   const router = useRouter();
   const { report, loading, error, refetch } = useFireReport(reportRef);
 
