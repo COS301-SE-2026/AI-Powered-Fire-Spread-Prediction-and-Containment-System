@@ -96,8 +96,8 @@ services:
           cpus: "0.3"
           memory: 64M
         reservations:
-        cpus: "0.05"
-        memory: 16M
+          cpus: "0.05"
+          memory: 16M
     volumes:
       - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - /home/ubuntu/app/cloudflare-origin.pem:/etc/caddy/cloudflare-origin.pem:ro
