@@ -36,7 +36,7 @@ export default function GuestPublicDashboard() {
   );
 
   return (
-    <SideBar items={guestNavItems} hideLogout>
+    <SideBar items={guestNavItems} hideLogout hideLoginRegister={false}>
       <div className="flex flex-col px-1 py-1 sm:px-1 sm:py-1 lg:px-6 lg:py-6">
         {/* Header */}
         <NotificationToastHost />

@@ -7,7 +7,7 @@ export function SideBar({
   items,
   children,
   hideLogout = false,
-  hideLoginRegister = false,
+  hideLoginRegister = true,
 }: Readonly<{
   items: React.ReactNode;
   children?: React.ReactNode;
@@ -72,7 +72,7 @@ export function SideBar({
 
           {/* footer */}
           <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center lg:group-hover:items-start gap-2 lg:group-hover:px-6 transition-all bg-carbon-side shrink-0">
-            {/* {!hideLoginRegister && (
+            {!hideLoginRegister && (
               <Link
                 href="/"
                 className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4"
@@ -82,7 +82,7 @@ export function SideBar({
                   Login / Register
                 </span>
               </Link>
-            )} */}
+            )}
 
             {!hideLogout && (
               <button
