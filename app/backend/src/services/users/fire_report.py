@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, contains_eager
 
 from enums.report_status import ReportStatus, status_level
 from models.reported_fires import FireReports
@@ -29,7 +29,7 @@ def get_fire_reports(
         FireReports,
         func.ST_Y(FireReports.location_geom).label("lat"),
         func.ST_X(FireReports.location_geom).label("lng"),
-    ).outerjoin(FireReports.user)
+    ).outerjoin(FireReports.user).options(contains_eager(FireReports.user))
 
     if user_id is not None:
         query = query.filter(FireReports.user_id == user_id)
