@@ -104,5 +104,13 @@ class HistoricalFireDataset:
             
         print(f"Cached {len(self.events)} events in RAM")
         
-    
+def compute_iou(simulated: np.ndarray, ground_truth: np.ndarray) -> float:
+    """Calculates Jaccard Index / Intersection-over-Union"""
+    intersection = np.logical_and(simulated, ground_truth).sum()
+    union = np.logical_or(simulated, ground_truth).sum()
+    if union == 0:
+        return 1.0 if intersection == 0 else 0.0
+    return float(intersection / (union + 1e-6))
+
+
         
