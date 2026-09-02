@@ -4,14 +4,12 @@ import logging
 import os
 import time
 from pathlib import Path
-from dotenv import load_dotenv
-
-load_dotenv()
 
 import boto3
 import numpy as np
 import torch
 
+from ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.dca import run_dca
 
 AWS_REGION = os.environ["AWS_REGION"]
@@ -25,6 +23,27 @@ WORKER_ID = os.environ.get("WORKER_ID", "gpu-worker-1")
 # messages are capped at 256KB and simulation output can easily exceed that
 ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/firefighter-system-artifacts"))
 RESULTS_DIR = ARTIFACTS_ROOT / "results"
+
+CONVLSTM_CHECKPOINT_PATH = ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST"
+DCA_PARAMS_PATH = ARTIFACTS_ROOT / "models" / "dca_params" / "calibrated_params.json"
+
+# fallback DCA params if calibrated_params.json isn't present on the mount
+DEFAULT_DCA_PARAMS = {
+    "a": 0.015,
+    "p_h": 0.06,
+    "c_1": 0.04,
+    "c_2": 0.03,
+    "p_continue": 0.6,
+}
+
+# fixed model input shape, per contract with model_pipeline.py 
+GRID_H = 64
+GRID_W = 64
+WEATHER_HISTORY_LENGTH = 6  # T=6 past hourly frames
+
+# DCA tick conversion: 15 min/tick -> 4 ticks/hour
+TICKS_PER_HOUR = 4
+MAX_STEPS = 288     # 72 hours max simulation time
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(
@@ -42,6 +61,25 @@ WAIT_TIME_SECONDS = 20
 VISIBILITY_TIMEOUT_SECONDS = 300
 
 sqs = boto3.client("sqs", region_name=AWS_REGION)
+
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+def load_convlstm_model() -> WeatherDeltaModel:
+    """
+    Loads the trained ConvLSTM checkpoint fron the mounted artifacts bucket per teammate's
+    exact loading contract:
+    
+        checkpoint = torch.load("app/artifact_store/weather_convlstm/LATEST")
+        model.load_state_dict(checkpoint["model_state_dict"])
+    """
+    model = WeatherDeltaModel()
+    checkpoint = torch.load(CONVLSTM_CHECKPOINT_PATH, map_location=DEVICE)
+    model.load_state_dict(checkpoint["model_state_dict"])
+    model.to(DEVICE)
+    model.eval()
+    
+    log.info("Loaded ConvLSTM checkpoin from %s", CONVLSTM_CHECKPOINT_PATH)
+    return model
 
 # TODO: Integrate LSTM
 def run_lstm(weather_grids: dict) -> dict:
