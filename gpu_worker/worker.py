@@ -185,7 +185,56 @@ def fetch_weather_history(job: dict) -> list:
         )
     return frames
         
+def fetch_static_grids(job: dict) -> dict:
+    """
+    Fetches static terrain grids for the job's bounding box.
+    """
+    from ai.resolve_tiles import resolve_dem_path, resolve_sentinel2_bands
+    from ml.features.terrain import extract_terrain_features
+    from ml.features.fuel_load import process_sentinal2_and_worldcover
     
+    min_lon, min_lat, max_lon, max_lat = job["grid_bounds"]
+    target_shape = (GRID_H, GRID_W)
+    
+    dem_paths = resolve_dem_path(min_lon, min_lat, max_lon, max_lat)
+    if len(dem_paths) > 1:
+        log.warning("bbox spans %d DEM tiles, only using first (%s) - terrain will be wrong near the edge",
+                    len(dem_paths),
+                    dem_paths[0],
+                    )
+        
+    terrain = extract_terrain_features(
+        dem_paths[0], min_lon, min_lat, max_lon, max_lat, target_shape=target_shape
+    )
+    
+    # aspect comes back in degrees (0-360); dca.py's static_grids convention
+    # is aspect_sin/aspect_cos, matching how it's already stored elsewhere.
+    aspect_rad = np.radians(terrain["aspect"])
+    aspect_sin = np.sin(aspect_rad).astype(np.float32)
+    aspect_cos = np.cos(aspect_rad).astype(np.float32)
+    
+    s2 = resolve_sentinal2_bands(min_lon, min_lat, max_lon, max_lat)
+    
+    vegetation = process_sentinal2_and_worldcover(
+        b04_path=s2.b04_path,
+        b08_path=s2.b08_path,
+        b11_path=s2.b11_path,
+        min_lon=min_lon,
+        min_lat=min_lat,
+        max_lon=max_lon,
+        target_shape=target_shape,
+        scl_path=s2.scl_path,
+    )
+    
+    return {
+        "elevation": terrain["elevation"],
+        "slope": terrain["slope"],
+        "aspect_sin": aspect_sin,
+        "aspect_cos": aspect_cos,
+        "fuel_load": vegetation["fuel_load"],
+        "dryness": vegetation["dryness"],
+    }
+        
 
 def run_inference(job: dict) -> dict:
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
