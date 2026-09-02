@@ -49,3 +49,49 @@ def compute_dnbr_mask(
     burned_mask = (dnbr >= dnbr_threshold) & np.isfinite(dnbr)
     return burned_mask
 
+def fetch_historical_hourly_weather(
+    lat: float,
+    lon: float,
+    start_dt: datetime,
+    end_dt: datetime,
+    target_shape: tuple[int, int],
+) -> list[dict[str, np.ndarray]]:
+    """Fetches exact historical hourly weather from Open-Meteo Archive API"""
+    H, W = target_shape
+    start_str = start_dt.strftime("%Y-%m-%d")
+    end_str = end_dt.strftime("%Y-%m-%d")
+    
+    url = (
+        "https://archive-api.open-meteo.com/v1/archive?"
+        f"latitude={lat}&longitude={lon}&"
+        f"start_date={start_str}&end_date={end_str}&"
+        "hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m"
+    )
+    
+    with httpx.Client(timeout=15.0) as client:
+        resp = client.get(url)
+        resp.raise_for_status()
+        data = resp.json()["hourly"]
+        
+    hourly_records = []
+    n_hours = len(data["time"])
+    
+    for i in range(n_hours):
+        t_c = float(data["temperature_2m"][i])
+        rh = float(data["relative_humidity"][i]) / 100.0
+        ws = float(data["wind_speed_10m"][i]) / 3.6     # km/h to m/s
+        wd = math.radians(float(data["wind_direction_10m"][i]))
+        
+        u_val = float(-ws * math.sin(wd))
+        v_val = float(-ws * math.cos(wd))
+        
+        hourly_records.append({
+            "wind_u": np.full((H, W), u_val, dtype=np.float32),
+            "wind_v": np.full((H, W), v_val, dtype=np.float32),
+            "temperature": np.full((H, W), t_c, dtype=np.float32),
+            "rel_humidity": np.full((H, W), np.clip(rh, 0.0, 1.0), dtype=np.float32),
+        })
+        
+    return hourly_records
+
+
