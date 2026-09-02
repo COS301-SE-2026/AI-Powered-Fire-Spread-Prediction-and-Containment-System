@@ -141,22 +141,51 @@ def build_weather_history_tensor(weather_history: list) -> torch.Tensor:
     tensor = torch.from_numpy(sequence).unsqueeze(0)    #[1, T, 4, H, W]
     return tensor
 
-# TODO: Integrate LSTM
-def run_lstm(weather_grids: dict) -> dict:
+OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+
+def fetch_weather_history(job: dict) -> list:
     """
-    Placeholder for ConvLSTM.
-    
-    NOT YEST INTEGRATED YET.
-    Once trained ConvLSTM model is available (via ARTIFACTS_ROOT / "models" / "comvlstm" / "LATEST", same pattern
-    as ignition model), this should:
-        1. load model (once, at module import time, not per-job)
-        2. run it on weather_grids to predict future weather
-        3. return predicted grids in the same shape run_dca expects
-    
-    Until then, this just passes the raw job weather straight through unchanged, so run_dca gets 
-    same input it always has
+    Fetches the WEATHER_HISTORY_LENGTH hours of weather from Open-Meteo for the fire's
+    center point, and broadcasts each hourly point value uniformly across the (GRID_H, GRID_W) grid.
     """
-    return weather_grids
+    params = {
+        "latitude": job["center_lat"],
+        "longitude": job["center_lon"],
+        "hourly": "temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m",
+        "wind_speed_unit": "ms",
+        "past_hours": WEATHER_HISTORY_LENGTH,
+        "forecast_hours": 1,
+        "timezone": "UTC",
+    }
+    response = requests.get(OPEN_METEO_FORECAST_URL, params=params, timeout=10)
+    response.raise_for_status()
+    hourly = response.json()["hourly"]
+    
+    frames = []
+    for i in range(WEATHER_HISTORY_LENGTH):
+        temperature_c = hourly["temperature_2m"][i]
+        rel_humidity_pct = hourly["relative_humidity_2m"][i]
+        wind_speed_ms = hourly["wind_speed_10m"][i]
+        wind_direction_deg = hourly["wind_direction_10m"][i]
+        
+        # convert speed + "from" direction (degrees) into u/v components
+        direction_rad = np.radians(wind_direction_deg)
+        wind_u = -wind_speed_ms * np.sin(direction_rad)
+        wind_v = -wind_speed_ms * np.cos(direction_rad)
+        
+        frames.append(
+            {
+                "wind_u": np.full((GRID_H, GRID_W), wind_u, dtype=np.float32),
+                "wind_v": np.full((GRID_H, GRID_W), wind_v, dtype=np.float32),
+                "temperature": np.full((GRID_H, GRID_W), temperature_c, dtype=np.float32),
+                "rel_humidity": np.full(
+                    (GRID_H, GRID_W), rel_humidity_pct / 100.0, dtype=np.float32
+                ),
+            }
+        )
+    return frames
+        
+    
 
 def run_inference(job: dict) -> dict:
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
