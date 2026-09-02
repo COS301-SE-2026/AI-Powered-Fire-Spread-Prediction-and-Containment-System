@@ -94,4 +94,65 @@ def fetch_historical_hourly_weather(
         
     return hourly_records
 
+def build_fire_event_package(
+    fire_id: str,
+    center_lat: float,
+    center_lon: float,
+    start_time: datetime,
+    duration_hours: int,
+    bbox: tuple[float, float, float, float],    # (min_lon, min_lat, max_lon, max_lat)
+    target_shape: tuple[int, int],
+    pre_fire_bands: dict[str, str], # b04, b08, b11, b12
+    post_fire_bands: dict[str, str],    # b08, b12
+    dem_path: str,
+    output_dir: str = "app/datasets/historical_dca",
+    worldcover_path: str | None = None,
+    scl_path: str | None = None,
+) -> Path: 
+    H, W = target_shape
+    min_lon, min_lat, max_lon, max_lat = bbox
+    
+    # 1. ground truth burn scar via dNBR
+    print(f"[{fire_id}] Computing dNBR ground truth mask...")
+    target_burned_mask = compile_dnbr_mask(
+        pre_b08_path=pre_fire_bands["b08"],
+        pre_b12_path=pre_fire_bands["b12"],
+        post_b08_path=post_fire_bands["b08"],
+        post_b12_path=post_fire_bands["b12"],
+        target_shape=target_shape,
+    )
+    
+    # 2. static terrain and vegetation features
+    print(f"[{fire_id}] Extracting static terrain and fuel features...")
+    veg_data = process_sentinal2_and_worldcover(
+        worldcover_map_path=worldcover_path,
+        scl_path=scl_path,
+        b04_path=pre_fire_bands["b04"],
+        b08_path=pre_fire_bands["b08"],
+        b11_path=pre_fire_bands["b11"],
+        min_lon=min_lon,
+        min_lat=min_lat,
+        max_lat=max_lat,
+        target_shape=target_shape,
+    )
+    
+    terrain_data = extract_terrain_features(
+        dem_path=dem_path,
+        min_lon=min_lon,
+        min_lat=min_lat,
+        max_lon=max_lon,
+        max_lat=max_lat,
+        target_shape=target_shape,
+    )
+    
+    aspect_rad = np.radians(terrain_data["aspect"])
+    static_grids = {
+        "elevation": terrain_data["elevation"].astype(np.float32),
+        "slope": terrain_data["slope"].astype(np.float32),
+        "aspect_sin": np.sin(aspect_rad).astype(np.float32),
+        "aspect_cos": np.cos(aspect_rad).astype(np.float32),
+        "fuel_load": veg_data["fuel_load"].astype(np.float32),
+        "dryness": veg_data["dryness"].astype(np.float32),
+    }
+    
 
