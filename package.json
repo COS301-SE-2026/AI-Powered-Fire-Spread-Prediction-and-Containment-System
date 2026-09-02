@@ -7,6 +7,9 @@
     "app/frontend",
     "app/pwa"
   ],
+  "nohoist": [
+    "**/eslint-config-next"
+  ],
   "scripts": {
     "dev": "yarn --cwd app/frontend dev",
     "build": "yarn --cwd app/frontend build",

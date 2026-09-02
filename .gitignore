@@ -16,6 +16,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
+*.pyc
 
 # Tests
 coverage/
@@ -53,7 +54,16 @@ app/datasets/raw_data/*
 !app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv
 app/datasets/processed/
 
---out
+artifact_store/
+app/backend/artifact_store/
+app/backend/datasets/
+ml/*.pkl
+ml/*.h5
+ml/*.pt
+ml/*.onnx
+ml/checkpoints/
 
-app/backend/testing/*.log
-app/backend/testing/*html
+.vscode/
+.idea/
+.DS_Store
+
