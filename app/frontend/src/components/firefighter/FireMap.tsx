@@ -49,7 +49,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-  const storageKey = selectedFireId ? `containment_lines_${selectedFireId}` : 'containment_lines_general';
+  const storageKey = 'containment_lines_active';
 
   const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
     if(typeof window === 'undefined') return [];
@@ -71,7 +71,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       setContainmentLine([]);
       onContainmentChange?.([]);
     }
-  }, [storageKey, onContainmentChange])
+  }, [])
 
   // update the session storage whenever a containment line is changed
   useEffect(() => {
@@ -165,14 +165,12 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
       onDrawComplete(wkt);
 
-      if(drawRef.current) {
-        drawRef.current.deleteAll();
-        if(drawMode){
-          drawRef.current.changeMode('draw_line_string');
-        }
-      }
+     if(drawRef.current){
+      drawRef.current.deleteAll();
+      drawRef.current.changeMode('simple_select');
+     }
     },
-    [onDrawComplete, onContainmentChange, drawMode]
+    [onDrawComplete, onContainmentChange]
   );
 
   useEffect(() => {
