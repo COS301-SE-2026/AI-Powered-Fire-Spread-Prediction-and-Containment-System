@@ -1,12 +1,12 @@
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
+import { ChevronLeft } from 'lucide-react';
 import { ReportDetails } from './reportDetails';
 import { ReportDescription } from './reportDescription';
 import { ReportActions } from './reportActions';
 import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 import { PageHeader } from '../layout/pageHeader';
-import { ChevronLeft } from 'lucide-react';
 
 const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.ReportMap), {
   ssr: false,

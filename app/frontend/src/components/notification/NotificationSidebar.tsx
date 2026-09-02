@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import type { FireNotification } from '../../types/Notifications';
 import { NotificationCard } from './NotificationCard';
-import { createPortal } from 'react-dom';
 
 interface NotificationSidebarProps {
   isOpen: boolean;

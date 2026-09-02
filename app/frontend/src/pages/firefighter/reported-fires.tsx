@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RotateHint } from '@/components/shared/RotateHint';
 import { ReportStatus } from '../../types/Report';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
@@ -7,7 +8,6 @@ import { TableSearchBar } from '../../components/firefighter/searchbar';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { useRotate } from '../../hooks/useRotate'
 import { PageHeader } from '../../components/layout/pageHeader';
-import { RotateHint } from '@/components/shared/RotateHint';
 
 export default function ReportTable() {
   const [statusFilter, setStatusFilter] = useState<'all' | ReportStatus>('all');
