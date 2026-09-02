@@ -239,45 +239,41 @@ def fetch_static_grids(job: dict) -> dict:
 def run_inference(job: dict) -> dict:
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
     # Must return a JSON-serializable dict. Needs enough identifying info (min 'job_id' and 'region_id')so backend's results-consumer background task can key result correctly in Valkey
-    job_id = job["job_id"]
-    region_id = job["region_id"]
-
-    weather_grids = {
-        "wind_u": job["weather"]["wind_u"],
-        "wind_v": job["weather"]["wind_v"],
-        "rel_humidity": job["weather"]["rel_humidity"],
-        "temperature": job["weather"]["temperature"],
-    }
+   
+    if convlstm_model is None:
+        raise RuntimeError("ConvLSTM model not loaded - checkpoint missing at "
+                           f"{CONVLSTM_CHECKPOINT_PATH}. Cannot run inference")
     
-    # LSTM stage: predicts future weather from the input grids, in-memory, then feeds
-    # straight into DCA below. No serialization in between - both stages run in this same
-    # process on whichever machine picked up the job
-    predicted_weather = run_lstm(weather_grids)
-
-    static_grids = {
-        "elevation": job["static"]["elevation"],
-        "slope": job["static"]["slope"],
-        "aspect_sin": job["static"]["aspect_sin"],
-        "aspect_cos": job["static"]["aspect_cos"],
-        "fuel_load": job["static"]["fuel_load"],
-        "dryness": job["static"]["dryness"],
-    }
-
-    n_steps = job.get("steps", 100)
-    n_ignition_points = job.get("n_ignition_points", 1)
-
-    history = run_dca(
-        weather_grids=weather_grids,
-        static_grids=static_grids,
-        cell_size_m=float(job["cell_size_m"]),
-        n_steps=int(job.get("n_steps", 4)),
-        ignition_mask=ignition_mask,
-        containment_lines=job.get("containment_lines", []),
-        grid_bounds=tuple(job["grid_bounds"]) if job.get("grid_bounds") else None,
-        params=DEFAULT_DCA_PARAMS
+    job_id = job.get("job_id", job.get("fire_id"))
+    region_id = job.get("region_id", job.get("fire_id"))
+    
+    weather_history = fetch_weather_history(job)
+    weather_history_tensor = build_weather_history_tensor(weather_history)
+    
+    static_grids = fetch_static_grids(job)
+    
+    ignition_mask = build_integration_mask(
+        center_lat=job["center_lat"],
+        center_lon=job["center_lon"],
+        grid_bounds=job["grid_bounds"],
     )
-
-    flattened_history = [grid.ravel().tolist() for grid in history]
+    
+    n_steps = min(job.get("duration_hours", 4) * TICKS_PER_HOUR, MAX_STEPS)
+    
+    params = job.get("params", default_dca_params)
+    
+    history = run_convlstm_dca(
+        convlstm_model=convlstm_model,
+        weather_history=weather_history_tensor,
+        static_grids=static_grids,
+        cell_size_m=job.get("cell_size_m", 15.0),
+        n_steps=n_steps,
+        ignition_mask=ignition_mask,
+        containment_lines=job.get("containment_lines"),
+        grid_bounds=job["grid_bounds"],
+        params=params
+    )
+    
 
     return {
         "job_id": job_id,
@@ -323,7 +319,6 @@ def handle_message(message: dict) -> None:
     log.info("Published result for job %s -> %s", job_id, result_path)
 
     sqs.delete_message(
-        QueueUrl=INFERENCE_QUEUE_URL,
         QueueUrl=INFERENCE_QUEUE_URL,
         ReceiptHandle=message["ReceiptHandle"],
     )
