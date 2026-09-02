@@ -1,7 +1,7 @@
 # Please refrain from changing this file
 
 # builder
-FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65 AS builder
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS builder
 
 WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir --require-hashes --only-binary :all: -r requirements.txt 
 
 # runtime
-FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65 AS runtime
+FROM python:3.14-slim@sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6 AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=src
