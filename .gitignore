@@ -57,6 +57,8 @@ app/datasets/processed/
 artifact_store/
 app/backend/artifact_store/
 app/backend/datasets/
+app/backend/testing/*.log
+app/backend/testing/*.html
 ml/*.pkl
 ml/*.h5
 ml/*.pt

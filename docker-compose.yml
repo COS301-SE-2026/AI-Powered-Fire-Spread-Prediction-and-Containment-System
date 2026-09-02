@@ -80,8 +80,8 @@ services:
 
   frontend:
     build:
-      context: ./app/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: app/frontend/Dockerfile
     container_name: next-frontend
     restart: unless-stopped
     env_file:
