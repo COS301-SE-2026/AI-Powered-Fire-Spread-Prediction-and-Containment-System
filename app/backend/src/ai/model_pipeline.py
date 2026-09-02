@@ -71,3 +71,55 @@ def autoregressive_weather_forecast(
             curr_history = torch.cat([curr_history[:,1:], next_weather.unsqueeze(1)], dim=1)
 
     return forecasted_weather
+
+def run_convlstm_dca(
+        convlstm_model: WeatherDeltaModel,
+        weather_history: torch.Tensor,
+        static_grids: dict[str, np.ndarray],
+        cell_size_m: float,
+        n_steps: int = 4,
+        ignition_mask: np.ndarray | None = None,
+        containment_lines: list[str] | None = None,
+        grid_bounds: tuple[float, float, float, float] | None = None,
+        params: dict | None = None
+) -> list[np.ndarray]:
+    """
+    Combines the two models for the spread simulation
+    """
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    n_hours = max(1, int(np.ceil(n_steps/4))) # 4 ticks per hour
+
+    # pack the terrain rasters into the correct format [1, 6, H, W]
+    static_stack = np.stack([
+        static_grids["elevation"],
+        static_grids["slope"],
+        static_grids["aspect_sin"],
+        static_grids["aspect_cos"],
+        static_grids["fuel_load"],
+        static_grids["dryness"]
+    ], axis=0).astype(np.float32)
+
+    static_tensor = torch.from_numpy(static_stack).unsqueeze(0).to(device)
+
+    #run lstm to predict weather
+    hourly_weather = autoregressive_weather_forecast(
+        model=convlstm_model,
+        init_weather_history=weather_history,
+        static_tensor=static_tensor,
+        n_hours_ahead=n_hours,
+        device=device
+    )
+
+    history = run_dca(
+        weather_grids=hourly_weather,
+        static_grids=static_grids,
+        cell_size_m=cell_size_m,
+        n_steps=n_steps,
+        ignition_mask=ignition_mask,
+        containment_lines=containment_lines,
+        params=params
+    )
+
+    return history
