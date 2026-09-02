@@ -4,10 +4,12 @@ import type { NearbyFire } from '../../types/FirefighterDashboard';
 
 interface NearbyFireReports {
   readonly nearbyFires: NearbyFire[];
+  readonly selectedFireId?: string | null;
+  readonly onSelectFire?: (ref: string) => void;
 }
 
-export function NearbyReports({ nearbyFires }: NearbyFireReports) {
-  const fires = nearbyFires ?? [];
+export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire = undefined }: NearbyFireReports) {
+  const fires = (nearbyFires ?? []).filter((f) => f.status?.toLowerCase() === 'verified');
 
   if (fires.length === 0) {
     return (
@@ -18,14 +20,11 @@ export function NearbyReports({ nearbyFires }: NearbyFireReports) {
   }
   return (
     <div className="h-full overflow-y-auto flex flex-col p-2">
-      {fires.map((fire) => {
-        const status = fire.status === 'received' ? 'pending' : fire.status;
-        const style = statusBadge[status] ?? statusBadge.none;
-        return (
-          <div
-            key={`${fire.location_text}-${fire.time_ago}-${fire.distance}`}
-            className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors"
-          >
+      {fires.map((fire) => (
+          <button
+            key={fire.location_text}
+            onClick={() => onSelectFire?.(fire.location_text)}
+            className={`flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors ${fire.location_text === selectedFireId ? 'bg-carbon-card/70 border-ignite' : '' }`}>
             <div>
               <p className="font-semibold text-sm">{fire.location_text}</p>
               <p className="text-xs opacity-50">
@@ -34,16 +33,10 @@ export function NearbyReports({ nearbyFires }: NearbyFireReports) {
             </div>
 
             <div className="flex items-center gap-2">
-              <span
-                className={`badge px-3 py-1 rounded-full ${style.bg ?? ''} ${style.text ?? ''} ${style.border ?? ''}`}
-              >
-                {status}
-              </span>
               <ChevronRight className="size-4 opacity-30" />
             </div>
-          </div>
-        );
-      })}
+          </button>
+        ))}
     </div>
   );
 }
