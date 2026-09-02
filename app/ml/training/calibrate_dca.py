@@ -25,7 +25,7 @@ class HistoricalFireDataset:
         self._load_and_cache_events()
         
     def _load_and_cache_events(self) -> None:
-        npz_files = sorted(list(self.data_dir.glob("fire_*.npz")))
+        npz_files = sorted(list(self.data_dir.glob("*.npz")))
         if not npz_files:
             raise FileNotFoundError(f"No .npz files found in {self.data_dir}")
         
@@ -151,6 +151,8 @@ class DCAObjective:
                 
             except Exception as e:
                 # penalize configurations causing numerical explosions or crashes
+                import traceback
+                traceback.print_exc()
                 return 0.0
             
             # pruning hook: allow Optuna to terminate unpromising parameter trials early
@@ -158,6 +160,8 @@ class DCAObjective:
             trial.report(current_mean_iou, step=step_idx)
             if trial.should_prune():
                 raise optuna.TrialPruned()
+            
+        return float(np.mean(iou_scores))
             
 def run_calibration(
     data_dir: str,
@@ -183,7 +187,7 @@ def run_calibration(
     print("Optimal Parameters:")
     for k, v in best_trial.params.items():
         print(f" {k}: {v:.6f}")
-    print("=", * 50)
+    print("=" * 50)
     
     # Export calibrated parameters for simulation_api.py / DEFAULT_DCA_PARAMS
     out_path = Path(out_file)
@@ -206,6 +210,7 @@ def main():
         help="Directory containing path for best parameter JSON artifact",
     )
     args = parser.parse_args()
+    run_calibration(data_dir=args.data_dir, n_trials=args.n_trials, out_file=args.out)
     
 if __name__ == "__main__":
     main()
