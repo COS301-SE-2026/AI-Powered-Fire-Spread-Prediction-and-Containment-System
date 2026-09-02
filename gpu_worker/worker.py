@@ -119,6 +119,27 @@ def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list)
     mask[row, col] = True
     return mask
 
+def build_weather_history_tensor(weather_history: list) -> torch.Tensor:
+    """
+    Converts a list of WEATHER_HISTORY_LENGTH hourly frames into the 
+    [1, T, 4, H, W] tensor the ConvLSTM expects
+    """
+    frames = []
+    for frame in weather_history:
+        stacked = np.stack(
+            [
+                frame["wind_u"],
+                frame["wind_v"],
+                frame["temperature"],
+                frame["rel_humidity"],
+            ],
+            axis=0,
+        ).astype(np.float32)
+        frames.append(stacked)
+        
+    sequence = np.stack(frames, axis=0) # [T, 4, H, W]
+    tensor = torch.from_numpy(sequence).unsqueeze(0)    #[1, T, 4, H, W]
+    return tensor
 
 # TODO: Integrate LSTM
 def run_lstm(weather_grids: dict) -> dict:
