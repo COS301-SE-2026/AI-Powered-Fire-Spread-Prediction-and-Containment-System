@@ -31,7 +31,7 @@ function parseWKTCoords(wkt: string): [number, number][]{
 function calculateLineLenM(coords: [number, number][]): number{
   if(coords.length < 2) return 0;
 
-  const earthRad_m = 6371000;
+  const earthRadiusM = 6371000;
 
   let totalDist = 0;
 
@@ -47,7 +47,7 @@ function calculateLineLenM(coords: [number, number][]): number{
     const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
-    totalDist += earthRad_m * c;
+    totalDist += earthRadiusM * c;
   }
 
   return Math.round(totalDist);
@@ -75,7 +75,7 @@ const mockData: LoggedLine[] = [
   { line: 'Line C', direction: 'South Perimeter', info: 'Logged 1 hr ago · 210m' },
 ];
 
-export function LoggedContainmentLine({ cardData, lines, selectedFireId }: CardListProp) {
+export function LoggedContainmentLine({ cardData = undefined, lines = undefined, selectedFireId = undefined }: CardListProp) {
   const displayItems = useMemo<LoggedLine[]>(() => {
     if (cardData && cardData.length > 0) return cardData;
     

@@ -39,7 +39,7 @@ interface MapProps{
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false, onContainmentChange}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false, onContainmentChange = undefined}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
