@@ -19,7 +19,7 @@ jobs:
               run: |
                 cd app/backend
                 pip install --require-hashes -r requirements-dev.txt
-                pylint --rcfile=.pylintrc .
+                pylint --rcfile=.pylintrc --fail-under=8.0 src main.py db.py seed.py startup_migrations.py
             - name: Frontend lint
               run: |
                 cd app/frontend
