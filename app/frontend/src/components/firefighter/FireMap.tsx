@@ -17,6 +17,8 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+
+
 interface SavedContainmentLine {
   id: string;
   wkt: string;
@@ -33,12 +35,14 @@ interface MapProps{
     burnGrid?: number[] | null;
     predictions?: Prediction[];
     currentTick?: number;
+    selectedFireLocation?: string | null;
     selectedFireId?: string | null;
     onSelectFire?: (ref: string) => void;
+    onDeselect?: () => void;
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, selectedFireId = null, onSelectFire = undefined, showKey = false, onContainmentChange}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false, onContainmentChange = undefined}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -48,7 +52,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
 
-  const storageKey = selectedFireId ? `containment_lines_${selectedFireId}` : 'containment_lines_general';
+  const storageKey = 'containment_lines_active';
 
   const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
     if(typeof window === 'undefined') return [];
@@ -70,7 +74,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       setContainmentLine([]);
       onContainmentChange?.([]);
     }
-  }, [storageKey, onContainmentChange])
+  }, [])
 
   // update the session storage whenever a containment line is changed
   useEffect(() => {
@@ -164,14 +168,12 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
       onDrawComplete(wkt);
 
-      if(drawRef.current) {
-        drawRef.current.deleteAll();
-        if(drawMode){
-          drawRef.current.changeMode('draw_line_string');
-        }
-      }
+     if(drawRef.current){
+      drawRef.current.deleteAll();
+      drawRef.current.changeMode('simple_select');
+     }
     },
-    [onDrawComplete, onContainmentChange, drawMode]
+    [onDrawComplete, onContainmentChange]
   );
 
   useEffect(() => {
@@ -247,8 +249,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   );
 
   useEffect(() => {
-    if (!selectedFireId) return;
-    const fire = activeFires.find((f) => f.ref === selectedFireId);
+    if (!selectedFireId && !selectedFireLocation) return;
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     if (!fire) return;
     setViewState((v) => ({
       ...v,
@@ -256,13 +258,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       latitude: fire.lat,
       zoom: Math.max(v.zoom, 13),
     }));
-  }, [selectedFireId, activeFires]);
+  }, [selectedFireId, selectedFireLocation, activeFires]);
+
+  useEffect(() => {
+    if (!selectedFireId && !selectedFireLocation){
+      setSelectedFire(null);
+      return;
+    }
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    setSelectedFire(fire ?? null);
+  }, [selectedFireId, selectedFireLocation, activeFires]);
 
   const EXTENT_DEG = 0.05;
 
     const girdFeautures = useMemo(() => {
         if(!predictions?.length) return [];
-        
+
         const features = [];
 
         for (const p of predictions){
@@ -458,7 +469,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         <Popup
           longitude={selectedFire.lng}
           latitude={selectedFire.lat}
-          onClose={() => setSelectedFire(null)}
+          onClose={() => {
+            setSelectedFire(null);
+          onDeselect?.();
+          }}
           className="carbon-popup"
         >
           <div className="p-1">

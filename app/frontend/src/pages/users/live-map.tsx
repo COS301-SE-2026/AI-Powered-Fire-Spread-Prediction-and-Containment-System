@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
+import { useFireSelect } from '../../hooks/useFireSelect';
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { UserSideBar } from '../../components/users/UserSideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
@@ -10,6 +11,7 @@ import { NotificationToastHost } from '../../components/notification/Notificatio
 
 export default function RegisteredUserDashboard() {
   const { userLocation, nearbyFires } = useNearbyFires();
+  const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
 
   return (
     <UserSideBar>
@@ -25,11 +27,14 @@ export default function RegisteredUserDashboard() {
               drawMode={false}
               onDrawComplete={() => {}}
               clearDrawings={0}
+              selectedFireLocation={fireLocation}
+              onSelectFire={handleSelectFire}
+              onDeselect={clearSelect}
             />
           </MapPanel>
 
           <SidePanelRight title="Nearby Reports" colSpan={4} maxHeight="calc(480px + 2rem + 197px)">
-            <NearbyReports nearbyFires={nearbyFires} />
+            <NearbyReports nearbyFires={nearbyFires} selectedFireId={fireLocation} onSelectFire={handleSelectFire} />
           </SidePanelRight>
         </div>
       </div>

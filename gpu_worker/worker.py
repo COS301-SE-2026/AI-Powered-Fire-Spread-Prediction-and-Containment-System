@@ -1,12 +1,16 @@
 # Polls fire-system-gpu-inference for jobs, runs the fire-spread model and publishes the results to fire-system-gpu-results
-
 import json
 import logging
 import os
 import time
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 import boto3
+import numpy as np
+import torch
 
 from app.backend.src.ai.dca import run_dca
 
@@ -35,7 +39,7 @@ WAIT_TIME_SECONDS = 20
 
 # How long a message is invisible to other workers while this one processes it.
 # Needs to be longer than model's worst-case inference time, so we gonna have to play around with this value
-VISIBILITY_TIMEOUT_SECONDS = 60
+VISIBILITY_TIMEOUT_SECONDS = 300
 
 sqs = boto3.client("sqs", region_name=AWS_REGION)
 
@@ -59,7 +63,6 @@ def run_lstm(weather_grids: dict) -> dict:
 def run_inference(job: dict) -> dict:
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
     # Must return a JSON-serializable dict. Needs enough identifying info (min 'job_id' and 'region_id')so backend's results-consumer background task can key result correctly in Valkey
-
     job_id = job["job_id"]
     region_id = job["region_id"]
 
@@ -88,11 +91,17 @@ def run_inference(job: dict) -> dict:
     n_ignition_points = job.get("n_ignition_points", 1)
 
     history = run_dca(
-        weather_grids,
-        static_grids,
-        n_steps=n_steps,
-        n_ignition_points=n_ignition_points,
+        weather_grids=weather_grids,
+        static_grids=static_grids,
+        cell_size_m=float(job["cell_size_m"]),
+        n_steps=int(job.get("n_steps", 4)),
+        ignition_mask=ignition_mask,
+        containment_lines=job.get("containment_lines", []),
+        grid_bounds=tuple(job["grid_bounds"]) if job.get("grid_bounds") else None,
+        params=DEFAULT_DCA_PARAMS
     )
+
+    flattened_history = [grid.ravel().tolist() for grid in history]
 
     return {
         "job_id": job_id,
@@ -139,6 +148,7 @@ def handle_message(message: dict) -> None:
 
     sqs.delete_message(
         QueueUrl=INFERENCE_QUEUE_URL,
+        QueueUrl=INFERENCE_QUEUE_URL,
         ReceiptHandle=message["ReceiptHandle"],
     )
 
@@ -148,6 +158,7 @@ def main() -> None:
     while True:
         try:
             response = sqs.receive_message(
+                QueueUrl=INFERENCE_QUEUE_URL,
                 QueueUrl=INFERENCE_QUEUE_URL,
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=WAIT_TIME_SECONDS,
