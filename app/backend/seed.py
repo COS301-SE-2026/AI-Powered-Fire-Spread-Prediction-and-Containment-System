@@ -406,6 +406,7 @@ def seed_users(db):
 
         existing = db.query(User).filter(User.id == data["id"]).first()
         if existing:
+            existing.hashed_password = new_hash
             if existing.role != data["role"]:
                 existing.role = data["role"]
                 print(f" UPDATE {data['email']} role -> {data['role']}")
