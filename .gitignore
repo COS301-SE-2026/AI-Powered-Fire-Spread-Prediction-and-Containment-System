@@ -67,5 +67,9 @@ ml/checkpoints/
 .idea/
 .DS_Store
 
+*.rpm
 --out
 public/sw.js
+
+app/gpu-worker/.env
+app/gpu-worker/venv/

@@ -4,6 +4,7 @@ import torch
 from .ignition import IgnitionScorer
 from .schema import BURNED, BURNING, UNBURNED
 from pytorchfire.utils import calculate_slope
+from shapely import wkt as shapely_wkt
 
 
 # p_ignite is the output from the ignition scorer and is a 2D shape [H, W] and one probability per cell
@@ -112,3 +113,46 @@ def state_to_burn_state(state: torch.Tensor) -> np.ndarray:
     burn_state_grid[burned] = BURNED
     burn_state_grid[burning] = BURNING
     return burn_state_grid
+
+def convert_containment_line(containment_lines: list[str], H: int, W:int, bounds: tuple[float, float, float, float] | None = None) -> np.ndarray:
+    """
+    Convert the wkt string into a 2d mask matching the shape [H, W] of the model
+    True => active containment line
+    """
+
+    barrier_mask = np.zeros((H, W), dtype=bool)
+    if not containment_lines:
+        return barrier_mask
+
+    for line_str in containment_lines:
+        try:
+            geom = shapely_wkt.loads(line_str)
+            if geom.geom_type != "LineString":
+                continue
+
+            coords = np.array(geom.coords)
+            if len(coords) < 2:
+                continue
+
+            if bounds is not None:
+                min_lon, min_lat, max_lon, max_lat = bounds
+                rows = ((max_lat - coords[:, 1]) / (max_lat - min_lat) * H).astype(int)
+                cols = ((coords[:, 0] - min_lon) / (max_lon - min_lon) * W).astype(int)
+            else:
+                rows = coords[:, 0].astype(int)
+                cols = coords[:, 1].astype(int)
+
+            for i in range(len(coords) - 1):
+                r0, c0 = rows[i], cols[i]
+                r1, c1 = rows[i+1], cols[i+1]
+                num_points = max(abs(r1-r0), abs(c1-c0), 1) * 2
+                interpolate_row = np.linspace(r0, r1, num_points).round().astype(int)
+                interpolate_col = np.linspace(c0, c1, num_points).round().astype(int)
+
+                valid = ((interpolate_row >= 0) & (interpolate_row < H) & (interpolate_col >= 0) & (interpolate_col < W))
+
+                barrier_mask[interpolate_row[valid], interpolate_col[valid]] = True
+
+        except Exception:
+            continue
+    return barrier_mask
