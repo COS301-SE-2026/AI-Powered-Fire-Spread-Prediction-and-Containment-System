@@ -7,6 +7,7 @@ import { EnvironmentWidgets } from '../../components/firefighter/EnvironmentWidg
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
+import { useFireSelect } from '../../hooks/useFireSelect';
 import { useRotate } from '../../hooks/useRotate';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
@@ -16,6 +17,7 @@ export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
   const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
+  const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
   const {
     submitLine,
@@ -58,6 +60,9 @@ export default function FirefighterDashboard() {
                   drawMode={drawMode}
                   onDrawComplete={submitLine}
                   clearDrawings={clearDrawings}
+                  selectedFireLocation={fireLocation}
+                  onSelectFire={handleSelectFire}
+                  onDeselect={clearSelect}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
@@ -85,7 +90,7 @@ export default function FirefighterDashboard() {
             </h3>
             <div
               className="rounded-2xl bg-carbon-side/40 border border-carbon-card overflow-y-auto max-h-96">
-              <NearbyReports nearbyFires={nearbyFires} />
+              <NearbyReports nearbyFires={nearbyFires} selectedFireId={fireLocation} onSelectFire={handleSelectFire} />
             </div>
           </div>
         </div>
