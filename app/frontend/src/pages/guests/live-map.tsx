@@ -10,6 +10,7 @@ import { GuestActions } from '../../components/guest/GuestActions';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
+import { useFireSelect } from '../../hooks/useFireSelectGuest';
 
 const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
@@ -25,6 +26,7 @@ const PublicFireMap = dynamic(
 
 export default function GuestPublicDashboard() {
   const { location, environmentVariables, reports, recenter } = useGuestDashboard(20);
+  const { fireId, handleSelectFire, clearSelect } = useFireSelect();
 
   const guestNavItems = (
     <>
@@ -51,6 +53,9 @@ export default function GuestPublicDashboard() {
                 drawMode={false}
                 onDrawComplete={() => {}}
                 clearDrawings={0}
+                selectedFireId={fireId}
+                onSelectFire={handleSelectFire}
+                onDeselect={clearSelect}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -68,7 +73,7 @@ export default function GuestPublicDashboard() {
               className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto"
               style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
             >
-              <GuestReports reports={reports} />
+              <GuestReports reports={reports} selectedFireId={fireId} onSelectFire={handleSelectFire}/>
             </div>
           </div>
         </div>

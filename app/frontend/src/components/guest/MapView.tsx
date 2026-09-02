@@ -1,5 +1,6 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
+import { useFireSelect } from '@/hooks/useFireSelect';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { NearbyReports } from '../shared/nearbyReports';
 import { PageHeader } from '../layout/pageHeader';
@@ -15,6 +16,7 @@ const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) 
 
 export default function MapView() {
   const { userLocation, nearbyFires } = useNearbyFires();
+  const{ fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   return (
     <div className="flex flex-col p-6">
       {/* Public View Header */}
@@ -31,6 +33,9 @@ export default function MapView() {
               drawMode={false}
               onDrawComplete={() => {}}
               clearDrawings={0}
+              selectedFireLocation={fireLocation}
+              onSelectFire={handleSelectFire}
+              onDeselect={clearSelect}
             />
           </div>
         </div>
@@ -46,7 +51,7 @@ export default function MapView() {
             className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto"
             style={{ maxHeight: 'calc(480px + 2rem + 140px)' }}
           >
-            <NearbyReports nearbyFires={nearbyFires} />
+            <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
           </div>
         </div>
       </div>

@@ -59,9 +59,9 @@ function calculateDirection(coords: [number, number][]): string {
   const [lon2, lat2] = coords[coords.length - 1];
 
   const y = Math.sin(((lon2 - lon1) * Math.PI)/180) * Math.cos((lat2 * Math.PI)/180);
-  const x = Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) - 
+  const x = Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
     Math.sin((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.cos(((lon2 - lon1) * Math.PI) / 180);
-  
+
   const brng = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
 
   const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
@@ -78,7 +78,7 @@ const mockData: LoggedLine[] = [
 export function LoggedContainmentLine({ cardData = null, lines = [], selectedFireId = null}: CardListProp) {
   const displayItems = useMemo<LoggedLine[]>(() => {
     if (cardData && cardData.length > 0) return cardData;
-    
+
     if(lines && lines.length > 0) {
       return lines.map((wkt, idx) => {
         const coords = parseWKTCoords(wkt);
