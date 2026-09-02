@@ -9,11 +9,13 @@ updates:
       directory: "/app/frontend"
       schedule:
         interval: "weekly"
+      target-branch: "staging"
     
     - package-ecosystem: "docker"
       directory: "/app/backend"
       schedule:
         interval: "weekly"
+      target-branch: "staging"
       
     - package-ecosystem: "docker"
       directory: "/"
@@ -25,3 +27,4 @@ updates:
       directory: "/"
       schedule:
         interval: "weekly"
+      target-branch: "staging"
