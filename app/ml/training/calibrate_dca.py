@@ -112,5 +112,52 @@ def compute_iou(simulated: np.ndarray, ground_truth: np.ndarray) -> float:
         return 1.0 if intersection == 0 else 0.0
     return float(intersection / (union + 1e-6))
 
+class DCAObjective:
+    def __init__(self, dataset: HistoricalFireDataset):
+        self.dataset = dataset
+        
+    def __call__(self, trial: optuna.Trial) -> float:
+        # sample the 5 core DCA spread mechanics parameters
+        trial_params = {
+            # a: base fuel ignition cooefficient
+            "a": torch.tensor(trial.suggest_float("a", 0.001, 0.08, log=True)),
+            # p_h: spotting / jump ignition probability
+            "p_h": torch.tensor(trial.suggest_float("p_h", 0.005, 0.25)),
+            # c_1: wind alignment exponential multiplier
+            "c_1": torch.tensor(trial.suggest_float("c_1", 0.005, 0.15)),
+            # c_2: slope / terrain angle alignment multiplier
+            "c_2": torch.tensor(trial.suggest_float("c_2", 0.005, 0.15)),
+            # p_continue: probability of a burning cell continuing to burn next step
+            "p_continue": torch.tensor(trial.suggest_float("p_continue", 0.2, 0.9)),
+        }
+        
+        iou_scores: list[float] = []
+        
+        for step_idx, event in enumerate(self.dataset.events):
+            try:
+                history = run_dca(
+                    weather_grids=event["hourly_weather"],
+                    static_grids=event["static_grids"],
+                    cell_size_m=self.dataset.cell_size_m,
+                    n_steps=event["n_steps"],
+                    ignition_mask=event["ignition_mask"],
+                    params=trial_params,
+                )
+                final_grid = history[-1]
+                # In DCA: 1 = currently burning, 2 = burned out
+                sim_burned = (final_grid == 1) | (final_grid == 2)
+                iou = compute_iou(sim_burned, event["ground_truth"])
+                iou_scores.append(iou)
+                
+            except Exception as e:
+                # penalize configurations causing numerical explosions or crashes
+                return 0.0
+            
+            # pruning hook: allow Optuna to terminate unpromising parameter trials early
+            current_mean_iou = float(np.mean(iou_scores))
+            trial.report(current_mean_iou, step=step_idx)
+            if trial.should_prune():
+                raise optuna.TrialPruned()
+            
 
         
