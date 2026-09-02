@@ -36,6 +36,11 @@ export function useSimulation() {
 
   const playTimeRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const currentTickRef = useRef(0);
+
+  useEffect(() => {
+    currentTickRef.current = currentTick;
+  }, [currentTick]);
 
   // Auto-play ticker
   const stopAutoPlay = useCallback(() => {
@@ -47,19 +52,27 @@ export function useSimulation() {
 
   const startAutoPlay = useCallback((totalTicks: number) => {
     stopAutoPlay();
+    
+    if(totalTicks <= 1){
+      setCurrentTick(0);
+      setStatus('paused');
+      return;
+    }
+
     setStatus('playing');
 
     playTimeRef.current = setInterval(() => {
-      setCurrentTick((t) => {
-        const next = t + 1;
+        const nextTick = currentTickRef.current + 1;
 
-        if (next >= totalTicks - 1) {
+        if (nextTick >= totalTicks - 1){
+          currentTickRef.current = totalTicks - 1;
+          setCurrentTick(totalTicks - 1);
           stopAutoPlay();
           setStatus('paused');
-          return totalTicks - 1;
-        }
-        return next
-      });
+        }else{
+          currentTickRef.current = nextTick;
+          setCurrentTick(nextTick);
+        };
     }, PLAYBACK_INTERVAL_MS);
   },
     [stopAutoPlay]
@@ -149,6 +162,7 @@ export function useSimulation() {
     stopAutoPlay();
     if (abortRef.current) {
       abortRef.current.abort();
+      abortRef.current = null;
     }
     setResult(null);
     setCurrentTick(0);
@@ -181,14 +195,8 @@ export function useSimulation() {
   );
 
   const resetSimulation = useCallback(() => {
-    stopAutoPlay();
-    abortRef.current?.abort();
-    abortRef.current = null;
-    setResult(null);
-    setCurrentTick(0);
-    setError(null);
-    setStatus('idle')
-  }, [stopAutoPlay]);
+    clearMap()
+  }, [clearMap]);
 
   return {
     status,
