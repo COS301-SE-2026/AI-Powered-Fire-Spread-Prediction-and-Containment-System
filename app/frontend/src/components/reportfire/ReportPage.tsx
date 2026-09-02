@@ -73,7 +73,7 @@ function formReducer(state: FormStateProps, action: FormAction): FormStateProps 
 export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
   const { reports, refetch } = useUserReports();
-  const { submitReport, submitting, error } = useSubmitReport();
+  const { submitReport, submitting, error, queuedOffline } = useSubmitReport();
 
   function handleBoundarySizeChange(value: number) {
     dispatch({ type: 'SET_BOUNDARY_SIZE', value });
@@ -97,9 +97,11 @@ export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) 
       boundaryRadius: form.boundarySize,
     });
 
-    if (!report) return;
+    if (!report && !queuedOffline) return;
 
-    await refetch();
+    if (report) {
+      await refetch();
+    }
 
     setTimeout(() => {
       dispatch({ type: 'RESET_AFTER_SUBMIT' });
@@ -148,6 +150,9 @@ export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) 
           <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
             <h4 className="mb-2">Report status</h4>
             {error && <Alert variant="error" message={error} />}
+            {queuedOffline && (
+              <Alert variant='warning' message="You're offline - this report has been saved and will be submitted automatically once you're back online." />
+            )}
 
             {reports.length == 0 ? (
               <p className="text-sm text-neutural">No reports submitted yet.</p>

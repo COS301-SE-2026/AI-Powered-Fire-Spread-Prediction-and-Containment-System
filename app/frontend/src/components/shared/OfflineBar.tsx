@@ -8,13 +8,17 @@ export const OfflineBar: React.FC = () => {
 
   const checkStatus = async () => {
     if (typeof window === 'undefined') return;
-    if (!navigator.onLine) {
-      setIsOffline(true);
-    } else {
-      const reachable = await probeHealth();
-      setIsOffline(!reachable);
-    }
 
+    let reachable = navigator.onLine;
+    if (reachable) {
+      reachable = await probeHealth();
+    }
+      setIsOffline(!reachable);
+
+    if (reachable) {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      await offlineStore.syncQueuedActions(apiBaseUrl);
+    }
     const queued = await offlineStore.getQueuedActions();
     setQueueCount(queued.length);
   };

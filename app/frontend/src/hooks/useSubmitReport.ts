@@ -2,6 +2,7 @@
 import { useCallback, useState } from 'react';
 import { apiCall } from '../lib/api';
 import type { FireReportDetailResponse } from '../types/Report';
+import { offlineStore } from '../lib/offlineStore';
 
 export interface SubmitReportInput {
   location: string;
@@ -15,11 +16,14 @@ export interface SubmitReportInput {
 export function useSubmitReport() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queuedOffline, setQueuedOffline] = useState(false);
+
 
   const submitReport = useCallback(
     async (input: SubmitReportInput): Promise<FireReportDetailResponse | null> => {
       setSubmitting(true);
       setError(null);
+      setQueuedOffline(false);
 
       try {
         let imageUrl: string | undefined;
@@ -57,6 +61,24 @@ export function useSubmitReport() {
 
         return report;
       } catch (err: unknown) {
+        if (err instanceof TypeError && err.message === 'Failed to fetch'){
+          try {
+            await offlineStore.queueFireReport({
+              lat: input.lat,
+              lng: input.lng,
+              location_text: input.location,
+              description: input.description ?? null,
+              boundary_radius: input.boundaryRadius,
+              photoFile: input.photo,
+            });
+            setQueuedOffline(true);
+            return null;
+          } catch (queueErr) {
+            console.error('Fialed to queue report offline', queueErr);
+            setError('Unable to save report offline. Pease try again once connected.');
+            return null;
+          }
+        }
         const message =
           err instanceof Error ? err.message : 'Failed to submit report. Please try again.';
         console.error('Failed to submit report', err);
@@ -69,5 +91,5 @@ export function useSubmitReport() {
     []
   );
 
-  return { submitReport, submitting, error };
+  return { submitReport, submitting, error, queuedOffline };
 }

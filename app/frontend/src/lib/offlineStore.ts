@@ -27,6 +27,7 @@ export interface FireReportCreate {
   description?: string | null;
   image_url?: string | null;
   boundary_radius: number;
+  photoFile?: File;
 }
 
 export interface OfflinePredictionOverlay {
@@ -110,7 +111,7 @@ class OfflineStore {
 
   async cacheIncidents(incidents: FireReportMapResponse[]): Promise<void> {
     if (!this.db) await this.init();
-    if (!this) return;
+    if (!this.db) return;
 
     // tAction stands for transaction, transaction is a method though. So I needed to change oit to something else
     // like it would've  been fine, but maybe confusing.
@@ -131,7 +132,7 @@ class OfflineStore {
         id: recordId,
       };
 
-      store.put(incident);
+      store.put(recordToSave);
     }
 
     return new Promise((resolve, reject) => {
@@ -142,7 +143,7 @@ class OfflineStore {
 
   async getCachedIncidents(): Promise<FireReportMapResponse[]> {
     if (!this.db) await this.init();
-    if (!this) return [];
+    if (!this.db) return [];
 
     return new Promise((resolve, reject) => {
       const tAction = this.db!.transaction('incidents', 'readonly');
@@ -156,7 +157,7 @@ class OfflineStore {
 
   async cachePredictionOverlay(prediction: OfflinePredictionOverlay): Promise<void> {
     if (!this.db) await this.init();
-    if (!this) return;
+    if (!this.db) return;
 
     const tAction = this.db.transaction('predictions', 'readwrite');
     const store = tAction.objectStore('predictions');
@@ -170,7 +171,7 @@ class OfflineStore {
 
   async getCachedPredictionOverlay(incidentId: string): Promise<OfflinePredictionOverlay | null> {
     if (!this.db) await this.init();
-    if (!this) return null;
+    if (!this.db) return null;
 
     return new Promise((resolve, reject) => {
       const tAction = this.db!.transaction('predictions', 'readonly');
@@ -184,7 +185,7 @@ class OfflineStore {
 
   private async queueRawAction(action: Omit<QueuedAction, 'id' | 'created_at'>): Promise<string> {
     if (!this.db) await this.init();
-    if (!this) throw new Error('IndexedDB not ready');
+    if (!this.db) throw new Error('IndexedDB not ready');
 
     const id =
       typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
@@ -225,7 +226,7 @@ class OfflineStore {
 
   async getQueuedActions(): Promise<QueuedAction[]> {
     if (!this.db) await this.init();
-    if (!this) return [];
+    if (!this.db) return [];
 
     return new Promise((resolve, reject) => {
       const tAction = this.db!.transaction('action_queue', 'readonly');
@@ -239,7 +240,7 @@ class OfflineStore {
 
   async removeQueueAction(id: string): Promise<void> {
     if (!this.db) await this.init();
-    if (!this) return;
+    if (!this.db) return;
 
     return new Promise((resolve, reject) => {
       const tAction = this.db!.transaction('action_queue', 'readwrite');
@@ -255,10 +256,35 @@ class OfflineStore {
     const queue = await this.getQueuedActions();
     const results = await Promise.allSettled(
       queue.map(async (item) => {
-        let endpoint = `${apiBaseUrl}/api/v1/containment-lines`;
         if (item.action_type === 'fire_report') {
-          endpoint = `${apiBaseUrl}/api/reports`;
+          const { photoFile, ...reportFields } = item.payload;
+          let image_url = reportFields.image_url;
+
+          if (photoFile) {
+            const formData = new FormData();
+            formData.append('file', photoFile);
+            const uploadRes = await fetch(`${apiBaseUrl}/api/uploads/photo`,{
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+            });
+            if (!uploadRes.ok) throw new Error('sync photo upload failed');
+            const uploadResult = await uploadRes.json();
+            image_url = uploadResult.object_key;
+          }
+          const response = await fetch(`${apiBaseUrl}/api/users/reported-fires`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type' : 'application/json' },
+            body: JSON.stringify({ ...reportFields, image_url}),
+          });
+          if (!response.ok) throw new Error('sync failed');
+          await this.removeQueueAction(item.id);
+          return;
         }
+
+        let endpoint = `${apiBaseUrl}/api/v1/containment-lines`;
+
         const response = await fetch(endpoint, {
           method: 'POST',
           credentials: 'include',

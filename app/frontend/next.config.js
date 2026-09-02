@@ -10,6 +10,10 @@ const withSerwist = withSerwistInit({
     { url: "/users/live-map", revision: "1" },
     { url: "/guests/live-map", revision: "1" },
     { url: "/firefighter/dashboard", revision: "1" },
+    { url: "/admin/report-fire", revision: "1" },
+    { url: "/users/report-fire", revision: "1" },
+    { url: "/guests/report-fire", revision: "1" },
+    { url: "/firefighter/report-fire", revision: "1" },
   ],
 });
 
