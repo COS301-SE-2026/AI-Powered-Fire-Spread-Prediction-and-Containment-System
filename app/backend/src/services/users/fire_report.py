@@ -19,7 +19,7 @@ def calc_size(radius: float) -> float:
     return round((math.pi * radius_m**2) / 10_000, 1)
 
 
-def get_fire_reports(db: Session, user_id: Optional[str] = None):
+def get_fire_reports(db: Session, user_id: Optional[str] = None, limit: int = 50, offset: int = 0,):
     query = db.query(
         FireReports,
         func.ST_Y(FireReports.location_geom).label("lat"),
@@ -29,7 +29,12 @@ def get_fire_reports(db: Session, user_id: Optional[str] = None):
     if user_id is not None:
         query = query.filter(FireReports.user_id == user_id)
 
-    results = query.all()
+    results = (
+        query.order_by(FireReports.submitted_at.desc())
+                       .limit(limit)
+                       .offset(offset)
+                       .all()
+    )
 
     if not results:
         return []
@@ -128,9 +133,30 @@ def create_fire_report(
 
     db.add(new_report)
     db.commit()
+    db.refresh(new_report)
 
-    return get_fire_report_by_id(new_report.reference_number, db)
-
+    return {
+        "id": new_report.id,
+        "reference_number": new_report.reference_number,
+        "location_text": new_report.location_text,
+        "lat": report.lat,
+        "lng": report.lng,
+        "boundary_radius": float(new_report.boundary_radius),
+        "user_id": new_report.user_id,
+        "description": new_report.description,
+        "image_url": get_presigned_url(new_report.image_url) if report.image_url else None,
+        "status": new_report.status.value,
+        "size": calc_size(float(new_report.boundary_radius)),
+        "submitted_at": new_report.submitted_at,
+        "reporter_name": (
+                    f"{new_report.user.name} {new_report.user.surname}"
+                    if new_report.user
+                    else "Anonymous"
+                ),
+        "priotity": getattr(new_report, "system_verified", False),
+        "system_verified": getattr(new_report, "system_verified", False),
+        "verification_notes": new_report.verification_notes,
+    }
 
 def status_change(report_ref: str, status: ReportStatus, db: Session):
     report = (
