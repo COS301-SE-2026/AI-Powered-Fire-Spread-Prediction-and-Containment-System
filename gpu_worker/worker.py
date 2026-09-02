@@ -106,7 +106,7 @@ def main() -> None:
     while True:
         try:
             response = sqs.receive_message(
-                QueueUrl=INFERENCE_QUEUE_URL,
+                QueueURL=INFERENCE_QUEUE_URL,
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=WAIT_TIME_SECONDS,
                 VisibilityTimeout=VISIBILITY_TIMEOUT_SECONDS,
