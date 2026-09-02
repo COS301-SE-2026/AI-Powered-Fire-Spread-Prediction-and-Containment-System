@@ -18,7 +18,7 @@ jobs:
             - name: Lint backend
               run: |
                 cd app/backend
-                pip install pylint --require-hashes -r requirements-dev.txt
+                pip install --require-hashes -r requirements-dev.txt
                 pylint --rcfile=.pylintrc .
             - name: Frontend lint
               run: |
