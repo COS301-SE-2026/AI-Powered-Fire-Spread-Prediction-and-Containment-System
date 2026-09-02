@@ -1,15 +1,5 @@
-import os
 import random
-from locust import HttpUser, task, between, events
-from sqlalchemy import create_engine, text
-
-@events.test_start.add_listener
-def truncate_on_start(environment, **kwargs):
-    db_url = os.environ["DATABASE_URL"]
-    engine = create_engine(db_url)
-    with engine.begin() as conn:
-        conn.execute(text("TRUNCATE fire_reports CASCADE"))
-    print("Truncated fire_reports before test run.")
+from locust import HttpUser, task, between
 
 class FireAwayUser(HttpUser):
     # wait time in seconds, btw users
@@ -19,7 +9,7 @@ class FireAwayUser(HttpUser):
     def view_public_map_feed(self):
         """Simulates users fetching active public fire reports."""
         with self.client.get(
-            "/api/guests/reported-fires?limit=50",
+            "/api/guests/reported-fires",
             name="GET /api/guests/reported-fires",
             timeout=5.0,
             catch_response=True

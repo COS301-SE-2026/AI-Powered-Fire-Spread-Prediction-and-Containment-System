@@ -54,3 +54,6 @@ app/datasets/raw_data/*
 app/datasets/processed/
 
 --out
+
+app/backend/testing/*.log
+app/backend/testing/*html
