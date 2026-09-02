@@ -159,5 +159,54 @@ class DCAObjective:
             if trial.should_prune():
                 raise optuna.TrialPruned()
             
-
-        
+def run_calibration(
+    data_dir: str,
+    n_trials: int = 150,
+    out_file: str = "app/artifact_store/dca_params/calibrated_params.json",
+) -> None:
+    dataset = HistoricalFireDataset(data_dir=data_dir)
+    objective = DCAObjective(dataset)
+    
+    study = optuna.create_study(
+        direction="maximize",
+        sampler=optuna.samplers.TPESampler(seed=42),
+        pruner=optuna.pruners.MedianPruner(n_startup_trials=10, n_warmup_steps=5),
+    )
+    
+    print(f"Starting Optuna calibration for {n_trials} trials...")
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
+    
+    best_trial = study.best_trial
+    print("\n" + "=" * 50)
+    print("CALIBRATION COMPLETE")
+    print(f"Best mean IoU: {best_trial.value:.4f}")
+    print("Optimal Parameters:")
+    for k, v in best_trial.params.items():
+        print(f" {k}: {v:.6f}")
+    print("=", * 50)
+    
+    # Export calibrated parameters for simulation_api.py / DEFAULT_DCA_PARAMS
+    out_path = Path(out_file)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(best_trial.params, f, indent=4)
+    print(f"Svaed calibrated parameter artifact to {out_path}")
+    
+def main():
+    parser = argparse.ArgumentParser(description="Optuna Calibration for Cellular Automata Spreas Parameters")
+    parser.add_argument(
+        "--data-dir",
+        default="datasets/processed/dca_historical_events",
+        help="Directory containing packaged fire_*.npz files",
+    )
+    parser.add_argument("--n-trials", type=int, default=100, help="Number of Optuna trials")
+    parser.add_argument(
+        "--out",
+        default="app/artifact_store/dca_params/calibrated_params.json",
+        help="Directory containing path for best parameter JSON artifact",
+    )
+    args = parser.parse_args()
+    
+if __name__ == "__main__":
+    main()
+    
