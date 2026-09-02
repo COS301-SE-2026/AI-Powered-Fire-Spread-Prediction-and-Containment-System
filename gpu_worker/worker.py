@@ -105,6 +105,19 @@ except FileNotFoundError as e:
     convlstm_model = None
 default_dca_params = load_dca_params()
 
+def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list) -> np.ndarray:
+    """
+    Builds a (64, 64) boolean ignition mask with a single True cell at the grid position closest to
+    (center_lat, center_lon).  grid_bounds is [min_lon, min_lat, max_lon, max_lat]
+    """
+    min_lon, min_lat, max_lon, max_lat = grid_bounds
+    
+    row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * GRID_H, 0, GRID_H - 1))
+    col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * GRID_W, 0, GRID_W -1))
+    
+    mask = np.zeros((GRID_H, GRID_W), dtype=bool)
+    mask[row, col] = True
+    return mask
 
 
 # TODO: Integrate LSTM
