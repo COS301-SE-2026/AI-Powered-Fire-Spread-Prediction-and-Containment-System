@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity } from 'lucide-react';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
@@ -61,6 +61,10 @@ export default function Simulation() {
     pause();
   }
 
+  useEffect(() => {
+    clearMap();
+  }, [selectedFireId, clearMap])
+
   const canClear = hasResult || containmentLines.length > 0 || currentTick > 0;
 
     const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
@@ -121,7 +125,10 @@ export default function Simulation() {
                   lat={userLocation.lat}
                   lng={userLocation.lng}
                   drawMode={drawMode}
-                  onDrawComplete={submitLine}
+                  onDrawComplete={(line) => {
+                    submitLine(line);
+                    setDrawMode(false);
+                  }}
                   onContainmentChange={setContainmentLines}
                   clearDrawings={clearDrawings}
                   predictions={predictions}
