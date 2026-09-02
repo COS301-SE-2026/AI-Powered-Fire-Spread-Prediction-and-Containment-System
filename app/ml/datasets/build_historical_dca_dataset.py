@@ -155,4 +155,50 @@ def build_fire_event_package(
         "dryness": veg_data["dryness"].astype(np.float32),
     }
     
+    # 3. initial ignition mask (point centered at ignition coordinates)
+    ignition_mask = np.zeros((H, W), dtype=bool)
+
+    # map lat/lon to grid row/col
+    row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * H, 0, H -1))
+    col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * W, 0, W -1))
+    ignition_mask[row, col] = True
+    
+    # 4. hourly weather timeline
+    print(f"[{fire_id}] Fetching historical weather archive...")
+    end_time = start_time + timedelta(hours=duration_hours)
+    hourly_weather = fetch_historical_hourly_weather(
+        lat=center_lat,
+        lon=center_lon,
+        start_dt=start_time,
+        end_dt=end_time,
+        target_shape=target_shape,
+    )
+    
+    # 5. pack into .npz
+    out_path = Path(output_dir)
+    out_path.mkdir(parents=True, exist_ok=True)
+    file_dest = out_path / f"{fire_id}.npz"
+    
+    np.savez_compressed(
+        file_dest,
+        fire_id=fire_id,
+        target_burned_mask=target_burned_mask,
+        ignition_mask=ignition_mask,
+        static_elevation=static_grids["elevation"],
+        static_slope=static_grids["slope"],
+        static_aspect_sin=static_grids["aspect_sin"],
+        static_aspect_cos=static_grids["aspect_cos"],
+        static_fuel_load=static_grids["fuel_load"],
+        static_dryness=static_grids["dryness"],
+        weather_u=np.stack([w["wind_u"] for w in hourly_weather], axis=0),
+        weather_v=np.stack([w["wind_v"] for w in hourly_weather], axis=0),
+        weather_temp=np.stack([w["temperature"] for w in hourly_weather], axis=0),
+        weather_rh=np.stack([w["rel_humidity"] for w in hourly_weather], axis=0),
+        duration_hours=duration_hours,
+        grid_shape=np.array([H, W]),
+    )
+    
+    print(f"Successfully packed fire event {fire_id} to {file_dest}")
+    
+
 
