@@ -81,6 +81,32 @@ def load_convlstm_model() -> WeatherDeltaModel:
     log.info("Loaded ConvLSTM checkpoin from %s", CONVLSTM_CHECKPOINT_PATH)
     return model
 
+def load_dca_params() -> dict:
+    """
+    Loads calibrated DCA params from the mounted artifacts bucket, falling back to the hardcoded
+    defaults if the file isn't present
+    """
+    try:
+        return json.loads(DCA_PARAMS_PATH.read_text())
+    except FileNotFoundError:
+        log.warning(
+            "calibrated_params.json not found at %s, using hardcoded defaults",
+            DCA_PARAMS_PATH,
+        )
+        return dict(DEFAULT_DCA_PARAMS)
+    
+# Loaded once at process startup, not per-job - model weights stay resident in memory/GPY across
+# every job worker picks up. Wrapped so import doesn't hard-crash when checkpoint isn't available yet.
+# Individual jobs will fail with a clear error instead if inference is actually attempted without a model
+try:
+    convlstm_model = load_convlstm_model()
+except FileNotFoundError as e:
+    log.warning("ConvLSTM checkppoint not available yet (%s) - inference will fail until it exists", e)
+    convlstm_model = None
+default_dca_params = load_dca_params()
+
+
+
 # TODO: Integrate LSTM
 def run_lstm(weather_grids: dict) -> dict:
     """
