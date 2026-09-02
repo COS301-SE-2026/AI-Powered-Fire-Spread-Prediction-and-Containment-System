@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import os
 import asyncio
 import torch
 
@@ -17,11 +18,13 @@ from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
 from .dca import run_dca
+from .model_pipeline import run_convlstm_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
 from ml.features.real_data_loader import load_real_inference_data
 from .simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
+from ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -29,6 +32,16 @@ METRES_PER_DEG_LAT = 111_320.0
 TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
 MIN_GRID_DIMENSION = 10
 MAX_GRID_DIMENSION = 800
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+convlstm_cfg = WeatherDeltaModelConfig(input_dim=10, hidden_dims=[48,48], kernel_size=3, output_dim=4)
+convlstm_model = WeatherDeltaModel(convlstm_cfg).to(device)
+
+CHECKPOINT_PATH = os.environ.get("CONVLSTM_CHECKPOINT", "app/artifact_store/weather_convlstm/LATEST/model.pt")
+if os.path.exists(CHECKPOINT_PATH):
+    convlstm_model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
+convlstm_model.eval()
 
 # will change after training
 DEFAULT_DCA_PARAMS = {
@@ -155,17 +168,47 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         )
         grid_bounds = (min_lon, min_lat, max_lon, max_lat)
 
+        if "aspect_sin" not in static_grids or "aspect_cos" not in static_grids:
+            aspect_deg = static_grids.get("aspect")
+            if aspect_deg is None:
+                aspect_deg = np.zeros((H, W), dtype=np.float32)
+            aspect_rad = np.radians(aspect_deg)
+            static_grids["aspect_sin"] = np.sin(aspect_rad).astype(np.float32)
+            static_grids["aspect_cos"] = np.cos(aspect_rad).astype(np.float32)
+
+        wind_u = weather_grids.get("wind_u", np.zeros((H, W), dtype=np.float32))
+        wind_v = weather_grids.get("wind_v", np.zeros((H, W), dtype=np.float32))
+        temperature = weather_grids.get("temperature", np.full((H, W), 25.0, dtype=np.float32))
+
+        if "rel_humidity" in weather_grids:
+            rel_humidity = weather_grids["rel_humidity"]
+        elif "dryness" in weather_grids:
+            # approximate the humidty based on dryness (100 - dryness + temp)
+            rel_humidity = np.clip(1.0 - weather_grids["dryness"], 0.05, 0.95).astype(np.float32)
+        else:
+            rel_humidity = np.full((H, W), 0.35, dtype=np.float32)
+
+        current_frame = np.stack([
+            np.asarray(wind_u, dtype=np.float32),
+            np.asarray(wind_v, dtype=np.float32),
+            np.asarray(rel_humidity, dtype=np.float32),
+            np.asarray(temperature, dtype=np.float32)
+        ], axis=0).astype(np.float32)
+
+        weather_history = torch.from_numpy(np.repeat(current_frame[np.newaxis, np.newaxis, ...], 3, axis=1)).float()
+
         try:
             history = await asyncio.to_thread(
-                run_dca,
-                weather_grids=weather_grids,
+                run_convlstm_dca,
+                convlstm_model=convlstm_model,
+                weather_history=weather_history,
                 static_grids=static_grids,
+                cell_size_m=cell_size_m,
                 n_steps=automatic_steps,
                 ignition_mask=ignition_mask,
                 containment_lines=lines,
                 grid_bounds=grid_bounds,
-                params=DEFAULT_DCA_PARAMS,
-                cell_size_m=cell_size_m
+                params=DEFAULT_DCA_PARAMS
             )
         except Exception as exc:
             raise HTTPException(
