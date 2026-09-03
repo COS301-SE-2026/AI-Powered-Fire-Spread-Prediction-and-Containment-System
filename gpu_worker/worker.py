@@ -53,7 +53,10 @@ log = logging.getLogger(
 )  # Logs go to local systemd journal only (journalctl -u fire-worker)
 
 # Where systemd unit's monitoring checks for liveness
-HEARTBEAT_FILE = Path(os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat")) # NOSONAR
+
+HEARTBEAT_FILE = Path(
+    os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat")
+)  # NOSONAR
 
 # SQS long-polling wait time
 WAIT_TIME_SECONDS = 20
@@ -118,7 +121,7 @@ def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list)
     (center_lat, center_lon).  grid_bounds is [min_lon, min_lat, max_lon, max_lat]
     """
     min_lon, min_lat, max_lon, max_lat = grid_bounds
-    
+  
     row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * GRID_H, 0, GRID_H - 1))
     col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * GRID_W, 0, GRID_W -1))
     

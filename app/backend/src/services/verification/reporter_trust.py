@@ -3,8 +3,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
 
 # Initial score for user with no repor history
 DEFAULT_SCORE = 50.0
