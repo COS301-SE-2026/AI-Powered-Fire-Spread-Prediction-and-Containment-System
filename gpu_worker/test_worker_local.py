@@ -70,7 +70,7 @@ def main():
     )
     if static_grids is not None:
         for key, grid in static_grids.items():
-            print(f" {key}: shape={grid.shape}, min={grid.min():.3f}, max={grid.max()}:.3f")
+            print(f" {key}: shape={grid.shape}, min={grid.min():.3f}, max={grid.max():.3f}")
     
     if weather_history is not None:
         tensor = run_step(
