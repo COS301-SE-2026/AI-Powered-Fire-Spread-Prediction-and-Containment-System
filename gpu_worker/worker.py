@@ -7,6 +7,7 @@ from pathlib import Path
 
 import boto3
 import numpy as np
+import requests
 import torch
 
 from ml.models.nowcast_model import WeatherDeltaModel
@@ -213,7 +214,7 @@ def fetch_static_grids(job: dict) -> dict:
     aspect_sin = np.sin(aspect_rad).astype(np.float32)
     aspect_cos = np.cos(aspect_rad).astype(np.float32)
     
-    s2 = resolve_sentinal2_bands(min_lon, min_lat, max_lon, max_lat)
+    s2 = resolve_sentinel2_bands(min_lon, min_lat, max_lon, max_lat)
     
     vegetation = process_sentinal2_and_worldcover(
         b04_path=s2.b04_path,
@@ -222,6 +223,7 @@ def fetch_static_grids(job: dict) -> dict:
         min_lon=min_lon,
         min_lat=min_lat,
         max_lon=max_lon,
+        max_lat=max_lat,
         target_shape=target_shape,
         scl_path=s2.scl_path,
     )
@@ -271,7 +273,7 @@ def run_inference(job: dict) -> dict:
         ignition_mask=ignition_mask,
         containment_lines=job.get("containment_lines"),
         grid_bounds=job["grid_bounds"],
-        params=params
+        params=params,
     )
     
 
@@ -291,10 +293,8 @@ def write_result_to_artifacts(job_id: str, result: dict) -> str:
     result_path.write_text(json.dumps(result))
     return str(result_path)
 
-
 def touch_heartbeat() -> None:
     HEARTBEAT_FILE.write_text(str(time.time()))
-
 
 def handle_message(message: dict) -> None:
     body = json.loads(message["Body"])
@@ -323,13 +323,11 @@ def handle_message(message: dict) -> None:
         ReceiptHandle=message["ReceiptHandle"],
     )
 
-
 def main() -> None:
     log.info("Worker starting. Polling %s", INFERENCE_QUEUE_URL)
     while True:
         try:
             response = sqs.receive_message(
-                QueueUrl=INFERENCE_QUEUE_URL,
                 QueueUrl=INFERENCE_QUEUE_URL,
                 MaxNumberOfMessages=1,
                 WaitTimeSeconds=WAIT_TIME_SECONDS,
@@ -353,7 +351,6 @@ def main() -> None:
             # Back off briefly and keep going rather than crashing (If something goes wrong for whatever reason eg. AWS throttle
             log.exception("Error in polling loop, backing off")
             time.sleep(5)
-
 
 if __name__ == "__main__":
     main()
