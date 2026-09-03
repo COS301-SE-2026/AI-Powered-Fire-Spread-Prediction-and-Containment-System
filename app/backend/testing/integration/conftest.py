@@ -1,8 +1,8 @@
 import os
+import sys
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -10,27 +10,34 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.notification import Notification
+
+from unittest.mock import patch
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+# Points to app/backend/src and app/ml — skips the parent conftest
+# that loads the full backend app and requires minio/db dependencies
+root = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(root / "app"))
+sys.path.insert(0, str(root / "app" / "ml"))
+
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
-
-with patch(
-    "app.backend.src.services.simulation_service.WeatherForecastBridge"
-) as mock_bridge:
-    mock_instance = MagicMock()
-    mock_bridge.load.return_value = mock_instance
-    from app.backend.main import app
-
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
+from app.backend.main import app
 
-from app.backend.src.enums.report_status import ReportStatus
+# models for the firefighter dashboard
 from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
 
-from app.backend.seed import SEED_USERS, seed_fire_reports
+# seed data
+from app.backend.seed import REGIONAL_LOCATIONS as SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -44,25 +51,31 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 def create_tables():
     """Build db schema in test cluster before tests start"""
     with engine.begin() as conn:
-        # Forcefully wipe the database schema to clear out orphaned tables/indices
-        conn.exec_driver_sql("DROP SCHEMA public CASCADE;")
-        conn.exec_driver_sql("CREATE SCHEMA public;")
-        conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO postgres;")
-        conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO public;")
-
-        # Reinitialize spatial extensions and tables
+        #  need for spacial columns
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
-        print(Base.metadata.tables.keys())
-        Base.metadata.create_all(bind=conn)
 
+    Base.metadata.create_all(
+        bind=engine,
+        tables=[
+            User.__table__,
+            RoleRequest.__table__,
+            FireReports.__table__,
+            Notification.__table__,
+            ContainmentLines.__table__,
+        ],
+    )
     yield
 
-    # Clean up securely after tests finish
-    with engine.begin() as conn:
-        conn.exec_driver_sql("DROP SCHEMA public CASCADE;")
-        conn.exec_driver_sql("CREATE SCHEMA public;")
-        conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO postgres;")
-        conn.exec_driver_sql("GRANT ALL ON SCHEMA public TO public;")
+    Base.metadata.drop_all(
+        bind=engine,
+        tables=[
+            User.__table__,
+            RoleRequest.__table__,
+            FireReports.__table__,
+            Notification.__table__,
+            ContainmentLines.__table__,
+        ],
+    )
 
 
 @pytest.fixture(scope="function")
@@ -232,6 +245,26 @@ def seeded_fire_reports(db):
 @pytest.fixture
 def small_grids():
     def _make(H=5, W=5):
+        """Generate minimal synthetic grid data for testing physical model inputs.
+
+        Creates uniform weather blowing east and flat terrain dictionaries along with an unburned status matrix of dimensions (H, W).
+
+        Parameters
+        ----------
+        H : int, default 5
+            Height of spatial grid in cells.
+        W : int, default 5
+            Width of spatial grid in cells.
+
+        Returns
+        -------
+        weather : dict of {str: np.ndaray}
+            Dictionary containing uniform meteorological arrays (`wind_u`, `wind_v`, `rel_humidity`, `temperature`)
+        static : dict of {str: np.ndarray}
+            Dictionary containing uniform terrain and fuel feature arrays (`elevation`, `slope`, `aspect_sin`, `aspect_cos`, `fuel_load`, `dryness`)
+        burn : np.ndarray
+            (H, W) array of zeros representing an initially unburned state matrix.
+        """
         weather = {
             "wind_u": np.full((H, W), 3.0, np.float32),
             "wind_v": np.zeros((H, W), np.float32),
@@ -252,11 +285,9 @@ def small_grids():
     return _make
 
 
+# for verification integration test cause we cant use env for mapbox token in deplyment
 @pytest.fixture(autouse=True)
 def mock_on_land():
     """prevent tests from depending on live mapbox API"""
-    with patch(
-        "app.backend.src.services.verification.rejection_checks.on_land",
-        return_value=True,
-    ):
+    with patch("app.backend.src.services.verification.rejection_checks.on_land", return_value=True):
         yield
