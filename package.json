@@ -3,31 +3,20 @@
   "private": true,
   "packageManager": "yarn@1.22.22",
   "workspaces": [
-    "app/backend",
-    "app/frontend",
-    "app/backend",
-    "app/frontend",
-    "app/pwa"
+    "app/backend/src",
+    "app/frontend/src"
   ],
   "nohoist": [
     "**/eslint-config-next"
   ],
   "scripts": {
-    "dev": "yarn --cwd app/frontend dev",
-    "build": "yarn --cwd app/frontend build",
-    "lint": "yarn --cwd app/frontend lint",
-    "test:e2e": "yarn --cwd app/frontend test:e2e",
-    "test:e2e:backend": "pytest -q app/backend/testing_config/e2e",
-    "dev": "yarn --cwd app/frontend dev",
-    "build": "yarn --cwd app/frontend build",
-    "lint": "yarn --cwd app/frontend lint",
-    "test:e2e": "yarn --cwd app/frontend test:e2e",
-    "test:e2e:backend": "pytest -q app/backend/testing_config/e2e",
-    "pwa:start": "yarn --cwd app/pwa start",
-    "test:xgboost:unit": "pytest app/backend/tests/ai/test_xgboost_model_unit.py -v",
-    "test:xgboost:integration": "pytest app/backend/tests/ai/test_xgboost_model_integration.py -v",
-    "test:xgboost:unit": "pytest app/backend/tests/ai/test_xgboost_model_unit.py -v",
-    "test:xgboost:integration": "pytest app/backend/tests/ai/test_xgboost_model_integration.py -v"
+    "dev": "yarn --cwd app/frontend/src dev",
+    "build": "yarn --cwd app/frontend/src build",
+    "lint": "yarn --cwd app/frontend/src lint",
+    "test:e2e": "yarn --cwd app/frontend/src test:e2e",
+    "test:e2e:backend": "pytest -q app/backend/src/testing_config/e2e",
+    "test:xgboost:unit": "pytest app/backend/src/tests/ai/test_xgboost_model_unit.py -v",
+    "test:xgboost:integration": "pytest app/backend/src/tests/ai/test_xgboost_model_integration.py -v"
   },
   "devDependencies": {
     "@types/react": "18.3.1",
