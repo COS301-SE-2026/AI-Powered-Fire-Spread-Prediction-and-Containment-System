@@ -57,6 +57,8 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_fire_db
+          SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
         ports:
           - 5433:5432
         options: >-
