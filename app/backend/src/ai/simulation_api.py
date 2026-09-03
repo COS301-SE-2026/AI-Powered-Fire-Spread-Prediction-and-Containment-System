@@ -52,7 +52,7 @@ RESULTS_DIR = ARTIFACTS_ROOT / "results"
 sqs = boto3.client("sqs", region_name=AWS_REGION)
 
 RESULT_POLL_INTERVAL_S = 1.0
-RESULT_POLL_TIMEOUT_S = 120.0
+RESULT_POLL_TIMEOUT_S = 360.0
 
 # device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -164,8 +164,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
 
     H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, fire.lat)
 
-    cell_size_lat_m = (lat_extent_deg / GRID_H) * METRES_PER_DEG_LAT
-    cell_size_lon_m = (lon_extent_deg / GRID_W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
+    cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
+    cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
     cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
 
     cache_key = build_fire_cache_key(
@@ -198,7 +198,10 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             "center_lon": fire.lng,
             "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
             "duration_hours": automatic_steps / TICKS_PER_HOUR,
+            "n_steps": automatic_steps,
             "cell_size_m": cell_size_m,
+            "grid_h": H,
+            "grid_w": W,
             "containment_lines": lines,
         }
 
@@ -223,10 +226,10 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
 
         last_tick_flat = flattened_history[-1] if flattened_history else []
         burned_cells = sum(1 for c in last_tick_flat if c in (1,2))
-        radius_m = burned_area_radius_m(burned_cells, GRID_H, GRID_W, lat_extent_deg, lon_extent_deg)
+        radius_m = burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg)
 
-        last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((GRID_H, GRID_W))
-        truncated = bool(touch_edge(last_grid_2d))
+        last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
+        truncated = bool(touch_edge(last_grid_2d, burning_val=1, burned_val=2))
 
         prediction_payload = {
             "ref": fire.reference_number,
@@ -238,8 +241,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             "truncated": truncated,
             "lat_extent_deg": lat_extent_deg,
             "lon_extent_deg": lon_extent_deg,
-            "grid_h": GRID_H,
-            "grid_w": GRID_W,
+            "grid_h": H,
+            "grid_w": W,
             "cell_size_m": cell_size_m,
         }
 
@@ -275,7 +278,7 @@ async def run_simulation(
         .all()
     )
 
-    automatic_steps = 4
+    automatic_steps = req.n_steps
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(
