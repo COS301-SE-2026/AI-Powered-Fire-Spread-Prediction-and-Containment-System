@@ -28,7 +28,7 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
     identity = (
         FireReports.user_id.is_not(None)
         if report.user_id is None
-        else FireReports.user_id != report.user_id
+        else (FireReports.user_id.is_not(None)) & (FireReports.user_id != report.user_id)
     )
 
     query = select(FireReports.id).where(
