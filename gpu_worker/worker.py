@@ -14,9 +14,9 @@ from ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 
-AWS_REGION = os.environ["AWS_REGION"]
-INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
-RESULTS_QUEUE_URL = os.environ["RESULTS_QUEUE_URL"]
+AWS_REGION = os.environ.get("AWS_REGION")
+INFERENCE_QUEUE_URL = os.environ.get("INFERENCE_QUEUE_URL")
+RESULTS_QUEUE_URL = os.environ.get("RESULTS_QUEUE_URL")
 
 WORKER_ID = os.environ.get("WORKER_ID", "gpu-worker-1")
 
