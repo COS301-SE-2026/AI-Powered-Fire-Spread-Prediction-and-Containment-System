@@ -83,7 +83,7 @@ jobs:
               run: |
                 ACTIVE=$(aws ssm get-parameter --name /prod/active-colour --query 'Parameter.Value' --output text)
                 if [ "$ACTIVE" = "blue" ]; then
-                    IDLE:"green"
+                    IDLE="green"
                     IDLE_INSTANCE_ID="${{ secrets.PROD_GREEN_INSTANCE_ID }}"
                 else
                     IDLE="blue"
@@ -91,7 +91,7 @@ jobs:
                 fi
                 echo "active=$ACTIVE" >> "$GITHUB_OUTPUT"
                 echo "idle=$IDLE" >> "$GITHUB_OUTPUT"
-                echo "idle_instance_id=IDLE_INSTANCE_ID" >> "$GITHUB_OUTPUT"
+                echo "idle_instance_id=$IDLE_INSTANCE_ID" >> "$GITHUB_OUTPUT"
                 echo "Deploying to idle instance: $IDLE ($IDLE_INSTANCE_ID), currently active: $ACTIVE"
 
             - name: Deploy to idle instances via SSM
