@@ -70,6 +70,17 @@ docker compose up -d
 The frontend and PWA services mount `node_modules` as named volumes for development.
 Their container commands run `yarn install` on startup to populate these volumes.
 
+## Installing requirements for the backend
+Does not install testing stuff (will save space on prod):
+```bash
+pip install -r app/backend/requirements.txt
+```
+
+This is for testing only on local dev (won't be in prod):
+```bash
+pip install -r app/backend/requirements-dev.txt
+```
+
 ## Verify the services
 
 Once the stack is running, the default ports are:
@@ -113,21 +124,17 @@ docker compose logs -f frontend
 
 - Run the commands from the root of the repository to execute them in the correct context:
 
-```bash
-yarn dev
-yarn build
-yarn lint
-```
 
-- To run from app/backend/src:
+- To run from app/backend:
 
 ```bash
 yarn test # runs all test files in the tests folder
 yarn start
 yarn dev
+yarn lint   # runs pylint locally
 ```
 
-- To run from app/frontend/src:
+- To run from app/frontend:
 
 ```bash
 yarn dev
@@ -138,4 +145,5 @@ yarn test
 yarn test:headed
 yarn test:report
 yarn test:install
+yarn eslint . --ext .js,.jsx,.ts,.tsx  # for eslint
 ```

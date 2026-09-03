@@ -1,112 +1,125 @@
-"use client";
+'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import mapboxgl from 'mapbox-gl';
-const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
+import type { MapRef } from 'react-map-gl/mapbox';
+import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { probeHealth } from '../../lib/offline/shared';
+
+const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
 
 interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
   onBoundarySizeChange?: (radiusKm: number) => void;
   externalPin?: { lng: number; lat: number } | null;
-
 }
 
 const INITIAL_RADIUS_KM = 0.2;
 const INITIAL_ZOOM = 15.5;
 
-  function resetBoundary(
-    lng: number,
-    lat: number,
-    setMarkerPos: (pos: { lng: number; lat: number }) => void,
-    setRadius: (r: number) => void,
-    onBoundarySizeChange?: (r: number) => void
-  ) {
-    setMarkerPos({ lng, lat });
-    setRadius(INITIAL_RADIUS_KM);
-    onBoundarySizeChange?.(INITIAL_RADIUS_KM);
-  }
-    function toLocation(mapRef: React.RefObject<any>, lng: number, lat: number) {
-    mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
-  }
+function resetBoundary(
+  lng: number,
+  lat: number,
+  setMarkerPos: (pos: { lng: number; lat: number }) => void,
+  setRadius: (r: number) => void,
+  onBoundarySizeChange?: (r: number) => void
+) {
+  setMarkerPos({ lng, lat });
+  setRadius(INITIAL_RADIUS_KM);
+  onBoundarySizeChange?.(INITIAL_RADIUS_KM);
+}
+function toLocation(mapRef: React.RefObject<MapRef | null>, lng: number, lat: number) {
+  mapRef.current?.flyTo({ center: [lng, lat], zoom: INITIAL_ZOOM, duration: 900, essential: true });
+}
 
-  function createPinElement(): HTMLDivElement {
-    const el = document.createElement('div');
-    el.className = "flex flex-col items-center pointer-events-none";
-    el.innerHTML = `
+function createPinElement(): HTMLDivElement {
+  const el = document.createElement('div');
+  el.className = 'flex flex-col items-center pointer-events-none';
+  el.innerHTML = `
       <div class="w-7 h-7 rounded-full bg-ignite border-2 border-white shadow-lg flex items-center justify-center">
         <div class="w-2.5 h-2.5 rounded-full bg-white"><div/>
       </div>
       <div class="w-1 h-5 bg-ignite/40"></div>
       <div class="w-1 h-1 rounded-full bg-ignite"></div>
     `;
-    return el;
+  return el;
+}
+
+function createRimElement(radiusKm: number): { el: HTMLDivElement; label: HTMLDivElement } {
+  const el = document.createElement('div');
+  el.className = 'flex flex.col items-center gap-1 cursor-grab';
+
+  const label = document.createElement('div');
+  label.className =
+    'absolute left-full ml-2 text-white text-xs font-mono whitespace-nowrap pointer-events-none';
+  label.textContent = output(radiusKm);
+
+  const btn = document.createElement('div');
+  btn.className =
+    'w-8 h-8 rounded-full bg-white border-2 border-ignite text-ignite font-bold text-lg flex items-center justify-center select-none leading-none shadow-lg';
+  btn.textContent = '+';
+
+  el.append(label, btn);
+  return { el, label };
+}
+
+function handleRimDrag(
+  rimMarker: mapboxgl.Marker,
+  label: HTMLDivElement,
+  markerPosRef: React.RefObject<{ lng: number; lat: number } | null>,
+  radiusKmRef: React.MutableRefObject<number>,
+  mapRef: React.RefObject<MapRef | null>,
+  onBoundarySizeChange?: (r: number) => void
+) {
+  const pos = markerPosRef.current;
+  if (!pos) return;
+
+  const rawLngLat = rimMarker.getLngLat();
+  const deltaLng = rawLngLat.lng - pos.lng;
+  const deltaLat = rawLngLat.lat - pos.lat;
+  const theta = Math.atan2(deltaLat, deltaLng);
+  const rawRadius = realKm(pos.lat, pos.lng, rawLngLat.lat, rawLngLat.lng);
+  const newRadius = Math.max(0.2, Math.min(rawRadius, 25));
+  const latRadius = newRadius / 111.32;
+  const lngRadius = newRadius / (111.32 * Math.cos((pos.lat * Math.PI) / 180));
+  const lockedLng = pos.lng + lngRadius * Math.cos(theta);
+  const lockedLat = pos.lat + latRadius * Math.sin(theta);
+  rimMarker.setLngLat([lockedLng, lockedLat]);
+  const source = mapRef.current?.getMap()?.getSource('boundary') as
+    mapboxgl.GeoJSONSource | undefined;
+  source?.setData(makeCircle(pos.lng, pos.lat, newRadius));
+  label.textContent = output(newRadius);
+  radiusKmRef.current = newRadius;
+  onBoundarySizeChange?.(newRadius);
+}
+
+async function reverseGeocode(lng: number, lat: number): Promise<string> {
+  const isOnline = await probeHealth();
+  if (!isOnline) {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   }
+  try {
+    const res = await fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=address,place&limit=1`
+    );
 
-  function createRimElement(radiusKm: number): { el: HTMLDivElement; label: HTMLDivElement } {
-    const el = document.createElement('div');
-    el.className = "flex flex.col items-center gap-1 cursor-grab";
-
-    const label = document.createElement('div');
-    label.className = "absolute left-full ml-2 text-white text-xs font-mono whitespace-nowrap pointer-events-none";
-    label.textContent = output(radiusKm);
-
-    const btn = document.createElement('div');
-    btn.className = "w-8 h-8 rounded-full bg-white border-2 border-ignite text-ignite font-bold text-lg flex items-center justify-center select-none leading-none shadow-lg";
-    btn.textContent = "+";
-
-    el.append(label, btn);
-    return { el, label };
-  }
-
-  function handleRimDrag(
-    rimMarker: mapboxgl.Marker,
-    label: HTMLDivElement,
-    markerPosRef: React.RefObject<{lng: number; lat: number }|null>,
-    radiusKmRef: React.MutableRefObject<number>,
-    mapRef: React.RefObject<any>,
-    onBoundarySizeChange?: (r: number) => void
-  ) {
-    const pos = markerPosRef.current;
-    if (!pos) return;
-
-    const rawLngLat = rimMarker.getLngLat();
-    const deltaLng = rawLngLat.lng - pos.lng;
-    const deltaLat = rawLngLat.lat - pos.lat;
-    const theta = Math.atan2(deltaLat, deltaLng);
-    const rawRadius = realKm(pos.lat, pos.lng, rawLngLat.lat, rawLngLat.lng);
-    const newRadius = Math.max(0.2, Math.min(rawRadius, 25));
-    const latRadius = newRadius / 111.32;
-    const lngRadius = newRadius / (111.32 * Math.cos((pos.lat * Math.PI) / 180));
-    const lockedLng = pos.lng + lngRadius * Math.cos(theta);
-    const lockedLat = pos.lat + latRadius * Math.sin(theta);
-    rimMarker.setLngLat([lockedLng, lockedLat]);
-    const source = mapRef.current?.getMap()?.getSource('boundary') as mapboxgl.GeoJSONSource | undefined;
-    source?.setData(makeCircle(pos.lng, pos.lat, newRadius));
-    label.textContent = output(newRadius);
-    radiusKmRef.current = newRadius;
-    onBoundarySizeChange?.(newRadius);
-  }
-
-  async function reverseGeocode(lng: number, lat: number): Promise<string> {
-     try {
-      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${process.env.NEXT_PUBLIC_MAPBOX_TOKEN}&types=address,place&limit=1`);
-
-      if (!res.ok) {
-        console.error(`Reverse geocode failed: ${res.status} ${res.statusText}`);
-        return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      }
-      const json = await res.json();
-      return json.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-    } catch (err){
-      console.error("Reverse geocode error", err);
+    if (!res.ok) {
       return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
     }
+    const json = await res.json();
+    return json.features?.[0]?.place_name ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  } catch (err) {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   }
+}
 
-export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }: Readonly<FireMapProps>) {
-  const mapRef = useRef<any>(null);
+export function FireMap({
+  onLocationSelect,
+  onBoundarySizeChange,
+  externalPin,
+}: Readonly<FireMapProps>) {
+  const mapRef = useRef<MapRef>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
   const [radiusKm, setRadiusKm] = useState(INITIAL_RADIUS_KM);
   const markerPosRef = useRef(markerPos);
@@ -116,8 +129,12 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
   const pinMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const rimMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
-  useEffect(() => { markerPosRef.current = markerPos; }, [markerPos]);
-  useEffect(() => { radiusKmRef.current = radiusKm; }, [radiusKm]);
+  useEffect(() => {
+    markerPosRef.current = markerPos;
+  }, [markerPos]);
+  useEffect(() => {
+    radiusKmRef.current = radiusKm;
+  }, [radiusKm]);
 
   const setRadius = useCallback((r: number) => {
     setRadiusKm(r);
@@ -129,7 +146,7 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     onBoundarySizeChangeRef.current = onBoundarySizeChange;
   }, [onBoundarySizeChange]);
 
-  //pin from search
+  // pin from search
   useEffect(() => {
     if (!externalPin) return;
     const { lng, lat } = externalPin;
@@ -145,10 +162,12 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
       .setLngLat([markerPos.lng, markerPos.lat])
       .addTo(mapRef.current.getMap());
 
-    return () => { pinMarkerRef.current?.remove(); };
+    return () => {
+      pinMarkerRef.current?.remove();
+    };
   }, [markerPos]);
 
-  //rim marker
+  // rim marker
   useEffect(() => {
     if (!markerPos || !mapRef.current) return;
     rimMarkerRef.current?.remove();
@@ -165,7 +184,14 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     }
 
     function handleDrag() {
-      handleRimDrag(rimMarker, label, markerPosRef, radiusKmRef, mapRef, onBoundarySizeChangeRef.current);
+      handleRimDrag(
+        rimMarker,
+        label,
+        markerPosRef,
+        radiusKmRef,
+        mapRef,
+        onBoundarySizeChangeRef.current
+      );
     }
 
     function handleDragEnd() {
@@ -187,18 +213,21 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     };
   }, [markerPos]);
 
-  //map click
-  const handleMapClick = useCallback(async (e: any) => {
-    if (isDragging.current) return;
-    if (Date.now() - dragEndTime.current < 300) return;
+  // map click
+  const handleMapClick = useCallback(
+    async (e: mapboxgl.MapMouseEvent) => {
+      if (isDragging.current) return;
+      if (Date.now() - dragEndTime.current < 300) return;
 
-    const { lng, lat } = e.lngLat;
-    resetBoundary(lng, lat, setMarkerPos, setRadius, onBoundarySizeChangeRef.current);
-    toLocation(mapRef, lng, lat);
+      const { lng, lat } = e.lngLat;
+      resetBoundary(lng, lat, setMarkerPos, setRadius, onBoundarySizeChangeRef.current);
+      toLocation(mapRef, lng, lat);
 
-    const address = await reverseGeocode(lng, lat);
-    onLocationSelect?.({ lat, lng, address });
-  }, [onLocationSelect]);
+      const address = await reverseGeocode(lng, lat);
+      onLocationSelect?.({ lat, lng, address });
+    },
+    [onLocationSelect, setRadius]
+  );
 
   const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
 
@@ -214,8 +243,16 @@ export function FireMap({ onLocationSelect, onBoundarySizeChange, externalPin }:
     >
       {circleData && (
         <Source id="boundary" type="geojson" data={circleData}>
-          <Layer id="boundary-fill" type="fill" paint={{ "fill-color": "#E84500", "fill-opacity": 0.10 }} />
-          <Layer id="boundary-stroke" type="line" paint={{ "line-color": "#E84500", "line-width": 2.5, "line-opacity": 0.9 }} />
+          <Layer
+            id="boundary-fill"
+            type="fill"
+            paint={{ 'fill-color': '#E84500', 'fill-opacity': 0.1 }}
+          />
+          <Layer
+            id="boundary-stroke"
+            type="line"
+            paint={{ 'line-color': '#E84500', 'line-width': 2.5, 'line-opacity': 0.9 }}
+          />
         </Source>
       )}
     </Map>

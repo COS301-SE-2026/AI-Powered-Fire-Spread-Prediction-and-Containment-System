@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from geoalchemy2 import Geometry
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -24,6 +25,10 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_2fa_enabled = Column(Boolean, default=False)
     totp_secret = Column(String, nullable=True)
+
+    location_geom = Column(
+        Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=True
+    )
 
     fire_reports = relationship("FireReports", back_populates="user")
     role_requests = relationship(

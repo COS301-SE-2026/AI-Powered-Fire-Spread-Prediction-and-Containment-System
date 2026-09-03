@@ -16,6 +16,9 @@ from sqlalchemy.orm import relationship
 from db import Base
 from enums.report_status import ReportStatus
 
+from sqlalchemy import Boolean
+from enums.report_priority import ReportPriority
+
 
 class FireReports(Base):
     __tablename__ = "fire_reports"
@@ -47,6 +50,16 @@ class FireReports(Base):
 
     user = relationship("User", back_populates="fire_reports")
     containment_lines = relationship("ContainmentLines", back_populates="fire_report")
+
+    # for the autoverification of fire reports
+    priority = Column(
+        Enum(ReportPriority), default=ReportPriority.normal, nullable=False
+    )
+    system_verified = Column(Boolean, default=False, nullable=False)
+    verification_notes = Column(Text, nullable=True)
+
+    # for verification of the photo hash
+    photo_hash = Column(String(64), nullable=True, index=True)
 
     @property
     def reporter(self) -> str:

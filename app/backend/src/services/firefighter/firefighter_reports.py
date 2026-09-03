@@ -23,6 +23,7 @@ def get_fire_reports(db: Session):
                 "boundary_radius": float(fire.boundary_radius),
                 "submitted_at": fire.submitted_at,
                 "reporter": fire.reporter,
+                "verification_notes": fire.verification_notes,
                 "lat": shape.y,
                 "lng": shape.x,
             }
@@ -49,7 +50,24 @@ def search_report_table(db: Session, key: str):
     if not request:
         raise ValueError(f"{key} not found")
 
-    return {"data": request, "total": len(request)}
+    formatted = []
+    for fire in request:
+        shape = to_shape(fire.location_geom)
+        formatted.append(
+            {
+                "reference_number": fire.reference_number,
+                "location_text": fire.location_text,
+                "status": fire.status,
+                "boundary_radius": float(fire.boundary_radius),
+                "submitted_at": fire.submitted_at,
+                "reporter": fire.reporter,
+                "verification_notes": fire.verification_notes,
+                "lat": shape.y,
+                "lng": shape.x,
+            }
+        )
+
+    return {"data": formatted, "total": len(formatted)}
 
 
 def get_single_fire_report(db: Session, ref: str):
@@ -70,6 +88,7 @@ def get_single_fire_report(db: Session, ref: str):
         "reporter": request.reporter,
         "description": request.description,
         "image_url": request.image_url,
+        "verification_notes": request.verification_notes,
         "lat": shape.y,
         "lng": shape.x,
     }

@@ -5,6 +5,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from enums.report_status import ReportStatus
 
+from typing import List, Optional
+
 
 # response structure for the reported fires table
 class FirefighterReportTable(BaseModel):
@@ -14,6 +16,7 @@ class FirefighterReportTable(BaseModel):
     size: float = Field(validation_alias="boundary_radius")
     reported: datetime = Field(validation_alias="submitted_at")
     reporter: str
+    verification_notes: Optional[str] = None
     lat: float
     lng: float
 
@@ -30,6 +33,7 @@ class FirefighterReportModal(BaseModel):
     description: str
     image_url: str
     size: float = Field(validation_alias="boundary_radius")
+    verification_notes: Optional[str] = None
     lat: float
     lng: float
 

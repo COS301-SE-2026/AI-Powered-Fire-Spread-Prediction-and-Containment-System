@@ -57,8 +57,9 @@
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "github.copilot.chat.backgroundAgent.enabled": false,
-  "python-envs.defaultEnvManager": "ms-python.python:system",
+  "python-envs.defaultEnvManager": "ms-python.python:venv",
   "python.analysis.extraPaths": [
     "/home/ryan/.local/lib/python3.14/site-packages"
-  ]
+  ],
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python"
 }
