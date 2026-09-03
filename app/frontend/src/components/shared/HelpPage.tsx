@@ -1,7 +1,7 @@
 import { Siren, CirclePlay, Headset } from 'lucide-react';
 import { useRouter } from 'next/router';
-import { PageHeader } from '../../components/layout/pageHeader';
-import { ActionCard } from '../../components/firefighter/actionCard';
+import { PageHeader } from "../layout/pageHeader";
+import { ActionCard } from "../firefighter/actionCard";
 
 export default function HelpPage() {
   const faqs = [

@@ -1,7 +1,7 @@
-import HelpPage from '../../components/shared/HelpMenu';
-import { NavLink } from '../../components/layout/NavLink';
 import { CircleAlert, Map } from 'lucide-react';
 import { SideBar } from '@/components/layout/SideBar';
+import HelpPage from '../../components/shared/HelpPage';
+import { NavLink } from '../../components/layout/NavLink';
 
 export default function GuestHelpPage() {
     const guestNavItems = (
