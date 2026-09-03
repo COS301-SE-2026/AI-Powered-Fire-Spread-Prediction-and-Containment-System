@@ -7,7 +7,7 @@ on:
 
 env:
     AWS_REGION: us-east-1
-    ECR_REGISTERY: 827257544258.dkr.ecr.us-east-1.amazonaws.com
+    ECR_REGISTRY: 827257544258.dkr.ecr.us-east-1.amazonaws.com
     BACKEND_REPO: fireaway-backend
     FRONTEND_REPO: fireaway-frontend
 
@@ -103,9 +103,9 @@ jobs:
                     --parameters "command=[
                       'sudo git config --global --add safe.directory /home/ubuntu/prod',
                       'sudo -u ubuntu bash -c \"cd /home/ubuntu/prod && git fetch origin main && git reset --hard origin/main\"',
-                      'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTERY }}',
-                      'sudo -u ubuntu bash -c \"echo BACKEND_IMAGE=${{ env.ECR_REGISTERY }}/${{ env.BACKEND_REPO }}:${{ needs.build-and-push.image_tag }} > /home/ubuntu/prod/deploy.env\"',
-                      'sudo -u ubuntu bash -c \"echo FRONTEND_IMAGE=${{ env.ECR_REGISTERY }}/${{ env.FRONTEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} >> /home/ubuntu/prod/deploy.env\"',
+                      'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}',
+                      'sudo -u ubuntu bash -c \"echo BACKEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} > /home/ubuntu/prod/deploy.env\"',
+                      'sudo -u ubuntu bash -c \"echo FRONTEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} >> /home/ubuntu/prod/deploy.env\"',
                       'sudo -u ubuntu bash -c \"echo AWS_REGION=${{ env.AWS_REGION }} >> /home/ubuntu/prod/deploy.env\"',
                       'docker compose -p prod --env-file /home/ubuntu/prod/.env --env-file /home/ubuntu/prod/deploy.env -f /home/ubuntu/prod/docker-compose.prod.yml pull',
                       'docker compose -p prod --env-file /home/ubuntu/prod/.env --env.file /home/ubuntu/prod/deploy.env -f /home/ubuntu/prod/docker-compose.prod.yml up -d',
