@@ -27,7 +27,9 @@ log = logging.getLogger(
 
 # Where systemd unit's monitoring checks for liveness
 
-HEARTBEAT_FILE = Path(os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat")) # NOSONAR
+HEARTBEAT_FILE = Path(
+    os.environ.get("HEARTBEAT_FILE", "/tmp/gpu_worker_heartbeat")
+)  # NOSONAR
 
 # SQS long-polling wait time
 WAIT_TIME_SECONDS = 20

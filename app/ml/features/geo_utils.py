@@ -12,17 +12,18 @@ OPTIMIZED_GDAL_ENV = dict(
     GDAL_HTTP_VERSION="2",
     VSI_CACHE="TRUE",
     VSI_CACHE_SIZE=64000000,
-    GDAL_CACHEMAX=64
+    GDAL_CACHEMAX=64,
 )
 
+
 def stream_cropped_raster(
-        file_path: str,
-        min_lon: float,
-        min_lat: float,
-        max_lon: float,
-        max_lat: float,
-        out_shape: tuple[int, int],
-        resampling: Resampling = Resampling.bilinear
+    file_path: str,
+    min_lon: float,
+    min_lat: float,
+    max_lon: float,
+    max_lat: float,
+    out_shape: tuple[int, int],
+    resampling: Resampling = Resampling.bilinear,
 ) -> np.ndarray:
     """
     Streams only the pixels inside the bounding boc from a remote COG and resizes it to the target shape
@@ -35,13 +36,17 @@ def stream_cropped_raster(
                     "EPSG:4326", src.crs, min_lon, min_lat, max_lon, max_lat
                 )
             else:
-                b_min_lon, b_min_lat, b_max_lon, b_max_lat = min_lon, min_lat, max_lon, max_lat
+                b_min_lon, b_min_lat, b_max_lon, b_max_lat = (
+                    min_lon,
+                    min_lat,
+                    max_lon,
+                    max_lat,
+                )
 
-            window = from_bounds(b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform)
+            window = from_bounds(
+                b_min_lon, b_min_lat, b_max_lon, b_max_lat, transform=src.transform
+            )
 
             return src.read(
-                1,
-                window=window,
-                out_shape=out_shape,
-                resampling=resampling
+                1, window=window, out_shape=out_shape, resampling=resampling
             )

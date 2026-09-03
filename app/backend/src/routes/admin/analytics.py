@@ -1,14 +1,12 @@
-from datetime import datetime
-from typing import Annotated, List
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from db import get_db
-from schemas.admin_analytics import AnalyticsOverviewResponse, KPIs
-from services.admin.analytics_service import analytics_overview
-from dependencies.auth import get_current_admin_user
+from app.backend.db import get_db
+from app.backend.src.schemas.admin_analytics import AnalyticsOverviewResponse
+from app.backend.src.services.admin.analytics_service import analytics_overview
+from app.backend.src.dependencies.auth import get_current_admin_user
 
 router = APIRouter(
     prefix="/api/admin/analytics",

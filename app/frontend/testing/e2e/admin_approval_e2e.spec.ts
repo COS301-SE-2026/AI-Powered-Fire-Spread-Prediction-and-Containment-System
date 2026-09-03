@@ -1,9 +1,6 @@
 // // NOTE: This e2e test is using mock data for now until we have a proper db setup.
 // // Once proper db is setup, the proper endpoints will be subbed in
-// // NOTE: This e2e test is using mock data for now until we have a proper db setup.
-// // Once proper db is setup, the proper endpoints will be subbed in
 
-// import { test, expect, Page } from '@playwright/test';
 // import { test, expect, Page } from '@playwright/test';
 
 // async function login(page: Page) {
