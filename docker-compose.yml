@@ -123,7 +123,9 @@ services:
     env_file:
       - .env
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app/src:/app
+      - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
     volumes:
       - .:/app:Z
     depends_on:

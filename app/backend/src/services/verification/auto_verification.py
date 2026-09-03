@@ -14,7 +14,7 @@ from app.backend.src.services.verification.report_spam_detection import (
 from app.backend.src.services.verification.reporter_trust import reporter_trust_score
 
 # Tresholds
-MIN_CORROBORATING_REPORTS = 3
+MIN_CORROBORATING_REPORTS = 2
 MIN_TRUST_SCORE = 50.0
 
 # possible outcomes

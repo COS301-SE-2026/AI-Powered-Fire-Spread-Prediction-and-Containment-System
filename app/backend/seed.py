@@ -1,6 +1,7 @@
 import uuid
 import sys
 from datetime import datetime, timedelta, timezone
+import os
 
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, SessionLocal, engine
@@ -14,14 +15,22 @@ from app.backend.src.models.containment_lines import ContainmentLines
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from app.backend.src.models.users import User
 
-password = "Password123!"
+DEFAULT_PASSWORD = os.getenv("SEED_DEFAULT_PASSWORD")
+ADMIN_PASSWORD = os.getenv("SEED_ADMIN_PASSWORD")
+
+if not DEFAULT_PASSWORD:
+    raise ValueError("Missing env variables for passwords")
+
+def get_raw_password(role: str) -> str:
+    if role == "admin" and ADMIN_PASSWORD:
+        return ADMIN_PASSWORD
+    return DEFAULT_PASSWORD
 
 # 20 Users: 3 Admins, 5 Firefighters, 12 Users
 SEED_USERS = [
     {
         "id": "usr_01",
         "email": "sipho.n@fireaway.co.za",
-        "password": password,
         "name": "Sipho",
         "surname": "Ndlovu",
         "id_number": "8505125800081",
@@ -31,7 +40,6 @@ SEED_USERS = [
     {
         "id": "usr_02",
         "email": "lerato.b@fireaway.co.za",
-        "password": password,
         "name": "Lerato",
         "surname": "Botha",
         "id_number": "9008234800082",
@@ -41,7 +49,6 @@ SEED_USERS = [
     {
         "id": "usr_03",
         "email": "johan.v@fireaway.co.za",
-        "password": password,
         "name": "Johan",
         "surname": "van der Merwe",
         "id_number": "8201145000083",
@@ -51,7 +58,6 @@ SEED_USERS = [
     {
         "id": "usr_04",
         "email": "thandiwe.k@fireaway.co.za",
-        "password": password,
         "name": "Thandiwe",
         "surname": "Khumalo",
         "id_number": "9302284800084",
@@ -61,7 +67,6 @@ SEED_USERS = [
     {
         "id": "usr_05",
         "email": "pieter.m@fireaway.co.za",
-        "password": password,
         "name": "Pieter",
         "surname": "Mokoena",
         "id_number": "9507115000085",
@@ -71,7 +76,6 @@ SEED_USERS = [
     {
         "id": "usr_06",
         "email": "fatima.p@fireaway.co.za",
-        "password": password,
         "name": "Fatima",
         "surname": "Patel",
         "id_number": "9804054800086",
@@ -81,7 +85,6 @@ SEED_USERS = [
     {
         "id": "usr_07",
         "email": "siyabonga.z@fireaway.co.za",
-        "password": password,
         "name": "Siyabonga",
         "surname": "Zulu",
         "id_number": "9109155000087",
@@ -91,7 +94,6 @@ SEED_USERS = [
     {
         "id": "usr_08",
         "email": "kagiso.m@fireaway.co.za",
-        "password": password,
         "name": "Kagiso",
         "surname": "Mahlangu",
         "id_number": "9412125000088",
@@ -101,7 +103,6 @@ SEED_USERS = [
     {
         "id": "usr_09",
         "email": "amahle.d@fireaway.co.za",
-        "password": password,
         "name": "Amahle",
         "surname": "Dlamini",
         "id_number": "0103144800089",
@@ -111,7 +112,6 @@ SEED_USERS = [
     {
         "id": "usr_10",
         "email": "heinrich.k@fireaway.co.za",
-        "password": password,
         "name": "Heinrich",
         "surname": "Kruger",
         "id_number": "0005185000080",
@@ -121,7 +121,6 @@ SEED_USERS = [
     {
         "id": "usr_11",
         "email": "zanele.m@fireaway.co.za",
-        "password": password,
         "name": "Zanele",
         "surname": "Mbatha",
         "id_number": "9906214800081",
@@ -131,7 +130,6 @@ SEED_USERS = [
     {
         "id": "usr_12",
         "email": "ruan.v@fireaway.co.za",
-        "password": password,
         "name": "Ruan",
         "surname": "Venter",
         "id_number": "0208255000082",
@@ -141,7 +139,6 @@ SEED_USERS = [
     {
         "id": "usr_13",
         "email": "naledi.m@fireaway.co.za",
-        "password": password,
         "name": "Naledi",
         "surname": "Moeng",
         "id_number": "9701304800083",
@@ -151,7 +148,6 @@ SEED_USERS = [
     {
         "id": "usr_14",
         "email": "willem.c@fireaway.co.za",
-        "password": password,
         "name": "Willem",
         "surname": "Coetzee",
         "id_number": "9604125000084",
@@ -161,7 +157,6 @@ SEED_USERS = [
     {
         "id": "usr_15",
         "email": "kgotso.b@fireaway.co.za",
-        "password": password,
         "name": "Kgotsofalang",
         "surname": "Baloyi",
         "id_number": "0309115000085",
@@ -171,7 +166,6 @@ SEED_USERS = [
     {
         "id": "usr_16",
         "email": "bianca.n@fireaway.co.za",
-        "password": password,
         "name": "Bianca",
         "surname": "Naidoo",
         "id_number": "0107194800086",
@@ -181,7 +175,6 @@ SEED_USERS = [
     {
         "id": "usr_17",
         "email": "lungile.n@fireaway.co.za",
-        "password": password,
         "name": "Lungile",
         "surname": "Ngcobo",
         "id_number": "9811224800087",
@@ -191,7 +184,6 @@ SEED_USERS = [
     {
         "id": "usr_18",
         "email": "deon.s@fireaway.co.za",
-        "password": password,
         "name": "Deon",
         "surname": "Steyn",
         "id_number": "9510085000088",
@@ -201,7 +193,6 @@ SEED_USERS = [
     {
         "id": "usr_19",
         "email": "anika.s@fireaway.co.za",
-        "password": password,
         "name": "Anika",
         "surname": "Smit",
         "id_number": "0402144800089",
@@ -211,7 +202,6 @@ SEED_USERS = [
     {
         "id": "usr_20",
         "email": "tshepo.m@fireaway.co.za",
-        "password": password,
         "name": "Tshepo",
         "surname": "Moroka",
         "id_number": "0008165000080",
@@ -519,8 +509,12 @@ STATUS_LEVEL_MAP = {
 def seed_users(db):
     inserted = {}
     for data in SEED_USERS:
+        raw_pass = get_raw_password(data["role"])
+        new_hash = hash_password(raw_pass)
+
         existing = db.query(User).filter(User.id == data["id"]).first()
         if existing:
+            existing.hashed_password = new_hash
             if existing.role != data["role"]:
                 existing.role = data["role"]
                 print(f" UPDATE {data['email']} role -> {data['role']}")
@@ -536,7 +530,7 @@ def seed_users(db):
             email=data["email"],
             id_number=data["id_number"],
             license_number=data["license_number"],
-            hashed_password=hash_password(data["password"]),
+            hashed_password=new_hash,
             role=data["role"],
             is_active=True,
             is_2fa_enabled=False,

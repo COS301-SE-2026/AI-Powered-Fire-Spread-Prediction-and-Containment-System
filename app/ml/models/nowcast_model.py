@@ -38,4 +38,8 @@ class WeatherDeltaModel(nn.Module):
         layer_outputs, last_states = self.encoder(x)
         h_last, _ = last_states[-1]
         delta = self.head(h_last)
+<<<<<<< HEAD
         return delta
+=======
+        return delta
+>>>>>>> origin/dev
