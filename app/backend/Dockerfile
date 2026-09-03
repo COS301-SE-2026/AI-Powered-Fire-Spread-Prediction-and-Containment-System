@@ -19,7 +19,7 @@ FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a036425
 WORKDIR app/
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=src
+ENV PYTHONPATH=/app/src:/app
 ENV PATH="/opt/venv/bin:$PATH"
 
 RUN groupadd -r appuser && useradd -r -g appuser appuser
