@@ -34,15 +34,14 @@ export function PageHeader({
 
   return (
     <>
-      <header className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className=" text-text-primary uppercase">{title}</h1>
-          {subtitle && <h4 className="text-text-muted mt-0.5 ">{subtitle}</h4>}
-        </div>
-        <div className="flex flex-col items-end gap-2">
-          {actions}
+      <header className="mb-4 mt-2">
+        <div className='flex items-start justify-between gap-1'>
+          <div className='min-w-0'>
+            <h1 className=" text-text-primary uppercase">{title}</h1>
+            {subtitle && <h4 className="text-text-muted mt-0.5 ">{subtitle}</h4>}
+          </div>
           {showIcons && isAuth && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <div className="indicator">
                 {unreadCount > 0 && (
                   <span className="indicator-item badge badge-primary badge-xs w-5 h-5 min-w-5 p-2 rounded-full flex items-center justify-center text-text-primary">
@@ -69,6 +68,11 @@ export function PageHeader({
             </div>
           )}
         </div>
+        {actions && (
+          <div className='w-full text-right mt-2'>
+            {actions}
+          </div>
+        )}
       </header>
       {showIcons && (
         <NotificationSidebar

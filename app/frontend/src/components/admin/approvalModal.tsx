@@ -22,9 +22,9 @@ export function RoleApprovalModal({
     <dialog
       open
       data-testid="approval-modal"
-      className="modal modal-open backdrop-blur-sm bg-black/40"
+      className="modal modal-open backdrop-blur-sm bg-black/40 items-start sm:items-center overflow-y-auto py-14"
     >
-      <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md p-8">
+      <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md max-h-[calc(100vh-3rem)] overflow-y-auto p-8 sm:my-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
           <h3 className="font-display font-bold text-xl tracking-wider text-text-primary uppercase">
@@ -91,13 +91,13 @@ export function RoleApprovalModal({
         {/* Current role */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-text-primary/40 uppercase mb-1">
+            <p className="text-xs font-bold tracking-widest text-text-muted uppercase mb-1">
               Current Role
             </p>
             <p className="text-sm font-semibold text-text-primary">{request.current_role}</p>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+            <p className="text-xs font-bold tracking-widest text-text-muted uppercase mb-1">
               Requested Role
             </p>
             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
