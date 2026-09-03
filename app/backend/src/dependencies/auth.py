@@ -8,9 +8,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from db import get_db
-from enums.user_role import UserRole
-from models.users import User
+from app.backend.db import get_db
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.models.users import User
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")
 

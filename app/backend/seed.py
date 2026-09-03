@@ -3,17 +3,17 @@ import sys
 from datetime import datetime, timedelta, timezone
 import os
 
-from dependencies.auth import hash_password
-from db import Base, SessionLocal, engine
-from enums.report_status import ReportStatus
-from enums.role_request_status import RequestStatus
-from enums.user_role import UserRole
-from models.reported_fires import FireReports
-from models.role_request import RoleRequest
-from models.containment_lines import ContainmentLines
+from app.backend.src.dependencies.auth import hash_password
+from app.backend.db import Base, SessionLocal, engine
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.role_request_status import RequestStatus
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.role_request import RoleRequest
+from app.backend.src.models.containment_lines import ContainmentLines
 
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
-from models.users import User
+from app.backend.src.models.users import User
 
 DEFAULT_PASSWORD = os.getenv("SEED_DEFAULT_PASSWORD")
 ADMIN_PASSWORD = os.getenv("SEED_ADMIN_PASSWORD")
