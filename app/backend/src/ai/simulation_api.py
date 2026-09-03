@@ -39,6 +39,7 @@ METRES_PER_DEG_LAT = 111_320.0
 TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
 MIN_GRID_DIMENSION = 10
 MAX_GRID_DIMENSION = 800
+MAX_GRID_CELLS = 50000
 TICKS_PER_HOUR = 4
 
 GRID_H = 64
@@ -83,8 +84,23 @@ def grid_dimensions_for_extent(
     lat_extent_m = lat_extent_deg * METRES_PER_DEG_LAT
     lon_extent_m = lon_extent_deg * METRES_PER_DEG_LAT * math.cos(math.radians(lat))
 
-    H = int(np.clip(round(lat_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
-    W = int(np.clip(round(lon_extent_m / target_cell_size_m), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
+    naive_h = lat_extent_m / target_cell_size_m
+    naive_w = lon_extent_m / target_cell_size_m
+    naive_cells = naive_h * naive_w
+
+    if naive_cells > MAX_GRID_CELLS:
+        scale_factor = math.sqrt(naive_cells / MAX_GRID_CELLS)
+        effective_cell_size_m = target_cell_size_m * scale_factor
+    else:
+        effective_cell_size_m = target_cell_size_m
+
+    raw_h = lat_extent_m / effective_cell_size_m
+    raw_w = lon_extent_m / effective_cell_size_m
+
+    dim_scale = max(raw_h / MAX_GRID_DIMENSION, raw_w / MAX_GRID_DIMENSION, 1.0)
+
+    H = int(np.clip(round(raw_h / dim_scale), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
+    W = int(np.clip(round(raw_w / dim_scale), MIN_GRID_DIMENSION, MAX_GRID_DIMENSION))
 
     return H, W
 
@@ -202,6 +218,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             "cell_size_m": cell_size_m,
             "grid_h": H,
             "grid_w": W,
+            "boundary_radius_m": boundary_m,
             "containment_lines": lines,
         }
 
