@@ -10,7 +10,7 @@ from app.backend.src.services.verification.auto_verification import (
     AUTO_REJECT,
     AUTO_VERIFY,
 )
-from services.verification.report_corroboration import corroborating_reports
+from app.backend.src.services.verification.report_corroboration import corroborating_reports
 
 logger = logging.getLogger(__name__)
 

@@ -13,14 +13,7 @@ from sqlalchemy.orm import sessionmaker
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 
-
-with patch(
-    "app.backend.src.services.simulation_service.WeatherForecastBridge"
-) as mock_bridge:
-    mock_instance = MagicMock()
-    mock_bridge.load.return_value = mock_instance
-    from app.backend.main import app
-
+from app.backend.main import app
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
 
