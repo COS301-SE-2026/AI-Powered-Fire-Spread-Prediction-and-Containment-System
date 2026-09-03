@@ -6,14 +6,13 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=src
 
-COPY app/backend/requirements.txt ./
+COPY requirements.txt ./
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir --require-hashes --only-binary :all: -r requirements.txt \
     && pip install --no-cache-dir black
 
-COPY app/backend /app
-COPY app/ml /app/ml
+COPY . .
 
 EXPOSE 8000
 

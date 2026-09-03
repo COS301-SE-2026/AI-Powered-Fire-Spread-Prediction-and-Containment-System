@@ -27,8 +27,7 @@ class ConnectionManager:
     """
     Tracks live WebSocket connections per user id
 
-    A user can have multiple open connections
-    (eg. two browser tabs) so each user id maps to a set of sockets
+    A user can have multiple open connections (eg. two browser tabs) so each user id maps to a set of sockets
     """
 
     def __init__(self):
