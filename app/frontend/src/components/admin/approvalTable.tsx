@@ -12,7 +12,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
   const filtered = requests.filter((req) => filter === 'All' || req.status === filter);
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-carbon-stroke max-h-150">
+    <div className="w-full overflow-x-auto rounded-2xl border border-carbon-stroke max-h-170">
       <table className="table table-pin-rows w-full">
         <thead>
           <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">

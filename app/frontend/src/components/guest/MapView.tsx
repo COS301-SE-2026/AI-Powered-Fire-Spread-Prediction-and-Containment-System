@@ -18,15 +18,15 @@ export default function MapView() {
   const { userLocation, nearbyFires } = useNearbyFires();
   const{ fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   return (
-    <div className="flex flex-col p-6">
+    <div className="flex flex-col p-2">
       {/* Public View Header */}
       <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons />
 
       {/* Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        <div className="xl:col-span-8 flex flex-col gap-6">
+        <div className="xl:col-span-7 flex flex-col gap-6">
           {/* Map */}
-          <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[40rem] w-full shadow-md">
+          <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-96 sm:h-104 lg:h-132 w-full shadow-md">
             <PublicFireMap
               lat={userLocation.lat}
               lng={userLocation.lng}
@@ -42,9 +42,9 @@ export default function MapView() {
 
         {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
         <div className="xl:col-span-4 flex flex-col gap-3">
-          <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase shrink-0">
+          <h4 className="tracking-widest text-text-muted uppercase">
             Nearby Reports
-          </h2>
+          </h4>
 
           {/* Enforces strict scrolling constraints tailored to Ryan's height layout tree */}
           <div
