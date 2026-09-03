@@ -53,5 +53,13 @@ class LoginResponse(BaseModel):
 class MeResponse(BaseModel):
     role: UserRole
 
+#password reset
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 LoginResponse.model_rebuild()
