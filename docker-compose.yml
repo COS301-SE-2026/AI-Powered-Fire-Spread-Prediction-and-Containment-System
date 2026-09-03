@@ -50,6 +50,8 @@ services:
       - postgres
 
   backend:
+    cap_add:
+      - SYS_PTRACE
     build:
       context: ./app/backend
       dockerfile: Dockerfile
@@ -76,11 +78,11 @@ services:
       - /app/.venv
     ports:
       - "8000:8000"
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
   frontend:
     build:
-      context: ./app/frontend
+      context: .
       dockerfile: app/frontend/Dockerfile
     container_name: next-frontend
     restart: unless-stopped

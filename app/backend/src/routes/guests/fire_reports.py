@@ -15,8 +15,12 @@ router = APIRouter(prefix="/api/guests", tags=["Guests"])
 
 
 @router.get("/reported-fires", response_model=List[FireReportMapResponse])
-def get_reported_fires(db: Session = Depends(get_db)):
-    return fire_report.get_fire_reports(db)
+def get_reported_fires(
+    db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0,
+):
+    return fire_report.get_fire_reports(db, limit=limit, offset=offset)
 
 
 @router.post("/reported-fires", response_model=FireReportDetailResponse)

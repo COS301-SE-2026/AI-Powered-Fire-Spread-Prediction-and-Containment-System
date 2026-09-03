@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from models.users import User
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -40,6 +41,7 @@ class FireReports(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+        index=True,
     )
     updated_at = Column(
         DateTime(timezone=True),
@@ -48,7 +50,7 @@ class FireReports(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = relationship("User", back_populates="fire_reports")
+    user = relationship(User, back_populates="fire_reports")
     containment_lines = relationship("ContainmentLines", back_populates="fire_report")
 
     # for the autoverification of fire reports
