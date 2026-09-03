@@ -112,7 +112,7 @@ jobs:
                       'docker system prune -f'
                     ]" \
                     --query 'Command.CommandId' \
-                    --output test)
+                    --output text)
                 echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
 
             - name: Wait for deploy command to finish
