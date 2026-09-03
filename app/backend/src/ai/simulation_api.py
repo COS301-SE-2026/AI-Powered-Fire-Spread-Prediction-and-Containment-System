@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import math
 import os
+import logging
+import uuid
+import boto3
 import asyncio
 import torch
+import json
+from pathlib import Path
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
@@ -26,31 +31,47 @@ from .simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
 from ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 
+logger = logging.getLogger("simulation_api")
+
 router = APIRouter(prefix="/api", tags=["simulation"])
 
 METRES_PER_DEG_LAT = 111_320.0
 TARGET_CELL_SIZE_M = 15.0 # 15 meter per cell
 MIN_GRID_DIMENSION = 10
 MAX_GRID_DIMENSION = 800
+TICKS_PER_HOUR = 4
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+GRID_H = 64
+GRID_W = 64
 
-convlstm_cfg = WeatherDeltaModelConfig(input_dim=10, hidden_dims=[48,48], kernel_size=3, output_dim=4)
-convlstm_model = WeatherDeltaModel(convlstm_cfg).to(device)
+AWS_REGION = os.environ.get("AWS_REGION")
+INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
+ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/firefighter-system-artifacts"))
+RESULTS_DIR = ARTIFACTS_ROOT / "results"
 
-CHECKPOINT_PATH = os.environ.get("CONVLSTM_CHECKPOINT", "app/artifact_store/weather_convlstm/LATEST/model.pt")
-if os.path.exists(CHECKPOINT_PATH):
-    convlstm_model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
-convlstm_model.eval()
+sqs = boto3.client("sqs", region_name=AWS_REGION)
 
-# will change after training
-DEFAULT_DCA_PARAMS = {
-    "a": torch.tensor(0.015),
-    "p_h": torch.tensor(0.06),
-    "c_1": torch.tensor(0.04),
-    "c_2": torch.tensor(0.03),
-    "p_continue": torch.tensor(0.6),
-}
+RESULT_POLL_INTERVAL_S = 1.0
+RESULT_POLL_TIMEOUT_S = 120.0
+
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# convlstm_cfg = WeatherDeltaModelConfig(input_dim=10, hidden_dims=[48,48], kernel_size=3, output_dim=4)
+# convlstm_model = WeatherDeltaModel(convlstm_cfg).to(device)
+
+# # CHECKPOINT_PATH = os.environ.get("CONVLSTM_CHECKPOINT", "app/artifact_store/weather_convlstm/LATEST/model.pt")
+# # if os.path.exists(CHECKPOINT_PATH):
+# #     convlstm_model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
+# # convlstm_model.eval()
+
+# # # will change after training
+# # DEFAULT_DCA_PARAMS = {
+# #     "a": torch.tensor(0.015),
+# #     "p_h": torch.tensor(0.06),
+# #     "c_1": torch.tensor(0.04),
+# #     "c_2": torch.tensor(0.03),
+# #     "p_continue": torch.tensor(0.6),
+# # }
 
 def grid_dimensions_for_extent(
         lat_extent_deg: float,
@@ -103,9 +124,30 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
+async def wait_for_result(job_id: str) -> dict | None:
+    """
+    Polls the shared artifact mount for the result JSON written by worker.py 
+    """
+
+    result_path = RESULTS_DIR / f"{job_id}.json"
+    elapsed = 0.0
+
+    while elapsed < RESULT_POLL_TIMEOUT_S:
+        if await asyncio.to_thread(result_path.exists):
+            try:
+                content = await asyncio.to_thread(result_path.read_text)
+                return json.loads(content)
+            except Exception as e:
+                logger.warning(f"Error reading the results for the job {job_id}: {e}")
+
+        await asyncio.sleep(RESULT_POLL_INTERVAL_S)
+        elapsed += RESULT_POLL_INTERVAL_S
+
+    return None
+
 async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore, containment_lines: list[str] | None=None) -> Prediction:
     """
-    Executes the whole DCA pipeline for a single fire
+    ECoordinates caching, dispatches job to SQS, and waits for worker output
     """
     lines = containment_lines or []
     boundary_m = float(fire.boundary_radius) * 1000
@@ -122,8 +164,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
 
     H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, fire.lat)
 
-    cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
-    cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
+    cell_size_lat_m = (lat_extent_deg / GRID_H) * METRES_PER_DEG_LAT
+    cell_size_lon_m = (lon_extent_deg / GRID_W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
     cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
 
     cache_key = build_fire_cache_key(
@@ -148,95 +190,62 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         if cached_result is not None:
             return Prediction(**cached_result)
 
-        resolved = await asyncio.to_thread(resolve_tile_paths,min_lon, min_lat, max_lon, max_lat)
-
-        static_grids, weather_grids = await load_real_inference_data(
-            b04_path=resolved.b04_path,
-            b08_path=resolved.b08_path,
-            b11_path=resolved.b11_path,
-            dem_path=resolved.dem_path,
-            min_lon=min_lon,
-            min_lat=min_lat,
-            max_lon=max_lon,
-            max_lat=max_lat,
-            scl_path=resolved.scl_path,
-            target_shape=(H, W)
-        )
-
-        ignition_mask = build_boundary_ignition_mask(
-            H, W, cell_size_m, boundary_m
-        )
-        grid_bounds = (min_lon, min_lat, max_lon, max_lat)
-
-        if "aspect_sin" not in static_grids or "aspect_cos" not in static_grids:
-            aspect_deg = static_grids.get("aspect")
-            if aspect_deg is None:
-                aspect_deg = np.zeros((H, W), dtype=np.float32)
-            aspect_rad = np.radians(aspect_deg)
-            static_grids["aspect_sin"] = np.sin(aspect_rad).astype(np.float32)
-            static_grids["aspect_cos"] = np.cos(aspect_rad).astype(np.float32)
-
-        wind_u = weather_grids.get("wind_u", np.zeros((H, W), dtype=np.float32))
-        wind_v = weather_grids.get("wind_v", np.zeros((H, W), dtype=np.float32))
-        temperature = weather_grids.get("temperature", np.full((H, W), 25.0, dtype=np.float32))
-
-        if "rel_humidity" in weather_grids:
-            rel_humidity = weather_grids["rel_humidity"]
-        elif "dryness" in weather_grids:
-            # approximate the humidty based on dryness (100 - dryness + temp)
-            rel_humidity = np.clip(1.0 - weather_grids["dryness"], 0.05, 0.95).astype(np.float32)
-        else:
-            rel_humidity = np.full((H, W), 0.35, dtype=np.float32)
-
-        current_frame = np.stack([
-            np.asarray(wind_u, dtype=np.float32),
-            np.asarray(wind_v, dtype=np.float32),
-            np.asarray(rel_humidity, dtype=np.float32),
-            np.asarray(temperature, dtype=np.float32)
-        ], axis=0).astype(np.float32)
-
-        weather_history = torch.from_numpy(np.repeat(current_frame[np.newaxis, np.newaxis, ...], 3, axis=1)).float()
-
-        try:
-            history = await asyncio.to_thread(
-                run_convlstm_dca,
-                convlstm_model=convlstm_model,
-                weather_history=weather_history,
-                static_grids=static_grids,
-                cell_size_m=cell_size_m,
-                n_steps=automatic_steps,
-                ignition_mask=ignition_mask,
-                containment_lines=lines,
-                grid_bounds=grid_bounds,
-                params=DEFAULT_DCA_PARAMS
-            )
-        except Exception as exc:
-            raise HTTPException(
-                status_code=500, detail=f"Simulation failed for fire {fire.id}: {exc}"
-            ) from exc
-        
-        final_grid = history[-1]
-        burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
-        truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
-
-        prediction_payload = {
-            "ref":fire.reference_number,
-            "lat":fire.lat,
-            "lng":fire.lng,
-            "history":[g.ravel().tolist() for g in history],
-            "burned_cells":burned_cells,
-            "radius_m":burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
-            "truncated":truncated,
-            "lat_extent_deg":lat_extent_deg,
-            "lon_extent_deg":lon_extent_deg,
-            "grid_h":H,
-            "grid_w":W,
-            "cell_size_m":cell_size_m
+        job_id = f"{fire.reference_number}-{uuid.uuid4().hex[:8]}"
+        job = {
+            "job_id": job_id,
+            "region_id": fire.reference_number,
+            "center_lat": fire.lat,
+            "center_lon": fire.lng,
+            "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
+            "duration_hours": automatic_steps / TICKS_PER_HOUR,
+            "cell_size_m": cell_size_m,
+            "containment_lines": lines,
         }
 
-        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload, 1800)
+        await asyncio.to_thread(
+            sqs.send_message,
+            QueueUrl=INFERENCE_QUEUE_URL,
+            MessageBody=json.dumps(job),
+        )
 
+        raw_result = await wait_for_result(job_id)
+        if raw_result is None:
+            raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+
+        raw_history = raw_result.get("history", [])
+
+        flattened_history: list[list[int]] = []
+        for tick_grid in raw_history:
+            if isinstance(tick_grid, list) and len(tick_grid) > 0 and isinstance(tick_grid[0], list):
+                flattened_history.append([int(cell) for row in tick_grid for cell in row])
+            else:
+                flattened_history.append([int(cell) for cell in tick_grid])
+
+        last_tick_flat = flattened_history[-1] if flattened_history else []
+        burned_cells = sum(1 for c in last_tick_flat if c in (1,2))
+        radius_m = burned_area_radius_m(burned_cells, GRID_H, GRID_W, lat_extent_deg, lon_extent_deg)
+
+        last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((GRID_H, GRID_W))
+        truncated = bool(touch_edge(last_grid_2d))
+
+        prediction_payload = {
+            "ref": fire.reference_number,
+            "lat": fire.lat,
+            "lng": fire.lng,
+            "history": flattened_history,
+            "burned_cells": burned_cells,
+            "radius_m": radius_m,
+            "truncated": truncated,
+            "lat_extent_deg": lat_extent_deg,
+            "lon_extent_deg": lon_extent_deg,
+            "grid_h": GRID_H,
+            "grid_w": GRID_W,
+            "cell_size_m": cell_size_m,
+        }
+
+        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload)
         return Prediction(**prediction_payload)
+
 
 # The endpoint
 @router.post(
