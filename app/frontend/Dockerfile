@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 COPY app/frontend/package.json app/frontend/package.json
 COPY app/backend/package.json app/backend/package.json
-COPY app/pwa/package.json app/pwa/package.json
+#COPY app/pwa/package.json app/pwa/package.json
 
 RUN corepack enable \
 	&& yarn install --frozen-lockfile
