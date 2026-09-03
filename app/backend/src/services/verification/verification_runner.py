@@ -57,11 +57,7 @@ def run_verification(report_id: str, _visited: set[str] | None = None) -> None:
 
         if decision in (AUTO_VERIFY, AUTO_REJECT):
             candidates = corroborating_reports(report, db)
-            corroborator_ids = [
-                cid
-                for cid in candidates
-                if cid not in visited
-            ]
+            corroborator_ids = [cid for cid in candidates if cid not in visited]
     except Exception:
         logger.exception("run_verification failed for report %s", report_id)
         db.rollback()

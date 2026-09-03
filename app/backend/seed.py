@@ -21,10 +21,12 @@ ADMIN_PASSWORD = os.getenv("SEED_ADMIN_PASSWORD")
 if not DEFAULT_PASSWORD:
     raise ValueError("Missing env variables for passwords")
 
+
 def get_raw_password(role: str) -> str:
     if role == "admin" and ADMIN_PASSWORD:
         return ADMIN_PASSWORD
     return DEFAULT_PASSWORD
+
 
 # 20 Users: 3 Admins, 5 Firefighters, 12 Users
 SEED_USERS = [
@@ -363,24 +365,132 @@ DEFAULT_IP = "192.168.1.10"
 
 # 18 spread out realistic locations across Guateng and North West for fires
 REGIONAL_LOCATIONS = [
-    {"name": "LC de Villiers Sports Grounds", "lat": -25.7480, "lng": 28.2435, "desc": "Brush fire near northern fence.", "radius": 0.5},
-    {"name": "Silkaatsnek Nature Reserve, Hartbeespoort", "lat": -25.6900, "lng": 27.9100, "desc": "Mountain ridge fire climbing towards towers.", "radius": 2.0},
-    {"name": "Oak Avenue Farmlands, Cullinan", "lat": -25.6700, "lng": 28.5300, "desc": "Grassland fire burning through dry crop residues.", "radius": 0.1},
-    {"name": "Rietvlei Nature Reserve, Irene", "lat": -25.8800, "lng": 28.2800, "desc": "Large veld fire spreading toward eastern border.", "radius": 3.5},
-    {"name": "Dinokeng Game Reserve North", "lat": -25.3800, "lng": 28.3800, "desc": "Bushveld blaze near reserve perimeter.", "radius": 1.0},
-    {"name": "Buffelspoort Valley, Magaliesberg", "lat": -25.7500, "lng": 27.4800, "desc": "Wildfire burning across steep mountain slopes.", "radius": 1.5},
-    {"name": "Crocodile River Banks, Brits", "lat": -25.6200, "lng": 27.7700, "desc": "Dense reed fire near citrus orchards.", "radius": 2.5},
-    {"name": "Pretoria National Botanical Garden", "lat": -25.7300, "lng": 28.2700, "desc": "Fire near eastern boundary wall.", "radius": 0.3},
-    {"name": "Roodeplaat Dam Nature Reserve", "lat": -25.6300, "lng": 28.3600, "desc": "Veld fire near southern picnic site.", "radius": 4.0},
-    {"name": "Main Road Verge, Kyalami", "lat": -25.9800, "lng": 28.0700, "desc": "Thick smoke near electrical sub-station.", "radius": 0.8},
-    {"name": "Kromdraai Slopes, Cradle of Humankind", "lat": -25.9700, "lng": 27.7600, "desc": "Grass fire burning along rocky slopes.", "radius": 0.2},
-    {"name": "Roodekrans Ridge, Krugersdorp", "lat": -26.0800, "lng": 27.8400, "desc": "Large grass fire causing smoke drift.", "radius": 1.2},
-    {"name": "Pretoria West Industrial Area", "lat": -25.7500, "lng": 28.1500, "desc": "Chemical smoke rising from industrial yard.", "radius": 0.5},
-    {"name": "Atterbury Road Verge, Pretoria East", "lat": -25.7900, "lng": 28.3100, "desc": "Roadside spot fire spreading into dry brush.", "radius": 0.1},
-    {"name": "Silver Lakes Boundary", "lat": -25.7600, "lng": 28.3500, "desc": "Fire in open field approaching estate wall.", "radius": 1.8},
-    {"name": "R21 Corridor, Serengeti North", "lat": -26.0200, "lng": 28.2700, "desc": "Grass fire blowing smoke across highway.", "radius": 0.4},
-    {"name": "M17 Open Veld, Mabopane", "lat": -25.5200, "lng": 28.0500, "desc": "Uncontrolled rubbish and tall grass burn.", "radius": 0.2},
-    {"name": "Suikerbosrand Nature Reserve, Heidelberg", "lat": -26.5100, "lng": 28.2500, "desc": "Massive mountain veld fire consuming open land.", "radius": 3.0},
+    {
+        "name": "LC de Villiers Sports Grounds",
+        "lat": -25.7480,
+        "lng": 28.2435,
+        "desc": "Brush fire near northern fence.",
+        "radius": 0.5,
+    },
+    {
+        "name": "Silkaatsnek Nature Reserve, Hartbeespoort",
+        "lat": -25.6900,
+        "lng": 27.9100,
+        "desc": "Mountain ridge fire climbing towards towers.",
+        "radius": 2.0,
+    },
+    {
+        "name": "Oak Avenue Farmlands, Cullinan",
+        "lat": -25.6700,
+        "lng": 28.5300,
+        "desc": "Grassland fire burning through dry crop residues.",
+        "radius": 0.1,
+    },
+    {
+        "name": "Rietvlei Nature Reserve, Irene",
+        "lat": -25.8800,
+        "lng": 28.2800,
+        "desc": "Large veld fire spreading toward eastern border.",
+        "radius": 3.5,
+    },
+    {
+        "name": "Dinokeng Game Reserve North",
+        "lat": -25.3800,
+        "lng": 28.3800,
+        "desc": "Bushveld blaze near reserve perimeter.",
+        "radius": 1.0,
+    },
+    {
+        "name": "Buffelspoort Valley, Magaliesberg",
+        "lat": -25.7500,
+        "lng": 27.4800,
+        "desc": "Wildfire burning across steep mountain slopes.",
+        "radius": 1.5,
+    },
+    {
+        "name": "Crocodile River Banks, Brits",
+        "lat": -25.6200,
+        "lng": 27.7700,
+        "desc": "Dense reed fire near citrus orchards.",
+        "radius": 2.5,
+    },
+    {
+        "name": "Pretoria National Botanical Garden",
+        "lat": -25.7300,
+        "lng": 28.2700,
+        "desc": "Fire near eastern boundary wall.",
+        "radius": 0.3,
+    },
+    {
+        "name": "Roodeplaat Dam Nature Reserve",
+        "lat": -25.6300,
+        "lng": 28.3600,
+        "desc": "Veld fire near southern picnic site.",
+        "radius": 4.0,
+    },
+    {
+        "name": "Main Road Verge, Kyalami",
+        "lat": -25.9800,
+        "lng": 28.0700,
+        "desc": "Thick smoke near electrical sub-station.",
+        "radius": 0.8,
+    },
+    {
+        "name": "Kromdraai Slopes, Cradle of Humankind",
+        "lat": -25.9700,
+        "lng": 27.7600,
+        "desc": "Grass fire burning along rocky slopes.",
+        "radius": 0.2,
+    },
+    {
+        "name": "Roodekrans Ridge, Krugersdorp",
+        "lat": -26.0800,
+        "lng": 27.8400,
+        "desc": "Large grass fire causing smoke drift.",
+        "radius": 1.2,
+    },
+    {
+        "name": "Pretoria West Industrial Area",
+        "lat": -25.7500,
+        "lng": 28.1500,
+        "desc": "Chemical smoke rising from industrial yard.",
+        "radius": 0.5,
+    },
+    {
+        "name": "Atterbury Road Verge, Pretoria East",
+        "lat": -25.7900,
+        "lng": 28.3100,
+        "desc": "Roadside spot fire spreading into dry brush.",
+        "radius": 0.1,
+    },
+    {
+        "name": "Silver Lakes Boundary",
+        "lat": -25.7600,
+        "lng": 28.3500,
+        "desc": "Fire in open field approaching estate wall.",
+        "radius": 1.8,
+    },
+    {
+        "name": "R21 Corridor, Serengeti North",
+        "lat": -26.0200,
+        "lng": 28.2700,
+        "desc": "Grass fire blowing smoke across highway.",
+        "radius": 0.4,
+    },
+    {
+        "name": "M17 Open Veld, Mabopane",
+        "lat": -25.5200,
+        "lng": 28.0500,
+        "desc": "Uncontrolled rubbish and tall grass burn.",
+        "radius": 0.2,
+    },
+    {
+        "name": "Suikerbosrand Nature Reserve, Heidelberg",
+        "lat": -26.5100,
+        "lng": 28.2500,
+        "desc": "Massive mountain veld fire consuming open land.",
+        "radius": 3.0,
+    },
 ]
 
 STATUS_CYCLES = [
@@ -394,7 +504,7 @@ STATUS_LEVEL_MAP = {
     ReportStatus.received: 0,
     ReportStatus.pending: 1,
     ReportStatus.verified: 2,
-    ReportStatus.rejected: 2
+    ReportStatus.rejected: 2,
 }
 
 
@@ -468,9 +578,7 @@ def seed_fire_reports(db):
         ref = f"FR-2026-{index:03d}"
 
         existing = (
-            db.query(FireReports)
-            .filter(FireReports.reference_number == ref)
-            .first()
+            db.query(FireReports).filter(FireReports.reference_number == ref).first()
         )
 
         if existing:
@@ -479,7 +587,7 @@ def seed_fire_reports(db):
 
         status = STATUS_CYCLES[(index - 1) % len(STATUS_CYCLES)]
         status_idx = STATUS_LEVEL_MAP[status]
-        assigned_user = user_ids[(index-1) % len(user_ids)]
+        assigned_user = user_ids[(index - 1) % len(user_ids)]
 
         report = FireReports(
             id=str(uuid.uuid4()),
@@ -495,9 +603,8 @@ def seed_fire_reports(db):
             status_index=status_idx,
         )
         db.add(report)
-        print(
-            f"  ADD   fire report -> {ref} at {loc['name']}"
-        )
+        print(f"  ADD   fire report -> {ref} at {loc['name']}")
+
 
 def wipe_all_data(db):
     print(" Wiping database for a reseed")
@@ -509,6 +616,7 @@ def wipe_all_data(db):
     db.flush()
     print("All databases cleared")
 
+
 def seed(reseed: bool = False):
     print("Creating tables if they don't exist...")
 
@@ -516,7 +624,7 @@ def seed(reseed: bool = False):
     try:
         if reseed:
             wipe_all_data(db)
-        
+
         print("\nSeeding users...")
         seed_users(db)
 
