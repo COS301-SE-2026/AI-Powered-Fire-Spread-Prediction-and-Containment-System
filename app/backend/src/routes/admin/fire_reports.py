@@ -3,21 +3,18 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from db import get_db
-from enums.report_status import ReportStatus
-from enums.user_role import UserRole
-from schemas.fire_report import FireReportDetailResponse, FireReportMapResponse
-from services.users import fire_report
+from app.backend.db import get_db
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.services.users import fire_report
 from app.backend.db import get_db
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.schemas.fire_report import (
     FireReportDetailResponse,
     FireReportMapResponse,
 )
-from app.backend.src.services.users import fire_report
 
 from app.backend.src.dependencies.auth import get_current_admin_user
-
 from app.backend.src.dependencies.auth import require_role
 
 router = APIRouter(
