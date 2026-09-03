@@ -3,13 +3,13 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from enums.user_role import UserRole
-from enums.role_request_status import RequestStatus
-from models.reported_fires import FireReports
-from models.users import User
-from models.role_request import RoleRequest
-from schemas.admin_analytics import AnalyticsOverviewResponse, KPIs
-from schemas.role_request import RoleRequestResponse, UserSummary
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.enums.role_request_status import RequestStatus
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.users import User
+from app.backend.src.models.role_request import RoleRequest
+from app.backend.src.schemas.admin_analytics import AnalyticsOverviewResponse, KPIs
+from app.backend.src.schemas.role_request import RoleRequestResponse, UserSummary
 
 
 def get_kpis(db: Session) -> KPIs:

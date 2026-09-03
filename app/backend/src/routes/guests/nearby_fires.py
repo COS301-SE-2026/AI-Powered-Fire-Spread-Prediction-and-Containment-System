@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from db import get_db
-from schemas.notification import NotificationOut
-from schemas.user_location import UserLocationIn
-from services.notifications.notifications import check_proximity_for_guest
+from app.backend.db import get_db
+from app.backend.src.schemas.notification import NotificationOut
+from app.backend.src.schemas.user_location import UserLocationIn
+from app.backend.src.services.notifications.notifications import (
+    check_proximity_for_guest,
+)
 
 router = APIRouter(prefix="/api/guests", tags=["Guests"])
 
