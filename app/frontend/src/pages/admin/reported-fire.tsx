@@ -23,7 +23,7 @@ export default function ReportedFiresPage() {
   );
 
   return (
-    <AdminSideBar>
+    <AdminSideBar hideLoginRegister>
       <div className="p-3 md:p-6 flex flex-col h-full w-full">
         <RotateHint show={showHint} onDismiss={dismiss} />
         <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" showIcons />

@@ -16,7 +16,7 @@ export default function ReportTable() {
   const { showHint, dismiss } = useRotate();
 
   return (
-    <FirefighterSideBar>
+    <FirefighterSideBar hideLoginRegister>
       <div className="p-2 flex flex-col h-full w-full gap-y-3">
         <RotateHint show={showHint} onDismiss={dismiss} />
         <PageHeader title="Reported Fires" subtitle="View the reported fires" showIcons />
