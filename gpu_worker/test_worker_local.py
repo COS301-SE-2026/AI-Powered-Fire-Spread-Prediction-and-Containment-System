@@ -40,6 +40,8 @@ def run_step(name, fn):
         print(f"OK - {name} succeeded")
         return result
     except Exception as e: # pylint: disable=broad-exception-caught
+        import traceback
+        traceback.print_exc()
         print(f"FAILED - {name}: {type(e).__name__}: {e}")
         return None
     

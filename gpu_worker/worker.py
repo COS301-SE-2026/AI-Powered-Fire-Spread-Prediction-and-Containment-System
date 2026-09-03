@@ -12,6 +12,7 @@ import torch
 
 from ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.dca import run_dca
+from app.backend.src.ai.model_pipeline import run_convlstm_dca
 
 AWS_REGION = os.environ["AWS_REGION"]
 INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
@@ -25,7 +26,7 @@ WORKER_ID = os.environ.get("WORKER_ID", "gpu-worker-1")
 ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/firefighter-system-artifacts"))
 RESULTS_DIR = ARTIFACTS_ROOT / "results"
 
-CONVLSTM_CHECKPOINT_PATH = ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST"
+CONVLSTM_CHECKPOINT_PATH = ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST" / "model.pt"
 DCA_PARAMS_PATH = ARTIFACTS_ROOT / "models" / "dca_params" / "calibrated_params.json"
 
 # fallback DCA params if calibrated_params.json isn't present on the mount
@@ -75,7 +76,12 @@ def load_convlstm_model() -> WeatherDeltaModel:
     """
     model = WeatherDeltaModel()
     checkpoint = torch.load(CONVLSTM_CHECKPOINT_PATH, map_location=DEVICE)
-    model.load_state_dict(checkpoint["model_state_dict"])
+    # If wrapped in a dict with 'model_state_dict', unwrap it; otherwise use directly
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+    else:
+        state_dict = checkpoint
+    model.load_state_dict(state_dict)
     model.to(DEVICE)
     model.eval()
     
@@ -131,8 +137,8 @@ def build_weather_history_tensor(weather_history: list) -> torch.Tensor:
             [
                 frame["wind_u"],
                 frame["wind_v"],
-                frame["temperature"],
                 frame["rel_humidity"],
+                frame["temperature"],
             ],
             axis=0,
         ).astype(np.float32)
@@ -254,7 +260,7 @@ def run_inference(job: dict) -> dict:
     
     static_grids = fetch_static_grids(job)
     
-    ignition_mask = build_integration_mask(
+    ignition_mask = build_ignition_mask(
         center_lat=job["center_lat"],
         center_lon=job["center_lon"],
         grid_bounds=job["grid_bounds"],
@@ -262,7 +268,11 @@ def run_inference(job: dict) -> dict:
     
     n_steps = min(job.get("duration_hours", 4) * TICKS_PER_HOUR, MAX_STEPS)
     
-    params = job.get("params", default_dca_params)
+    raw_params = job.get("params", default_dca_params)
+    params = {
+        k: torch.as_tensor(v, dtype=torch.float32)
+        for k, v in raw_params.items()
+    }
     
     history = run_convlstm_dca(
         convlstm_model=convlstm_model,
