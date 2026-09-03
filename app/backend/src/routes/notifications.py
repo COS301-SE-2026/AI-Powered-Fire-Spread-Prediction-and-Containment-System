@@ -10,13 +10,16 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from db import get_db
-from dependencies.auth import decode_token, get_current_user
-from models.notification import Notification
-from models.users import User
-from schemas.notification import NotificationListOut, NotificationOut
-from services.notifications.notifications import mark_all_read, mark_notification_read
-from services.notifications.websocket_manager import manager
+from app.backend.db import get_db
+from app.backend.src.dependencies.auth import decode_token, get_current_user
+from app.backend.src.models.notification import Notification
+from app.backend.src.models.users import User
+from app.backend.src.schemas.notification import NotificationListOut, NotificationOut
+from app.backend.src.services.notifications.notifications import (
+    mark_all_read,
+    mark_notification_read,
+)
+from app.backend.src.services.notifications.websocket_manager import manager
 
 router = APIRouter(prefix="/api/notifications", tags=["Notifications"])
 

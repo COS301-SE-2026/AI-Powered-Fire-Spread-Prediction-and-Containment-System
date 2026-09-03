@@ -4,7 +4,7 @@ import rasterio
 from rasterio.enums import Resampling
 from rasterio.windows import from_bounds
 import math
-from ml.features.geo_utils import stream_cropped_raster
+from app.ml.features.geo_utils import stream_cropped_raster
 
 DEMREADENV = dict(
     AWS_NO_SIGN_REQUEST="YES",
