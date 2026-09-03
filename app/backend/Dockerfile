@@ -16,6 +16,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 # runtime
 FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65 AS runtime
+WORKDIR app/
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=src
