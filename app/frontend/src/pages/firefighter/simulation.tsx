@@ -43,7 +43,8 @@ export default function Simulation() {
   const hasResult = totalTicks > 0;
 
   function handleRun() {
-      runSimulation(selectedFireId, 288, containmentLines);
+      const steps = selectedFireId ? 288 : 4
+      runSimulation(selectedFireId, steps, containmentLines);
   }
 
   function handleStop(){

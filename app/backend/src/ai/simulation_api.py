@@ -8,7 +8,6 @@ import logging
 import uuid
 import boto3
 import asyncio
-import torch
 import json
 from pathlib import Path
 
@@ -22,14 +21,8 @@ from db import get_db
 from enums.report_status import ReportStatus
 from models.reported_fires import FireReports
 
-from .dca import run_dca
-from .model_pipeline import run_convlstm_dca
 from .geo import bbox_from_fire, touch_edge
-from .resolve_tiles import resolve_tile_paths
-from ml.features.real_data_loader import load_real_inference_data
-from .simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
-from ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 
 logger = logging.getLogger("simulation_api")
 
@@ -42,9 +35,6 @@ MAX_GRID_DIMENSION = 800
 MAX_GRID_CELLS = 50000
 TICKS_PER_HOUR = 4
 
-GRID_H = 64
-GRID_W = 64
-
 AWS_REGION = os.environ.get("AWS_REGION")
 INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
 ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/firefighter-system-artifacts"))
@@ -54,25 +44,6 @@ sqs = boto3.client("sqs", region_name=AWS_REGION)
 
 RESULT_POLL_INTERVAL_S = 1.0
 RESULT_POLL_TIMEOUT_S = 360.0
-
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# convlstm_cfg = WeatherDeltaModelConfig(input_dim=10, hidden_dims=[48,48], kernel_size=3, output_dim=4)
-# convlstm_model = WeatherDeltaModel(convlstm_cfg).to(device)
-
-# # CHECKPOINT_PATH = os.environ.get("CONVLSTM_CHECKPOINT", "app/artifact_store/weather_convlstm/LATEST/model.pt")
-# # if os.path.exists(CHECKPOINT_PATH):
-# #     convlstm_model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
-# # convlstm_model.eval()
-
-# # # will change after training
-# # DEFAULT_DCA_PARAMS = {
-# #     "a": torch.tensor(0.015),
-# #     "p_h": torch.tensor(0.06),
-# #     "c_1": torch.tensor(0.04),
-# #     "c_2": torch.tensor(0.03),
-# #     "p_continue": torch.tensor(0.6),
-# # }
 
 def grid_dimensions_for_extent(
         lat_extent_deg: float,
@@ -195,7 +166,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
     )
 
     if lines:
-        cache_key = f"{cache_key}:lines_{hash(tuple(lines))}"
+        lines_digest = hashlib.md5("",join(sorted(lines)).encode().hexdigest()[:8])
+        cache_key = f"{cache_key}:lines_{lines_digest}"
 
     cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
     if cached_result is not None:
@@ -283,7 +255,7 @@ async def run_simulation(
     Runs for 4 ticks which is a 1 hour spread simulation
     """
 
-    verified_fires = (
+    verified_fires_raw = (
         db.query(
             FireReports.id,
             FireReports.reference_number,
@@ -295,7 +267,16 @@ async def run_simulation(
         .all()
     )
 
-    automatic_steps = req.n_steps
+    seen_refs = set()
+    verified_fires = []
+    for f in verified_fires_raw:
+        if f.reference_number not in seen_refs:
+            seen_refs.add(f.reference_number)
+            verified_fires.append(f)
+
+    AUTOMATICSTEPS = 4
+
+    automatic_steps = AUTOMATICSTEPS
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(

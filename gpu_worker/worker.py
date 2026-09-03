@@ -12,7 +12,7 @@ import torch
 
 from ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.simulation import build_boundary_ignition_mask
-from app.backend.src.ai.dca import run_dca
+#from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 
 AWS_REGION = os.environ.get("AWS_REGION")
@@ -111,15 +111,15 @@ except FileNotFoundError as e:
     convlstm_model = None
 default_dca_params = load_dca_params()
 
-def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list, grid_h: int, grid_w: int) -> np.ndarray:
-    min_lon, min_lat, max_lon, max_lat = grid_bounds
+# def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list, grid_h: int, grid_w: int) -> np.ndarray:
+#     min_lon, min_lat, max_lon, max_lat = grid_bounds
   
-    row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * grid_h, 0, grid_h - 1))
-    col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * grid_w, 0, grid_w -1))
+#     row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * grid_h, 0, grid_h - 1))
+#     col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * grid_w, 0, grid_w -1))
     
-    mask = np.zeros((grid_h, grid_w), dtype=bool)
-    mask[row, col] = True
-    return mask
+#     mask = np.zeros((grid_h, grid_w), dtype=bool)
+#     mask[row, col] = True
+#     return mask
 
 def build_weather_history_tensor(weather_history: list) -> torch.Tensor:
     """
