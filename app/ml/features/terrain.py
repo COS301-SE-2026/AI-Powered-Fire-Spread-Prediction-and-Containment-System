@@ -4,7 +4,7 @@ import rasterio
 from rasterio.enums import Resampling
 from rasterio.windows import from_bounds
 import math
-from app.ml.features.geo_utils import stream_cropped_raster
+from ml.features.geo_utils import stream_cropped_raster
 
 DEMREADENV = dict(
     AWS_NO_SIGN_REQUEST="YES",
@@ -12,13 +12,15 @@ DEMREADENV = dict(
     CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif,.TIF,.tiff",
 )
 
-METERS_PER_DEG_LAT = (
-    111320.0  # the amount of meters that 1 latitude on earth is equal to
-)
-
+METERS_PER_DEG_LAT = 111320.0 # the amount of meters that 1 latitude on earth is equal to
 
 def bbox_cell_size_m(
-    min_lon: float, min_lat: float, max_lon: float, max_lat: float, H: int, W: int
+        min_lon: float,
+        min_lat: float,
+        max_lon: float,
+        max_lat: float,
+        H: int,
+        W: int
 ) -> tuple[float, float]:
     """
     The real ground size of one grid cell in meters, given the boundary box and the (H,W). Longitude degrees shrink with latitude.
@@ -34,7 +36,6 @@ def bbox_cell_size_m(
     cell_size_x = width / W
 
     return cell_size_y, cell_size_x
-
 
 def extract_terrain_features(
     dem_path: str,
@@ -52,9 +53,7 @@ def extract_terrain_features(
         dem_path, min_lon, min_lat, max_lon, max_lat, target_shape
     ).astype(np.float32)
 
-    cell_size_y, cell_size_x = bbox_cell_size_m(
-        min_lon, min_lat, max_lon, max_lat, H, W
-    )
+    cell_size_y, cell_size_x = bbox_cell_size_m(min_lon, min_lat, max_lon, max_lat, H, W)
 
     # compute elevation gradients along rows and columns seperately
     dy, dx = np.gradient(elevation, cell_size_y, cell_size_x)

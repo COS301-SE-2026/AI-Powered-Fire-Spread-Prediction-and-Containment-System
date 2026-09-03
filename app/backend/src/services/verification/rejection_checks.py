@@ -1,11 +1,11 @@
 """Rejection checks for fire reports"""
 
-import json
-from datetime import datetime, timedelta, timezone
-
 import logging
 import os
 import httpx
+import json
+
+from datetime import datetime, timedelta, timezone
 
 from geoalchemy2.shape import to_shape
 from geoalchemy2.functions import ST_DWithin
@@ -14,8 +14,8 @@ from geoalchemy2 import Geography
 from sqlalchemy import cast, select
 from sqlalchemy.orm import Session
 
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.models.reported_fires import FireReports
+from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 # to log where something fails
 logger = logging.getLogger(__name__)
