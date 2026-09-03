@@ -1,0 +1,13 @@
+node_modules/
+.next/
+playwright-report/
+test-results/
+testing/
+auth.spec.ts
+playwright.config.ts
+.eslintrc.json
+.prettierrc
+.prettierignore
+.env.local
+.git/
+

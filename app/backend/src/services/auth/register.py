@@ -2,9 +2,9 @@ import uuid
 
 from sqlalchemy.orm import Session
 
-from app.backend.src.dependencies.auth import hash_password
-from app.backend.src.models.users import User
-from app.backend.src.schemas.auth import RegisterRequest
+from dependencies.auth import hash_password
+from models.users import User
+from schemas.auth import RegisterRequest
 
 
 def register_user(db: Session, request: RegisterRequest):

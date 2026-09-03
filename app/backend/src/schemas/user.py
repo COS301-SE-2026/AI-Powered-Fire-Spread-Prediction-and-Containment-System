@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from app.backend.src.enums.user_role import UserRole
+from enums.user_role import UserRole
 
 
 class UserCreate(BaseModel):

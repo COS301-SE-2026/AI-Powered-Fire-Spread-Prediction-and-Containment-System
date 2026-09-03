@@ -24,15 +24,14 @@ def get_db():
 
 def init_db():
     """Create all tables on startup."""
-    import app.backend.src.models.containment_lines
-    import app.backend.src.models.reported_fires
-    import app.backend.src.models.role_request
-    import app.backend.src.models.users
+    from models.containment_lines import ContainmentLines
+    from models.reported_fires import FireReports
+    from models.role_request import RoleRequest
+    from models.users import User
+    from models.notification import Notification
 
     Base.metadata.create_all(bind=engine)
 
-    from app.backend.startup_migrations import run_startup_migrations
-
-    run_startup_migrations(engine)
+    from startup_migrations import run_startup_migrations
 
     run_startup_migrations(engine)

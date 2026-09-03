@@ -13,16 +13,15 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from app.backend.db import Base
-from app.backend.src.enums.report_status import ReportStatus
+from db import Base
+from enums.report_status import ReportStatus
 
 from sqlalchemy import Boolean
-from app.backend.src.enums.report_priority import ReportPriority
+from enums.report_priority import ReportPriority
 
 
 class FireReports(Base):
     __tablename__ = "fire_reports"
-    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True)
     reference_number = Column(String(20), unique=True, nullable=False)

@@ -3,11 +3,11 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.enums.role_request_status import RequestStatus
-from app.backend.src.models.reported_fires import FireReports
-from app.backend.src.models.users import User
-from app.backend.src.models.role_request import RoleRequest
+from enums.report_status import ReportStatus
+from enums.role_request_status import RequestStatus
+from models.reported_fires import FireReports
+from models.users import User
+from models.role_request import RoleRequest
 
 
 def as_aware(dt: datetime | None) -> datetime | None:
