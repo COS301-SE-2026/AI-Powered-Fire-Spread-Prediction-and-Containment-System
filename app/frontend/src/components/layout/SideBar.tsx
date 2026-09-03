@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Settings, LogOut, UserCircle } from 'lucide-react';
+import { LogOut, UserCircle, HelpCircle } from 'lucide-react';
 import { logout } from '../../lib/api';
 
 export function SideBar({
@@ -57,6 +57,11 @@ export function SideBar({
               </span>
             </Link>
           )}
+
+          <Link href="/" className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4">
+              <HelpCircle className="size-6 shrink-0" />
+              <span className="text-sm font-semibold hidden group-hover:inline">Help Menu</span>
+          </Link>
 
           {!hideLogout && (
             <button
