@@ -41,30 +41,30 @@ def build_verified_reports_mask(
 
     return mask
 
+
 def build_boundary_ignition_mask(
-        H: int, W: int, cell_size_m: float, boundary_radius_m: float
+    H: int, W: int, cell_size_m: float, boundary_radius_m: float
 ) -> np.ndarray:
     # marks every fire inside the boundary radius as ignited
     cy, cx = H / 2.0, W / 2.0
     radius_cells = boundary_radius_m / cell_size_m
 
     yy, xx = np.ogrid[0:H, 0:W]
-    dist_cells = np.sqrt((yy - cy) **2 + (xx - cx) **2)
+    dist_cells = np.sqrt((yy - cy) ** 2 + (xx - cx) ** 2)
 
-    return dist_cells <= radius_cells 
+    return dist_cells <= radius_cells
 
 
 def compute_wind_components(
-        wind_u: np.ndarray | torch.Tensor, 
-        wind_v: np.ndarray | torch.Tensor
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    wind_u: np.ndarray | torch.Tensor, wind_v: np.ndarray | torch.Tensor
+) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Converts u and v wind components into wind speed(m/s) and degrees to directions
     """
 
     u = torch.as_tensor(wind_u).float()
     v = torch.as_tensor(wind_v).float()
-    
+
     wind_velocity = torch.sqrt(u**2 + v**2)
 
     # u - eastward & v - northward
@@ -73,8 +73,12 @@ def compute_wind_components(
 
     return wind_velocity, wind_towards_deg
 
+
 def build_env_data(
-    weather_grids: dict, static_grids: dict, initial_ignition_mask: np.ndarray, cell_size_m: float
+    weather_grids: dict,
+    static_grids: dict,
+    initial_ignition_mask: np.ndarray,
+    cell_size_m: float,
 ) -> dict:
 
     wind_velocity, wind_towards_direction = compute_wind_components(
@@ -97,14 +101,18 @@ def build_env_data(
 
     return env_dict
 
+
 def update_model_tensors(model, current_weather: dict, device: str | torch.device):
     """
     Updates the models weather during dca loop
     """
 
-    velocity, direction = compute_wind_components(current_weather["wind_u"], current_weather["wind_v"])
+    velocity, direction = compute_wind_components(
+        current_weather["wind_u"], current_weather["wind_v"]
+    )
     model.wind_velocity.copy_(velocity.to(device))
     model.wind_towards_direction.copy_(direction.to(device))
+
 
 def state_to_burn_state(state: torch.Tensor) -> np.ndarray:
     # convert the Pytorchfire [2, H. W] bool state to schema.py's [H,W] int codes
@@ -114,7 +122,13 @@ def state_to_burn_state(state: torch.Tensor) -> np.ndarray:
     burn_state_grid[burning] = BURNING
     return burn_state_grid
 
-def convert_containment_line(containment_lines: list[str], H: int, W:int, bounds: tuple[float, float, float, float] | None = None) -> np.ndarray:
+
+def convert_containment_line(
+    containment_lines: list[str],
+    H: int,
+    W: int,
+    bounds: tuple[float, float, float, float] | None = None,
+) -> np.ndarray:
     """
     Convert the wkt string into a 2d mask matching the shape [H, W] of the model
     True => active containment line
@@ -144,12 +158,17 @@ def convert_containment_line(containment_lines: list[str], H: int, W:int, bounds
 
             for i in range(len(coords) - 1):
                 r0, c0 = rows[i], cols[i]
-                r1, c1 = rows[i+1], cols[i+1]
-                num_points = max(abs(r1-r0), abs(c1-c0), 1) * 2
+                r1, c1 = rows[i + 1], cols[i + 1]
+                num_points = max(abs(r1 - r0), abs(c1 - c0), 1) * 2
                 interpolate_row = np.linspace(r0, r1, num_points).round().astype(int)
                 interpolate_col = np.linspace(c0, c1, num_points).round().astype(int)
 
-                valid = ((interpolate_row >= 0) & (interpolate_row < H) & (interpolate_col >= 0) & (interpolate_col < W))
+                valid = (
+                    (interpolate_row >= 0)
+                    & (interpolate_row < H)
+                    & (interpolate_col >= 0)
+                    & (interpolate_col < W)
+                )
 
                 barrier_mask[interpolate_row[valid], interpolate_col[valid]] = True
 

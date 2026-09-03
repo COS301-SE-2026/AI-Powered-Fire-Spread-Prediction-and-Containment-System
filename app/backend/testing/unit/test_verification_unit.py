@@ -6,7 +6,10 @@ import httpx
 import pytest
 
 from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.services.verification.rejection_checks import on_land, LocationCheckUnavailable
+from app.backend.src.services.verification.rejection_checks import (
+    on_land,
+    LocationCheckUnavailable,
+)
 from app.backend.src.services.verification.verification_runner import run_verification
 from app.backend.src.services.verification.auto_verification import (
     AUTO_REJECT,

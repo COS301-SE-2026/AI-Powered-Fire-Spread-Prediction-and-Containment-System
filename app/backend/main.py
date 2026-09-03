@@ -22,6 +22,7 @@ from app.backend.seed import seed
 from app.backend.src.services.storage import ensure_bucket
 from app.backend.src.services.notifications.websocket_manager import set_main_loop
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ensure_bucket()
@@ -34,12 +35,13 @@ async def lifespan(app: FastAPI):
 
     yield
 
+
 app = FastAPI(
     title="FireAway API",
     description="Backend for the AI-Powered Fire Spread Prediction and Containment System",
     version="1.0.0",
     redirect_slashes=False,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # app = FastAPI(root_path="/api")

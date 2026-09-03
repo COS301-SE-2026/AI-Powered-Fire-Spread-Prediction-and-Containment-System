@@ -4,6 +4,7 @@ from geoalchemy2.elements import WKTElement
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
 
+
 # @pytest.mark.skip(reason="PostGIS not configured for testing yet.")
 def test_guest_fire_map_integration(client, db):
     """Validate data retrieval for guest live map view"""

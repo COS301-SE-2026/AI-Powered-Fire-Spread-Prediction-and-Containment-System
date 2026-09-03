@@ -13,7 +13,9 @@ from app.backend.src.services.verification.rejection_checks import (
     duplicate_submission,
 )
 
-from app.backend.src.services.verification.report_corroboration import corroborating_reports
+from app.backend.src.services.verification.report_corroboration import (
+    corroborating_reports,
+)
 from app.backend.src.services.verification.report_spam_detection import (
     abnormal_rate,
     duplicate_photo_hash,

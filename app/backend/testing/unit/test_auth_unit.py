@@ -6,7 +6,11 @@ import pytest
 from fastapi import HTTPException
 from jose import jwt
 
-from app.backend.src.dependencies.auth import create_access_token, hash_password, verify_password
+from app.backend.src.dependencies.auth import (
+    create_access_token,
+    hash_password,
+    verify_password,
+)
 from app.backend.src.services.auth.login import (
     get_delay,
     check_rate_limits,

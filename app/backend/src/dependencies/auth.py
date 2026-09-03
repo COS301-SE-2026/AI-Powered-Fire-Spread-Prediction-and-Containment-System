@@ -38,7 +38,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     if not SECRET_KEY:
         raise RuntimeError("JWT_SECRET_KEY environment variable not set")
     to_encode = data.copy()
-    
+
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -55,7 +55,7 @@ def decode_token(token: str) -> Optional[str]:
     """
     if not SECRET_KEY:
         return None
-    
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("user_id")
