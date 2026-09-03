@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class HistoricalFireDataset:
     """Preloads and caches raster structures in memory for low-latency Optuna evaluations"""
     
-    def __init__(self, data_dir: str | Path, cell_size_m: float = 15.0):
+    def __init__(self, data_dir: str | Path, cell_size_m: float = 150.0):
         self.data_dir = Path(data_dir)
         self.cell_size_m = cell_size_m
         self.events: list[dict] = []
@@ -34,7 +34,17 @@ class HistoricalFireDataset:
         for p in npz_files:
             data = np.load(p, allow_pickle=True)
             H, W = data["target_burned_mask"].shape
-            target_shape = (H, W)
+            #target_shape = (H, W)
+
+            if "bbox" in data:
+                min_lon, min_lat, max_lon, max_lat = data["bbox"]
+                mid_lat = (min_lat + max_lat) / 2.0
+
+                #1 deg longitude in meters is roughly 111320m * cos(lat)
+                width_m = (max_lon - min_lon) * 111320.0 * np.cos(np.radians(mid_lat))
+                event_cell_size = float(width_m/ W)
+            else:
+                event_cell_size = self.cell_size_m
             
             # 1. extract static features if not already pre-extracted
             if "static_elevation" in data:
@@ -75,14 +85,18 @@ class HistoricalFireDataset:
                     "fuel_load": veg["fuel_load"].astype(np.float32),
                     "dryness": veg["dryness"].astype(np.float32),
                 }
+
+            duration_hours = int(data["duration_hours"] if "duration_hours" in data else 24)
+            duration_hours = min(max(duration_hours, 1), 72)
+            n_steps = duration_hours * 4
             
             # 2. reconstruct weather timeline
             weather_u = data["weather_u"]
             weather_v = data["weather_v"]
             weather_temp = data["weather_temp"]
             weather_rh = data["weather_rh"]
-            n_hours = weather_u.shape[0]
-            
+
+            n_weather = min(duration_hours, weather_u.shape[0])
             hourly_weather = [
                 {
                     "wind_u": weather_u[t].astype(np.float32),
@@ -90,7 +104,7 @@ class HistoricalFireDataset:
                     "temperature": weather_temp[t].astype(np.float32),
                     "rel_humidity": weather_rh[t].astype(np.float32),
                 }
-                for t in range(n_hours)
+                for t in range(n_weather)
             ]
             
             self.events.append({
@@ -99,7 +113,8 @@ class HistoricalFireDataset:
                 "ignition_mask": data["ignition_mask"].astype(bool),
                 "static_grids": static_grids,
                 "hourly_weather": hourly_weather,
-                "n_steps": max(4, n_hours * 4),     # 4 cellular automata ticks per hour
+                "cell_size_m": event_cell_size,
+                "n_steps": n_steps,     # 4 cellular automata ticks per hour
             })
             
         print(f"Cached {len(self.events)} events in RAM")
@@ -120,15 +135,15 @@ class DCAObjective:
         # sample the 5 core DCA spread mechanics parameters
         trial_params = {
             # a: base fuel ignition cooefficient
-            "a": torch.tensor(trial.suggest_float("a", 0.001, 0.08, log=True)),
+            "a": torch.tensor(trial.suggest_float("a", 0.01, 1.5, log=True)),
             # p_h: spotting / jump ignition probability
-            "p_h": torch.tensor(trial.suggest_float("p_h", 0.005, 0.25)),
+            "p_h": torch.tensor(trial.suggest_float("p_h", 0.001, 0.3)),
             # c_1: wind alignment exponential multiplier
-            "c_1": torch.tensor(trial.suggest_float("c_1", 0.005, 0.15)),
+            "c_1": torch.tensor(trial.suggest_float("c_1", 0.01, 0.3)),
             # c_2: slope / terrain angle alignment multiplier
-            "c_2": torch.tensor(trial.suggest_float("c_2", 0.005, 0.15)),
+            "c_2": torch.tensor(trial.suggest_float("c_2", 0.01, 0.3)),
             # p_continue: probability of a burning cell continuing to burn next step
-            "p_continue": torch.tensor(trial.suggest_float("p_continue", 0.2, 0.9)),
+            "p_continue": torch.tensor(trial.suggest_float("p_continue", 0.8, 0.95)),
         }
         
         iou_scores: list[float] = []
@@ -138,7 +153,7 @@ class DCAObjective:
                 history = run_dca(
                     weather_grids=event["hourly_weather"],
                     static_grids=event["static_grids"],
-                    cell_size_m=self.dataset.cell_size_m,
+                    cell_size_m=event["cell_size_m"],
                     n_steps=event["n_steps"],
                     ignition_mask=event["ignition_mask"],
                     params=trial_params,

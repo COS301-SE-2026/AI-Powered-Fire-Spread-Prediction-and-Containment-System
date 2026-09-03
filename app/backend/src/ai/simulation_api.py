@@ -45,11 +45,11 @@ convlstm_model.eval()
 
 # will change after training
 DEFAULT_DCA_PARAMS = {
-    "a": torch.tensor(0.015),
-    "p_h": torch.tensor(0.06),
-    "c_1": torch.tensor(0.04),
-    "c_2": torch.tensor(0.03),
-    "p_continue": torch.tensor(0.6),
+    "a": torch.tensor(0.14907203461535),
+    "p_h": torch.tensor(0.007806937291210794),
+    "c_1": torch.tensor(0.18791158061667307),
+    "c_2": torch.tensor(0.061291629144276716),
+    "p_continue": torch.tensor(0.8544276716),
 }
 
 def grid_dimensions_for_extent(

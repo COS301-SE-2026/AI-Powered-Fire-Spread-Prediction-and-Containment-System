@@ -31,13 +31,15 @@ def pick_ignition_points(
 
 
 def build_verified_reports_mask(
-    H: int, W: int, ignition_points: list[tuple[int, int]]
+    H: int, W: int, ignition_points: list[tuple[int, int]], radius_cells: int = 1
 ) -> np.ndarray:
     mask = np.zeros((H, W), dtype=bool)
 
     for row, col in ignition_points:
         if 0 <= row < H and 0 <= col < W:
-            mask[row, col] = True
+            r_min, r_max = max(0, row-radius_cells), min(H, row + radius_cells + 1)
+            c_min, c_max = max(0, col-radius_cells), min(W, col + radius_cells + 1)
+            mask[r_min:r_max, c_min:c_max] = True
 
     return mask
 
