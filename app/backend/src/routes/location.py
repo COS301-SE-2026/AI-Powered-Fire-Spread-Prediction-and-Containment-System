@@ -3,13 +3,11 @@ from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
-from app.backend.src.dependencies.auth import get_current_user
-from app.backend.src.models.users import User
-from app.backend.src.schemas.user_location import UserLocationIn
-from app.backend.src.services.notifications.notifications import (
-    check_proximity_for_user,
-)
+from db import get_db
+from dependencies.auth import get_current_user
+from models.users import User
+from schemas.user_location import UserLocationIn
+from services.notifications.notifications import check_proximity_for_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 

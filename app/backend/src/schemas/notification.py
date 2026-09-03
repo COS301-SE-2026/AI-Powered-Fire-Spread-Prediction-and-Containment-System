@@ -2,8 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from app.backend.src.enums.notification_type import NotificationType
-from app.backend.src.enums.severity import Severity
+from enums.notification_type import NotificationType
+from enums.severity import Severity
 
 
 class NotificationOut(BaseModel):

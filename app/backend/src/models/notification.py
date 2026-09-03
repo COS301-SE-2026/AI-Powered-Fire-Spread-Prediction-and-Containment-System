@@ -4,9 +4,9 @@ from datetime import datetime, timezone
 from sqlalchemy import Boolean, Column, DateTime, Enum, Float, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from app.backend.db import Base
-from app.backend.src.enums.notification_type import NotificationType
-from app.backend.src.enums.severity import Severity
+from db import Base
+from enums.notification_type import NotificationType
+from enums.severity import Severity
 
 
 class Notification(Base):
