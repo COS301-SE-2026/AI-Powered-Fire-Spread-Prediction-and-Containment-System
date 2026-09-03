@@ -13,18 +13,18 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from db import get_db
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from app.backend.db import get_db
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
 
 from .dca import run_dca
 from .model_pipeline import run_convlstm_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
-from ml.features.real_data_loader import load_real_inference_data
+from app.ml.features.real_data_loader import load_real_inference_data
 from .simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
-from ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
+from app.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 

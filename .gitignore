@@ -16,7 +16,6 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .mypy_cache/
-*.pyc
 
 # Tests
 coverage/
@@ -32,6 +31,7 @@ playwright-report/
 app/frontend/src/.env.local
 **/.env.local
 
+venv/
 .venv/
 .python-version
 
@@ -54,22 +54,4 @@ app/datasets/raw_data/*
 !app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv
 app/datasets/processed/
 
-artifact_store/
-app/backend/artifact_store/
-app/backend/datasets/
-ml/*.pkl
-ml/*.h5
-ml/*.pt
-ml/*.onnx
-ml/checkpoints/
-
-.vscode/
-.idea/
-.DS_Store
-
-*.rpm
 --out
-public/sw.js
-
-app/gpu-worker/.env
-app/gpu-worker/venv/

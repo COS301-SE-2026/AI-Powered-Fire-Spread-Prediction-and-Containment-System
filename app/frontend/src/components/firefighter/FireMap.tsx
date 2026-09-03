@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
@@ -25,24 +25,24 @@ interface SavedContainmentLine {
   feature: Feature<LineString>;
 }
 
-interface MapProps{
-    lat: number;
-    lng: number;
-    drawMode: boolean;
-    onDrawComplete: (line: string) => void;
-    onContainmentChange?: (wktLines: string[]) => void;
-    clearDrawings: number;
-    burnGrid?: number[] | null;
-    predictions?: Prediction[];
-    currentTick?: number;
-    selectedFireLocation?: string | null;
-    selectedFireId?: string | null;
-    onSelectFire?: (ref: string) => void;
-    onDeselect?: () => void;
-    showKey?: boolean;
+interface MapProps {
+  lat: number;
+  lng: number;
+  drawMode: boolean;
+  onDrawComplete: (line: string) => void;
+  onContainmentChange?: (wktLines: string[]) => void;
+  clearDrawings: number;
+  burnGrid?: number[] | null;
+  predictions?: Prediction[];
+  currentTick?: number;
+  selectedFireLocation?: string | null;
+  selectedFireId?: string | null;
+  onSelectFire?: (ref: string) => void;
+  onDeselect?: () => void;
+  showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false, onContainmentChange = undefined}: MapProps) {
+export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick = 0, onDeselect = undefined, selectedFireId = null, selectedFireLocation = null, onSelectFire = undefined, showKey = false, onContainmentChange = undefined }: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -55,22 +55,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const storageKey = 'containment_lines_active';
 
   const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
-    if(typeof window === 'undefined') return [];
-    try{
+    if (typeof window === 'undefined') return [];
+    try {
       const stored = sessionStorage.getItem(storageKey);
       return stored ? JSON.parse(stored) : [];
-    }catch{
+    } catch {
       return [];
     }
   });
 
   useEffect(() => {
-    try{
+    try {
       const stored = sessionStorage.getItem(storageKey);
       const lines = stored ? JSON.parse(stored) : [];
       setContainmentLine(lines);
       onContainmentChange?.(lines.map((line: SavedContainmentLine) => line.wkt));
-    }catch {
+    } catch {
       setContainmentLine([]);
       onContainmentChange?.([]);
     }
@@ -78,14 +78,14 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   // update the session storage whenever a containment line is changed
   useEffect(() => {
-    try{
-      if (containmentLine.length > 0){
+    try {
+      if (containmentLine.length > 0) {
         sessionStorage.setItem(storageKey, JSON.stringify(containmentLine));
-      }else{
+      } else {
         sessionStorage.removeItem(storageKey);
       }
       window.dispatchEvent(new Event('containment_lines_updated'));
-    }catch {
+    } catch {
       console.warn(" failed to save the session storage")
     }
   }, [containmentLine])
@@ -168,10 +168,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
       onDrawComplete(wkt);
 
-     if(drawRef.current){
-      drawRef.current.deleteAll();
-      drawRef.current.changeMode('simple_select');
-     }
+      if (drawRef.current) {
+        drawRef.current.deleteAll();
+        drawRef.current.changeMode('simple_select');
+      }
     },
     [onDrawComplete, onContainmentChange]
   );
@@ -204,11 +204,11 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   // Reset the containment lines on clear
   const initialMount = useRef(true);
   useEffect(() => {
-    if (initialMount.current){
+    if (initialMount.current) {
       initialMount.current = false;
       return;
     }
-    if(drawRef.current){
+    if (drawRef.current) {
       drawRef.current.deleteAll();
     }
     setContainmentLine([]);
@@ -261,7 +261,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
   useEffect(() => {
-    if (!selectedFireId && !selectedFireLocation){
+    if (!selectedFireId && !selectedFireLocation) {
       setSelectedFire(null);
       return;
     }
@@ -284,235 +284,235 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   const EXTENT_DEG = 0.05;
 
-    const girdFeautures = useMemo(() => {
-        if(!predictions?.length) return [];
+  const girdFeautures = useMemo(() => {
+    if (!predictions?.length) return [];
 
-        const features = [];
+    const features = [];
 
-        for (const p of predictions){
-            const grid = p.history[currentTick]
-            if(!grid || !p.grid_h || !p.grid_w) continue;
+    for (const p of predictions) {
+      const grid = p.history[currentTick]
+      if (!grid || !p.grid_h || !p.grid_w) continue;
 
-            const cellLonSize = p.lon_extent_deg / p.grid_w;
-            const cellLatSize = p.lat_extent_deg / p.grid_h;
-            const minLon = p.lng - p.lon_extent_deg / 2;
-            const maxLat = p.lat + p.lat_extent_deg / 2;
+      const cellLonSize = p.lon_extent_deg / p.grid_w;
+      const cellLatSize = p.lat_extent_deg / p.grid_h;
+      const minLon = p.lng - p.lon_extent_deg / 2;
+      const maxLat = p.lat + p.lat_extent_deg / 2;
 
-            for(let row = 0; row < p.grid_h; row++){
-                for(let col = 0; col < p.grid_w; col++){
-                    const state = grid[row * p.grid_w+ col];
-                    if(state === 0) continue;
+      for (let row = 0; row < p.grid_h; row++) {
+        for (let col = 0; col < p.grid_w; col++) {
+          const state = grid[row * p.grid_w + col];
+          if (state === 0) continue;
 
           const cellMinLon = minLon + col * cellLonSize;
           const cellMaxLat = maxLat - row * cellLatSize;
 
-                    features.push({
-                        type: 'Feature',
-                        properties: { ref: p.ref, state},
-                        geometry: {
-                            type: 'Polygon',
-                            coordinates: [[
-                                [cellMinLon, cellMaxLat - cellLatSize],
-                                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
-                                [cellMinLon + cellLonSize, cellMaxLat],
-                                [cellMinLon, cellMaxLat],
-                                [cellMinLon, cellMaxLat - cellLatSize],
-                            ]],
-                        }
-                    });
-                }
+          features.push({
+            type: 'Feature',
+            properties: { ref: p.ref, state },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [cellMinLon, cellMaxLat - cellLatSize],
+                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
+                [cellMinLon + cellLonSize, cellMaxLat],
+                [cellMinLon, cellMaxLat],
+                [cellMinLon, cellMaxLat - cellLatSize],
+              ]],
             }
+          });
         }
-        return features;
-    }, [predictions, currentTick])
+      }
+    }
+    return features;
+  }, [predictions, currentTick])
 
   return (
     <div className='relative w-full h-full'>
       {/* key for map legend */}
       {showKey && (
-      <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
-        <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-flare inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Burning cell</span>
+        <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
+          <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
+          <div className='flex items-center justify-between text-xs'>
+            <div className='flex items-center gap-2'>
+              <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-flare inline-block shadow-sm animate-pulse' />
+              <span className='text-text-primary'>Burning cell</span>
+            </div>
+          </div>
+          <div className='flex items-center justify-between text-xs'>
+            <div className='flex items-center gap-2'>
+              <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-[#46201d] inline-block shadow-sm animate-pulse' />
+              <span className='text-text-primary'>Burned cell</span>
+            </div>
+          </div>
+          <div className='flex items-center justify-between text-xs'>
+            <div className='flex items-center gap-2'>
+              <span className='w-3.5 h-3.5 shrink-0 rounded-full bg-accent inline-block shadow-sm animate-pulse' />
+              <span className='text-text-primary'>Reported Radius</span>
+            </div>
           </div>
         </div>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-[#46201d] inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Burned cell</span>
-          </div>
-        </div>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-full bg-accent inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Reported Radius</span>
-          </div>
-        </div>
-      </div>
-    )}
+      )}
 
-    <Map
-      ref={mapRef}
-      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-      {...viewState}
-      onMove={
-        (evt) => {setViewState(evt.viewState);}
-      }
-      style={{ width: '100%', height: '100%' }}
-      mapStyle="mapbox://styles/mapbox/navigation-night-v1"
-    >
-      <NavigationControl position='bottom-right' showCompass={false}/>
+      <Map
+        ref={mapRef}
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+        {...viewState}
+        onMove={
+          (evt) => { setViewState(evt.viewState); }
+        }
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+      >
+        <NavigationControl position='bottom-right' showCompass={false} />
 
-      {activeFires.map((fire) => (
-        <Marker
-          key={fire.ref}
-          longitude={fire.lng}
-          latitude={fire.lat}
-          anchor="center"
-          onClick={(e) => {
-            e.originalEvent.stopPropagation();
-            setSelectedFire(fire);
-            onSelectFire?.(fire.ref);
-          }}
-        >
-          <div className="relative flex items-center justify-center size-6">
-            {/* The radar ping animation effect */}
-            <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
+        {activeFires.map((fire) => (
+          <Marker
+            key={fire.ref}
+            longitude={fire.lng}
+            latitude={fire.lat}
+            anchor="center"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation();
+              setSelectedFire(fire);
+              onSelectFire?.(fire.ref);
+            }}
+          >
+            <div className="relative flex items-center justify-center size-6">
+              {/* The radar ping animation effect */}
+              <span
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
+              />
+              {/* The solid core so the marker remains visible */}
+              <span
+                className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+              />
+            </div>
+          </Marker>
+        ))}
+
+        {/* Circles around markers */}
+        {circleFeatures.length > 0 && (
+          <Source
+            id="fire-circles"
+            type="geojson"
+            data={{
+              type: 'FeatureCollection',
+              features: circleFeatures,
+            }}
+          >
+            <Layer
+              id="fire-radius-fill"
+              type="fill"
+              paint={{
+                'fill-color': '#fcba3e',
+                'fill-opacity': 0.3,
+              }}
             />
-            {/* The solid core so the marker remains visible */}
-            <span
-              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+
+            <Layer
+              id="fire-radius-outline"
+              type="line"
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 1,
+              }}
             />
-          </div>
-        </Marker>
-      ))}
+          </Source>
+        )}
 
-      {/* Circles around markers */}
-      {circleFeatures.length > 0 && (
-        <Source
-          id="fire-circles"
-          type="geojson"
-          data={{
-            type: 'FeatureCollection',
-            features: circleFeatures,
-          }}
-        >
-          <Layer
-            id="fire-radius-fill"
-            type="fill"
-            paint={{
-              'fill-color': '#fcba3e',
-              'fill-opacity': 0.3,
+        {girdFeautures.length > 0 && (
+          <Source
+            id="burn-grid"
+            type="geojson"
+            data={{ type: 'FeatureCollection', features: girdFeautures }}
+          >
+            <Layer
+              id="burn-grid-fill"
+              type="fill"
+              paint={{
+                'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
+                'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
+                'fill-antialias': false,
+              }}
+            />
+
+            <Layer
+              id="simulation-outline"
+              type="line"
+              paint={{
+                'line-color': '#000000',
+                'line-opacity': 0.15,
+                'line-width': 0.5,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Containment Lines */}
+        {containmentLine.length > 0 && (
+          <Source
+            id='containment-lines'
+            type='geojson'
+            data={containmentFeatures}
+          >
+            <Layer
+              id='containment-line-glow'
+              type='line'
+              paint={{
+                'line-color': '#38bdf8',
+                'line-width': 6,
+                'line-opacity': 0.7,
+              }}
+            />
+
+            <Layer
+              id='containment-line-center'
+              type='line'
+              paint={{
+                'line-color': '#0284c7',
+                'line-width': 2.5,
+                'line-dasharray': [2, 1],
+              }}
+            />
+
+          </Source>
+        )}
+
+        {selectedFire && (
+          <Popup
+            longitude={selectedFire.lng}
+            latitude={selectedFire.lat}
+            onClose={() => {
+              setSelectedFire(null);
+              onDeselect?.();
             }}
-          />
-
-          <Layer
-            id="fire-radius-outline"
-            type="line"
-            paint={{
-              'line-color': '#fcba3e',
-              'line-width': 1,
-            }}
-          />
-        </Source>
-      )}
-
-      {girdFeautures.length > 0 && (
-        <Source
-          id="burn-grid"
-          type="geojson"
-          data={{ type: 'FeatureCollection', features: girdFeautures }}
-        >
-          <Layer
-            id="burn-grid-fill"
-            type="fill"
-            paint={{
-              'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
-              'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
-              'fill-antialias': false,
-            }}
-          />
-
-          <Layer
-            id="simulation-outline"
-            type="line"
-            paint={{
-              'line-color': '#000000',
-              'line-opacity': 0.15,
-              'line-width': 0.5,
-            }}
-          />
-        </Source>
-      )}
-
-      {/* Containment Lines */}
-      {containmentLine.length > 0 && (
-        <Source
-          id='containment-lines'
-          type='geojson'
-          data={containmentFeatures}
-        >
-          <Layer
-            id='containment-line-glow'
-            type='line'
-            paint={{
-              'line-color': '#38bdf8',
-              'line-width': 6,
-              'line-opacity': 0.7,
-            }}
-          />
-
-          <Layer
-            id='containment-line-center'
-            type='line'
-            paint={{
-              'line-color': '#0284c7',
-              'line-width': 2.5,
-              'line-dasharray': [2, 1],
-            }}
-          />
-
-        </Source>
-      )}
-
-      {selectedFire && (
-        <Popup
-          longitude={selectedFire.lng}
-          latitude={selectedFire.lat}
-          onClose={() => {
-            setSelectedFire(null);
-          onDeselect?.();
-          }}
-          className="carbon-popup"
-        >
-          <div className="p-1">
-            <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
-              {selectedFire.location}
-            </h3>
-            <p className="text-xs text-text-muted mt-1">
-              Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
-            </p>
-            <p className="text-xs text-text-muted mt-1">
-              Status: <span className="text-neutral-content">{selectedFire.status}</span>
-            </p>
-            <p className="text-xs text-text-muted">
-              Submitted:{' '}
-              <span className="text-neutral-content">
-                {new Date(selectedFire.reported).toLocaleString()}
-              </span>
-            </p>
-            {selectedFire.size && (
-              <p className="text-xs text-text-muted">
-                Radius: <span className="text-neutral-content">{selectedFire.size} km</span>
+            className="carbon-popup"
+          >
+            <div className="p-1">
+              <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
+                {selectedFire.location}
+              </h3>
+              <p className="text-xs text-text-muted mt-1">
+                Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
               </p>
-            )}
-          </div>
-        </Popup>
-      )}
-    </Map>
+              <p className="text-xs text-text-muted mt-1">
+                Status: <span className="text-neutral-content">{selectedFire.status}</span>
+              </p>
+              <p className="text-xs text-text-muted">
+                Submitted:{' '}
+                <span className="text-neutral-content">
+                  {new Date(selectedFire.reported).toLocaleString()}
+                </span>
+              </p>
+              {selectedFire.size && (
+                <p className="text-xs text-text-muted">
+                  Radius: <span className="text-neutral-content">{selectedFire.size} km</span>
+                </p>
+              )}
+            </div>
+          </Popup>
+        )}
+      </Map>
     </div>
   );
 }
