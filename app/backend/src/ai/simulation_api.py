@@ -9,6 +9,7 @@ import uuid
 import boto3
 import asyncio
 import json
+import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -166,7 +167,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
     )
 
     if lines:
-        lines_digest = hashlib.md5("",join(sorted(lines)).encode().hexdigest()[:8])
+        lines_digest = hashlib.md5("".join(sorted(lines)).encode("utf-8")).hexdigest()[:8]
         cache_key = f"{cache_key}:lines_{lines_digest}"
 
     cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)

@@ -3,6 +3,7 @@ import torch
 from pytorchfire import WildfireModel
 
 from .ignition import IgnitionScorer
+from scipy.ndimage import binary_dilation
 from .schema import UNBURNED
 from .simulation import (
     build_env_data,
@@ -74,7 +75,14 @@ def run_dca(
         p_ignite = scorer.score_grid(init_weather, static_grids, burn_state0)
         effective_ignition = pick_ignition_points(p_ignite, n_points=n_ignition_points)
 
-    containment_mask = convert_containment_line(containment_lines or [], H, W, bounds=grid_bounds)
+    containment_raw = convert_containment_line(containment_lines or [], H, W, bounds=grid_bounds)
+
+    if np.any(containment_mask):
+        struct = np.ones((3, 3), dtype=bool)
+        containment_mask = binary_dilation(containment_raw, structure=struct)
+    else:
+        containment_mask = containment_raw
+
     effective_ignition[containment_mask] = False
 
     effective_static = static_grids.copy()
@@ -101,7 +109,7 @@ def run_dca(
                 update_model_tensors(model, weather_grids[weather_idx], device)
 
             if hasattr(model, "state") and isinstance(model.state, torch.Tensor):
-                model.state[:, containment_tensor] = False
+                model.state[:, containment_tensor] = 0
 
             model.compute()
 
