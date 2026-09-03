@@ -16,7 +16,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
   const filtered = requests.filter((req) => filter === 'all' || req.status === filter);
   const router = useRouter();
   return (
-    <div className="w-full h-full overflow-x-auto overflow-y-auto rounded-2xl border border-carbon-stroke">
+    <div className="w-full overflow-x-auto rounded-2xl border border-carbon-stroke">
       <table className="table table-pin-rows w-full">
         <thead>
           <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40 ">

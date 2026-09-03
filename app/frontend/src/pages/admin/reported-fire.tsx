@@ -24,7 +24,7 @@ export default function ReportedFiresPage() {
 
   return (
     <AdminSideBar hideLoginRegister>
-      <div className="p-3 md:p-6 flex flex-col h-full w-full">
+      <div className="p-3 md:p-6 flex flex-col w-full">
         <RotateHint show={showHint} onDismiss={dismiss} />
         <PageHeader title="Reported Fires" subtitle="Manage and review fire reports" showIcons />
 
@@ -44,10 +44,8 @@ export default function ReportedFiresPage() {
             <span className="loading loading-spinner loading-lg text-primary" />
           </div>
         ) : (
-          <div className='flex-1 min-h-0'>
-            <FireReportsTable reports={filteredReports} filter={filter} />
-          </div>
-        )}
+          <FireReportsTable reports={filteredReports} filter={filter} />
+       )}
       </div>
     </AdminSideBar>
   );
