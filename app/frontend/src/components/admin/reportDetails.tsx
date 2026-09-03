@@ -23,9 +23,10 @@ export function ReportDetails({ report }: ReportDetailsProps) {
           <span className="text-text-muted text-sm">Reporter</span>
           <span className="text-text-primary">{report.reporter_name}</span>
         </div>
-        <div className="flex justify-between">
-          <span className="text-text-muted text-sm">Location</span>
-          <span className="text-text-primary">{report.location_text}</span>
+        <div className="flex flex-col gap-1">
+          <span className='text-text-primary'>
+            <span className="text-text-muted text-sm mr-1">Location</span>{report.location_text}
+          </span>
         </div>
         <div className="flex justify-between">
           <span className="text-text-muted text-sm">Size</span>

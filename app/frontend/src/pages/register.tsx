@@ -325,6 +325,16 @@ export default function Register() {
                 {isLoading ? 'Registering...' : 'Register now'}
               </button>
             </div>
+            <div className="md:col-span-2 mt-2">
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                className="w-full py-2 bg-transparent border border-carbon-stroke hover:border-primary text-text-muted hover:text-text-primary font-bold rounded-md transition"
+              >
+                Back to login
+              </button>
+            </div>
+
           </form>
         </div>
       </div>
