@@ -3,8 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.enums.report_priority import ReportPriority
+from enums.report_status import ReportStatus
+from enums.report_priority import ReportPriority
 
 
 class FireReportCreate(BaseModel):

@@ -5,13 +5,13 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.backend.src.enums.notification_type import NotificationType
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.enums.user_role import UserRole
-from app.backend.src.models.notification import Notification
-from app.backend.src.models.reported_fires import FireReports
-from app.backend.src.models.users import User
-from app.backend.src.schemas.notification import NotificationOut
+from enums.notification_type import NotificationType
+from enums.report_status import ReportStatus
+from enums.user_role import UserRole
+from models.notification import Notification
+from models.reported_fires import FireReports
+from models.users import User
+from schemas.notification import NotificationOut
 from .geo import haversine_km, point_to_latlng
 from .severity import severity_from_boundary_radius
 from .websocket_manager import manager, get_main_loop

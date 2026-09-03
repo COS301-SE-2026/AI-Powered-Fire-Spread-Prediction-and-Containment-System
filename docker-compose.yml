@@ -37,13 +37,13 @@ services:
 
   backend:
     build:
-      context: .                      # project root, not ./app/backend
-      dockerfile: app/backend/Dockerfile
+      context: ./app/backend
+      dockerfile: Dockerfile
     container_name: python-backend
     environment:
       - VALKEY_HOST=valkey
       - MINIO_ENDPOINT=minio:9000
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app/src:/app
       - VALKEY_PORT=6379
     restart: unless-stopped
     env_file:
@@ -56,11 +56,13 @@ services:
       valkey:
         condition: service_healthy
     volumes:
-      - .:/app:Z                      # mount the whole project root
-      - /app/venv                     # keep any container-local venv from being clobbered
+      - ./app/backend:/app:Z
+      - ./app/ml:/app/ml:Z
+      - ./artifact_store:/app/artifact_store:Z
+      - /app/.venv
     ports:
       - "8000:8000"
-    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
   frontend:
     build:
@@ -117,8 +119,8 @@ services:
   
   reseed:
     build:
-      context: .
-      dockerfile: app/backend/Dockerfile
+      context: ./app/backend
+      dockerfile: Dockerfile
     profiles: ["tools"]
     env_file:
       - .env
@@ -127,11 +129,12 @@ services:
       - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
       - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
     volumes:
-      - .:/app:Z
+      - ./app/backend:/app:Z
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["python", "app/backend/seed.py", "--reseed"]
+    command: ["python", "seed.py", "--reseed"]
+
   # pwa:
   #   build:
   #     context: ./app/pwa

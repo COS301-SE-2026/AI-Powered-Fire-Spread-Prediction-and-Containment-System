@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import numpy as np
 
-from app.ml.models.nowcast_model import WeatherDeltaModel
+from ml.models.nowcast_model import WeatherDeltaModel
 from .dca import run_dca 
 
 def autoregressive_weather_forecast(
