@@ -47,7 +47,7 @@ services:
       SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
       WEATHER_API_SECRET_NAME: ${WEATHER_API_SECRET_NAME}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      VALKEY_HOST: staging-blackboard
+      VALKEY_HOST: valkey
       VALKEY_PORT: 6379
       MINIO_ENDPOINT: staging-minio:9000
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
