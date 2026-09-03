@@ -10,10 +10,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
-
-from models.notification import Notification
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.notification import Notification
 
 from unittest.mock import patch
 
@@ -33,13 +32,17 @@ from app.backend.db import Base, get_db
 from app.backend.main import app
 
 # models for the firefighter dashboard
-from models.containment_lines import ContainmentLines
-from models.reported_fires import FireReports
-from models.role_request import RoleRequest
-from models.users import User
+from app.backend.src.models.containment_lines import ContainmentLines
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.role_request import RoleRequest
+from app.backend.src.models.users import User
 
 # seed data
-from app.backend.seed import REGIONAL_LOCATIONS as SEED_FIRE_REPORTS, SEED_USERS, seed_fire_reports
+from app.backend.seed import (
+    REGIONAL_LOCATIONS as SEED_FIRE_REPORTS,
+    SEED_USERS,
+    seed_fire_reports,
+)
 
 TEST_DB_URL = os.getenv(
     "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -291,5 +294,8 @@ def small_grids():
 @pytest.fixture(autouse=True)
 def mock_on_land():
     """prevent tests from depending on live mapbox API"""
-    with patch("services.verification.rejection_checks.on_land", return_value=True):
+    with patch(
+        "app.backend.src.services.verification.rejection_checks.on_land",
+        return_value=True,
+    ):
         yield

@@ -2,14 +2,14 @@ from unittest.mock import patch
 
 import pytest
 
-from dependencies.auth import create_access_token
-from enums.notification_type import NotificationType
-from enums.report_status import ReportStatus
-from enums.user_role import UserRole
-from enums.severity import Severity
-from models.notification import Notification
-from src.routes import notifications as notifications_route
-from services.notifications import notifications as svc
+from app.backend.src.dependencies.auth import create_access_token
+from app.backend.src.enums.notification_type import NotificationType
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.enums.severity import Severity
+from app.backend.src.models.notification import Notification
+from app.backend.src.routes import notifications as notifications_route
+from app.backend.src.services.notifications import notifications as svc
 
 from conftest import make_report, make_user
 
@@ -288,7 +288,7 @@ def test_mark_all_read_only_affects_that_users_notifications(db):
 def test_websocket_receives_a_real_in_app_notification(db, client):
     import asyncio
     import threading
-    from services.notifications.websocket_manager import set_main_loop
+    from app.backend.src.services.notifications.websocket_manager import set_main_loop
 
     user = make_user(db, lat=-25.75, lng=28.24)
     fire = make_report(

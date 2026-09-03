@@ -7,6 +7,8 @@ import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { useRotate } from '../../hooks/useRotate';
+import { RotateHint } from '../../components/shared/RotateHint';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
@@ -17,7 +19,7 @@ export default function Simulation() {
   const [clearDrawings, setClearDrawings] = useState(0);
 
   const [containmentLines, setContainmentLines] = useState<string[]>([]);
-
+  const { showHint, dismiss } = useRotate();
   const {
     submitLine,
     loading: savingLine,
@@ -72,16 +74,17 @@ export default function Simulation() {
     const totalHours = hasResult ? (maxSlider / 4) : 72;
     return (
         <FirefighterSideBar hideLoginRegister>
-            <div className='p-4 flex flex-col h-full w-full gap-y-3'>
+            <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
 
                 {/* Page header and subtitle */}
+                <RotateHint show={showHint} onDismiss={dismiss} />
                 <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
 
-        <div className="flex flex-row gap-4 min-w-0">
+        <div className="flex flex-col lg:flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
-          <div className="basis-3/4 flex flex-col gap-4">
+          <div className="basis-full lg:basis-3/4 flex flex-col gap-4 min-w-0">
             {/* Fire Map */}
-            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative">
+            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[80vh] max-h-[420px] landscape:max-h-none overflow-hidden relative">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">
                   LIVE FIRE MAP
@@ -142,9 +145,9 @@ export default function Simulation() {
           </div>
 
             {/* simulation vars and buttons */}
-            <div className="flex gap-3 items-stretched">
+            <div className="flex flex-col lg:flex-row gap-3 items-stretch">
               {/* buttons to start simulation or draw page */}
-              <div className="flex flex-col gap-3 shrink-0 w-80">
+              <div className="flex flex-col gap-3 shrink-0 w-full lg:w-80">
                 <button
                   type="button"
                   onClick={() => setDrawMode((prev) => !prev)}
@@ -171,7 +174,7 @@ export default function Simulation() {
 
                   {isLoading ? 'Cancel Simulation' : 'RUN'}
                 </button>
-                
+
                 {/* Pause and Resume buttons */}
                 <div className='flex gap-2'>
                   <button
@@ -278,7 +281,7 @@ export default function Simulation() {
           </div>
 
           {/* Simulation results */}
-          <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
+          <div className="basis-full lg:basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto max-h-[40vh] lg:max-h-none">
             <SimulationResults
               // Pass live stats so panel can show burning/burned counts per tick
               containmentLines={containmentLines}

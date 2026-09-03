@@ -11,11 +11,11 @@ from .simulation import (
     pick_ignition_points,
     state_to_burn_state,
     update_model_tensors,
-    convert_containment_line
+    convert_containment_line,
 )
 
-MAXSTEPS = 288 # 4 ticks = 1 hour max ticks is 288 as 72 hours is max simulation time
-TICK_MINUTES = 15 # how many minutes 1 tick is equivalent to
+MAXSTEPS = 288  # 4 ticks = 1 hour max ticks is 288 as 72 hours is max simulation time
+TICK_MINUTES = 15  # how many minutes 1 tick is equivalent to
 
 
 def run_dca(
@@ -49,7 +49,7 @@ def run_dca(
         1 = BURNING
         2 = BURNED
     """
-    
+
     if n_steps > MAXSTEPS:
         raise ValueError(
             f"n_steps={n_steps} exceeds max steps:{MAXSTEPS}"
@@ -64,7 +64,9 @@ def run_dca(
     burn_state0 = np.full((H, W), UNBURNED, dtype=np.int64)
 
     # Use the first hours weather conidtions for initial setup
-    init_weather = weather_grids[0] if isinstance(weather_grids, list) else weather_grids
+    init_weather = (
+        weather_grids[0] if isinstance(weather_grids, list) else weather_grids
+    )
 
     if ignition_mask is not None:
         effective_ignition = ignition_mask.copy()
@@ -92,7 +94,9 @@ def run_dca(
         effective_static["fuel_load"] = fuel
 
     # Pack environment raster and ignition locations into Tensors
-    env_data = build_env_data(init_weather, effective_static, effective_ignition, cell_size_m)
+    env_data = build_env_data(
+        init_weather, effective_static, effective_ignition, cell_size_m
+    )
 
     # Initialize the DCA model on device
     model = WildfireModel(env_data=env_data, params=params).to(device)
@@ -104,7 +108,9 @@ def run_dca(
     # Run without the gradient tracking
     with torch.no_grad():
         for step in range(n_steps):
-            if isinstance(weather_grids, list): # Updates weather tensors every 4 ticks if supplied with dynamic weather
+            if isinstance(
+                weather_grids, list
+            ):  # Updates weather tensors every 4 ticks if supplied with dynamic weather
                 weather_idx = min(step // 4, len(weather_grids) - 1)
                 update_model_tensors(model, weather_grids[weather_idx], device)
 
@@ -117,5 +123,5 @@ def run_dca(
                 model.state[:, containment_tensor] = False
 
             history.append(state_to_burn_state(model.state))
-            
+
     return history

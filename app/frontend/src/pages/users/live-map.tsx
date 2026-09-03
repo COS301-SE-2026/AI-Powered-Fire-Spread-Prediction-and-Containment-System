@@ -15,12 +15,12 @@ export default function RegisteredUserDashboard() {
 
   return (
     <UserSideBar>
-      <div className="flex flex-col p-6">
+      <div className="flex flex-col px-2 py-2 ">
         <NotificationToastHost />
         <PageHeader title="Welcome" subtitle="Public Fire Map View" showIcons />
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
-          <MapPanel colSpan={8} height="lg">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-6">
+          <MapPanel colSpan={8} height="responsive">
             <FireMap
               lat={userLocation.lat}
               lng={userLocation.lng}

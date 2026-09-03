@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'mapbox-gl/dist/mapbox-gl.css'
+import Head from 'next/head';
 import { NotificationsProvider, useNotifications } from '../hooks/useNotification';
 import { NotificationToast } from '../components/notification/NotificationToast';
 import { offlineStore } from '../lib/offlineStore';
@@ -22,15 +23,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
     // Only register in prod
 
-    if (
-      process.env.NODE_ENV === 'production' &&
-      typeof window !== 'undefined' &&
-      'serviceWorker' in navigator
-    ) {
-      navigator.serviceWorker.register('/service_worker.js').catch(() => {
-        // service worker registration fallback
-      });
-    }
+    // if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    //   navigator.serviceWorker.register('/service_worker.js').catch(() => {
+    //     // service worker registration fallback
+    //   });
+    // }
 
     offlineStore.init();
 
@@ -51,6 +48,11 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <NotificationsProvider>
+      <Head>
+        <link rel='manifest' href='/manifest.json' />
+        <meta name='theme-color' content='#ff4904' />
+        <meta name='apple-mobile-web-app-title' content='Fireaway' />
+      </Head>
       <Component {...pageProps} />
       <GlobalToast />
       <OfflineBar />
