@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity } from 'lucide-react';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
@@ -7,6 +7,8 @@ import { useContainmentLine } from '../../hooks/useContainmentLine';
 import { useSimulation } from '../../hooks/useSimulation';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { useRotate } from '../../hooks/useRotate';
+import { RotateHint } from '../../components/shared/RotateHint';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
@@ -14,12 +16,15 @@ export default function Simulation() {
   const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation] = useState(defaultLocation);
-  const [clearDrawings] = useState(0);
+  const [clearDrawings, setClearDrawings] = useState(0);
+
+  const [containmentLines, setContainmentLines] = useState<string[]>([]);
+  const { showHint, dismiss } = useRotate();
   const {
     submitLine,
     loading: savingLine,
     error: lineError,
-  } = useContainmentLine(() => setDrawMode(false));
+  } = useContainmentLine();
 
   const {
     status,
@@ -40,7 +45,7 @@ export default function Simulation() {
   const hasResult = totalTicks > 0;
 
   function handleRun() {
-      runSimulation(selectedFireId, 288);
+      runSimulation(selectedFireId, 288, containmentLines);
   }
 
   function handleStop(){
@@ -49,6 +54,8 @@ export default function Simulation() {
 
   function handleClear(){
     clearMap();
+    setClearDrawings((prev) => prev + 1);
+    setContainmentLines([]);
   }
 
   function handleReset() {
@@ -56,23 +63,27 @@ export default function Simulation() {
     pause();
   }
 
-  const maxSlider = Math.max(totalTicks - 1, 1); // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-  const totalHours = hasResult ? maxSlider / 4 : 72;
-  return (
-    <FirefighterSideBar hideLoginRegister>
-      <div className="p-4 flex flex-col h-full w-full gap-y-3">
-        {/* Page header and subtitle */}
-        <PageHeader
-          title="Fire Simulation"
-          subtitle="Simulate fire spread and prevention methods"
-          showIcons
-        />
+  useEffect(() => {
+    clearMap();
+  }, [selectedFireId, clearMap])
 
-        <div className="flex flex-row gap-4 min-w-0">
+  const canClear = hasResult || containmentLines.length > 0 || currentTick > 0;
+
+    const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
+    const totalHours = hasResult ? (maxSlider / 4) : 72;
+    return (
+        <FirefighterSideBar hideLoginRegister>
+            <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
+
+                {/* Page header and subtitle */}
+                <RotateHint show={showHint} onDismiss={dismiss} />
+                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
+
+        <div className="flex flex-col lg:flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
-          <div className="basis-3/4 flex flex-col gap-4">
+          <div className="basis-full lg:basis-3/4 flex flex-col gap-4 min-w-0">
             {/* Fire Map */}
-            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative">
+            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[80vh] max-h-[420px] landscape:max-h-none overflow-hidden relative">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">
                   LIVE FIRE MAP
@@ -117,7 +128,11 @@ export default function Simulation() {
                   lat={userLocation.lat}
                   lng={userLocation.lng}
                   drawMode={drawMode}
-                  onDrawComplete={submitLine}
+                  onDrawComplete={(line) => {
+                    submitLine(line);
+                    setDrawMode(false);
+                  }}
+                  onContainmentChange={setContainmentLines}
                   clearDrawings={clearDrawings}
                   predictions={predictions}
                   currentTick={currentTick}
@@ -129,12 +144,12 @@ export default function Simulation() {
           </div>
 
             {/* simulation vars and buttons */}
-            <div className="flex gap-3 items-stretched">
+            <div className="flex flex-col lg:flex-row gap-3 items-stretch">
               {/* buttons to start simulation or draw page */}
-              <div className="flex flex-col gap-3 shrink-0 w-80">
+              <div className="flex flex-col gap-3 shrink-0 w-full lg:w-80">
                 <button
                   type="button"
-                  onClick={() => setDrawMode(true)}
+                  onClick={() => setDrawMode((prev) => !prev)}
                   className="btn btn-primary btn-outline w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold tracking-wide"
                 >
                   <Pencil size={20} />
@@ -158,7 +173,7 @@ export default function Simulation() {
 
                   {isLoading ? 'Cancel Simulation' : 'RUN'}
                 </button>
-                
+
                 {/* Pause and Resume buttons */}
                 <div className='flex gap-2'>
                   <button
@@ -193,7 +208,7 @@ export default function Simulation() {
                   </button>
                   <button
                     onClick={handleClear}
-                    disabled={!hasResult || isLoading}
+                    disabled={!canClear || isLoading}
                     className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
                     <Trash2 size={20}/>
@@ -265,9 +280,11 @@ export default function Simulation() {
           </div>
 
           {/* Simulation results */}
-          <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
+          <div className="basis-full lg:basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto max-h-[40vh] lg:max-h-none">
             <SimulationResults
               // Pass live stats so panel can show burning/burned counts per tick
+              containmentLines={containmentLines}
+              selectedFireId={selectedFireId}
               predictions={predictions}
               currentTick={currentTick}
               status={status}
