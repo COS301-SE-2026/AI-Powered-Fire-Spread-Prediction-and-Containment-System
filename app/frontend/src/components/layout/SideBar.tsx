@@ -1,6 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
-import { Settings, LogOut, UserCircle, Menu } from 'lucide-react';
+import { LogOut, UserCircle, HelpCircle, Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { headers } from 'next/headers';
+import { useRouter } from 'next/router';
+import { NavLink } from './NavLink';
 import { logout } from '../../lib/api';
 
 export function SideBar({
@@ -14,6 +18,8 @@ export function SideBar({
   hideLogout?: boolean;
   hideLoginRegister?: boolean;
 }>) {
+  const router = useRouter();
+  const section = router.pathname.split('/')[1];
   return (
     <div className="drawer lg:drawer-open h-screen">
       <input id="mobile-nav-drawer" type="checkbox" className="drawer-toggle" />
@@ -70,19 +76,22 @@ export function SideBar({
             </ul>
           </div>
 
-          {/* footer */}
-          <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center lg:group-hover:items-start gap-2 lg:group-hover:px-6 transition-all bg-carbon-side shrink-0">
-            {!hideLoginRegister && (
-              <Link
-                href="/"
-                className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center group-hover:justify-start gap-4"
-              >
-                <UserCircle className="size-6 shrink-0 text-ignite" />
-                <span className="text-sm font-semibold hidden group-hover:inline">
-                  Login / Register
-                </span>
-              </Link>
-            )}
+        {/* footer */}
+        <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-2 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
+
+          <NavLink icon={HelpCircle} label="Help Menu" href={`/${section}/Help`} />
+
+          {!hideLoginRegister && (
+            <Link
+              href="/login"
+              className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center lg:justify-center lg:group-hover:justify-start gap-4"
+            >
+              <UserCircle className="size-6 shrink-0 text-ignite" />
+              <span className="text-sm font-semibold inline lg:hidden lg:group-hover:inline">
+                Login / Register
+              </span>
+            </Link>
+          )}
 
             {!hideLogout && (
               <button

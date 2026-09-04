@@ -24,7 +24,7 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <AdminSideBar>
+      <AdminSideBar hideLoginRegister>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
           <div className="loading loading-spinner loading-lg text-primary">
             Loading analytics data...
@@ -36,7 +36,7 @@ export default function AdminAnalyticsPage() {
 
   if (error) {
     return (
-      <AdminSideBar>
+      <AdminSideBar hideLoginRegister>
         <div className="p-6">
           <div className="bg-error/10 border border-error/30 rounded-lg p-4 text-error">
             <p className="font-semibold">Unable to load analytics</p>
@@ -55,7 +55,7 @@ export default function AdminAnalyticsPage() {
 
   if (!kpis) {
     return (
-      <AdminSideBar>
+      <AdminSideBar hideLoginRegister>
         <div className="p-6">No data available</div>
       </AdminSideBar>
     );
@@ -69,7 +69,7 @@ export default function AdminAnalyticsPage() {
   ];
 
   return (
-    <AdminSideBar>
+    <AdminSideBar hideLoginRegister>
       <div className="p-2 space-y-6 w-full">
         {/* Header */}
         <PageHeader

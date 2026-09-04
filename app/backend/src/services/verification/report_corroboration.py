@@ -9,8 +9,8 @@ from geoalchemy2.shape import to_shape
 from sqlalchemy import cast, select
 from sqlalchemy.orm import Session
 
-from enums.report_status import ReportStatus
-from models.reported_fires import FireReports
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.models.reported_fires import FireReports
 
 WINDOW = timedelta(hours=12)
 RADIUS_METERS = 2000
@@ -26,7 +26,7 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
     report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
 
     identity = (
-        FireReports.user_id.is_not(None)
+        True
         if report.user_id is None
         else FireReports.user_id != report.user_id
     )

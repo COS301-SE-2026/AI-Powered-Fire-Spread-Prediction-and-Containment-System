@@ -8,7 +8,7 @@ export default function View() {
   if (!reportRef) return null;
 
   return (
-    <FirefighterSideBar>
+    <FirefighterSideBar hideLoginRegister>
       <ViewPage reportRef={reportRef as string} />
     </FirefighterSideBar>
   );
