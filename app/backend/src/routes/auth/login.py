@@ -8,7 +8,7 @@ from app.backend.src.dependencies.auth import (
     get_current_user,
 )
 from app.backend.db import get_db
-from app.backend.src.schemas.auth import (
+from app.backend.src.schemas.auth import (  
     LoginRequest,
     LoginResponse,
     MeResponse,
