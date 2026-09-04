@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from models.users import User
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
@@ -24,5 +25,5 @@ class RoleRequest(Base):
     )
     reviewed_by = Column(String, ForeignKey("users.id"), nullable=True)
     reviewed_at = Column(DateTime, nullable=True)
-    user = relationship("User", foreign_keys=[user_id], back_populates="role_requests")
-    reviewer = relationship("User", foreign_keys=[reviewed_by])
+    user = relationship(User, foreign_keys=[user_id], back_populates="role_requests")
+    reviewer = relationship(User, foreign_keys=[reviewed_by])
