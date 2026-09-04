@@ -49,6 +49,7 @@ def run_dca(
         1 = BURNING
         2 = BURNED
     """
+    n_steps = int(n_steps)
 
     if n_steps > MAXSTEPS:
         raise ValueError(
