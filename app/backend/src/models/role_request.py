@@ -11,6 +11,7 @@ from app.backend.src.enums.user_role import UserRole
 
 class RoleRequest(Base):
     __tablename__ = "role_requests"
+    __table_args__ = {"extend_existing": True}
 
     request_id = Column(String, primary_key=True)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)

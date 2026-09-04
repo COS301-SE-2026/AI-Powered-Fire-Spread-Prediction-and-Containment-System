@@ -10,6 +10,7 @@ from app.backend.db import Base
 # stores all the lines that are drawn and stores them based on proximity to an existing fire
 class ContainmentLines(Base):
     __tablename__ = "containment_lines"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True)
     fire_report_id = Column(
