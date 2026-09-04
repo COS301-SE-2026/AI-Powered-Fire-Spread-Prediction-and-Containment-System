@@ -79,7 +79,7 @@ def run_dca(
 
     containment_raw = convert_containment_line(containment_lines or [], H, W, bounds=grid_bounds)
 
-    if np.any(containment_mask):
+    if np.any(containment_raw):
         struct = np.ones((3, 3), dtype=bool)
         containment_mask = binary_dilation(containment_raw, structure=struct)
     else:
