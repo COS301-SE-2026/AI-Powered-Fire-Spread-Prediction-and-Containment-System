@@ -89,7 +89,6 @@ export function useSimulation() {
   // API call
   const runSimulation = useCallback(
     async (fireId: string | null = null, nSteps = 288, containmentLines: string[] = []) => {
-      abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 

@@ -127,24 +127,12 @@ export function SimulationResults({
                   }
                 }
 
-                const initialGrid = p.history[0];
-                let initialCells = 0;
-                if (initialGrid) {
-                  for (const cell of initialGrid) {
-                    if (cell === 1 || cell == 2) initialCells++;
-                  }
-                }
+                const areaPerCell = p.cell_size_m ** 2;
+                const currentSquareMeters = affectedCells * areaPerCell;
+                const currentRadius = Math.sqrt(currentSquareMeters / Math.PI); // in meters
+                const currRadius = currentRadius / 1000; // convert to km
 
-                if (initialCells > 0) {
-                  const initialSquareMeters = Math.PI * p.radius_m ** 2;
-                  const areaPerCell = initialSquareMeters / initialCells;
-                  const currentSquareMeters = affectedCells * areaPerCell;
-
-                  const currentRadius = Math.sqrt(currentSquareMeters / Math.PI); // in meters
-                  const currRadius = currentRadius / 1000; // convert to km
-
-                  radiusses.push(currRadius);
-                }
+                radiusses.push(currRadius);
               }
               
               const maxRadius = radiusses.length > 0 ? Math.max(...radiusses) : 0;
