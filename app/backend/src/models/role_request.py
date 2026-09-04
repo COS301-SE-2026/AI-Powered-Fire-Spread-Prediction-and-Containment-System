@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from models.users import User
+from app.backend.src.models.users import User
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship

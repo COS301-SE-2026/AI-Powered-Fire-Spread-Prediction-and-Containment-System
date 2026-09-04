@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from models.users import User
+from app.backend.src.models.users import User
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
