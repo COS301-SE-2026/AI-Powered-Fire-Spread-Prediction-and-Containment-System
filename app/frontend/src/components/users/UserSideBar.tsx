@@ -12,7 +12,7 @@ export function UserSideBar({
   hideLoginRegister?: boolean;
 }>) {
   return (
-    <SideBar items={<UserItems />} hideLogout={hideLogout} hideLoginRegister={hideLoginRegister}>
+    <SideBar items={<UserItems />} hideLogout={hideLogout} hideLoginRegister>
       {children}
     </SideBar>
   );
