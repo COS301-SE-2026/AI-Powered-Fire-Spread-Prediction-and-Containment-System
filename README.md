@@ -51,7 +51,7 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 - [Technical Installation Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Technical_Installation_Manual.pdf)
 - [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
 - [Service Contract](docs/Demo_3/service_contract.yaml)
-- [Demo 3 Video](docs/Demo_3/demo3_video.mp4)
+- [Demo 3 Video](https://drive.google.com/file/d/1HUqzDCWZbNxkSNpc5LPWVbNsd3dMQ__0/view?usp=sharing)
 
 # Meet Our Team
 
