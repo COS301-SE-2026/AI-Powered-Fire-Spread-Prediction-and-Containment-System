@@ -53,7 +53,8 @@ def run_startup_migrations(engine: Engine) -> None:
             text(
                 """
                 CREATE INDEX IF NOT EXISTS idx_fire_reports_photo_hash ON fire_reports (photo_hash);
-                """
-            )
-        )
+                """))
+        conn.execute(text("""
+                CREATE INDEX IF NOT EXISTS idx_fire_reports_submitted_at ON fire_reports (submitted_at DESC);
+                """))
         conn.commit()
