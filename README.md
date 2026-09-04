@@ -42,13 +42,16 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 - [Brand Style Guide](docs/Demo\2/Brand\Style\Guide\Demo2.pdf)
 - [Demo 2 Video](https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing)
   
-- [System Requirements Specification](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_SRS_v2.pdf)
-- [Software Architecture Specification](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications_v1.pdf)
-- [Coding Standards Document](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards_v1.pdf)
-- [Testing Policy](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy_v1.pdf)
-- [User Manual](docs/Demo_2/AI_Powered_Fire_Spread_and_Containment_System_User_Manual_v1.pdf)
-- [Brand Style Guide](docs/Demo_2/Brand\Style\Guide\Demo2.pdf)
-- [Demo 2 Video](https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing)
+## Demo 3
+- [System Requirements Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
+- [Software Architecture Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications.pdf)
+- [Coding Standards Document](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards.pdf)
+- [Testing Policy](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy.pdf)
+- [User Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_User_Manual.pdf)
+- [Technical Installation Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Technical_Installation_Manual.pdf)
+- [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
+- [Service Contract](docs/Demo_3/service_contract.yaml)
+- [Demo 3 Video]()
 
 # Meet Our Team
 
