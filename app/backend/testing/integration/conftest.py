@@ -16,6 +16,7 @@ from app.backend.src.models.notification import Notification
 
 from unittest.mock import patch
 
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Points to app/backend/src and app/ml — skips the parent conftest
