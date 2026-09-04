@@ -11,7 +11,8 @@ import requests
 import torch
 
 from ml.models.nowcast_model import WeatherDeltaModel
-from app.backend.src.ai.dca import run_dca
+from app.backend.src.ai.simulation import build_boundary_ignition_mask
+#from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 
 AWS_REGION = os.environ.get("AWS_REGION")
@@ -38,9 +39,6 @@ DEFAULT_DCA_PARAMS = {
     "p_continue": 0.6,
 }
 
-# fixed model input shape, per contract with model_pipeline.py 
-GRID_H = 64
-GRID_W = 64
 WEATHER_HISTORY_LENGTH = 6  # T=6 past hourly frames
 
 # DCA tick conversion: 15 min/tick -> 4 ticks/hour
@@ -113,19 +111,15 @@ except FileNotFoundError as e:
     convlstm_model = None
 default_dca_params = load_dca_params()
 
-def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list) -> np.ndarray:
-    """
-    Builds a (64, 64) boolean ignition mask with a single True cell at the grid position closest to
-    (center_lat, center_lon).  grid_bounds is [min_lon, min_lat, max_lon, max_lat]
-    """
-    min_lon, min_lat, max_lon, max_lat = grid_bounds
+# def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list, grid_h: int, grid_w: int) -> np.ndarray:
+#     min_lon, min_lat, max_lon, max_lat = grid_bounds
   
-    row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * GRID_H, 0, GRID_H - 1))
-    col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * GRID_W, 0, GRID_W -1))
+#     row = int(np.clip((max_lat - center_lat) / (max_lat - min_lat) * grid_h, 0, grid_h - 1))
+#     col = int(np.clip((center_lon - min_lon) / (max_lon - min_lon) * grid_w, 0, grid_w -1))
     
-    mask = np.zeros((GRID_H, GRID_W), dtype=bool)
-    mask[row, col] = True
-    return mask
+#     mask = np.zeros((grid_h, grid_w), dtype=bool)
+#     mask[row, col] = True
+#     return mask
 
 def build_weather_history_tensor(weather_history: list) -> torch.Tensor:
     """
@@ -156,6 +150,9 @@ def fetch_weather_history(job: dict) -> list:
     Fetches the WEATHER_HISTORY_LENGTH hours of weather from Open-Meteo for the fire's
     center point, and broadcasts each hourly point value uniformly across the (GRID_H, GRID_W) grid.
     """
+    grid_h = job["grid_h"]
+    grid_w = job["grid_w"]
+
     params = {
         "latitude": job["center_lat"],
         "longitude": job["center_lon"],
@@ -183,11 +180,11 @@ def fetch_weather_history(job: dict) -> list:
         
         frames.append(
             {
-                "wind_u": np.full((GRID_H, GRID_W), wind_u, dtype=np.float32),
-                "wind_v": np.full((GRID_H, GRID_W), wind_v, dtype=np.float32),
-                "temperature": np.full((GRID_H, GRID_W), temperature_c, dtype=np.float32),
+                "wind_u": np.full((grid_h, grid_w), wind_u, dtype=np.float32),
+                "wind_v": np.full((grid_h, grid_w), wind_v, dtype=np.float32),
+                "temperature": np.full((grid_h, grid_w), temperature_c, dtype=np.float32),
                 "rel_humidity": np.full(
-                    (GRID_H, GRID_W), rel_humidity_pct / 100.0, dtype=np.float32
+                    (grid_h, grid_w), rel_humidity_pct / 100.0, dtype=np.float32
                 ),
             }
         )
@@ -202,7 +199,7 @@ def fetch_static_grids(job: dict) -> dict:
     from ml.features.fuel_load import process_sentinal2_and_worldcover
     
     min_lon, min_lat, max_lon, max_lat = job["grid_bounds"]
-    target_shape = (GRID_H, GRID_W)
+    target_shape = (job["grid_h"], job["grid_w"])
     
     dem_paths = resolve_dem_path(min_lon, min_lat, max_lon, max_lat)
     if len(dem_paths) > 1:
@@ -261,13 +258,14 @@ def run_inference(job: dict) -> dict:
     
     static_grids = fetch_static_grids(job)
     
-    ignition_mask = build_ignition_mask(
-        center_lat=job["center_lat"],
-        center_lon=job["center_lon"],
-        grid_bounds=job["grid_bounds"],
+    ignition_mask = build_boundary_ignition_mask(
+        H=job["grid_h"],
+        W=job["grid_w"],
+        cell_size_m=job["cell_size_m"],
+        boundary_radius_m=job["boundary_radius_m"]
     )
     
-    n_steps = min(job.get("duration_hours", 4) * TICKS_PER_HOUR, MAX_STEPS)
+    n_steps = int(job.get("n_steps", min(job.get("duration_hours", 4) * TICKS_PER_HOUR, MAX_STEPS)))
     
     raw_params = job.get("params", default_dca_params)
     params = {

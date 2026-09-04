@@ -45,6 +45,12 @@ services:
       - MINIO_ENDPOINT=minio:9000
       - PYTHONPATH=/
       - VALKEY_PORT=6379
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - INFERENCE_QUEUE_URL=${INFERENCE_QUEUE_URL}
+      - RESULTS_QUEUE_URL=${RESULTS_QUEUE_URL}
+      - ARTIFACTS_ROOT=/app/artifact_store
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     restart: unless-stopped
     env_file:
       - .env
@@ -57,7 +63,9 @@ services:
         condition: service_healthy
     volumes:
       - .:/app:Z
-      - /app/venv  
+      - /app/.venv
+      - ./app/artifact_store:/app/artifact_store:Z
+      - ~/.aws:/root/.aws:ro
     ports:
       - "8000:8000"
     command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

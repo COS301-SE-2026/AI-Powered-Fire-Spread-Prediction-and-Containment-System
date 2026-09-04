@@ -104,8 +104,7 @@ def get_cached_prediction(key: str) -> dict | None:
     except Exception:
         None
 
-
-def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 1800):
+def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 3600):
     """Stores the prediction metadata and compressed grid history in valkey"""
 
     try:
