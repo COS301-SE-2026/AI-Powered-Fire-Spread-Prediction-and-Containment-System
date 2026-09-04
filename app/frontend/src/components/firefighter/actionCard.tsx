@@ -21,7 +21,7 @@ export function ActionCard({ title, description, icon, onClick = undefined }: Ac
       {/* Text wrapper */}
       <div className="flex flex-col grid-rows-2 h-full">
         <span className="font-bold text-text-primary text-sm tracking-wide">{title}</span>
-        <span className="text-xs text-text-primary/50 font-medium mt-0.5">{description}</span>
+        <span className="text-xs text-text-muted font-medium mt-0.5">{description}</span>
       </div>
     </button>
   );

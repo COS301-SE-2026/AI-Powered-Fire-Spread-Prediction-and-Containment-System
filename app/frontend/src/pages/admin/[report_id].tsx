@@ -8,7 +8,7 @@ export default function View() {
   if (!router.isReady || !reportId) return null;
 
   return (
-    <AdminSideBar>
+    <AdminSideBar hideLoginRegister>
       <ViewPage reportRef={reportId as string} />
     </AdminSideBar>
   );
