@@ -85,9 +85,6 @@ def remove_containment_line(line_id: str, db: Session = Depends(get_db)):
     try:
         containment_lines.delete_containment_line(db, line_id)
     except ValueError as error:
-<<<<<<< HEAD
-        raise HTTPException(status_code=404, detail=str(error))
-=======
         raise HTTPException(status_code=404, detail=str(error))
 
 @router.get(
@@ -100,4 +97,3 @@ def get_fuel_conditions(lat: float, lng: float):
         return fuel_conditions.get_fuel_conditions(lat, lng)
     except ValueError as error:
         raise HTTPException(status_code=503, detail=str(error))
->>>>>>> origin/dev
