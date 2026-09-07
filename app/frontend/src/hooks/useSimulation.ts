@@ -106,7 +106,7 @@ export function useSimulation() {
         }
 
         if (fireId) {
-          const resp = await fetch(`${API_BASE}/api/simulate/fire/${fireId}`, {
+          const resp = await fetch(`${API_BASE}/simulate/fire/${fireId}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req),
@@ -121,7 +121,7 @@ export function useSimulation() {
           const prediction: Prediction = await resp.json();
           data = { predictions: [prediction], n_steps_run: prediction.history.length }
         } else {
-          const resp = await fetch(`${API_BASE}/api/simulate`, {
+          const resp = await fetch(`${API_BASE}/simulate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req),
