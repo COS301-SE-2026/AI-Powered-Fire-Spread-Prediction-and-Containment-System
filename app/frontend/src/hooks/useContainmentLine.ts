@@ -10,18 +10,14 @@ export function useContainmentLine(onDraw?: () => void) {
     async (body: CreateContainmentLine): Promise<ContainmentLine> => {
       setLoading(true);
       setError(null);
-      try {
-        const saved: ContainmentLines = await apiCall('/firefighter/containment-line', 'POST', {
-          wkt,
-        } satisfies CreateContainmentLine);
-        onDraw();
-        return saved;
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Unknown error';
-        console.error('Failed to save the containment line', err);
+      try{
+        return await apiCall('/api/firefighter/containment-line', 'POST', body);
+      }catch(err: unknown){
+        const message = err instanceof Error ? err.message : 'unknown error';
+        console.error('Failed to save containment line', err);
         setError(message);
         throw err;
-      } finally {
+      }finally{
         setLoading(false);
         onDraw?.();
       }
