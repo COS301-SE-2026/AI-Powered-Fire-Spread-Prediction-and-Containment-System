@@ -19,10 +19,7 @@ __pycache__/
 *.pyc
 
 # Tests
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
+coverage/
 test-results/
 playwright-report/
 
@@ -76,5 +73,3 @@ ml/checkpoints/
 
 app/gpu-worker/.env
 app/gpu-worker/venv/
-
-**/.env

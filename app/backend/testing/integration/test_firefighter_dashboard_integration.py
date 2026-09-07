@@ -1,10 +1,9 @@
 from conftest import make_report
-from app.backend.src.enums.report_status import ReportStatus
 
 
-# draw a line test for a line within 5km
+# draw a line test for a line within 2km
 def test_log_containment_line_2km(client, db):
-    fire = make_report(db, status=ReportStatus.verified)
+    fire = make_report(db)
 
     response = client.post(
         "/api/firefighter/containment-line",
@@ -16,9 +15,9 @@ def test_log_containment_line_2km(client, db):
     ), f"Expected 200 if containment line within 2km of reported fire. Response code: {response.status_code}"
 
 
-# draw a line test for a line outside 5km
+# draw a line test for a line outside 2km
 def test_log_containment_line_5km(client, db):
-    fire = make_report(db, lat=-25.700, lng=28.2293, status=ReportStatus.verified)
+    fire = make_report(db)
 
     response = client.post(
         "/api/firefighter/containment-line",

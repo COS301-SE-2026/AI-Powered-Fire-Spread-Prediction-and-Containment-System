@@ -10,7 +10,6 @@ import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
 import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
-import { LocalLine } from '@/types/ContainmentLines';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -19,13 +18,18 @@ import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
 
+interface SavedContainmentLine {
+  id: string;
+  wkt: string;
+  feature: Feature<LineString>;
+}
+
 interface MapProps{
     lat: number;
     lng: number;
     drawMode: boolean;
-    lines?: LocalLine[];
-    onDrawComplete: (wkt: string) => void;
-    onLineRemoved?: (localId: string) => void;
+    onDrawComplete: (line: string) => void;
+    onContainmentChange?: (wktLines: string[]) => void;
     clearDrawings: number;
     burnGrid?: number[] | null;
     recenter?: number;
@@ -38,12 +42,7 @@ interface MapProps{
     showKey?: boolean;
 }
 
-function wktCoords(wkt: string): number[][]{
-  const inner = wkt.replace(/^LINESTRING\s*\(/i,'').replace(/\)$/,'');
-  return inner.split(',').map(p => p.trim().split(/\s+/).map(Number));
-}
-
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, recenter = 0, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false, onContainmentChange = undefined}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -53,6 +52,44 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+  const storageKey = 'containment_lines_active';
+
+  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
+    if(typeof window === 'undefined') return [];
+    try{
+      const stored = sessionStorage.getItem(storageKey);
+      return stored ? JSON.parse(stored) : [];
+    }catch{
+      return [];
+    }
+  });
+
+
+  useEffect(() => {
+    try{
+      const stored = sessionStorage.getItem(storageKey);
+      const lines = stored ? JSON.parse(stored) : [];
+      setContainmentLine(lines);
+      onContainmentChange?.(lines.map((line: SavedContainmentLine) => line.wkt));
+    }catch {
+      setContainmentLine([]);
+      onContainmentChange?.([]);
+    }
+  }, [])
+
+  // update the session storage whenever a containment line is changed
+  useEffect(() => {
+    try{
+      if (containmentLine.length > 0){
+        sessionStorage.setItem(storageKey, JSON.stringify(containmentLine));
+      }else{
+        sessionStorage.removeItem(storageKey);
+      }
+      window.dispatchEvent(new Event('containment_lines_updated'));
+    }catch {
+      console.warn(" failed to save the session storage")
+    }
+  }, [containmentLine])
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
@@ -120,12 +157,26 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       const coords = (line.geometry as LineString).coordinates;
       const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
 
+      const newLine: SavedContainmentLine = {
+        id: String(line.id ?? Date.now()),
+        wkt,
+        feature: line as Feature<LineString>
+      }
+
+      setContainmentLine((prev) => {
+        const updated = [...prev, newLine];
+        onContainmentChange?.(updated.map((l) => l.wkt));
+        return updated;
+      });
+
       onDrawComplete(wkt);
 
-      drawRef.current?.deleteAll();
-      drawRef.current?.changeMode('simple_select');
+     if(drawRef.current){
+      drawRef.current.deleteAll();
+      drawRef.current.changeMode('simple_select');
+     }
     },
-    [onDrawComplete]
+    [onDrawComplete, onContainmentChange]
   );
 
   useEffect(() => {
@@ -160,23 +211,19 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       initialMount.current = false;
       return;
     }
-    drawRef.current?.deleteAll()
+    if(drawRef.current){
+      drawRef.current.deleteAll();
+    }
+    setContainmentLine([]);
+    sessionStorage.removeItem(storageKey)
+    onContainmentChange?.([]);
   }, [clearDrawings]);
 
   // GeoJson collection for mapbox
   const containmentFeatures = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: lines.map((l) => ({
-      type: 'Feature' as const,
-      id: l.localId,
-      properties: {synced: l.synced},
-      geometry: {
-        type: 'LineString' as const,
-        coordinates: wktCoords(l.wkt),
-      }
-    })),
-  }), [lines]);
-
+    features: containmentLine.map((l) => l.feature)
+  }), [containmentLine]);
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
@@ -410,7 +457,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       )}
 
       {/* Containment Lines */}
-      {lines.length > 0 && (
+      {containmentLine.length > 0 && (
         <Source
           id='containment-lines'
           type='geojson'
@@ -420,31 +467,19 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             id='containment-line-glow'
             type='line'
             paint={{
-              'line-color': ['case', ['get', 'synced'], '#38bdf8', '#fcba3e'],
+              'line-color': '#38bdf8',
               'line-width': 6,
               'line-opacity': 0.7,
             }}
           />
 
           <Layer
-            id='containment-line-synced'
+            id='containment-line-center'
             type='line'
-            filter={['==', ['get', 'synced'], true]}
             paint={{
               'line-color': '#0284c7',
-              'line-width': 6,
-              'line-dasharray': [2,1]
-            }}
-          />
-
-          <Layer
-            id='containment-line-draft'
-            type='line'
-            filter={['==', ['get', 'synced'], false]}
-            paint={{
-              'line-color': '#fcba3e',
-              'line-width': 6,
-              'line-dasharray': [1,2]
+              'line-width': 2.5,
+              'line-dasharray': [2, 1],
             }}
           />
 
