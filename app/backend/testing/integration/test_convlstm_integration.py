@@ -5,9 +5,9 @@ import numpy as np
 import pytest
 from torch.utils.data import DataLoader
 
-from app.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
-from app.ml.training.dataset import WeatherDatasetSplitConfig, WeatherRolloutDataset
-from app.ml.training.train_convlstm import TrainConfig, Trainer, build_normalizers
+from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
+from app.backend.ml.training.dataset import WeatherDatasetSplitConfig, WeatherRolloutDataset
+from app.backend.ml.training.train_convlstm import TrainConfig, Trainer, build_normalizers
 
 
 @pytest.fixture
@@ -57,7 +57,7 @@ def test_convlstm_training_pipeline_integration(integration_env, monkeypatch):
             return Path(integration_env["artifacts_dir"])
         return Path(path_str)
 
-    monkeypatch.setattr("app.ml.training.train_convlstm.Path", mock_path)
+    monkeypatch.setattr("app.backend.ml.training.train_convlstm.Path", mock_path)
 
     # build normalizers using the data
     raw_norm, delta_norm = build_normalizers(

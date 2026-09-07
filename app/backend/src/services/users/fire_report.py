@@ -181,7 +181,7 @@ def status_change(report_ref: str, status: ReportStatus, db: Session):
     db.commit()
     db.refresh(report)
 
-    if status == ReportStatus.verified and previous_status != ReportStatus.verifies:
+    if status == ReportStatus.verified and previous_status != ReportStatus.verified:
         notify_fire_alert(
             db, report, f"Fire reported at {report.location_text} has been verified"
         )

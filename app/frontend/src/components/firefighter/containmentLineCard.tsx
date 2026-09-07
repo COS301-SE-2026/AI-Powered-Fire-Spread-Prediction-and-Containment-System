@@ -1,4 +1,5 @@
-import { CircleCheck, Pencil } from 'lucide-react';
+import { LocalLine } from '@/types/ContainmentLines';
+import { CircleCheck, Pencil, CircleDashed, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface LoggedLine {
@@ -6,12 +7,15 @@ interface LoggedLine {
   line: string;
   direction: string;
   info: string;
+  synced?: boolean;
+  source?: LocalLine;
 }
 
 interface CardListProp {
   readonly cardData?: LoggedLine[];
-  readonly lines?: string[];
+  readonly lines?: LocalLine[];
   readonly selectedFireId?: string | null;
+  onDeleteLine?: (line: LocalLine) => void;
 }
 
 // parses wkt linestring into [lon,lat] coord pairs
@@ -69,34 +73,30 @@ function calculateDirection(coords: [number, number][]): string {
   return dirs[idx];
 }
 
-const mockData: LoggedLine[] = [
-  { line: 'Line A', direction: 'NW Flank', info: 'Logged 8 min ago · 320m' },
-  { line: 'Line B', direction: 'East Ridge', info: 'Logged 24 min ago · 580m' },
-  { line: 'Line C', direction: 'South Perimeter', info: 'Logged 1 hr ago · 210m' },
-];
-
-export function LoggedContainmentLine({ cardData = null, lines = [], selectedFireId = null}: CardListProp) {
+export function LoggedContainmentLine({ cardData = undefined, lines = [], selectedFireId = null, onDeleteLine = undefined}: CardListProp) {
   const displayItems = useMemo<LoggedLine[]>(() => {
     if (cardData && cardData.length > 0) return cardData;
 
     if(lines && lines.length > 0) {
-      return lines.map((wkt, idx) => {
-        const coords = parseWKTCoords(wkt);
+      return lines.map((l, idx) => {
+        const coords = parseWKTCoords(l.wkt);
         const distM = calculateLineLenM(coords);
         const dir = calculateDirection(coords);
         const formattedDist = distM >= 1000 ? `${(distM / 1000).toFixed(2)} km` : `${distM} m`
 
         return {
-          id: `line-${idx}`,
+          id: l.localId,
           line: `Line ${String.fromCharCode(65 + (idx % 26))}`,
           direction: dir,
-          info: `Active barrier ∙ ${formattedDist} ${selectedFireId ? ` ${selectedFireId}` : ''}`
+          info: `${l.synced ? 'Logged' : 'Unsaved'} ${formattedDist}`,
+          synced: l.synced,
+          source: l
         };
       });
     }
 
     return [];
-  }, [cardData, lines, selectedFireId])
+  }, [cardData, lines])
 
   if(displayItems.length === 0){
     return (
@@ -123,8 +123,24 @@ export function LoggedContainmentLine({ cardData = null, lines = [], selectedFir
             </div>
           </div>
 
-          <div>
-            <CircleCheck size={16} />
+          <div className='flex items-center gap-1 shrink-0'>
+            {items.synced === false ? (
+              <CircleDashed size={16} className='text-[#fcba3e]' />
+            ) : (
+              <CircleCheck size={16} className='text-[#0284c7]'/>
+            )}
+
+            {onDeleteLine && items.source && (
+              <button
+                type='button'
+                onClick={() => onDeleteLine(items.source!)}
+                className='btn btn-ghost btn-xs px-1 text-red-400 hover:bg-red-400/10'
+                title='Remove this containment line'
+              >
+                <Trash2 size={14}/>
+              </button>
+            )}
+            
           </div>
         </div>
       ))}

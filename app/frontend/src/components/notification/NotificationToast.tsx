@@ -19,7 +19,7 @@ const TOAST_STYLE: Record<FireNotification['type'], string> = {
 };
 
 export function NotificationToast({ notification, onDismiss }: NotificationToastProps) {
-  const { role } = useAuth();
+  const { role, isLoading: isAuthLoading } = useAuth();
   const { type, fireLocation, distance, message, fireId, time } = notification;
   const mapLink = NotificationLink(fireId, role);
   const isLive = mapLink.startsWith('/admin/live-map');
@@ -46,14 +46,18 @@ export function NotificationToast({ notification, onDismiss }: NotificationToast
       <p className="text-xs text-text-primary">
         {distance} km | {FormatDate(time)}
       </p>
-      <p className="text-xs font-semibold text-error underline mt-1">View on map</p>
+      {!isAuthLoading && (
+        <p className="text-xs font-semibold text-error underline mt-1">View on map</p>
+      )}
     </>
   );
 
   return (
     <div className={`alert border-2 shadow-lg max-w-72 ${TOAST_STYLE[type]}`}>
       {icon}
-      {isLive ? (
+      {isAuthLoading ? (
+        <div className='flex-1'>{linkContent}</div>
+      ) : isLive ? (
         <a href={mapLink} onClick={onDismiss} className="flex-1">
           {linkContent}
         </a>
