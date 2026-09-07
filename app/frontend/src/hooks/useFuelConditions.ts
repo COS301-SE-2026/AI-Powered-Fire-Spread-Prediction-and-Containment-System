@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { apiCall } from '../lib/api';
 import { FuelConditions } from "@/types/FuelConditions";
+import { apiCall } from '../lib/api';
 
 export function useFuelConditions(lat: number| null, lng: number | null) {
     const [conditions, setConditions] = useState<FuelConditions | null>(null);

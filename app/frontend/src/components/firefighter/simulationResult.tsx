@@ -1,10 +1,11 @@
 import { LocalLine } from '@/types/ContainmentLines';
+import { AlertTriangle, Droplets, Flame, Thermometer, Wind } from 'lucide-react';
 import { EnvironmentWidgets } from './EnvironmentWidgets';
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useFuelConditions } from '../../hooks/useFuelConditions';
-import { AlertTriangle, Droplets, Flame, Thermometer, Wind } from 'lucide-react';
+import { Sparkline } from './Sparkline';
 
 interface SimulationResultsProps {
   predictions?: Prediction[];
@@ -30,25 +31,7 @@ const BAND_COLOR: Record<string, string> = {
   red: 'text-red-500'
 }
 
-function Sparkline({ values }: {values: number[]}) {
-  if (values.length < 2) return null;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * 100}, ${28 - ((v - min) / range) * 26}`).join(' ');
 
-  return (
-    <svg viewBox='0 0 100 30' preserveAspectRatio='none' className='w-full h-7'>
-      <polyline
-        points={pts}
-        fill='none'
-        stroke='#fe8024'
-        strokeWidth={1.5}
-        vectorEffect='non-scaling-stroke'
-      />
-    </svg>
-  )
-}
 
 function countStates(grid: number[] | undefined) {
   if (!grid) return { burning: 0, burned: 0, unburned: 0, total: 0 };
