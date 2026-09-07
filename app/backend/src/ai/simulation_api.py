@@ -42,10 +42,14 @@ TICKS_PER_HOUR = 4
 
 AWS_REGION = os.environ.get("AWS_REGION")
 INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
-ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/firefighter-system-artifacts"))
+ARTIFACTS_S3_BUCKET = os.environ.get("ARTIFACTS_S3_BUCKET", "fire-system-artifacts-827257544258")
+ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/fire-system-artifacts"))
 RESULTS_DIR = ARTIFACTS_ROOT / "results"
 
 sqs = boto3.client("sqs", region_name=AWS_REGION)
+s3_client = boto3.client("s3", region_name=AWS_REGION)
+
+logger = logging.getLogger(__name__)
 
 RESULT_POLL_INTERVAL_S = 1.0
 RESULT_POLL_TIMEOUT_S = 360.0
@@ -128,6 +132,7 @@ async def wait_for_result(job_id: str) -> dict | None:
     """
 
     result_path = RESULTS_DIR / f"{job_id}.json"
+    s3_key = f"results/{job_id}.json"
     elapsed = 0.0
 
     while elapsed < RESULT_POLL_TIMEOUT_S:
@@ -137,6 +142,19 @@ async def wait_for_result(job_id: str) -> dict | None:
                 return json.loads(content)
             except Exception as e:
                 logger.warning(f"Error reading the results for the job {job_id}: {e}")
+
+        try:
+            resp = await asyncio.to_thread(
+                s3_client.get_object,
+                Bucket=ARTIFACTS_S3_BUCKET,
+                Key=s3_key
+            )
+            raw_body = await asyncio.to_thread(resp["Body"].read)
+            return json.loads(raw_body.decode("utf-8"))
+        except s3_client.exceptions.NoSuchKey:
+            pass
+        except Exception as err:
+            logger.warning(f"Error reading {job_id} from s3: {err}")
 
         await asyncio.sleep(RESULT_POLL_INTERVAL_S)
         elapsed += RESULT_POLL_INTERVAL_S
@@ -275,7 +293,7 @@ async def run_simulation(
         .filter(FireReports.status == ReportStatus.verified)
         .all()
     )
-    fire_ids = [f.id for f in verified_fires]
+    fire_ids = [f.id for f in verified_fires_raw]
     lines_by_fire: dict[str, list[str]] = defaultdict(list)
 
     if fire_ids:
@@ -298,7 +316,7 @@ async def run_simulation(
             simulate_single_fire(
                 fire, automatic_steps, semaphore, list(dict.fromkeys(lines_by_fire.get(fire.id, []) + (req.containment_lines or [])))
             )
-            for fire in verified_fires
+            for fire in verified_fires_raw
         )
     )
 

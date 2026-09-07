@@ -10,7 +10,7 @@ import numpy as np
 import requests
 import torch
 
-from ml.models.nowcast_model import WeatherDeltaModel
+from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.simulation import build_boundary_ignition_mask
 #from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
@@ -18,15 +18,18 @@ from app.backend.src.ai.model_pipeline import run_convlstm_dca
 AWS_REGION = os.environ.get("AWS_REGION")
 INFERENCE_QUEUE_URL = os.environ.get("INFERENCE_QUEUE_URL")
 RESULTS_QUEUE_URL = os.environ.get("RESULTS_QUEUE_URL")
-
 WORKER_ID = os.environ.get("WORKER_ID", "gpu-worker-1")
 
+ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/fire-system-artifacts"))
+ARTIFACTS_S3_BUCKET = os.environ.get("ARTIFACTS_S3_BUCKET", "fire-system-artifacts-827257544258")
+
+sqs = boto3.client("sqs", region_name=AWS_REGION)
+s3 = boto3.client("s3", region_name=AWS_REGION)
 # Mounted S3 bucket (via mount-s3 / fire-system-artifacts.service).
 # Models are read from here. Large results are written here too since SQS
 # messages are capped at 256KB and simulation output can easily exceed that
-ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/firefighter-system-artifacts"))
-RESULTS_DIR = ARTIFACTS_ROOT / "results"
 
+RESULTS_DIR = ARTIFACTS_ROOT / "results"
 CONVLSTM_CHECKPOINT_PATH = ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST" / "model.pt"
 DCA_PARAMS_PATH = ARTIFACTS_ROOT / "models" / "dca_params" / "calibrated_params.json"
 
@@ -61,7 +64,7 @@ WAIT_TIME_SECONDS = 20
 # Needs to be longer than model's worst-case inference time, so we gonna have to play around with this value
 VISIBILITY_TIMEOUT_SECONDS = 300
 
-sqs = boto3.client("sqs", region_name=AWS_REGION)
+
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -194,9 +197,9 @@ def fetch_static_grids(job: dict) -> dict:
     """
     Fetches static terrain grids for the job's bounding box.
     """
-    from ai.resolve_tiles import resolve_dem_path, resolve_sentinel2_bands
-    from ml.features.terrain import extract_terrain_features
-    from ml.features.fuel_load import process_sentinal2_and_worldcover
+    from app.backend.src.ai.resolve_tiles import resolve_dem_path, resolve_sentinel2_bands
+    from app.backend.ml.features.terrain import extract_terrain_features
+    from app.backend.ml.features.fuel_load import process_sentinal2_and_worldcover
     
     min_lon, min_lat, max_lon, max_lat = job["grid_bounds"]
     target_shape = (job["grid_h"], job["grid_w"])
@@ -297,10 +300,24 @@ def write_result_to_artifacts(job_id: str, result: dict) -> str:
     Writes the full results to mounted artifacts bucket and returns the path. Keeps SQS messages
     small by only ever putting a pointer on the results queue, not the payload itself
     """
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    result_path = RESULTS_DIR / f"{job_id}.json"
-    result_path.write_text(json.dumps(result))
-    return str(result_path)
+    s3_key = f"results/{job_id}.json"
+    payload = json.dumps(result).encode("utf-8")
+
+    s3.put_object(
+        Bucket=ARTIFACTS_S3_BUCKET,
+        Key=s3_key,
+        Body=payload,
+        ContentType="application/json"
+    )
+    log.info("Uploaded sim output to s3://%s/%s", ARTIFACTS_S3_BUCKET, s3_key)
+    try:
+        RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+        local_path = RESULTS_DIR / f"{job_id}.json"
+        local_path.write_bytes(payload)
+    except Exception as err:
+        log.warning("Could not mirror file to local mount: %s", err)
+
+    return f"s3://{ARTIFACTS_S3_BUCKET}/{s3_key}"
 
 def touch_heartbeat() -> None:
     HEARTBEAT_FILE.write_text(str(time.time()))
