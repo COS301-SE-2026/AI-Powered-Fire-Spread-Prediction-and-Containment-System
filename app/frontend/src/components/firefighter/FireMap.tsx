@@ -55,43 +55,6 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
   const [showUserLoctionTooltip, setShowUserLocationTooltip] = useState(false);
 
-  const storageKey = 'containment_lines_active';
-
-  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
-    if(typeof window === 'undefined') return [];
-    try{
-      const stored = sessionStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : [];
-    }catch{
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try{
-      const stored = sessionStorage.getItem(storageKey);
-      const lines = stored ? JSON.parse(stored) : [];
-      setContainmentLine(lines);
-      onContainmentChange?.(lines.map((line: SavedContainmentLine) => line.wkt));
-    }catch {
-      setContainmentLine([]);
-      onContainmentChange?.([]);
-    }
-  }, [])
-
-  // update the session storage whenever a containment line is changed
-  useEffect(() => {
-    try{
-      if (containmentLine.length > 0){
-        sessionStorage.setItem(storageKey, JSON.stringify(containmentLine));
-      }else{
-        sessionStorage.removeItem(storageKey);
-      }
-      window.dispatchEvent(new Event('containment_lines_updated'));
-    }catch {
-      console.warn(" failed to save the session storage")
-    }
-  }, [containmentLine])
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
