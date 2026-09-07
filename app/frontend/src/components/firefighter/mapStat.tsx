@@ -1,4 +1,3 @@
-import { act } from 'react-dom/test-utils';
 import { NearbyFire } from '../../types/FirefighterDashboard';
 
 interface NearbyFireReports {

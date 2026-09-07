@@ -166,7 +166,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
           </section>
         </div>
 
-        <SystemMetrics metrics={bottomMetrics} />
+        {/* <SystemMetrics metrics={bottomMetrics} /> */}
       </div>
     </AdminSideBar>
   );

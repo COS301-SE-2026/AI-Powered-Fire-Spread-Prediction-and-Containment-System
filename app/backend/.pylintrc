@@ -1,10 +1,10 @@
 [MASTER]
 ignore=testing_config
 ignore-paths=
-    .venv/.*,
-    __pycache__/.*,
-    .pytest_cache/.*,
-    artifact_store/.*
+    .*/\venv/.*,
+    .*/__pycache__/.*,
+    .*/\pytest_cache/.*,
+    ^app/artifact_store/.*$,
 
 [MESSAGES CONTROL]
 disable=

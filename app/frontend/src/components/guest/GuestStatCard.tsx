@@ -8,7 +8,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon }: StatCardProps) {
   return (
-    <div className="flex items-center gap-2 p-3 rounded-lg bg-carbon-side/60 border border-carbon-stroke">
+    <div className="flex items-center gap-1.5 sm:gap-2  p-2 sm:p-3 rounded-lg bg-carbon-side/60 border border-carbon-stroke min-w-0">
       <div className="text-ignite">{icon}</div>
       <div>
         <div className="text-sm font-bold">{value}</div>

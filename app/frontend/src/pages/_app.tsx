@@ -9,15 +9,15 @@ import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
 import { OfflineBar } from '../components/shared/OfflineBar';
 
-function GlobalToast() {
-  const { activeToast, dismissToast } = useNotifications();
-  if (!activeToast) return null;
-  return (
-    <div className="toast toast-top toast-end z-100">
-      <NotificationToast notification={activeToast} onDismiss={dismissToast} />
-    </div>
-  );
-}
+// function GlobalToast() {
+//   const { activeToast, dismissToast } = useNotifications();
+//   if (!activeToast) return null;
+//   return (
+//     <div className="toast toast-top toast-end z-100">
+//       <NotificationToast notification={activeToast} onDismiss={dismissToast} />
+//     </div>
+//   );
+// }
 
 function MyApp({ Component, pageProps }: AppProps) {
   useEffect(() => {
@@ -54,7 +54,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name='apple-mobile-web-app-title' content='Fireaway' />
       </Head>
       <Component {...pageProps} />
-      <GlobalToast />
+      {/* <GlobalToast /> */}
       <OfflineBar />
     </NotificationsProvider>
   );

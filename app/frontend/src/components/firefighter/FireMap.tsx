@@ -10,6 +10,7 @@ import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
 import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
+import { LocalLine } from '@/types/ContainmentLines';
 import { Prediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -18,21 +19,16 @@ import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
 
-
-interface SavedContainmentLine {
-  id: string;
-  wkt: string;
-  feature: Feature<LineString>;
-}
-
 interface MapProps{
     lat: number;
     lng: number;
     drawMode: boolean;
-    onDrawComplete: (line: string) => void;
-    onContainmentChange?: (wktLines: string[]) => void;
+    lines?: LocalLine[];
+    onDrawComplete: (wkt: string) => void;
+    onLineRemoved?: (localId: string) => void;
     clearDrawings: number;
     burnGrid?: number[] | null;
+    recenter?: number;
     predictions?: Prediction[];
     currentTick?: number;
     selectedFireLocation?: string | null;
@@ -42,53 +38,21 @@ interface MapProps{
     showKey?: boolean;
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, onSelectFire = undefined, showKey = false, onContainmentChange = undefined}: MapProps) {
+function wktCoords(wkt: string): number[][]{
+  const inner = wkt.replace(/^LINESTRING\s*\(/i,'').replace(/\)$/,'');
+  return inner.split(',').map(p => p.trim().split(/\s+/).map(Number));
+}
+
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
+
 
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
-
-  const storageKey = 'containment_lines_active';
-
-  const [containmentLine, setContainmentLine] = useState<SavedContainmentLine[]>(() => {
-    if(typeof window === 'undefined') return [];
-    try{
-      const stored = sessionStorage.getItem(storageKey);
-      return stored ? JSON.parse(stored) : [];
-    }catch{
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try{
-      const stored = sessionStorage.getItem(storageKey);
-      const lines = stored ? JSON.parse(stored) : [];
-      setContainmentLine(lines);
-      onContainmentChange?.(lines.map((line: SavedContainmentLine) => line.wkt));
-    }catch {
-      setContainmentLine([]);
-      onContainmentChange?.([]);
-    }
-  }, [])
-
-  // update the session storage whenever a containment line is changed
-  useEffect(() => {
-    try{
-      if (containmentLine.length > 0){
-        sessionStorage.setItem(storageKey, JSON.stringify(containmentLine));
-      }else{
-        sessionStorage.removeItem(storageKey);
-      }
-      window.dispatchEvent(new Event('containment_lines_updated'));
-    }catch {
-      console.warn(" failed to save the session storage")
-    }
-  }, [containmentLine])
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
@@ -103,7 +67,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
         setActiveFires(verifiedFires);
         const mapped: FireReportMapResponse[] = fires.map((f) => ({
-          id: f.ref,
+          id: f.id,
           reference_number: f.ref,
           lat: f.lat,
           lng: f.lng,
@@ -127,6 +91,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           );
           setActiveFires(
             verifiedCached.map((c) => ({
+              id: c.id,
               ref: c.reference_number,
               location: c.location_text,
               status: c.status as ReportStatus,
@@ -139,6 +104,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               lat: c.lat,
               lng: c.lng,
             }))
+
           );
         }
       }
@@ -154,26 +120,12 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       const coords = (line.geometry as LineString).coordinates;
       const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
 
-      const newLine: SavedContainmentLine = {
-        id: String(line.id ?? Date.now()),
-        wkt,
-        feature: line as Feature<LineString>
-      }
-
-      setContainmentLine((prev) => {
-        const updated = [...prev, newLine];
-        onContainmentChange?.(updated.map((l) => l.wkt));
-        return updated;
-      });
-
       onDrawComplete(wkt);
 
-     if(drawRef.current){
-      drawRef.current.deleteAll();
-      drawRef.current.changeMode('simple_select');
-     }
+      drawRef.current?.deleteAll();
+      drawRef.current?.changeMode('simple_select');
     },
-    [onDrawComplete, onContainmentChange]
+    [onDrawComplete]
   );
 
   useEffect(() => {
@@ -208,19 +160,23 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       initialMount.current = false;
       return;
     }
-    if(drawRef.current){
-      drawRef.current.deleteAll();
-    }
-    setContainmentLine([]);
-    sessionStorage.removeItem(storageKey)
-    onContainmentChange?.([]);
+    drawRef.current?.deleteAll()
   }, [clearDrawings]);
 
   // GeoJson collection for mapbox
   const containmentFeatures = useMemo(() => ({
     type: 'FeatureCollection' as const,
-    features: containmentLine.map((l) => l.feature)
-  }), [containmentLine]);
+    features: lines.map((l) => ({
+      type: 'Feature' as const,
+      id: l.localId,
+      properties: {synced: l.synced},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: wktCoords(l.wkt),
+      }
+    })),
+  }), [lines]);
+
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
@@ -250,7 +206,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) return;
-    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    const fire = activeFires.find((f) => (selectedFireId && f.id === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     if (!fire) return;
     setViewState((v) => ({
       ...v,
@@ -265,7 +221,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       setSelectedFire(null);
       return;
     }
-    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    const fire = activeFires.find((f) => (selectedFireId && f.id === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     setSelectedFire(fire ?? null);
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
@@ -326,6 +282,11 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         return features;
     }, [predictions, currentTick])
 
+    useEffect(() => {
+      if (recenter === 0) return;
+      setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
+    }, [recenter]);
+
   return (
     <div className='relative w-full h-full'>
       {/* key for map legend */}
@@ -363,28 +324,28 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
-      <NavigationControl position='bottom-right' showCompass={false}/>
+      <NavigationControl position='top-right' showCompass={false}/>
 
       {activeFires.map((fire) => (
         <Marker
-          key={fire.ref}
+          key={fire.id}
           longitude={fire.lng}
           latitude={fire.lat}
           anchor="center"
           onClick={(e) => {
             e.originalEvent.stopPropagation();
             setSelectedFire(fire);
-            onSelectFire?.(fire.ref);
+            onSelectFire?.(fire.id);
           }}
         >
           <div className="relative flex items-center justify-center size-6">
             {/* The radar ping animation effect */}
             <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.id === selectedFireId ? '' : 'hidden'}`}
             />
             {/* The solid core so the marker remains visible */}
             <span
-              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.id === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
             />
           </div>
         </Marker>
@@ -449,7 +410,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       )}
 
       {/* Containment Lines */}
-      {containmentLine.length > 0 && (
+      {lines.length > 0 && (
         <Source
           id='containment-lines'
           type='geojson'
@@ -459,19 +420,31 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             id='containment-line-glow'
             type='line'
             paint={{
-              'line-color': '#38bdf8',
+              'line-color': ['case', ['get', 'synced'], '#38bdf8', '#fcba3e'],
               'line-width': 6,
               'line-opacity': 0.7,
             }}
           />
 
           <Layer
-            id='containment-line-center'
+            id='containment-line-synced'
             type='line'
+            filter={['==', ['get', 'synced'], true]}
             paint={{
               'line-color': '#0284c7',
-              'line-width': 2.5,
-              'line-dasharray': [2, 1],
+              'line-width': 6,
+              'line-dasharray': [2,1]
+            }}
+          />
+
+          <Layer
+            id='containment-line-draft'
+            type='line'
+            filter={['==', ['get', 'synced'], false]}
+            paint={{
+              'line-color': '#fcba3e',
+              'line-width': 6,
+              'line-dasharray': [1,2]
             }}
           />
 
