@@ -4,8 +4,6 @@ services:
   gateway:
     image: nginx:1.27-alpine
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:3000:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
@@ -13,7 +11,8 @@ services:
         condition: service_healthy
       frontend:
         condition: service_healthy
-    networks: [edge]
+    networks:
+      [edge]
 
   postgres:
     image: postgis/postgis:15-3.5
@@ -51,21 +50,18 @@ services:
   #     - postgres
 
   backend:
-    cap_add:
-      [SYS_PTRACE]
     build:
       context: .
       dockerfile: app/backend/Dockerfile
-      target: dev
-    container_name: python-backend
+      target: prod
     working_dir: /app
     env_file:
       [.env]
     environment:
-      - VALKEY_HOST=valkey
-      - MINIO_ENDPOINT=minio:9000
-      - PYTHONPATH=/app
-      - VALKEY_PORT=6379
+      VALKEY_HOST: valkey
+      MINIO_ENDPOINT: minio:9000
+      PYTHONPATH: /app
+      VALKEY_PORT: "6379"
     restart: unless-stopped
     depends_on:
       postgres:
@@ -74,13 +70,8 @@ services:
         condition: service_healthy
       valkey:
         condition: service_healthy
-    volumes:
-      - ./app/__init__.py:/app/app/__init__.py:ro,Z
-      - ./app/backend:/app/app/backend:Z
-      - ./app/artifact_store:/app/app/artifact_store:Z
-    ports:
-      - "127.0.0.1:8000:8000"
-    command: [ "uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload" ]
+    expose:
+      - "8000"
     healthcheck:
       test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()" ]
       interval: 10s
@@ -94,24 +85,24 @@ services:
     build:
       context: .
       dockerfile: app/frontend/Dockerfile
-      target: dev
-    container_name: next-frontend
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: /api 
+        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:?}
     restart: unless-stopped
     env_file:
       [.env]
     depends_on:
       backend:
         condition: service_healthy
-    volumes:
-      - ./app/frontend:/app:z
-      - frontend_node_modules:/app/node_modules:Z
     expose:
       - "3000"
     environment:
-      NODE_ENV: development
-    command: ["sh", "-c", "yarn install --prefer-offline --frozen-lockfile && yarn dev"]
+      NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1" ]
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:3000 > /dev/null || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -121,18 +112,15 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: minio-storage
     restart: unless-stopped
     env_file:
       [.env]
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DRIVE_MIN_FREE_DISK: "500MB"
     volumes:
       - miniodata:/data
-    ports:
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
     command: server /data --console-address ":9001"
     healthcheck:
       test: [ "CMD", "mc", "ready", "local" ]
@@ -144,10 +132,10 @@ services:
 
   valkey:
     image: valkey/valkey:latest
-    container_name: valkey-cache
     restart: unless-stopped
-    ports:
-      - "127.0.0.1:6379:6379"
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkeydata:/data
     healthcheck:
       test: [ "CMD", "valkey-cli", "ping" ]
       interval: 10s
@@ -168,10 +156,6 @@ services:
       - PYTHONPATH=/app
       - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
       - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
-    volumes:
-      - ./app/__init__.py:/app/app/__init__.py:ro,Z
-      - ./app/backend:/app/app/backend:Z
-      - ./app/artifact_store:/app/app/artifact_store:Z
     depends_on:
       postgres:
         condition: service_healthy

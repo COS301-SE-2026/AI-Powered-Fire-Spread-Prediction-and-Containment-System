@@ -1,0 +1,16 @@
+[tool.coverage.run]
+data_file = ".coverage"
+branch = true
+relative_files = true
+source = ["app/backend"]
+
+[tool.coverage.paths]
+source = ["app/backend", "/github/workspace/app/backend"]
+
+[tool.coverage.report]
+show_missing = true
+omit = [
+    "app/backend/testing/*",
+    "app/backend/seed.py",
+    "app/backend/test_api.py",
+]

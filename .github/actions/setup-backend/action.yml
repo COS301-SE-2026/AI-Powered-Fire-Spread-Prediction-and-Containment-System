@@ -1,0 +1,26 @@
+name: Set up python environment
+description: Python 3.12 with uv backend dependencies installed
+inputs:
+  dev:
+    description: Also installs requirements-dev.txt
+    default: "true"
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      with:
+        python-version: '3.12'
+    - uses: astral-sh/setup-uv@v5
+      with:
+        version: "0.5.11"
+        enable-cache: true
+        cache-dependency-glob: "app/backend/requirements*.txt"
+    - shell: bash
+      run: |
+        UV_FLAGS="--system --require-hashes --only-binary :all: \
+          --extra-index-url https://download.pytorch.org/whl/cpu \
+          --index-strategy unsafe-first-match"
+        uv pip install $UV_FLAGS -r app/backend/requirements.txt
+        if [ "${{ inputs.dev }}" = "true" ]; then
+          uv pip install $UV_FLAGS -r app/backend/requirements-dev.txt
+        fi

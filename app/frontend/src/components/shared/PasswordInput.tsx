@@ -21,13 +21,13 @@ const baseFieldClass =(hasError?: string)=>{
 
 export default function PasswordInput({
   id,
-  name,
+  name = '',
   value,
   onChange,
-  placeholder,
-  error,
+  placeholder = '',
+  error = undefined,
   autoComplete = 'current-password',
-  className,
+  className = '',
 }: PasswordInputProps) {
     const [visible, setVisble] = useState(false);
     return (

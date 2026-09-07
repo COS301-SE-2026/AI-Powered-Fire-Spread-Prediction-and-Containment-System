@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
-import { apiCall } from '../lib/api';
-import { useAuth } from '../hooks/useAuth';
 import PasswordInput from '../components/shared/PasswordInput';
+import { useAuth } from '../hooks/useAuth';
+
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import PasswordInput from '@/components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
 import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
-import PasswordInput from '@/components/shared/PasswordInput';
 
 interface RegisterForm {
   name: string;
