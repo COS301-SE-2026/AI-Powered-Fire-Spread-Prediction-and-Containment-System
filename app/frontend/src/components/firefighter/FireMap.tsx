@@ -206,7 +206,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) return;
-    const fire = activeFires.find((f) => (selectedFireId && f.id === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     if (!fire) return;
     setViewState((v) => ({
       ...v,
@@ -221,7 +221,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       setSelectedFire(null);
       return;
     }
-    const fire = activeFires.find((f) => (selectedFireId && f.id === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     setSelectedFire(fire ?? null);
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
@@ -334,18 +334,17 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           anchor="center"
           onClick={(e) => {
             e.originalEvent.stopPropagation();
-            setSelectedFire(fire);
-            onSelectFire?.(fire.id);
+            onSelectFire?.(fire.ref)
           }}
         >
           <div className="relative flex items-center justify-center size-6">
             {/* The radar ping animation effect */}
             <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.id === selectedFireId ? '' : 'hidden'}`}
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
             />
             {/* The solid core so the marker remains visible */}
             <span
-              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.id === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
             />
           </div>
         </Marker>
@@ -457,7 +456,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           latitude={selectedFire.lat}
           onClose={() => {
             setSelectedFire(null);
-          onDeselect?.();
+            onDeselect?.();
           }}
           className="carbon-popup"
         >
