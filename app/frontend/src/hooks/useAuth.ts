@@ -25,7 +25,7 @@ export function useAuth(): AuthProps {
       }
       
       try {
-        const data = await apiCall('/auth/me');
+        const data = await apiCall('/api/auth/me');
         if (isMounted) {
           setIsAuth(true);
           setRole(data.role);

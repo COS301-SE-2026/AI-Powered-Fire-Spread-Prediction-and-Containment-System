@@ -87,7 +87,7 @@ services:
       dockerfile: app/frontend/Dockerfile
       target: runner
       args:
-        NEXT_PUBLIC_API_URL: /api 
+        NEXT_PUBLIC_API_URL: ""
         NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:?}
     restart: unless-stopped
     env_file:
