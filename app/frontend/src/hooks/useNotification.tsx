@@ -7,8 +7,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import type { FireNotification } from '../types/Notifications';
-import { usePathname } from 'next/navigation'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
