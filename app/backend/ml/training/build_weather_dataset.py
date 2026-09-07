@@ -6,9 +6,9 @@ from pathlib import Path
 
 import numpy as np
 
-from app.ml.features.weather_grid_loader import load_weather_grid_csv
-from app.ml.features.temporal_targets import TemporalTargetBuilder
-from app.ml.features.delta_targets import DeltaComputer
+from app.backend.ml.features.weather_grid_loader import load_weather_grid_csv
+from app.backend.ml.features.temporal_targets import TemporalTargetBuilder
+from app.backend.ml.features.delta_targets import DeltaComputer
 
 
 @dataclass

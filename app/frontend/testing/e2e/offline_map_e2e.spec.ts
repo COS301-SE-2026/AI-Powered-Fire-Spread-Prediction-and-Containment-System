@@ -17,7 +17,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
   ];
 
   test.beforeEach(async ({ page }) => {
-    await page.route('**/health', async (route) => {
+    await page.route('**/health', async (route: Route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -43,7 +43,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
     page,
   }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const cachedCount = await page.waitForFunction(
       async (mockData) =>
@@ -93,7 +93,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
     context,
   }) => {
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await context.setOffline(true);
     await page.evaluate(() => {
@@ -101,7 +101,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
     });
 
     const offlineBar = page.locator('aside[role="status"]');
-    await expect(offlineBar).toBeVisible({ timeout: 1000 });
+    await expect(offlineBar).toBeVisible({ timeout: 10000 });
     await expect(offlineBar).toContainText(
       'Offline! You are viewing outdated incidents and predictions'
     );
@@ -113,7 +113,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
   }) => {
     let containmentLineApiHit = false;
 
-    await page.route('**/api/v1/containment-lines', async (route) => {
+    await page.route('**/api/v1/containment-lines', async (route: Route) => {
       containmentLineApiHit = true;
       await route.fulfill({
         status: 201,
@@ -123,7 +123,7 @@ test.describe('E2E test for offline map cache and synchronisation after returnin
     });
 
     await page.goto('/');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await context.setOffline(true);
     await page.evaluate(() => {

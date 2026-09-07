@@ -7,9 +7,9 @@ jobs:
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app/backend/testing
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
       JWT_SECRET_KEY: your-super-secret-key-change-this
@@ -23,36 +23,32 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: app/backend/requirements*.txt
-      
-      - name: Install dependencies
-        working-directory: app/backend
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+      - uses: ./.github/actions/setup-backend
       
       - name: Run unit tests
+        env:
+          PYTHONPATH: .
         run: |
           coverage erase
-          pytest --cov=. --cov-report=xml unit
+          pytest -c app/backend/testing/pytest.ini \
+                 --cov \
+                 --cov-report=term \
+                 --cov-report=xml:app/backend/testing/coverage.xml \
+                 app/backend/testing/unit
       
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERAGE_PATH: app/backend/testing
+          SUBPROJECT_ID: unit
+          COVERAGE_PATH: "."
 
   backend-integration-tests:
     name: Backend Integration Tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app/backend/testing
+    permissions:
+      contents: read
+      pull-requests: write
     services:
       postgres:
         image: postgis/postgis@sha256:a2fc46b52819d25add4ed93d3da83e106e17ea3ace6883cce3791631c9820bb2
@@ -103,56 +99,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: app/backend/requirements*.txt
-      
-      - name: Install dependencies
-        working-directory: app/backend
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+      - uses: ./.github/actions/setup-backend
 
       - name: Run integration tests
+        env:
+          PYTHONPATH: .
         run: |
-          coverage erase
-          pytest --cov=. --cov-report=xml integration
+          coverage erase 
+          pytest -c app/backend/testing/pytest.ini \
+                 --cov \
+                 --cov-report=term \
+                 --cov-report=xml:app/backend/testing/coverage.xml \
+                 app/backend/testing/integration
 
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERAGE_PATH: app/backend/testing
+          SUBPROJECT_ID: integration
+          COVERAGE_PATH: "."
 
           
 
   backend-pylint:
     name: Backend Lint (pylint)
     runs-on: ubuntu-latest
-    defaults:
-        run:
-            working-directory: app/backend
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: app/backend/requirements*.txt
-
-      - name: Install dependencies
-        run: | 
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+      - uses: ./.github/actions/setup-backend
 
       - name: Run pylint
-        run: PYTHONPATH=src:. pylint --recursive=y . --fail-under=8.0
+        run: PYTHONPATH=. pylint --rcfile=app/backend/.pylintrc --recursive=y app --fail-under=8.0
 
   frontend-build:
     name: Frontend Build
@@ -169,7 +148,7 @@ jobs:
         with:
           node-version: 22
           cache: yarn
-          cache-dependency-path: yarn.lock
+          cache-dependency-path: app/frontend/yarn.lock
 
       - name: Install dependencies
         run: yarn install
@@ -261,13 +240,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  
+      - uses: ./.github/actions/setup-backend
         with:
-          python-version: '3.12'
-
-      - name: Install backend dependencies
-        run: "pip install --require-hashes --only-binary :all: -r app/backend/requirements.txt"
+          dev: "false"
 
       - name: Launch backend
         env:
@@ -276,16 +251,22 @@ jobs:
           MINIO_ACCESS_KEY: admin
           MINIO_SECRET_KEY: miniosupersecretpassword
           MINIO_BUCKET: fire-reports
-          JWT_SECRET: "your-super-secret-key-change-this"
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'ci-test-key'}}
           VALKEY_HOST: localhost
           VALKEY_PORT: 6379
+          SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
         run: |
-          cd app/backend
-          PYTHONPATH=.:src:..:../ml uvicorn main:app --host 0.0.0.0 --port 8000 &
+          PYTHONPATH=. nohup uvicorn app.backend.main:app --host 0.0.0.0 --port 8000 > /tmp/uvicorn.log 2>&1 &
           for i in {1..30}; do
-            curl -sf http://localhost:8000/docs > /dev/null && break
+            curl -sf http://127.0.0.1:8000/health > /dev/null && break
             sleep 1
           done
+          if ! curl -sf http://127.0.0.1:8000/health > /dev/null; then
+            echo "backend failed to launch"
+            cat /tmp/uvicorn.log
+            exit 1
+          fi
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 

@@ -4,11 +4,12 @@ export async function probeHealth(apiBaseUrl?: string): Promise<boolean> {
   if (!navigator.onLine) return false;
 
   const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const healthBaseUrl = baseUrl.replace(/\/api\/?$/, '');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 4000);
 
   try {
-    const response = await fetch(`${baseUrl}/health`, {
+    const response = await fetch(`${healthBaseUrl}/health`, {
       method: 'GET',
       cache: 'no-store',
       credentials: 'include',

@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from app.ml.models.conv_lstm_cell import ConvLSTMCell
+from app.backend.ml.models.conv_lstm_cell import ConvLSTMCell
 
 
 class ConvLSTM(nn.Module):

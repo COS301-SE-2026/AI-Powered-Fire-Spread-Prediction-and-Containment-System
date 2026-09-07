@@ -7,7 +7,7 @@ from xml.sax.saxutils import escape
 import rasterio
 from rasterio.errors import RasterioIOError
 
-from app.ml.features.terrain import DEMREADENV
+from app.backend.ml.features.terrain import DEMREADENV
 
 TILE_TEMPLATE = "Copernicus_DSM_COG_10_{ns}{lat:02d}_00_{ew}{lon:03d}_00_DEM"
 

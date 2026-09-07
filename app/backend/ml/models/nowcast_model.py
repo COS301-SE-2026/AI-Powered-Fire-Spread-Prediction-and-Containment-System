@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 import torch
 import torch.nn as nn
 
-from app.ml.models.conv_lstm import ConvLSTM
+from app.backend.ml.models.conv_lstm import ConvLSTM
 
 
 @dataclass

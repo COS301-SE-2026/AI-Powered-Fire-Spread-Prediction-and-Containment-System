@@ -21,10 +21,10 @@ from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
-from app.ml.features.real_data_loader import load_real_inference_data
+from app.backend.ml.features.real_data_loader import load_real_inference_data
 from app.backend.src.ai.simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
-from app.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
+from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 

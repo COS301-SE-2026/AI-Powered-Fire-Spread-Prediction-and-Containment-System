@@ -3,8 +3,8 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
-from app.ml.features.terrain import extract_terrain_features
-from app.ml.features.weather_grid_loader import (
+from app.backend.ml.features.terrain import extract_terrain_features
+from app.backend.ml.features.weather_grid_loader import (
     SA_LAT_MAX,
     SA_LAT_MIN,
     SA_LON_MAX,
@@ -29,7 +29,7 @@ def build_static_tensor(cfg: StaticDatasetConfig = StaticDatasetConfig()) -> Pat
         return out_path
     if not Path(cfg.dem_path).exists():
         if cfg.dem_path == StaticDatasetConfig.dem_path:
-            from app.ml.features.dem_source import build_dem_vrt
+            from app.backend.ml.features.dem_source import build_dem_vrt
 
             build_dem_vrt(SA_LON_MIN, SA_LAT_MIN, SA_LON_MAX, SA_LAT_MAX, cfg.dem_path)
         else:

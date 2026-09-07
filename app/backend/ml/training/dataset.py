@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from app.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
+from app.backend.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
 
 
 def _hour_angle(timestamps: list[str]) -> tuple[np.ndarray, np.ndarray]:

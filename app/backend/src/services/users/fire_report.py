@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, contains_eager
 
 from app.backend.src.enums.report_status import ReportStatus, status_level
 from app.backend.src.models.reported_fires import FireReports
@@ -19,17 +19,28 @@ def calc_size(radius: float) -> float:
     return round((math.pi * radius_m**2) / 10_000, 1)
 
 
-def get_fire_reports(db: Session, user_id: Optional[str] = None):
+def get_fire_reports(
+        db: Session,
+        user_id: Optional[str] = None,
+        limit: int = 50,
+        offset: int = 0,
+):
     query = db.query(
         FireReports,
         func.ST_Y(FireReports.location_geom).label("lat"),
         func.ST_X(FireReports.location_geom).label("lng"),
-    ).outerjoin(FireReports.user)
+    ).outerjoin(FireReports.user).options(contains_eager(FireReports.user))
 
     if user_id is not None:
         query = query.filter(FireReports.user_id == user_id)
 
-    results = query.all()
+    results = (
+        query
+        .order_by(FireReports.submitted_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
 
     if not results:
         return []
@@ -41,15 +52,16 @@ def get_fire_reports(db: Session, user_id: Optional[str] = None):
                 "id": report.id,
                 "reference_number": report.reference_number,
                 "location_text": report.location_text,
-                "boundary_radius": report.boundary_radius,
+                "boundary_radius": float(report.boundary_radius),
                 "user_id": report.user_id,
                 "description": report.description,
+                "image_url": get_presigned_url(report.image_url) if report.image_url else None,
                 "lat": lat,
                 "lng": lng,
-                "status": report.status.value,
-                "submitted_at": report.submitted_at.isoformat(),
-                "boundary_radius": float(report.boundary_radius),
+                "status": report.status.value if hasattr(report.status, "value") else report.status,
                 "size": calc_size(float(report.boundary_radius)),
+                "submitted_at": report.submitted_at.isoformat() if hasattr(report.submitted_at, "isoformat") else str(report.submitted_at),
+                "priotity": getattr(report, "system_verified", False),
                 "verification_notes": report.verification_notes,
                 "reporter_name": (
                     f"{report.user.name} {report.user.surname}"
@@ -77,24 +89,26 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         raise ValueError(f"Report with id {report_ref} does not exist")
 
     report, lat, lng = request
-    return {
+    return  {
         "id": report.id,
         "reference_number": report.reference_number,
         "location_text": report.location_text,
         "lat": lat,
         "lng": lng,
-        "description": report.description,
-        "image_url": get_presigned_url(report.image_url),
-        "status": report.status,
-        "status_index": report.status_index,
         "boundary_radius": float(report.boundary_radius),
+        "user_id": report.user_id,
+        "description": report.description,
+        "image_url": get_presigned_url(report.image_url) if report.image_url else None,
+        "status": report.status.value,
         "size": calc_size(float(report.boundary_radius)),
         "submitted_at": report.submitted_at,
         "reporter_name": (
-            f"{report.user.name} {report.user.surname}" if report.user else "Anonymous"
-        ),
-        "priority": report.priority,
-        "system_verified": report.system_verified,
+                    f"{report.user.name} {report.user.surname}"
+                    if report.user
+                    else "Anonymous"
+                ),
+        "priotity": getattr(report, "system_verified", False),
+        "system_verified": getattr(report, "system_verified", False),
         "verification_notes": report.verification_notes,
     }
 
@@ -125,8 +139,30 @@ def create_fire_report(
 
     db.add(new_report)
     db.commit()
+    db.refresh(new_report)
 
-    return get_fire_report_by_id(new_report.reference_number, db)
+    return {
+        "id": new_report.id,
+        "reference_number": new_report.reference_number,
+        "location_text": new_report.location_text,
+        "lat": report.lat,
+        "lng": report.lng,
+        "boundary_radius": float(new_report.boundary_radius),
+        "user_id": new_report.user_id,
+        "description": new_report.description,
+        "image_url": get_presigned_url(new_report.image_url) if new_report.image_url else None,
+        "status": new_report.status.value,
+        "size": calc_size(float(new_report.boundary_radius)),
+        "submitted_at": new_report.submitted_at,
+        "reporter_name": (
+                    f"{new_report.user.name} {new_report.user.surname}"
+                    if new_report.user
+                    else "Anonymous"
+                ),
+        "priotity": getattr(new_report, "system_verified", False),
+        "system_verified": getattr(new_report, "system_verified", False),
+        "verification_notes": new_report.verification_notes,
+    }
 
 
 def status_change(report_ref: str, status: ReportStatus, db: Session):

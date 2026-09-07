@@ -52,15 +52,20 @@ jobs:
             - name: Build and push backend
               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
               with:
-                context: ./app/backend
+                context: .
+                file: ./app/backend/Dockerfile
                 push: true
+                no-cache: true
+                target: prod
                 tags: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.vars.outputs.image_tag }}
                 
             - name: Build and push frontend
               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
               with: 
-                context: ./app/frontend
+                context: .
+                file: ./app/frontend/Dockerfile
                 push: true
+                target: prod
                 build-args: |
                     NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
                     NEXT_PUBLIC_API_URL=https://staging-fireaway.csml.co.za/api
@@ -83,15 +88,14 @@ jobs:
                 --instance-ids "${{ secrets.STAGING_INSTANCE_ID }}" \
                 --document-name "AWS-RunShellScript" \
                 --parameters "commands=[
-                    'cd /home/ubuntu/staging',
-                    'git fetch origin staging',
-                    'git reset --hard origin/staging',
+                    'sudo git config --global --add safe.directory /home/ubuntu/staging',
+                    'sudo -u ubuntu bash -c \"cd /home/ubuntu/staging && git fetch origin staging && git reset --hard origin/staging\"',
                     'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}',
-                    'echo BACKEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} > /home/ubuntu/staging/deploy.env',
-                    'echo FRONTEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} >> /home/ubuntu/staging/deploy.env',
-                    'echo AWS_REGION=${{ env.AWS_REGION }} >> /home/ubuntu/staging/deploy.env',
-                    'docker compose -p staging --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml pull',
-                    'docker compose -p staging --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml up -d',
+                    'sudo -u ubuntu bash -c \"echo BACKEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} > /home/ubuntu/staging/deploy.env\"',
+                    'sudo -u ubuntu bash -c \"echo FRONTEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} >> /home/ubuntu/staging/deploy.env\"',
+                    'sudo -u ubuntu bash -c \"echo AWS_REGION=${{ env.AWS_REGION }} >> /home/ubuntu/staging/deploy.env\"',
+                    'cd /home/ubuntu/staging && docker compose -p staging --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml pull',
+                    'cd /home/ubuntu/staging && docker compose -p staging --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml up -d',
                     'docker system prune -f'
                     ]" \
                     --output text

@@ -1,53 +1,68 @@
+name: fireaway
+
 services:
+  gateway:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      [edge]
+
   postgres:
     image: postgis/postgis:15-3.5
     platform: linux/amd64
-    container_name: postgres-db
     restart: unless-stopped
     env_file:
-      - .env
+      [.env]
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
     volumes:
-      - ./database/postgres:/var/lib/postgresql/data:Z
-    ports:
-      - "127.0.0.1:5433:5432"
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      [internal]
 
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: pgadmin
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-    ports:
-      - "8080:80"
-    depends_on:
-      - postgres
+  # pgadmin:
+  #   image: dpage/pgadmin4:latest
+  #   container_name: pgadmin
+  #   restart: unless-stopped
+  #   env_file:
+  #     - .env
+  #   environment:
+  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+  #   volumes:
+  #     - pgadmin-data:/var/lib/pgadmin
+  #   ports:
+  #     - "127.0.0.1:8080:80"
+  #   depends_on:
+  #     - postgres
 
   backend:
     build:
       context: .
       dockerfile: app/backend/Dockerfile
-    container_name: python-backend
-    environment:
-      - VALKEY_HOST=valkey
-      - MINIO_ENDPOINT=minio:9000
-      - PYTHONPATH=/
-      - VALKEY_PORT=6379
-    restart: unless-stopped
+      target: prod
+    working_dir: /app
     env_file:
-      - .env
+      [.env]
+    environment:
+      VALKEY_HOST: valkey
+      MINIO_ENDPOINT: minio:9000
+      PYTHONPATH: /app
+      VALKEY_PORT: "6379"
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,81 +70,110 @@ services:
         condition: service_healthy
       valkey:
         condition: service_healthy
-    volumes:
-      - .:/app:Z
-      - /app/venv  
-    ports:
-      - "8000:8000"
-    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    expose:
+      - "8000"
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health').read()" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      [edge,internal]
 
   frontend:
     build:
-      context: ./app/frontend
-      dockerfile: Dockerfile
-    container_name: next-frontend
+      context: .
+      dockerfile: app/frontend/Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: /api 
+        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:?}
     restart: unless-stopped
     env_file:
-      - .env
+      [.env]
     depends_on:
-      - backend
-    volumes:
-      - ./app/frontend:/app:z
-      - frontend_node_modules:/app/node_modules:Z
-    ports:
-      - "3000:3000"
+      backend:
+        condition: service_healthy
+    expose:
+      - "3000"
     environment:
-      NODE_ENV: development
-    command: ["sh", "-c", "yarn install && yarn dev"]
+      NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:3000 > /dev/null || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      [edge]
 
   minio:
     image: minio/minio:latest
-    container_name: minio-storage
     restart: unless-stopped
     env_file:
-      - .env
+      [.env]
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DRIVE_MIN_FREE_DISK: "500MB"
     volumes:
-      - ./database/minio:/data:Z
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+      - miniodata:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://minio:9000/minio/health/live"]
+      test: [ "CMD", "mc", "ready", "local" ]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      [internal]
+
   valkey:
     image: valkey/valkey:latest
-    container_name: valkey-cache
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: ["valkey-server", "--appendonly", "yes"]
+    volumes:
+      - valkeydata:/data
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: [ "CMD", "valkey-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
-      
-  
-  
+    networks:
+      [internal]
+
   reseed:
     build:
-      context: ./app/backend
-      dockerfile: Dockerfile
-    profiles: ["tools"]
+      context: .
+      dockerfile: ./app/backend/Dockerfile
+      target: dev
+    profiles: [ "tools" ]
     env_file:
-      - .env
+      [.env]
     environment:
-      - PYTHONPATH=/app/src:/app
-    volumes:
-      - ./app/backend:/app:Z
+      - PYTHONPATH=/app
+      - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["python", "seed.py", "--reseed"]
+    command: [ "python", "-m", "app.backend.seed", "--reseed" ]
+    networks:
+      [internal]
+
+networks:
+  edge:
+    driver: bridge
+  internal:
+    driver: bridge
+  
+volumes:
+  pgdata:
+  miniodata:
+  valkeydata:
+  frontend_node_modules:
 
   # pwa:
   #   build:
@@ -149,8 +193,3 @@ services:
   #   environment:
   #     EXPO_DEVTOOLS_LISTEN_ADDRESS: localhost
   #   command: ["yarn", "start", "--host", "localhost"]
-
-volumes:
-  pgadmin-data:
-  frontend_node_modules:
-  # pwa_node_modules:

@@ -9,16 +9,16 @@ import numpy as np
 import torch
 from torch.utils.data import DataLoader, random_split
 
-from app.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
-from app.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
-from app.ml.training.dataset import (
+from app.backend.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
+from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
+from app.backend.ml.training.dataset import (
     WeatherDatasetSplitConfig,
     WeatherRolloutDataset,
     attach_static_and_time,
     _hour_angle,
 )
-from app.ml.training.losses import SmoothL1DeltaLoss
-from app.ml.training.metrics import MetricTracker
+from app.backend.ml.training.losses import SmoothL1DeltaLoss
+from app.backend.ml.training.metrics import MetricTracker
 
 
 @dataclass
@@ -329,7 +329,7 @@ def main() -> None:
     if not npz_paths:
         raise FileNotFoundError(
             f"No weather_tensors_*.npz found in {cfg.weather_tensors_dir} — "
-            "run app.ml.training.build_weather_dataset first."
+            "run app.backend.ml.training.build_weather_dataset first."
         )
 
     static_path = Path(cfg.static_tensor_path)
