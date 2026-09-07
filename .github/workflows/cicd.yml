@@ -95,6 +95,8 @@ jobs:
       MINIO_BUCKET: fire-reports
       VALKEY_HOST: localhost
       VALKEY_PORT: 6379
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
