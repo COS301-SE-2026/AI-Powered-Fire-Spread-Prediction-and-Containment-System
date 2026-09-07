@@ -18,32 +18,32 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
   const router = useRouter();
 
   return (
-    <div className="w-full overflow-x-auto rounded-2xl border border-carbon-stroke">
+    <div className="overflow-x-auto rounded-2xl border border-carbon-stroke  max-h-150">
       <table className="table table-pin-rows w-full">
         <thead>
           <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Ref
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Location
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Status
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Reason
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Size
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Reported
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Reporter
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
+            <th className="text-left text-xs font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               View
             </th>
           </tr>

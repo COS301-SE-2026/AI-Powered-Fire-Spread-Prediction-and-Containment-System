@@ -5,8 +5,8 @@ from datetime import timedelta
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.models.reported_fires import FireReports
+from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 WINDOW = timedelta(hours=1)
 MAX_REPORTS = 3

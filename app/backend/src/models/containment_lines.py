@@ -4,7 +4,7 @@ from geoalchemy2 import Geometry
 from sqlalchemy import Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 
-from app.backend.db import Base
+from db import Base
 
 
 # stores all the lines that are drawn and stores them based on proximity to an existing fire

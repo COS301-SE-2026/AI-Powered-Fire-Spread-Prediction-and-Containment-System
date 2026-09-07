@@ -1,6 +1,3 @@
-import { useRouter } from "next/router";
-import { ArrowLeft } from "lucide-react";
-
 interface UnderConstructionProps {
   message?: string;
 }
@@ -8,7 +5,6 @@ interface UnderConstructionProps {
 export function UnderConstruction({
   message = 'This page is still under development',
 }: Readonly<UnderConstructionProps>) {
-  const router = useRouter();
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-1 p-6 text-center">
       <img src="/images/logo-large.png" alt="FireAway" className="w-64 md:w-150 object-contain" />
@@ -19,10 +15,6 @@ export function UnderConstruction({
       />
 
       <p className="text-sm text-text-primary/50 max-w-sm">{message}</p>
-      <button onClick={() => router.back()} className='mt-4 flex items-center gap-2 px-4 py-2 text-sm font-semibold hover:text-white rounded-lg hover:bg-smoke-hover transition-colors'>
-        <ArrowLeft className='size-4' />
-        Back
-      </button>
     </div>
   );
 }

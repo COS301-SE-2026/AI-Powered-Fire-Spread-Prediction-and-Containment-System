@@ -38,5 +38,4 @@ async def fetch_realtime_weather_features(
         "wind_u": np.full((H, W), u_val, dtype=np.float32),
         "wind_v": np.full((H, W), v_val, dtype=np.float32),
         "temperature": np.full((H, W), temp_c, dtype=np.float32),
-        "rel_humidity": np.full((H, W), rh_pct / 100.0, dtype=np.float32)
     }

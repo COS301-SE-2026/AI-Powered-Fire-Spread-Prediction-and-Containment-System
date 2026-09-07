@@ -5,7 +5,6 @@
 #    pip-compile --allow-unsafe --constraint=requirements-dev.txt --generate-hashes --output-file=requirements.txt requirements.in
 #
 --extra-index-url https://download.pytorch.org/whl/cpu
---extra-index-url https://download.pytorch.org/whl/cpu
 
 affine==3.0.1 \
     --hash=sha256:cda3b303325e7bf2bf34817e68753a0d1c4cacbdd451fe67c4878dc2ecbaa540 \

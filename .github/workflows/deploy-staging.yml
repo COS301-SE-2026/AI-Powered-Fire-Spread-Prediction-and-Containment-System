@@ -63,7 +63,6 @@ jobs:
                 push: true
                 build-args: |
                     NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-                    NEXT_PUBLIC_API_URL=https://staging-fireaway.csml.co.za/api
                 tags: ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.vars.outputs.image_tag }}
 
     deploy:

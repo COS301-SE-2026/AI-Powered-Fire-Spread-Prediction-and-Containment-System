@@ -2,19 +2,17 @@
 
 from sqlalchemy.orm import Session
 
-from app.backend.src.models.reported_fires import FireReports
-from app.backend.src.services.verification.rejection_checks import rejection_check
-from app.backend.src.services.verification.report_corroboration import (
-    corroborating_reports,
-)
-from app.backend.src.services.verification.report_spam_detection import (
+from models.reported_fires import FireReports
+from services.verification.rejection_checks import rejection_check
+from services.verification.report_corroboration import corroborating_reports
+from services.verification.report_spam_detection import (
     abnormal_rate,
     duplicate_photo_hash,
 )
-from app.backend.src.services.verification.reporter_trust import reporter_trust_score
+from services.verification.reporter_trust import reporter_trust_score
 
 # Tresholds
-MIN_CORROBORATING_REPORTS = 2
+MIN_CORROBORATING_REPORTS = 3
 MIN_TRUST_SCORE = 50.0
 
 # possible outcomes

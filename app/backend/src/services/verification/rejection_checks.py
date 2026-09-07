@@ -14,8 +14,8 @@ from geoalchemy2 import Geography
 from sqlalchemy import cast, select
 from sqlalchemy.orm import Session
 
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.models.reported_fires import FireReports
+from enums.report_status import ReportStatus
+from models.reported_fires import FireReports
 
 # to log where something fails
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ RADIUS_METERS = 25
 DUPLICATE_WINDOW = timedelta(hours=6)
 DUPLICATE_RADIUS_METERS = 500
 
-REQUIRED_FIELDS = ("location_geom", "submitted_at", "image_url")
+REQUIRED_FIELDS = ("user_id", "location_geom", "submitted_at", "image_url")
 
 
 class LocationCheckUnavailable(Exception):
@@ -112,9 +112,6 @@ def duplicate_submission(report: FireReports, session: Session) -> bool:
     end_time = report.submitted_at + DUPLICATE_WINDOW
 
     report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
-
-    if report.user_id is None:
-        return False
 
     query = (
         select(FireReports.id)

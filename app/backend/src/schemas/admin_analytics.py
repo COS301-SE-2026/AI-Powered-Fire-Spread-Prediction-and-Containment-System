@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from app.backend.src.schemas.role_request import RoleRequestResponse
+from .role_request import RoleRequestResponse
 
 
 class KPIs(BaseModel):

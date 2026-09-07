@@ -1,7 +1,7 @@
 # How serious the fire is (how big is it)
 from decimal import Decimal
 
-from app.backend.src.enums.severity import Severity
+from enums.severity import Severity
 
 # Note: boundary_radius is stored as Numeric(5,2) on FireReports.
 # Adjust these thesholds to match how boundary_radius is actually set in reporting flow (eg. estimated automatically vs fixed default)

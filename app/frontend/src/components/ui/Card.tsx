@@ -12,7 +12,7 @@ export default function Card({ title = undefined, children, actions = undefined 
       <div className="card-body p-5 space-y-4">
         {title && (
           <div className="border-b border-base-200/50 pb-2 mb-2 w-full">
-            <h3 className=" text-text-muted font-bold tracking-wide uppercase">{title}</h3>
+            <h2 className="card-title text-sm text-slate-300 font-bold tracking-tight">{title}</h2>
           </div>
         )}
         <div className="flex-1 text-sm leading-relaxed">{children}</div>

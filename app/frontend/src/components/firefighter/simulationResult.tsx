@@ -7,8 +7,6 @@ interface SimulationResultsProps {
   predictions?: Prediction[];
   currentTick?: number;
   status?: SimulationStatus;
-  containmentLines?: string[];
-  selectedFireId?: string | null;
 }
 
 function countStates(grid: number[] | undefined) {
@@ -26,8 +24,6 @@ export function SimulationResults({
   predictions = [],
   currentTick = 0,
   status = 'idle',
-  containmentLines = [],
-  selectedFireId = null,
 }: SimulationResultsProps) {
   const { environmentVariables } = useNearbyFires();
 
@@ -97,46 +93,44 @@ export function SimulationResults({
 
       {/* simulation results */}
       <div>
-        <div className='flex items-center justify-between py-2'>
-          <p className="text-sm uppercase py-2">predicted spread area</p>
-          {hasResult && (
-            <span className='text-sm uppercase font-mono text-text-muted bg-carbon-bg px-1.5 py-0.5 rounded border border-carbon-stroke'>
-              {predictions.length > 1 ? `Max Overall Spread (${predictions.length} Fires)` : `Single Fire`}
-            </span>
-          )}
-        </div>
-          
-
+        <p className="text-sm uppercase py-2">predicted spread area</p>
         {!hasResult ? (
           <p className="text-xs text-text-disabled">Run the simulation to see spread data</p>
         ) : (
           <div className="flex flex-col gap-2">
             {[1, 3, 6, 12, 24, 48, 72].map((hour) => {
-              // const p = predictions[0];
-              const tickHour = hour * 4;
-              const radiusses: number[] = [];
+              const p = predictions[0];
+              const tickHour = hour * 2;
 
-              for(const p of predictions){
-                const realTick = Math.min(tickHour, p.history.length - 1);
-                const grid = p.history[realTick];
+              const realTick = Math.min(tickHour, p.history.length - 1);
+              const grid = p.history[realTick];
 
-                let affectedCells = 0;
-                if (grid) {
-                  for (const cell of grid) {
-                    if (cell === 1 || cell == 2) affectedCells++;
-                  }
+              let affectedCells = 0;
+              if (grid) {
+                for (const cell of grid) {
+                  if (cell === 1 || cell == 2) affectedCells++;
                 }
-
-                const areaPerCell = p.cell_size_m ** 2;
-                const currentSquareMeters = affectedCells * areaPerCell;
-                const currentRadius = Math.sqrt(currentSquareMeters / Math.PI); // in meters
-                const currRadius = currentRadius / 1000; // convert to km
-
-                radiusses.push(currRadius);
               }
-              
-              const maxRadius = radiusses.length > 0 ? Math.max(...radiusses) : 0;
-              const barWidth = Math.min((maxRadius / upperBoundSpread) * 100, 100);
+
+              const initialGrid = p.history[0];
+              let initialCells = 0;
+              if (initialGrid) {
+                for (const cell of initialGrid) {
+                  if (cell === 1 || cell == 2) initialCells++;
+                }
+              }
+
+              let currRadius = 0; // in km
+              if (initialCells > 0) {
+                const initialSquareMeters = Math.PI * p.radius_m ** 2;
+                const areaPerCell = initialSquareMeters / initialCells;
+                const currentSquareMeters = affectedCells * areaPerCell;
+
+                const currentRadius = Math.sqrt(currentSquareMeters / Math.PI); // in meters
+                currRadius = currentRadius / 1000; // convert to km
+              }
+
+              const barWidth = Math.min((currRadius / upperBoundSpread) * 100, 100);
 
               return (
                 <div key={hour} className="flex items-center gap-2">
@@ -149,7 +143,7 @@ export function SimulationResults({
                     {/* bar for results calculated by dividing max hectar from predicted fire by current times hectar estimate */}
                   </div>
                   <span className="text-xs text-text-primary shrink-0">
-                    {maxRadius.toFixed(1)}/{upperBoundSpread} km
+                    {currRadius.toFixed(1)}/{upperBoundSpread} km
                   </span>
                 </div>
               );
@@ -161,10 +155,7 @@ export function SimulationResults({
       {/* logged containment lines */}
       <div>
         <p className="text-sm uppercase py-2">containment lines logged</p>
-        <LoggedContainmentLine 
-          lines={containmentLines}
-          selectedFireId={selectedFireId}
-        />
+        <LoggedContainmentLine />
       </div>
     </div>
   );

@@ -4,10 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
-from app.backend.src.schemas.admin_dashboard import DashboardSummaryResponse
-from app.backend.src.services.admin.dashboard_service import dashboard_summary
-from app.backend.src.dependencies.auth import get_current_admin_user
+from db import get_db
+from schemas.admin_dashboard import DashboardSummaryResponse
+from services.admin.dashboard_service import dashboard_summary
+
+from dependencies.auth import get_current_admin_user
 
 router = APIRouter(
     prefix="/api/admin/dashboard",

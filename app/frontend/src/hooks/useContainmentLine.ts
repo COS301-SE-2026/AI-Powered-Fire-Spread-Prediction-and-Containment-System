@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import type { CreateContainmentLine, ContainmentLines } from '../types/ContainmentLines';
 import { apiCall } from '../lib/api';
 
-export function useContainmentLine(onDraw?: () => void) {
+export function useContainmentLine(onDraw: () => void) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

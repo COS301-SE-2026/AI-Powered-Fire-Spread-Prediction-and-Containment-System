@@ -37,13 +37,13 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: app/backend/Dockerfile
+      context: ./app/backend
+      dockerfile: Dockerfile
     container_name: python-backend
     environment:
       - VALKEY_HOST=valkey
       - MINIO_ENDPOINT=minio:9000
-      - PYTHONPATH=/
+      - PYTHONPATH=/app/src:/app
       - VALKEY_PORT=6379
     restart: unless-stopped
     env_file:
@@ -56,11 +56,13 @@ services:
       valkey:
         condition: service_healthy
     volumes:
-      - .:/app:Z
-      - /app/venv  
+      - ./app/backend:/app:Z
+      - ./app/ml:/app/ml:Z
+      - ./artifact_store:/app/artifact_store:Z
+      - /app/.venv
     ports:
       - "8000:8000"
-    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
   frontend:
     build:
@@ -73,7 +75,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./app/frontend:/app:z
+      - ./app/frontend:/app:Z
       - frontend_node_modules:/app/node_modules:Z
     ports:
       - "3000:3000"

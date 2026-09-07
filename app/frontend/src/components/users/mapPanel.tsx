@@ -11,7 +11,6 @@ const HEIGHT_CLASSES: Record<string, string> = {
   sm: 'h-[30rem]',
   md: 'h-[40rem]',
   lg: 'h-[46rem]',
-  responsive: 'h-96 sm:h-104 lg:h-132',
 };
 
 interface MapPanelProps {

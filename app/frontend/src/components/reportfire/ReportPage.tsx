@@ -115,10 +115,10 @@ export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) 
         </div>
       </header>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1 mt-4">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
         {/* Left Column */}
         <div className="xl:col-span-8 flex flex-col gap-4">
-          <div className="rounded-lg bg-carbon-side border border-carbon-stroke flex flex-col overflow-hidden h-96 sm:h-104 lg:h-132 xl:h-150">
+          <div className="rounded-lg bg-carbon-side border border-carbon-stroke flex flex-col overflow-hidden h-150">
             <div className="p-4 border-b border-carbon-card">
               <span className="font-display font-bold tracking-wide uppercase text-lg">
                 Live Map

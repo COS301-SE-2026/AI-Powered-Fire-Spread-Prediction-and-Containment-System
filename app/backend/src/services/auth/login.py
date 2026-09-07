@@ -5,9 +5,9 @@ import redis
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.backend.src.dependencies.auth import create_access_token, verify_password
-from app.backend.src.models.users import User
-from app.backend.src.schemas.auth import LoginRequest
+from dependencies.auth import create_access_token, verify_password
+from models.users import User
+from schemas.auth import LoginRequest
 
 # needs t.b. added to env files, these are just temp
 # odes not need to be ip address, that's only for fire reports

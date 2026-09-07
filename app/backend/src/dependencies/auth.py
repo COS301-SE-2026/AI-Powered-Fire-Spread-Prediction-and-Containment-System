@@ -8,9 +8,9 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
-from app.backend.src.enums.user_role import UserRole
-from app.backend.src.models.users import User
+from db import get_db
+from enums.user_role import UserRole
+from models.users import User
 
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "")
 
@@ -38,7 +38,7 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     if not SECRET_KEY:
         raise RuntimeError("JWT_SECRET_KEY environment variable not set")
     to_encode = data.copy()
-
+    
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -55,7 +55,7 @@ def decode_token(token: str) -> Optional[str]:
     """
     if not SECRET_KEY:
         return None
-
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload.get("user_id")

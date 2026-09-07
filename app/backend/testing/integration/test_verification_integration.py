@@ -3,8 +3,8 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from app.backend.src.enums.report_status import ReportStatus
-from app.backend.src.services.verification.rejection_checks import (
+from enums.report_status import ReportStatus
+from services.verification.rejection_checks import (
     rejection_check,
     valid_location,
     within_boundary,
@@ -13,17 +13,15 @@ from app.backend.src.services.verification.rejection_checks import (
     duplicate_submission,
 )
 
-from app.backend.src.services.verification.report_corroboration import (
-    corroborating_reports,
-)
-from app.backend.src.services.verification.report_spam_detection import (
+from services.verification.report_corroboration import corroborating_reports
+from services.verification.report_spam_detection import (
     abnormal_rate,
     duplicate_photo_hash,
 )
 
-from app.backend.src.services.verification.reporter_trust import reporter_trust_score
+from services.verification.reporter_trust import reporter_trust_score
 
-from app.backend.src.services.verification.auto_verification import (
+from services.verification.auto_verification import (
     auto_verify_report,
     AUTO_REJECT,
     AUTO_VERIFY,
@@ -219,7 +217,7 @@ def test_abnormal_rate_under_treshold_return_false(db):
     assert abnormal_rate(report, db) is False
 
 
-def test_abnormal_rate_over_treshold_return_true(db):
+def test_abnormal_rate_over_treshold_return_false(db):
     """more than rate limmit max should trigger signal"""
     user = make_user(db)
     now = datetime.now(timezone.utc)

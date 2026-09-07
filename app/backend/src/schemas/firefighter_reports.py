@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.backend.src.enums.report_status import ReportStatus
+from enums.report_status import ReportStatus
 
 from typing import List, Optional
 

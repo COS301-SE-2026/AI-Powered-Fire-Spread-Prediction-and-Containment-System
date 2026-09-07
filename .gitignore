@@ -43,7 +43,7 @@ database/minio/
 
 # artifact_store
 artifact_store/ignition/
-venv/
+
 *.venv
 .venv*/
 venv312/
@@ -67,7 +67,3 @@ ml/checkpoints/
 .idea/
 .DS_Store
 
-*.rpm
-
-app/gpu-worker/.env
-app/gpu-worker/venv/

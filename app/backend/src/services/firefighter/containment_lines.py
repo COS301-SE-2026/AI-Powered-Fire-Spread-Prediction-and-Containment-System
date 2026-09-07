@@ -7,8 +7,8 @@ from geoalchemy2.shape import to_shape
 from geoalchemy2.types import Geography
 from sqlalchemy.orm import Session
 
-from app.backend.src.models.containment_lines import ContainmentLines
-from app.backend.src.models.reported_fires import FireReports
+from models.containment_lines import ContainmentLines
+from models.reported_fires import FireReports
 
 MAX_RADIUS = 2  # max radius for containement auto-detection of nearby fire
 

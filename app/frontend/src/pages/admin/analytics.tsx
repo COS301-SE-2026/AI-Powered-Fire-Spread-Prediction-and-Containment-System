@@ -24,7 +24,7 @@ export default function AdminAnalyticsPage() {
 
   if (loading) {
     return (
-      <AdminSideBar hideLoginRegister>
+      <AdminSideBar>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
           <div className="loading loading-spinner loading-lg text-primary">
             Loading analytics data...
@@ -36,7 +36,7 @@ export default function AdminAnalyticsPage() {
 
   if (error) {
     return (
-      <AdminSideBar hideLoginRegister>
+      <AdminSideBar>
         <div className="p-6">
           <div className="bg-error/10 border border-error/30 rounded-lg p-4 text-error">
             <p className="font-semibold">Unable to load analytics</p>
@@ -55,7 +55,7 @@ export default function AdminAnalyticsPage() {
 
   if (!kpis) {
     return (
-      <AdminSideBar hideLoginRegister>
+      <AdminSideBar>
         <div className="p-6">No data available</div>
       </AdminSideBar>
     );
@@ -69,18 +69,17 @@ export default function AdminAnalyticsPage() {
   ];
 
   return (
-    <AdminSideBar hideLoginRegister>
-      <div className="p-2 space-y-6 w-full">
+    <AdminSideBar>
+      <div className="p-6 space-y-6 w-full">
         {/* Header */}
         <PageHeader
           title="Admin Analytics"
           subtitle="User governance and role management overview"
           showIcons
           actions={
-            <span className="text-sm text-text-muted">
-              Updated: {updatedAt ?? '-'}
+            <span className="text-sm text-text-primary/40">
+              Updated: {new Date().toLocaleString()}
             </span>
-
           }
         />
 
@@ -89,7 +88,7 @@ export default function AdminAnalyticsPage() {
           {kpiCards.map((kpi) => (
             <Card key={kpi.label} title={kpi.label}>
               <div className="flex flex-col">
-                <span className="text-3xl font-bold text-text-primary">{kpi.value}</span>
+                <span className="text-2xl font-bold text-text-primary">{kpi.value}</span>
                 {/* No change indicator for now */}
               </div>
             </Card>
@@ -100,22 +99,22 @@ export default function AdminAnalyticsPage() {
         <Card
           title="Pending Role Requests"
           actions={
-            <Link href="/admin/approvals" className="btn btn-outline rounded-full text-lg tracking-wide ">
+            <Link href="/admin/approvals" className="text-sm text-primary hover:underline">
               Manage all
             </Link>
           }
         >
           {pendingRequests.length === 0 ? (
-            <p className="text-text-muted text-medium">No pending requests</p>
+            <p className="text-white/40 text-sm">No pending requests</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-medium">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-carbon-stroke">
-                    <th className="text-left py-2 text-text-muted font-medium">Name</th>
-                    <th className="text-left py-2 text-text-muted font-medium">Email</th>
-                    <th className="text-left py-2 text-text-muted font-medium">Requested Role</th>
-                    <th className="text-left py-2 text-text-muted font-medium">Time</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Name</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Email</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Requested Role</th>
+                    <th className="text-left py-2 text-white/40 font-medium">Time</th>
                   </tr>
                 </thead>
                 <tbody>

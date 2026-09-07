@@ -50,8 +50,6 @@
   --noise: 0;
 }
 
-@custom-variant landscape (@media (orientation: landscape));
-
 /*Use for interactive states, severity levels*/
 @theme {
   --color-char: var(--color-base-content);

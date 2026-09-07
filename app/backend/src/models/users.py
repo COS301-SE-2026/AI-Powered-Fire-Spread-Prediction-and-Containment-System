@@ -4,8 +4,8 @@ from geoalchemy2 import Geometry
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from app.backend.db import Base
-from app.backend.src.enums.user_role import UserRole
+from db import Base
+from enums.user_role import UserRole
 
 
 class User(Base):

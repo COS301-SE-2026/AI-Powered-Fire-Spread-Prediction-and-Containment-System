@@ -12,31 +12,31 @@ interface DashboardMetricsProps {
 export const DashboardMetrics: React.FC<DashboardMetricsProps> = ({ metrics }) => (
   <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-      <span className="text-medium font-semibold text-text-muted uppercase tracking-wider blocl mb-1.5">
+      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider blocl mb-1">
         Active Fires
       </span>
       <div className="text-3xl font-extrabold text-red-500">{metrics.active_fires}</div>
     </div>
 
     <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-      <span className="text-medium font-semibold text-text-muted uppercase tracking-wider block mb-1">
+      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
         Pending Approvals
       </span>
       <div className="text-3xl font-extrabold text-primary">{metrics.pending_approvals}</div>
     </div>
 
     <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-      <span className="text-medium font-semibold text-text-muted uppercase tracking-wider block mb-1">
+      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
         Total Users
       </span>
       <div className="text-3xl font-extrabold text-white">{metrics.total_users}</div>
     </div>
 
     <div className="bg-slate-950 border border-slate-800 p-5 rounded-xl">
-      <span className="text-medium font-semibold text-text-muted uppercase tracking-wider block mb-1">
+      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">
         System Status
       </span>
-      <div className="text-3xl font-extrabold text-emerald-500 uppercase tracking-wide">
+      <div className="text-3xl font-extrabold text-emarald-500 uppercase tracking-wide">
         {metrics.system_status}
       </div>
     </div>

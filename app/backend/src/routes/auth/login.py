@@ -3,19 +3,16 @@ from typing import Annotated, Union
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
-from app.backend.src.dependencies.auth import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    get_current_user,
-)
-from app.backend.db import get_db
-from app.backend.src.schemas.auth import (
+from dependencies.auth import ACCESS_TOKEN_EXPIRE_MINUTES, get_current_user
+from db import get_db
+from schemas.auth import (
     LoginRequest,
     LoginResponse,
     MeResponse,
     Two_FA_Required_Response,
 )
-from app.backend.src.services.auth.login import login_user
-from app.backend.src.models.users import User
+from services.auth.login import login_user
+from models.users import User
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 

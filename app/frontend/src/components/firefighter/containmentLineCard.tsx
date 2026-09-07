@@ -1,8 +1,6 @@
 import { CircleCheck, Pencil } from 'lucide-react';
-import { useMemo } from 'react';
 
 interface LoggedLine {
-  id?:string;
   line: string;
   direction: string;
   info: string;
@@ -10,63 +8,6 @@ interface LoggedLine {
 
 interface CardListProp {
   readonly cardData?: LoggedLine[];
-  readonly lines?: string[];
-  readonly selectedFireId?: string | null;
-}
-
-// parses wkt linestring into [lon,lat] coord pairs
-function parseWKTCoords(wkt: string): [number, number][]{
-  try{
-    const raw = wkt.replace(/LINESTRING\s*\(/i, '').replace(/\)/, '').trim(); // returns the four numbers of the wkt string
-    if(!raw) return [];
-    return raw.split(',').map((pair) => {
-      const [lon, lat] = pair.trim().split(/\s+/).map(Number);
-      return [lon, lat];
-    })
-  }catch{
-    return [];
-  }
-}
-
-function calculateLineLenM(coords: [number, number][]): number{
-  if(coords.length < 2) return 0;
-
-  const EARTH_RAD_M = 6371000;
-
-  let totalDist = 0;
-
-  for (let i = 0; i < coords.length - 1; i ++){
-    const [lon1, lat1] = coords[i];
-    const [lon2, lat2] = coords[i + 1];
-
-    const phi1 = (lat1 * Math.PI) / 180;
-    const phi2 = (lat2 * Math.PI) / 180;
-    const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
-    const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
-
-    const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-    totalDist += EARTH_RAD_M * c;
-  }
-
-  return Math.round(totalDist);
-}
-
-function calculateDirection(coords: [number, number][]): string {
-  if(coords.length < 2) return 'Active Barrier';
-  const [lon1, lat1] = coords[0];
-  const [lon2, lat2] = coords[coords.length - 1];
-
-  const y = Math.sin(((lon2 - lon1) * Math.PI)/180) * Math.cos((lat2 * Math.PI)/180);
-  const x = Math.cos((lat1 * Math.PI) / 180) * Math.sin((lat2 * Math.PI) / 180) -
-    Math.sin((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.cos(((lon2 - lon1) * Math.PI) / 180);
-
-  const brng = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-
-  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-  const idx = Math.round(brng/45) % 8;
-  return dirs[idx];
 }
 
 const mockData: LoggedLine[] = [
@@ -75,42 +16,12 @@ const mockData: LoggedLine[] = [
   { line: 'Line C', direction: 'South Perimeter', info: 'Logged 1 hr ago · 210m' },
 ];
 
-export function LoggedContainmentLine({ cardData = null, lines = [], selectedFireId = null}: CardListProp) {
-  const displayItems = useMemo<LoggedLine[]>(() => {
-    if (cardData && cardData.length > 0) return cardData;
-
-    if(lines && lines.length > 0) {
-      return lines.map((wkt, idx) => {
-        const coords = parseWKTCoords(wkt);
-        const distM = calculateLineLenM(coords);
-        const dir = calculateDirection(coords);
-        const formattedDist = distM >= 1000 ? `${(distM / 1000).toFixed(2)} km` : `${distM} m`
-
-        return {
-          id: `line-${idx}`,
-          line: `Line ${String.fromCharCode(65 + (idx % 26))}`,
-          direction: dir,
-          info: `Active barrier ∙ ${formattedDist} ${selectedFireId ? ` ${selectedFireId}` : ''}`
-        };
-      });
-    }
-
-    return [];
-  }, [cardData, lines, selectedFireId])
-
-  if(displayItems.length === 0){
-    return (
-      <div className='p-3 border border-dashed border-carbon-stroke rounded-xl text-center'>
-        <span className='text-xs text-text-muted'>No containment lines logged for this fire</span>
-      </div>
-    );
-  }
-
+export function LoggedContainmentLine({ cardData = mockData }: CardListProp) {
   return (
     <div className="flex flex-col gap-1 p-1">
-      {displayItems.map((items, idx) => (
+      {cardData.map((items) => (
         <div
-          key={items.id ?? items.line ?? idx}
+          key={items.line}
           className="flex items-center justify-between gap-1 p-1 border border-carbon-stroke rounded-xl"
         >
           <div className="flex items-center gap-2">

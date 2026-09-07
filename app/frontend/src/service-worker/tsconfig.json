@@ -1,7 +1,0 @@
-{
-    "compilerOptions": {
-        "lib": ["esnext", "webworker"],
-        "skipLibCheck": true
-    },
-    "include": ["index.ts"]
-}

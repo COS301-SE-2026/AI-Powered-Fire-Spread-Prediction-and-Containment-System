@@ -3,9 +3,9 @@ from datetime import datetime, timezone
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from app.backend.db import Base
-from app.backend.src.enums.role_request_status import RequestStatus
-from app.backend.src.enums.user_role import UserRole
+from db import Base
+from enums.role_request_status import RequestStatus
+from enums.user_role import UserRole
 
 
 class RoleRequest(Base):

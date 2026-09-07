@@ -11,7 +11,7 @@ from rasterio.merge import merge as rio_merge
 from rasterio.windows import from_bounds
 from rasterio.warp import transform_bounds
 
-from app.ml.features.geo_utils import stream_cropped_raster, OPTIMIZED_GDAL_ENV
+from ml.features.geo_utils import stream_cropped_raster, OPTIMIZED_GDAL_ENV
 
 # Sen2Cor Scene Classification vals, published in 'scl' asset.
 # Use it to mask pixx\els that would otherwise silently corrupt

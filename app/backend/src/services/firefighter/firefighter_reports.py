@@ -2,8 +2,8 @@ from geoalchemy2.shape import to_shape
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from app.backend.src.models.reported_fires import FireReports
-from app.backend.src.models.users import User
+from models.reported_fires import FireReports
+from models.users import User
 
 
 def get_fire_reports(db: Session):

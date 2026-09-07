@@ -3,7 +3,7 @@ import ReportPage from '../../components/reportfire/ReportPage';
 
 export default function FirefighterReportFire() {
   return (
-    <FirefighterSideBar hideLoginRegister>
+    <FirefighterSideBar>
       <ReportPage />
     </FirefighterSideBar>
   );

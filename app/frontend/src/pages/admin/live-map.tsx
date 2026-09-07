@@ -3,7 +3,7 @@ import MapView from '../../components/guest/MapView';
 
 export default function AdminLiveMap() {
   return (
-    <AdminSideBar hideLoginRegister>
+    <AdminSideBar>
       <MapView />
     </AdminSideBar>
   );

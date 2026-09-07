@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from app.backend.src.enums.audit_action import AuditAction
+from enums.audit_action import AuditAction
 
 
 class AuditLogResponse(BaseModel):

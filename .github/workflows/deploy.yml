@@ -3,151 +3,22 @@ name: Deploy to Production
 on:
     push:
         branches:
-                - main
-
-env:
-    AWS_REGION: us-east-1
-    ECR_REGISTRY: 827257544258.dkr.ecr.us-east-1.amazonaws.com
-    BACKEND_REPO: fireaway-backend
-    FRONTEND_REPO: fireaway-frontend
+            - main
 
 jobs:
-    lint:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-            - name: Lint backend
-              run: |
-                cd app/backend
-                pip install --require-hashes -r requirements.txt -r requirements-dev.txt
-                pylint --rcfile=.pylintrc --fail-under=8.0 src main.py db.py startup_migrations.py
-            
-            - name: Lint frontend
-              run: |
-                cd app/frontend
-                corepack enable
-                yarn install --ignore-workspaces --frozen-lockfile
-                yarn lint
-
-    build-and-push:
-        needs: lint
-        runs-on: ubuntu-latest
-        outputs:
-            image_tag: ${{ steps.vars.outputs.image_tag }}
-        steps:
-            - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-
-            - name: Set image tag
-              id: vars
-              run: echo "image_tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
-
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c
-              with:
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                aws-region: ${{ env.AWS_REGION }}
-
-            - name: Login to ECR
-              uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd 
-
-            - name: Build and push backend
-              uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
-              with:
-                context: ./app/backend
-                push: true
-                tags: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.vars.outputs.image_tag }}
-                
-            - name: Build and push frontend
-              uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
-              with: 
-                context: ./app/frontend
-                push: true
-                build-args: |
-                    NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-                    NEXT_PUBLIC_API_URL=https://fireaway.csml.co.za/api
-                tags: ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.vars.outputs.image_tag }}
-
     deploy:
-        needs: build-and-push
         runs-on: ubuntu-latest
+
         steps:
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c 
-              with: 
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                aws-region: ${{ env.AWS_REGION }}
+            - name: Checkout code
+              uses: actions/checkout@v4
 
-            - name: Determine active and idle colour
-              id: colours
-              run: |
-                ACTIVE=$(aws ssm get-parameter --name /prod/active-colour --query 'Parameter.Value' --output text)
-                if [ "$ACTIVE" = "blue" ]; then
-                    IDLE="green"
-                    IDLE_INSTANCE_ID="${{ secrets.PROD_GREEN_INSTANCE_ID }}"
-                else
-                    IDLE="blue"
-                    IDLE_INSTANCE_ID="${{ secrets.PROD_BLUE_INSTANCE_ID }}"
-                fi
-                echo "active=$ACTIVE" >> "$GITHUB_OUTPUT"
-                echo "idle=$IDLE" >> "$GITHUB_OUTPUT"
-                echo "idle_instance_id=$IDLE_INSTANCE_ID" >> "$GITHUB_OUTPUT"
-                echo "Deploying to idle instance: $IDLE ($IDLE_INSTANCE_ID), currently active: $ACTIVE"
-
-            - name: Deploy to idle instances via SSM
-              id: deploy_cmd
-              run: |
-                COMMAND_ID=$(aws ssm send-command \
-                    --instance-ids "${{ steps.colours.outputs.idle_instance_id }}" \
-                    --document-name "AWS-RunShellScript" \
-                    --parameters "commands=[
-                      'sudo git config --global --add safe.directory /home/ubuntu/prod',
-                      'sudo -u ubuntu bash -c \"cd /home/ubuntu/prod && git fetch origin main && git reset --hard origin/main\"',
-                      'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}',
-                      'sudo -u ubuntu bash -c \"echo BACKEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} > /home/ubuntu/prod/deploy.env\"',
-                      'sudo -u ubuntu bash -c \"echo FRONTEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} >> /home/ubuntu/prod/deploy.env\"',
-                      'sudo -u ubuntu bash -c \"echo AWS_REGION=${{ env.AWS_REGION }} >> /home/ubuntu/prod/deploy.env\"',
-                      'docker compose -p prod --env-file /home/ubuntu/prod/.env --env-file /home/ubuntu/prod/deploy.env -f /home/ubuntu/prod/docker-compose.prod.yml pull',
-                      'docker compose -p prod --env-file /home/ubuntu/prod/.env --env-file /home/ubuntu/prod/deploy.env -f /home/ubuntu/prod/docker-compose.prod.yml up -d',
-                      'docker system prune -f'
-                    ]" \
-                    --query 'Command.CommandId' \
-                    --output text)
-                echo "command_id=$COMMAND_ID" >> "$GITHUB_OUTPUT"
-
-            - name: Wait for deploy command to finish
-              run: |
-                aws ssm wait command-executed \
-                    --command-id "${{ steps.deploy_cmd.outputs.command_id }}" \
-                    --instance-id "${{ steps.colours.outputs.idle_instance_id }}" \
-                || (
-                  echo "Deploy command did not succeed - fetching output for debugging"
-                  aws ssm get-command-invocation \
-                    --command-id "${{ steps.deploy_cmd.outputs.command_id }}" \
-                    --instance-id "${{ steps.colours.outputs.idle_instance_id}}"
-                  exit 1
-                )
-
-            - name: Flip Elastic IP to newly-deployed instance
-              run: |
-                aws ec2 associate-address \
-                  --instance-id "${{ steps.colours.outputs.idle_instance_id }}" \
-                  --allocation-id "${{ secrets.PROD_EIP_ALLOCATION_ID }}" \
-                  --allow-reassociation
-            
-            - name: Update active colour in SSM
-              run: |
-                aws ssm put-parameter \
-                  --name /prod/active-colour \
-                  --value "${{ steps.colours.outputs.idle }}" \
-                  --type String \
-                  --overwrite
-
-            - name: Deployment complete
-              run: |
-                echo "Deployed commit ${{ needs.build-and-push.outputs.image_tag }} to ${{ steps.colours.outputs.idle }}"
-                echo "Elastic IP flipped, active colour is now: ${{ steps.colours.outputs.idle }}"
-
-
-        
+            - name: Blue-green deploy to EC2
+              uses: appleboy/ssh-action@v1.0.3
+              with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USER }}
+                key: ${{ secrets.EC2_SSH_KEY }}
+                command_timeout: 30m
+                script: |
+                    bash /home/ubuntu/deploy-bluegreen.sh

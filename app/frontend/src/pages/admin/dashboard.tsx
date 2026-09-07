@@ -99,15 +99,15 @@ export const AdminDashBoardDetailed: React.FC = () => {
 
         <DashboardMetrics metrics={topMetrics} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 w-full p-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
           <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between">
             <div className="w-full">
-              <h2 className="text-medium font-bold uppercase tracking-wider text-text-muted mb-4 font-display">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-4 font-display">
                 Recent Activity
               </h2>
               <div className="divide-y divide-base-300 border-b border-base-300">
                 {activityLog.length === 0 ? (
-                  <div className="py-4 text-center text-medium text-text-muted">
+                  <div className="py-4 text-center text-sm text-base-content/50">
                     No recemt activity
                   </div>
                 ) : (
@@ -116,10 +116,10 @@ export const AdminDashBoardDetailed: React.FC = () => {
                       key={log.id}
                       className="py-3 px-2 flex justify-between items-start space-x-4 my-0.5 hover:bg-base-300 transition-colors"
                     >
-                      <span className="text-medium text-base-content leading-snug">
+                      <span className="text-xs font-medium text-base-content leading-snug">
                         {log.message}
                       </span>
-                      <span className="text-medium font-mono text-base-content/60 whitespace-nowrap pt-0.5">
+                      <span className="text-[11px] font-mono text-base-content/60 whitespace-nowrap pt-0.5">
                         {log.timeAgo}
                       </span>
                     </div>
@@ -129,9 +129,9 @@ export const AdminDashBoardDetailed: React.FC = () => {
             </div>
           </section>
 
-          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px] ">
+          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px]">
             <div className="w-full">
-              <h2 className="text-medium font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
                 Incidents this week
               </h2>
 
@@ -150,7 +150,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
                         className="w-full bg-primary/80 rounded-t-sm border-t border-x border-primary group-hover:bg-primary transition-colors"
                         style={{ height: `${percentageHeight}%`, minHeight: '4px' }}
                       />
-                      <span className="text-medium font-medium text-text-muted mt-2 block font-mono">
+                      <span className="text-[10px] font-medium text-base-content/60 mt-2 block font-mono">
                         {day.day}
                       </span>
                     </div>
@@ -159,7 +159,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-base-300 text-[15px] text-text-muted font-mono flex justify-between">
+            <div className="mt-4 pt-4 border-t border-base-300 text-[11px] text-base-content/50 font-mono flex justify-between">
               <span>Y-Axis Max: {maxCount} Alerts</span>
               <span> Spatial Log Distribution Context</span>
             </div>

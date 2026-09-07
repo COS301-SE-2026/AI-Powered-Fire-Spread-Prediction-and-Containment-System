@@ -3,8 +3,8 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict
 
-from app.backend.src.enums.fire_danger import FireDanger
-from app.backend.src.enums.report_status import ReportStatus
+from enums.fire_danger import FireDanger
+from enums.report_status import ReportStatus
 
 
 class NearbyFire(BaseModel):

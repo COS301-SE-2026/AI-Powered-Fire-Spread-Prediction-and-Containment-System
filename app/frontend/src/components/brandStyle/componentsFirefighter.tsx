@@ -64,9 +64,9 @@ export function ActionCards() {
 }
 
 const dummyFires: NearbyFire[] = [
-  { id: '1', reference_number: 'FIRE_0001', location_text: 'Moreleta Park', distance: 2.4, time_ago: '10 min ago', status: 'verified', lat: -25.8398, lng: 28.2671, boundary_radius: 0.5 },
-  { id: '2', reference_number: 'FIRE_0002', location_text: 'Faerie Glen', distance: 5.1, time_ago: '32 min ago', status: 'pending', lat: -25.7526, lng: 28.3232, boundary_radius: 0.3 },
-  { id: '3', reference_number: 'FIRE_0003', location_text: 'Silver Lakes', distance: 8.7, time_ago: '1 hr ago', status: 'received', lat: -25.7854, lng: 28.3487, boundary_radius: 0.8 },
+  { location_text: 'Moreleta Park', distance: 2.4, time_ago: '10 min ago', status: 'verified' },
+  { location_text: 'Faerie Glen', distance: 5.1, time_ago: '32 min ago', status: 'pending' },
+  { location_text: 'Silver Lakes', distance: 8.7, time_ago: '1 hr ago', status: 'received' },
 ];
 
 export function NearbyReport() {

@@ -2,105 +2,62 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { useRouter } from 'next/router';
-import { LandingNavbar } from '@/components/shared/LandingNavbar';
-import { About } from '@/components/shared/About';
-import { Team } from '@/components/shared/Team';
-import { Features } from '@/components/shared/Features';
 import EmberField from '../components/ui/EmberEffect';
 
-export default function LandingPage() {
+export default function Landing() {
   const router = useRouter();
 
-  return(
-    <div className='relative min-h-screen w-full max-w-full bg-carbon-bg'>
-      
-      <div className='global-atmos'>
-        <div className='ga-bloom-primary'/>
-        <div className='ga-bloom-secondary'/>
-        <div className='ga-bloom-tertiary'/>
-        <EmberField density={45}/>
+  const handleGuest = () => {
+    localStorage.setItem('token', `guest-token-${Date.now()}`);
+    router.push('/guests/live-map');
+  };
+
+  return (
+    <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
+      <div className="global-atmos">
+        <div className="ga-bloom-primary" />
+        <div className="ga-bloom-secondary" />
+        <div className="ga-bloom-tertiary" />
+        <EmberField density={35} />
       </div>
 
-      <LandingNavbar/>
-
-      {/* Section for the top op landing page */}
-      <section id='home' className='relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-6 pt-32 pb-16 max-w-5xl mx-auto'>
-        
-        <div className='relative mb-8 group'>
-          <div className='absolute -inset-6 bg-gradient-to-tr from-primary/30 via-secondary/20 to-accent/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-700 pointer-events-none '/>
-
+      <div className="relative z-10 flex flex-col items-center justify-start min-h-screen p-4 pt-[20vh]">
+        {' '}
+        {/* Logo outside the card */}
+        <div className="mb-8">
           <Image
-            src='/images/logo-large.png'
-            alt='FireAway Large Logo'
-            width={400}
-            height={400}
-            priority
-            className='relative object-contain mx-auto drop-shadow-[0_0_40px_rgba(255,73,4,0.45)] transition-transform duration-500 group-hover:scale-110'
+            src="/images/logo-large.png"
+            alt="Fire Spread Prediction Logo"
+            width={450}
+            height={450}
+            className="mx-auto"
           />
         </div>
-
-        <h1 className='text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight mb-6'>
-          PREDICT THE FLAME. <br/>
-          <span className='text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-accent'>
-            PROTECT YOUR NEIGHBOURS.
-          </span>
-        </h1>
-
-        <p className='text-text-muted text-base sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed font-body'>
-          Machine Learning powered geospatial atmospheric and boundary forecasting built to give firefighters, community leaders, and farmers critical response time.
-        </p>
-
-        <div className='flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto'>
-          <Link
-            href='/start'
-            className='w-full sm:w-auto btn btn-primary uppercase px-10 text-base font-display tracking-wider shadow-lg shadow-primary/25 text-lg hover:shadow-primary/45 transition-all text-white'
-          >
-            GET STARTED
-          </Link>
-          <Link
-            href='/help_menu/help_menu'
-            className='w-full sm:w-auto btn btn-ghost bg-carbon-side/70 border border-carbon-stroke hover:bg-carbon-stroke text-text-primary px-8 text-base font-display uppercase tracking-wide backdrop-blur-sm'
-          >
-            Learn More
-          </Link>
-        </div>
-      </section>
-
-      {/* Section for about of our project */}
-      <section id='about' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
-        <About/>
-      </section>
-
-      {/* Section on the features of our app */}
-      <section id='features' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
-        <Features/>
-      </section>
-
-      {/* Section on team and who we are */}
-      <section id='team' className='min-h-screen relative z-10 py-18 px-6 flex items-center'>
-        <div className='w-full max-w-7xl mx-auto px-6'>
-          {/* Section header */}
-          <div className='text-center max-w-2xl mx-auto mb-16'>
-            <span className='text-base font-mono uppercase tracking-widest text-torch mb-2 inline-block'>
-              The Team
-            </span>
-            <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary font-display'>
-              Meet the people behind FireAway
-            </h2>
+        {/* Card with buttons */}
+        <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm relative overflow-hidden">
+          <h1 className="text-4xl font-bold text-text-primary mb-4">Welcome!</h1>
+          <div className="space-y-4">
+            <Link href="/register" className="mb-4 block">
+              <button type="button" className="w-full btn btn-primary active:scale-90 text-lg">
+                Register
+              </button>
+            </Link>
+            <Link href="/login" className="mb-3 block">
+              <button type="button" className="w-full btn btn-neutral text-lg">
+                Login
+              </button>
+            </Link>
+            <button
+              onClick={handleGuest}
+              className="w-full py-2 text-white/80 hover:text-white transition"
+            >
+              Sign in as Guest
+            </button>
           </div>
-          <Team/>
         </div>
-        
-      </section>
-
-      {/* General footer not sure what to add here yet */}
-      <footer className='footer sm:footer-horizontal footer-center bg-base-300 text-base-content p-4'>
-        <aside>
-          <p>Copyright © {new Date().getFullYear()} - Group Elephant Limited</p>
-        </aside>
-      </footer>
+      </div>
     </div>
-  )
+  );
 }
