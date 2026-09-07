@@ -51,6 +51,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   const [error, setError] = useState<string | null>(null);
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set());
+  const dismissIsRef = useRef<Set<string>>(new Set());
 
   const showToast = useCallback((notification: FireNotification): void => {
     setActiveToast(notification);
@@ -101,7 +102,8 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
         if (options.toastIfNew) {
           const toastCandidate =
-            newlyArrived.find((n) => !n.read) ?? data.notifications.find((n) => !n.read);
+            newlyArrived.find((n) => !n.read && !dismissIsRef.current.has(n.id)) ??
+            data.notifications.find((n) => !n.read && !dismissIsRef.current.has(n.id));
 
           if (toastCandidate) {
             showToast(toastCandidate);
@@ -174,6 +176,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   }, [showToast]);
 
   const markAsRead = useCallback((id: string): void => {
+    dismissIsRef.current.add(id);
     // optimistic local update (UI reflects 'read' immediately rather than waitng on network round trip)
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
 

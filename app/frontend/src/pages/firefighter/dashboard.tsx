@@ -13,6 +13,7 @@ import { useRotate } from '../../hooks/useRotate';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
+import { useMapLink } from '../../hooks/useMapLink';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
@@ -49,7 +50,7 @@ export default function FirefighterDashboard() {
       setLines(prev => prev.filter(l => l.localId !== localId))
     }
   }
-
+  useMapLink(handleSelectFire);
   return (
     <FirefighterSideBar hideLoginRegister>
       <div className="flex flex-col p-2 md:p-6">
@@ -65,7 +66,7 @@ export default function FirefighterDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 md:gap-4 xl:grid-rows-1">
           <div className="xl:col-span-8 flex flex-col gap-3 md:gap-4">
             {/* Map */}
-            <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-96 sm:h-104 md:h-120">
+            <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-96 sm:h-104 md:h-136">
               <div className="p-3 md:p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-sm md:text-m tracking-wide text-text-primary/80">
                   LIVE FIRE MAP
@@ -89,6 +90,7 @@ export default function FirefighterDashboard() {
                   selectedFireLocation={fireLocation}
                   onSelectFire={handleSelectFire}
                   onDeselect={clearSelect}
+                  selectedFireId={fireLocation}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
@@ -110,15 +112,15 @@ export default function FirefighterDashboard() {
           </div>
 
           {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-3" style={{ maxHeight: '100%' }}>
-            <h3 className="font-bold tracking-widest text-text-muted uppercase shrink-0">
-              Nearby Reports
-            </h3>
-            <div
-              className="rounded-2xl bg-carbon-side/40 border border-carbon-card overflow-y-auto max-h-96">
-              <NearbyReports nearbyFires={nearbyFires} selectedFireId={fireLocation} onSelectFire={handleSelectFire} />
+          <div className="xl:col-span-4 flex flex-col gap-3 h-full">
+              <h4 className=" text-text-muted uppercase">
+                Nearby Reports
+              </h4>
+              <div
+                className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
+                <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+              </div>
             </div>
-          </div>
         </div>
       </div>
     </FirefighterSideBar>

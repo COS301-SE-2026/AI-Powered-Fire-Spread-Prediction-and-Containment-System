@@ -17,6 +17,7 @@ def get_fire_reports(db: Session):
         shape = to_shape(fire.location_geom)
         formatted.append(
             {
+                "id": fire.id,
                 "reference_number": fire.reference_number,
                 "location_text": fire.location_text,
                 "status": fire.status,
@@ -55,6 +56,7 @@ def search_report_table(db: Session, key: str):
         shape = to_shape(fire.location_geom)
         formatted.append(
             {
+                "id": fire.id,
                 "reference_number": fire.reference_number,
                 "location_text": fire.location_text,
                 "status": fire.status,
