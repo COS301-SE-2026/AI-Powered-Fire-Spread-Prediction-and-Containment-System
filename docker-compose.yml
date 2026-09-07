@@ -67,7 +67,8 @@ services:
       VALKEY_PORT: "6379"
       AWS_REGION: ${AWS_REGION}
       INFERENCE_QUEUE_URL: ${INFERENCE_QUEUE_URL:?set in .env}
-      ARTIFACTS_S3_BUCKET: ${ARTIFACTS_S3_BUCKET:-fire-system-artifacts}
+      ARTIFACTS_S3_BUCKET: ${ARTIFACTS_S3_BUCKET:-fireaway-ryan-artifacts}
+      RESULTS_QUEUE_URL: ${RESULTS_QUEUE_URL:?set in .env}
       ARTIFACTS_ROOT: /mnt/fire-system-artifacts
     restart: unless-stopped
     depends_on:
@@ -92,7 +93,7 @@ services:
     build:
       context: .
       dockerfile: app/frontend/Dockerfile
-      target: runner
+      target: prod
       args:
         NEXT_PUBLIC_API_URL: ""
         NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:?}
