@@ -1,0 +1,30 @@
+services:
+  gateway:
+    ports:
+      - "127.0.0.1:3000:80"
+
+  backend:
+    build: { target: dev }
+    cap_add: [SYS_PTRACE]
+    volumes:
+      - ./app/__init__.py:/app/app/__init__.py:ro
+      - ./app/backend:/app/app/backend
+      - ./app/artifact_store:/app/app/artifact_store
+    ports: ["127.0.0.1:8000:8000"]
+    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+  
+  frontend:
+    build: { target: dev }
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./app/frontend:/app
+      - frontend_node_modules:/app/node_modules
+    command: ["sh", "-c", "yarn install --prefer-offline --frozen-lockfile && yarn dev -H 0.0.0.0"]
+
+  postgres:
+    ports: ["127.0.0.1:5432:5432"]
+  minio:
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+  valkey:
+    ports: ["127.0.0.1:6379:6379"]

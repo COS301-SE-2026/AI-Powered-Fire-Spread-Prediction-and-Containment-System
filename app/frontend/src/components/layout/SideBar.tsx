@@ -1,7 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { Settings, LogOut, UserCircle } from 'lucide-react';
-import { logout } from '../../lib/api';
+import { LogOut, UserCircle, HelpCircle, Menu } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { headers } from 'next/headers';
+import { useRouter } from 'next/router';
+import { logout } from '@/lib/api';
+import { NavLink } from './NavLink';
 
 export function SideBar({
   items,

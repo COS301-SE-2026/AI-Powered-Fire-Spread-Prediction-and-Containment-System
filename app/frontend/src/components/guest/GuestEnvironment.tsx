@@ -15,7 +15,7 @@ export function GuestEnvironment({ data }: { readonly data: EnvironmentVariables
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2">
       <StatCard
         label="Temperature"
         value={temperature !== undefined ? `${temperature}°C` : '--'}

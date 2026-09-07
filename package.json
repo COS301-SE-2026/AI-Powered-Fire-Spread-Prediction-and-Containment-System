@@ -2,6 +2,7 @@
   "name": "fire-spread-monorepo",
   "packageManager": "yarn@1.22.22",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "workspaces": [
     "app/backend/src",
     "app/frontend/src",
