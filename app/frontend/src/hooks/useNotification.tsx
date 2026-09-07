@@ -8,6 +8,7 @@ import React, {
   useRef,
 } from 'react';
 import type { FireNotification } from '../types/Notifications';
+import { usePathname } from 'next/navigation'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -45,6 +46,8 @@ interface NotificationListResponse {
 }
 
 export function NotificationsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register';
   const [notifications, setNotifications] = useState<readonly FireNotification[]>([]);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
@@ -122,6 +125,10 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
+    if (isAuthPage){
+      return;
+    }
+
     let cancelled = false;
 
     async function initialLoad() {
@@ -139,13 +146,16 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       cancelled = true;
     };
-  }, [fetchNotifications]);
+  }, [fetchNotifications, isAuthPage]);
 
   // Live push over WebSocket. Auth comes from same access_token cookie
   // REST calls use, browsers attach it to WS handshake automatically so no token neeeds to be passed here
   useEffect(() => {
-    const ws = new WebSocket(getWebSocketUrl('/api/notifications/ws'));
+    if (isAuthPage) {
+      return;
+    }
 
+    const ws = new WebSocket(getWebSocketUrl('/api/notifications/ws'));
     ws.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
@@ -171,7 +181,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       ws.close();
     };
-  }, [showToast]);
+  }, [showToast, isAuthPage]);
 
   const markAsRead = useCallback((id: string): void => {
     // optimistic local update (UI reflects 'read' immediately rather than waitng on network round trip)
