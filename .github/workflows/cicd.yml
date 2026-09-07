@@ -7,6 +7,9 @@ jobs:
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
       JWT_SECRET_KEY: your-super-secret-key-change-this
@@ -23,21 +26,29 @@ jobs:
       - uses: ./.github/actions/setup-backend
       
       - name: Run unit tests
+        env:
+          PYTHONPATH: .
         run: |
           coverage erase
           pytest -c app/backend/testing/pytest.ini \
-                 --cov=app/backend --cov-report=xml \
+                 --cov \
+                 --cov-report=term \
+                 --cov-report=xml:app/backend/testing/coverage.xml \
                  app/backend/testing/unit
       
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERAGE_PATH: app/backend/testing
+          SUBPROJECT_ID: unit
+          COVERAGE_PATH: "."
 
   backend-integration-tests:
     name: Backend Integration Tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     services:
       postgres:
         image: postgis/postgis@sha256:a2fc46b52819d25add4ed93d3da83e106e17ea3ace6883cce3791631c9820bb2
@@ -84,8 +95,6 @@ jobs:
       MINIO_BUCKET: fire-reports
       VALKEY_HOST: localhost
       VALKEY_PORT: 6379
-      SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
-      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -93,17 +102,22 @@ jobs:
       - uses: ./.github/actions/setup-backend
 
       - name: Run integration tests
+        env:
+          PYTHONPATH: .
         run: |
-          coverage erase
+          coverage erase 
           pytest -c app/backend/testing/pytest.ini \
-                 --cov=app/backend --cov-report=xml \
+                 --cov \
+                 --cov-report=term \
+                 --cov-report=xml:app/backend/testing/coverage.xml \
                  app/backend/testing/integration
 
       - name: Post coverage comment
         uses: py-cov-action/python-coverage-comment-action@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERAGE_PATH: app/backend/testing
+          SUBPROJECT_ID: integration
+          COVERAGE_PATH: "."
 
           
 
@@ -117,7 +131,7 @@ jobs:
       - uses: ./.github/actions/setup-backend
 
       - name: Run pylint
-        run: PYTHONPATH=. pylint --recursive=y app --fail-under=8.0
+        run: PYTHONPATH=. pylint --rcfile=app/backend/.pylintrc --recursive=y app --fail-under=8.0
 
   frontend-build:
     name: Frontend Build
@@ -240,12 +254,19 @@ jobs:
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'ci-test-key'}}
           VALKEY_HOST: localhost
           VALKEY_PORT: 6379
+          SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
         run: |
-          PYTHONPATH=. uvicorn app.backend.main:app --host 0.0.0.0 --port 8000 &
+          PYTHONPATH=. nohup uvicorn app.backend.main:app --host 0.0.0.0 --port 8000 > /tmp/uvicorn.log 2>&1 &
           for i in {1..30}; do
-            curl -sf http://localhost:8000/health > /dev/null && break
+            curl -sf http://127.0.0.1:8000/health > /dev/null && break
             sleep 1
           done
+          if ! curl -sf http://127.0.0.1:8000/health > /dev/null; then
+            echo "backend failed to launch"
+            cat /tmp/uvicorn.log
+            exit 1
+          fi
 
       - name: Set up Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 

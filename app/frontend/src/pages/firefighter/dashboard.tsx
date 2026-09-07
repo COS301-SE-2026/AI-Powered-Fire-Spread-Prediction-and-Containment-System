@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports } from '../../components/shared/nearbyReports';
@@ -19,11 +20,35 @@ export default function FirefighterDashboard() {
   const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
+  const [lines, setLines] = useState<LocalLine[]>([])
   const {
     submitLine,
     loading: savingLine,
     error: lineError,
-  } = useContainmentLine(() => setDrawMode(false));
+    fetchLines,
+    deleteLine
+  } = useContainmentLine();
+
+  async function handleDrawComplete(wkt: string) {
+    const localId = crypto.randomUUID();
+    setLines(prev => [...prev, {
+      localId, dbId: null, wkt, fireReportId: null, synced: false,
+    }]);
+    setDrawMode(false);
+
+    try{
+      const saved = await submitLine({wkt});
+      if(!saved?.id){
+        setLines(prev => prev.filter(l => l.localId !== localId))
+        return;
+      }
+      setLines(prev => prev.map(l =>
+        l.localId === localId ? {...l, dbId: saved.id, fireReportId: saved.fire_report_id, synced: true} : l
+      ));
+    }catch {
+      setLines(prev => prev.filter(l => l.localId !== localId))
+    }
+  }
 
   return (
     <FirefighterSideBar hideLoginRegister>
@@ -58,7 +83,8 @@ export default function FirefighterDashboard() {
                   lat={userLocation.lat}
                   lng={userLocation.lng}
                   drawMode={drawMode}
-                  onDrawComplete={submitLine}
+                  onDrawComplete={handleDrawComplete}
+                  lines={lines}
                   clearDrawings={clearDrawings}
                   selectedFireLocation={fireLocation}
                   onSelectFire={handleSelectFire}

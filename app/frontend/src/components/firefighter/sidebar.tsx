@@ -1,7 +1,6 @@
-import React from 'react';
 import { BookAlert, Map, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 import { logout } from '@/lib/api';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export function SidebarLayout({ children = undefined }: { children?: React.ReactNode }) {
   const [loggingOut, setLoggingOut] = useState(false)

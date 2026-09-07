@@ -20,8 +20,8 @@ for cand in (here.parents[2] / "backend_src", here.parents[2]):
     if cand.is_dir() and str(cand) not in sys.path:
         sys.path.insert(0, str(cand))
 
-from ai.features import grid_to_fmatrix
-from ai.schema import BURNED, BURNING, FEATURES, LABEL, UNBURNED
+from app.backend.src.ai.features import grid_to_fmatrix
+from app.backend.src.ai.schema import BURNED, BURNING, FEATURES, LABEL, UNBURNED
 
 EARTH_RADIUS_KM = 6371.0088
 

@@ -329,7 +329,7 @@ def main() -> None:
     if not npz_paths:
         raise FileNotFoundError(
             f"No weather_tensors_*.npz found in {cfg.weather_tensors_dir} — "
-            "run app.ml.training.build_weather_dataset first."
+            "run app.backend.ml.training.build_weather_dataset first."
         )
 
     static_path = Path(cfg.static_tensor_path)

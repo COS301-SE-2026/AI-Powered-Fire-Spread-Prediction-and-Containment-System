@@ -57,7 +57,7 @@ def test_convlstm_training_pipeline_integration(integration_env, monkeypatch):
             return Path(integration_env["artifacts_dir"])
         return Path(path_str)
 
-    monkeypatch.setattr("app.ml.training.train_convlstm.Path", mock_path)
+    monkeypatch.setattr("app.backend.ml.training.train_convlstm.Path", mock_path)
 
     # build normalizers using the data
     raw_norm, delta_norm = build_normalizers(

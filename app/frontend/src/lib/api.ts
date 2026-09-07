@@ -15,7 +15,10 @@ export async function apiCall(endpoint: string, method: string = 'GET', body: un
   const hasJson = contentType && contentType.includes('application/json');
   const data = hasJson ? await res.json().catch(() => null) : null;
 
-  if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+  if (!res.ok){
+    const detail = (data && typeof data === 'object' && 'detail' in data ? String(data.detail) : null) ?? `Request failed(${res.status})`;
+    throw new Error(detail);
+  } 
   return data;
 }
 
