@@ -6,6 +6,7 @@ from io import BytesIO
 from typing import Optional
 
 from minio import Minio
+from minio.error import S3Error
 
 minio_client = Minio(
     os.getenv("MINIO_ENDPOINT"),
@@ -30,8 +31,12 @@ MAX_SIZE_MB = 10
 
 
 def ensure_bucket():
-    if not minio_client.bucket_exists(BUCKET):
-        minio_client.make_bucket(BUCKET)
+    try:
+        if not minio_client.bucket_exists(BUCKET):
+            minio_client.make_bucket(BUCKET)
+    except S3Error as err:
+        if err.code not in ("BucketAlreadyOwnedByYou", "BucketAlreadyExists"):
+            raise
 
 
 def validate_image(content_type: str, size_bytes: int):

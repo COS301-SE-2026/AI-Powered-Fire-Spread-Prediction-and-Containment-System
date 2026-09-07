@@ -10,8 +10,8 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 
 engine = create_engine(
     DATABASE_URL,
-    pool_size=90,
-    max_overflow=35, # pool_size*max_overflow = 50 per worker
+    pool_size=10,
+    max_overflow=5, # pool_size*max_overflow = 50 per worker
     pool_timeout=30,
     pool_recycle=1800,
     pool_pre_ping=True,
