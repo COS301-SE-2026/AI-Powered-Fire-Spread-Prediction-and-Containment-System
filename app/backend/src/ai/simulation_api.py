@@ -19,12 +19,8 @@ from models.reported_fires import FireReports
 from .dca import run_dca
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
-from app.backend.ml.features.real_data_loader import load_real_inference_data
-from app.backend.src.ai.simulation import build_boundary_ignition_mask
-from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
-from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
-from app.backend.src.models.containment_lines import ContainmentLines
-from collections import defaultdict
+from ml.features.real_data_loader import load_real_inference_data
+from .simulation import build_boundary_ignition_mask
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -115,28 +111,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         cell_size_lon_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(fire.lat))
         cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2 # average of the 2
 
-    cache_key = build_fire_cache_key(
-        ref=fire.reference_number,
-        lat=fire.lat,
-        lng=fire.lng,
-        boundary_radius_m=boundary_m,
-        n_steps=automatic_steps,
-        cell_size_m=cell_size_m,
-        containment_lines=tuple(sorted(lines)),
-    )
-
-    cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
-    if cached_result is not None:
-        return Prediction(**cached_result)
-
-    async with semaphore:
-        cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
-        if cached_result is not None:
-            return Prediction(**cached_result)
-
-        resolved = await asyncio.to_thread(
-            resolve_tile_paths, min_lon, min_lat, max_lon, max_lat
-        )
+        resolved = await asyncio.to_thread(resolve_tile_paths,min_lon, min_lat, max_lon, max_lat)
 
         static_grids, weather_grids = await load_real_inference_data(
             b04_path=resolved.b04_path,
@@ -215,31 +190,12 @@ async def run_simulation(
         .filter(FireReports.status == ReportStatus.verified)
         .all()
     )
-    fire_ids = [f.id for f in verified_fires]
-    lines_by_fire: dict[str, list[str]] = defaultdict(list)
-
-    if fire_ids:
-        rows = (
-            db.query(
-                ContainmentLines.fire_report_id,
-                func.ST_AsText(ContainmentLines.line_geom),
-            )
-            .filter(ContainmentLines.fire_report_id.in_(fire_ids))
-            .all()
-        )
-        for fire_report_id, wkt in rows:
-            lines_by_fire[fire_report_id].append(wkt)
 
     automatic_steps = 4
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     predictions = await asyncio.gather(
-        *(
-            simulate_single_fire(
-                fire, automatic_steps, semaphore, list(dict.fromkeys(lines_by_fire.get(fire.id, []) + (req.containment_lines or [])))
-            )
-            for fire in verified_fires
-        )
+        *(simulate_single_fire(fire, automatic_steps, semaphore) for fire in verified_fires)
     )
 
     n_steps_run = max((len(p.history) for p in predictions), default = 0)
@@ -264,7 +220,7 @@ async def run_single_fire_simulation(
     Endpiont for spread on a single spread which spreads for 72 hours
 
     Runs the 72 hour spread which is 288 ticks for a fire selected on the map
-    """ 
+    """
 
     fire = (
         db.query(
@@ -274,26 +230,12 @@ async def run_single_fire_simulation(
             func.ST_X(FireReports.location_geom).label("lng"),
             FireReports.boundary_radius
         )
-        .filter(
-            FireReports.id == fire_id,
-            FireReports.status == ReportStatus.verified,
-        )
+        .filter(FireReports.reference_number == fire_id, FireReports.status == ReportStatus.verified)
         .first()
     )
 
     if fire is None:
         raise HTTPException(status_code=404, detail=f"Verified fire {fire_id} not found")
 
-    persisted = [
-            wkt
-            for (wkt,) in db.query(func.ST_AsText(ContainmentLines.line_geom))
-            .filter(ContainmentLines.fire_report_id == fire.id)
-            .all()
-        ]
-    
-    lines = list(dict.fromkeys(persisted + (req.containment_lines or [])))
-
     semaphore = asyncio.Semaphore(1)
-    return await simulate_single_fire(
-        fire, req.n_steps, semaphore, lines
-    )
+    return await simulate_single_fire(fire, req.n_steps, semaphore)

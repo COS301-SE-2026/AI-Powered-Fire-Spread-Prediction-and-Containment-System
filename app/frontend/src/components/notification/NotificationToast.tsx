@@ -14,15 +14,14 @@ type NotificationToastProps = Readonly<{
 }>;
 
 const TOAST_STYLE: Record<FireNotification['type'], string> = {
-  alert: 'border-error bg-carbon-side',
-  update: 'border-info bg-carbon-side',
+  alert: 'border-error bg-error/10 backdrop-blur-md',
+  update: 'border-info bg-info/10 backdrop-blur-md',
 };
 
 export function NotificationToast({ notification, onDismiss }: NotificationToastProps) {
-  const { role, isLoading: isAuthLoading } = useAuth();
+  const { role } = useAuth();
   const { type, fireLocation, distance, message, fireId, time } = notification;
   const mapLink = NotificationLink(fireId, role);
-  const isLive = mapLink.startsWith('/admin/live-map');
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, AUTO_DISMISS_MS);
@@ -39,33 +38,17 @@ export function NotificationToast({ notification, onDismiss }: NotificationToast
     headline = `Fire Update: ${message}`;
   }
 
-  const linkContent = (
-    <>
-      <h3 className="text-sm font-semibold text-text-primary">{headline}</h3>
-      <p className="text-xs text-text-primary">{fireLocation}</p>
-      <p className="text-xs text-text-primary">
-        {distance} km | {FormatDate(time)}
-      </p>
-      {!isAuthLoading && (
-        <p className="text-xs font-semibold text-error underline mt-1">View on map</p>
-      )}
-    </>
-  );
-
   return (
-    <div className={`alert border-2 shadow-lg max-w-72 ${TOAST_STYLE[type]}`}>
+    <div className={`alert border shadow-lg max-w-sm ${TOAST_STYLE[type]}`}>
       {icon}
-      {isAuthLoading ? (
-        <div className='flex-1'>{linkContent}</div>
-      ) : isLive ? (
-        <a href={mapLink} onClick={onDismiss} className="flex-1">
-          {linkContent}
-        </a>
-      ) : (
-        <Link href={mapLink} onClick={onDismiss} className="flex-1">
-          {linkContent}
-        </Link>
-      )}
+      <Link href={mapLink} onClick={onDismiss} className="flex-1">
+        <h3 className="text-sm font-semibold text-text-primary">{headline}</h3>
+        <p className="text-xs text-text-primary">{fireLocation}</p>
+        <p className="text-xs text-text-primary">
+          {distance} km | {FormatDate(time)}
+        </p>
+        <p className="text-xs font-semibold text-error underline mt-1">View on map</p>
+      </Link>
       <button
         type="button"
         onClick={onDismiss}

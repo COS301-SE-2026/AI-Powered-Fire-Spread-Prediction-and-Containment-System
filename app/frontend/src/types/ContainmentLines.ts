@@ -1,4 +1,4 @@
-export interface ContainmentLine {
+export interface ContainmentLines {
   id: string;
   fire_report_id: string;
   line_geom: string;
@@ -6,18 +6,10 @@ export interface ContainmentLine {
 }
 
 export interface ContainmentLinesList {
-  data: ContainmentLine[];
+  data: ContainmentLines[];
   total: number;
 }
 
 export interface CreateContainmentLine {
   wkt: string;
-}
-
-export interface LocalLine {
-  localId: string;
-  dbId: string | null;
-  wkt: string;
-  fireReportId: string | null,
-  synced: boolean,
 }

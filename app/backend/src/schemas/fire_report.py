@@ -41,7 +41,7 @@ class FireReportDetailResponse(BaseModel):
     lng: float
     location_text: str
     description: Optional[str] = None
-    image_url: Optional[str] = None
+    image_url: str
     status: ReportStatus
     boundary_radius: float
     size: float
@@ -49,8 +49,8 @@ class FireReportDetailResponse(BaseModel):
     reporter_name: Optional[str] = None
 
     # for auto fire report verification
-    priority: Optional[ReportPriority] = None
-    system_verified: Optional[bool] = False
+    priority: ReportPriority
+    system_verified: bool
     verification_notes: Optional[str] = None
 
     class Config:

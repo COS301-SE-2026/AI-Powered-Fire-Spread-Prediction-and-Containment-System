@@ -7,7 +7,6 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { usePathname } from 'next/navigation';
 import type { FireNotification } from '../types/Notifications';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
@@ -46,15 +45,12 @@ interface NotificationListResponse {
 }
 
 export function NotificationsProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/register';
   const [notifications, setNotifications] = useState<readonly FireNotification[]>([]);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set());
-  const dismissIsRef = useRef<Set<string>>(new Set());
 
   const showToast = useCallback((notification: FireNotification): void => {
     setActiveToast(notification);
@@ -105,8 +101,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
         if (options.toastIfNew) {
           const toastCandidate =
-            newlyArrived.find((n) => !n.read && !dismissIsRef.current.has(n.id)) ??
-            data.notifications.find((n) => !n.read && !dismissIsRef.current.has(n.id));
+            newlyArrived.find((n) => !n.read) ?? data.notifications.find((n) => !n.read);
 
           if (toastCandidate) {
             showToast(toastCandidate);
@@ -127,10 +122,6 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
-    if (isAuthPage){
-      return;
-    }
-
     let cancelled = false;
 
     async function initialLoad() {
@@ -148,16 +139,13 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       cancelled = true;
     };
-  }, [fetchNotifications, isAuthPage]);
+  }, [fetchNotifications]);
 
   // Live push over WebSocket. Auth comes from same access_token cookie
   // REST calls use, browsers attach it to WS handshake automatically so no token neeeds to be passed here
   useEffect(() => {
-    if (isAuthPage) {
-      return;
-    }
-
     const ws = new WebSocket(getWebSocketUrl('/api/notifications/ws'));
+
     ws.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
@@ -183,10 +171,9 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       ws.close();
     };
-  }, [showToast, isAuthPage]);
+  }, [showToast]);
 
   const markAsRead = useCallback((id: string): void => {
-    dismissIsRef.current.add(id);
     // optimistic local update (UI reflects 'read' immediately rather than waitng on network round trip)
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
 

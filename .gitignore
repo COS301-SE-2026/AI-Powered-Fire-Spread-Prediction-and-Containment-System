@@ -19,10 +19,7 @@ __pycache__/
 *.pyc
 
 # Tests
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
+coverage/
 test-results/
 playwright-report/
 
@@ -52,8 +49,6 @@ artifact_store/ignition/
 venv312/
 
 app/datasets/raw_data/*
-app/backend/testing/*.log
-app/backend/testing/*.html
 
 app/datasets/raw_data/*
 !app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv

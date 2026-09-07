@@ -8,7 +8,7 @@ export function NotificationToastHost() {
   if (!activeToast) return null;
 
   return (
-    <div className='toast toast-top toast-end z-[200] mt-14'>
+    <div className="fixed top-4 right-4 z-50">
       <NotificationToast notification={activeToast} onDismiss={dismissToast} />
     </div>
   );

@@ -87,38 +87,32 @@ export function useSimulation() {
             try {
                 let data: SimulationResult;
 
-        const req = {
-          n_steps: nSteps,
-          containment_lines: containmentLines,
-        }
-
-        if (fireId) {
-          const resp = await fetch(`${API_BASE}/simulate/fire/${fireId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req),
-            signal: controller.signal,
-          });
+                if(fireId) {
+                    const resp = await fetch(`${API_BASE}/api/simulate/fire/${fireId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json'},
+                        body: JSON.stringify({n_steps : nSteps}),
+                        signal: controller.signal,
+                    });
 
                     if(!resp.ok) {
                         const detail = await resp.text();
                         throw new Error(`Simulation failed ${resp.status}: ${detail}`);
                     }
 
-          const prediction: Prediction = await resp.json();
-          data = { predictions: [prediction], n_steps_run: prediction.history.length }
-        } else {
-          const resp = await fetch(`${API_BASE}/simulate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(req),
-            signal: controller.signal,
-          });
-
-          if (!resp.ok) {
-            const detail = await resp.text()
-            throw new Error(`Simulation failed ${resp.status}: ${detail}`)
-          }
+                    const prediction: Prediction = await resp.json();
+                    data = {predictions: [prediction], n_steps_run: prediction.history.length}
+                } else{
+                    const resp = await fetch(`${API_BASE}/api/simulate`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json' },
+                        signal: controller.signal,
+                    });
+                    
+                    if (!resp.ok) {
+                      const detail = await resp.text()
+                      throw new Error(`Simulation failed ${resp.status}: ${detail}`)
+                    }
 
                     data = await resp.json();
                 }

@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from app.backend.src.models.users import User
 
 from geoalchemy2 import Geometry
 from sqlalchemy import (
@@ -23,7 +22,6 @@ from enums.report_priority import ReportPriority
 
 class FireReports(Base):
     __tablename__ = "fire_reports"
-    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True)
     reference_number = Column(String(20), unique=True, nullable=False)
@@ -42,7 +40,6 @@ class FireReports(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
-        index=True,
     )
     updated_at = Column(
         DateTime(timezone=True),
@@ -51,7 +48,7 @@ class FireReports(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    user = relationship(User, back_populates="fire_reports")
+    user = relationship("User", back_populates="fire_reports")
     containment_lines = relationship("ContainmentLines", back_populates="fire_report")
 
     # for the autoverification of fire reports

@@ -3,19 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.backend.db import get_db
-from app.backend.src.schemas.containment_lines import (
-    ContainmentLines,
-    CreateContainmentLine,
-    ContainmentLinesList
-)
-from app.backend.src.schemas.firefighter_dashboard import DashboardData
-from app.backend.src.schemas.fuel_conditions import FuelConditions
-from app.backend.src.services.firefighter import (
-    containment_lines,
-    firefighter_dashboard,
-    fuel_conditions,
-)
+from db import get_db
+from schemas.containment_lines import ContainmentLines, CreateContainmentLine
+from schemas.firefighter_dashboard import DashboardData
+from services.firefighter import containment_lines, firefighter_dashboard
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
@@ -63,37 +54,3 @@ def add_containment_line(line: CreateContainmentLine, db: Session = Depends(get_
         return containment_lines.create_containment_line(db, line.wkt)
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
-
-
-@router.get(
-    "/containment-lines/{fire_ref}",
-    response_model=ContainmentLinesList,
-    responses={404: {"description": "Fire not found"}},
-)
-def get_containment_lines(fire_ref: str, db: Session = Depends(get_db)):
-    try:
-        return containment_lines.get_lines_for_fire(db, fire_ref)
-    except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
-
-@router.delete(
-    "/containment-line/{line_id}",
-    status_code=204,
-    responses={404: {"description": "Containment line not found"}}
-)
-def remove_containment_line(line_id: str, db: Session = Depends(get_db)):
-    try:
-        containment_lines.delete_containment_line(db, line_id)
-    except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
-
-@router.get(
-    "/fuel-conditions",
-    response_model=FuelConditions,
-    responses={503: {"description": "Weather service unavailiable"}}
-)
-def get_fuel_conditions(lat: float, lng: float):
-    try:
-        return fuel_conditions.get_fuel_conditions(lat, lng)
-    except ValueError as error:
-        raise HTTPException(status_code=503, detail=str(error))

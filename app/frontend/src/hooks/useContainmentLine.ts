@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { CreateContainmentLine, ContainmentLine } from '../types/ContainmentLines';
+import type { CreateContainmentLine, ContainmentLines } from '../types/ContainmentLines';
 import { apiCall } from '../lib/api';
 
 export function useContainmentLine(onDraw: () => void) {
@@ -7,43 +7,26 @@ export function useContainmentLine(onDraw: () => void) {
   const [error, setError] = useState<string | null>(null);
 
   const submitLine = useCallback(
-    async (body: CreateContainmentLine): Promise<ContainmentLine> => {
+    async (wkt: string): Promise<ContainmentLines | null> => {
       setLoading(true);
       setError(null);
-      try{
-        return await apiCall('/api/firefighter/containment-line', 'POST', body);
-      }catch(err: unknown){
-        const message = err instanceof Error ? err.message : 'unknown error';
-        console.error('Failed to save containment line', err);
+      try {
+        const saved: ContainmentLines = await apiCall('/api/firefighter/containment-line', 'POST', {
+          wkt,
+        } satisfies CreateContainmentLine);
+        onDraw();
+        return saved;
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Failed to save the containment line', err);
         setError(message);
-        throw err;
-      }finally{
+        return null;
+      } finally {
         setLoading(false);
-        onDraw?.();
       }
     },
     [onDraw]
   );
 
-  const fetchLines = useCallback(
-    async (fireRef: string): Promise<ContainmentLine[]> => {
-      try{
-        const resp = await apiCall(
-          `/api/firefighter/containment-lines/${encodeURIComponent(fireRef)}`
-        );
-        return resp?.data ?? [];
-      }catch (err){
-        console.error('Failed to load containment lines', err);
-        return [];
-      }
-    }, []
-  )
-
-  const deleteLine = useCallback(async (lineId: string): Promise<void> => {
-    await apiCall(`/api/firefighter/containment-line/${encodeURIComponent(lineId)}`, 'DELETE')
-  }, [])
-
-  return { submitLine, fetchLines, loading, error, deleteLine};
-
- 
+  return { submitLine, loading, error };
 }
