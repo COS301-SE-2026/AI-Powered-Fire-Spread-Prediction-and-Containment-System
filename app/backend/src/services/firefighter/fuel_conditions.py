@@ -50,7 +50,7 @@ def lowveld_fdi(temp_c: float, rh_pct: float, wind_kmh: float, kbdi: float) -> f
     Lowveld danger index
     """
 
-    bi = max(0.0, min(100.0, (temp_c - rh_pct / 1.7) + 30.0))
+    bi = max(5.0, min(100.0, (temp_c - rh_pct / 1.7) + 30.0))
 
     if wind_kmh <= 5:
         wind_factor = 1.0
@@ -86,7 +86,7 @@ def fuel_dryness(kbdi: float, recent_rain_mm: float, fuel: str) -> float:
 
     tau = FUEL_REPONSE_TAU.get(fuel, 7.0)
     fast = math.exp(-recent_rain_mm/ (tau * 0.8))
-    slow = kbdi / 800.0
+    slow = kbdi / KBDI_MAX
 
     return round(min(1.0, 0.6 * fast + 0.4 * slow), 2)
 
@@ -168,15 +168,15 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
     )
 
     band, color = fdi_bands(fdi)
-
-    now_idx = min(31 * 24, len(hourly["time"]) - 1)
+    current_hour = current["time"][:13]
+    now_idx = next((i for i, t in enumerate(hourly["time"]) if t.startswith(current_hour)), min(31 * 24, len(hourly["time"]) - 1))
 
     forecast = [
         {
             "time": hourly["time"][i],
             "temperature": hourly["temperature_2m"][i],
             "humidity": hourly["relative_humidity_2m"][i],
-            "precipitation": hourly["precipitation"][i],
+            "precipitation": hourly["precipitation"][i] or 0.0,
             "wind_speed": hourly["wind_speed_10m"][i],
             "wind_direction": hourly["wind_direction_10m"][i],
             "wind_gusts": hourly["wind_gusts_10m"][i],
