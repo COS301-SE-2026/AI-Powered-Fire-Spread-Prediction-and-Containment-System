@@ -2,7 +2,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export async function apiCall(endpoint: string, method: string = 'GET', body: unknown = null) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint: `/${endpoint}`;
-  const url = `${API_URL}${cleanEndpoint}`
+  const base = API_URL.endsWith('/api') && cleanEndpoint.startsWith('/api/') ? API_URL.slice(0,-4) : API_URL;
+  const url = `${base}${cleanEndpoint}`
 
   const res = await fetch(url, {
     method,
