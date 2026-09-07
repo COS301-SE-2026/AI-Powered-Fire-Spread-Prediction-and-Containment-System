@@ -26,7 +26,7 @@ def corroborating_reports(report: FireReports, session: Session) -> list[str]:
     report_point_wkt = f"SRID=4326;{to_shape(report.location_geom).wkt}"
 
     identity = (
-        FireReports.user_id.is_not(None)
+        True
         if report.user_id is None
         else FireReports.user_id != report.user_id
     )

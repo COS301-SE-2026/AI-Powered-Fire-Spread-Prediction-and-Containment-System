@@ -11,7 +11,7 @@ export default function RegisteredReportFire() {
     </>
   );
   return (
-    <SideBar items={guestNavItems}>
+    <SideBar items={guestNavItems} hideLogout hideLoginRegister={false}>
       <ReportPage showHeaderIcons={false} />
     </SideBar>
   );

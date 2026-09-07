@@ -219,7 +219,7 @@ def test_abnormal_rate_under_treshold_return_false(db):
     assert abnormal_rate(report, db) is False
 
 
-def test_abnormal_rate_over_treshold_return_false(db):
+def test_abnormal_rate_over_treshold_return_true(db):
     """more than rate limmit max should trigger signal"""
     user = make_user(db)
     now = datetime.now(timezone.utc)

@@ -19,7 +19,10 @@ __pycache__/
 *.pyc
 
 # Tests
-coverage/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
 test-results/
 playwright-report/
 
@@ -49,6 +52,8 @@ venv/
 venv312/
 
 app/datasets/raw_data/*
+app/backend/testing/*.log
+app/backend/testing/*.html
 
 app/datasets/raw_data/*
 !app/datasets/raw_data/fire_nrt_J2V-C2_778685.csv
@@ -71,3 +76,5 @@ ml/checkpoints/
 
 app/gpu-worker/.env
 app/gpu-worker/venv/
+
+**/.env

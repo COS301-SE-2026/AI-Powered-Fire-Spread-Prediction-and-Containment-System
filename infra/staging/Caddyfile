@@ -1,0 +1,12 @@
+staging-fireaway.csml.co.za {
+    handle /api/* {
+        reverse_proxy staging-python-backend:8001
+    }
+    handle /health {
+        reverse_proxy staging-python:8001
+    }
+    handle {
+        reverse_proxy staging-next-frontend:3000
+    }
+    tls /etc/caddy/cloudflare-origin.pem /etc/caddy/cloudflare-origin.key
+}

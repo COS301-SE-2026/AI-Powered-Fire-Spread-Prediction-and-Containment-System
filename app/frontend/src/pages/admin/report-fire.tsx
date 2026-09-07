@@ -3,7 +3,7 @@ import ReportPage from '../../components/reportfire/ReportPage';
 
 export default function AdminReportFire() {
   return (
-    <AdminSideBar>
+    <AdminSideBar hideLoginRegister>
       <ReportPage />
     </AdminSideBar>
   );

@@ -32,7 +32,7 @@ export default function RoleApprovalPage() {
 
   if (loading) {
     return (
-      <AdminSideBar>
+      <AdminSideBar hideLoginRegister>
         <div className="p-6 flex justify-center items-center min-h-[60vh]">
           <span className="loading loading-spinner loading-lg text-primary" />
         </div>
@@ -40,7 +40,7 @@ export default function RoleApprovalPage() {
     );
   }
   return (
-    <AdminSideBar>
+    <AdminSideBar hideLoginRegister>
       <div className="p-2 md:p-6 flex flex-col h-full w-full">
         <RotateHint show={showHint} onDismiss={dismiss} />
         {/* Header + filter */}

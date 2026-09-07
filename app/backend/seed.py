@@ -319,14 +319,6 @@ SEED_ROLE_REQUESTS = [
         "reviewed_by": "usr_02",
     },
     {
-        "request_id": "req_14",
-        "user_id": "usr_04",
-        "requested_role": UserRole.firefighter,
-        "current_role": UserRole.user,
-        "status": RequestStatus.pending,
-        "reviewed_by": None,
-    },
-    {
         "request_id": "req_15",
         "user_id": "usr_07",
         "requested_role": UserRole.firefighter,

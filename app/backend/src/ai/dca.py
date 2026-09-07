@@ -121,7 +121,7 @@ def run_dca(
             model.compute()
 
             if hasattr(model, "state") and isinstance(model.state, torch.Tensor):
-                model.state[:, containment_tensor] = False
+                model.state[:, containment_tensor] = 0
 
             history.append(state_to_burn_state(model.state))
 
