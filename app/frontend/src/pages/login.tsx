@@ -89,6 +89,7 @@ export default function Login() {
         return;
       }
 
+      sessionStorage.removeItem('isGuest');
       sessionStorage.setItem('justLoggedIn', '1');
       window.location.href = ROLE_REDIRECTS[data.role] ?? '/login';
     } catch (err: unknown) {
@@ -101,6 +102,7 @@ export default function Login() {
   };
 
   const handleGuest = () => {
+    sessionStorage.setItem('isGuest', '1');
     router.push('/guests/live-map');
   };
 
