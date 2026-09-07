@@ -36,31 +36,21 @@ export async function probeHealth(apiBaseUrl?: string): Promise<boolean> {
   }
 
   const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const healthBaseUrl = baseUrl.replace(/\/api\/?$/, '');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-  inflightProbe = (async () => {
-    try {
-      const response = await fetch(`${baseUrl}/health`, {
-        method: 'GET',
-        cache: 'no-store',
-        credentials: 'include',
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeoutId);
-      const isHealthy = response.ok;
-      cachedHealthStatus = isHealthy;
-      lastProbeTime = Date.now();
-      return isHealthy;
-    } catch {
-      clearTimeout(timeoutId);
-      cachedHealthStatus = false;
-      return false;
-    } finally {
-      inflightProbe = null;
-    }
-  })();
-
-  return inflightProbe;
+  try {
+    const response = await fetch(`${healthBaseUrl}/health`, {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'include',
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response.ok;
+  } catch {
+    clearTimeout(timeoutId);
+    return false;
+  }
 }

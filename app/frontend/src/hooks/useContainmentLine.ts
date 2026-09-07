@@ -11,9 +11,10 @@ export function useContainmentLine(onDraw?: () => void) {
       setLoading(true);
       setError(null);
       try {
-        const saved: ContainmentLine = await apiCall('/api/firefighter/containment-line', 'POST', 
-          body,
-        );
+        const saved: ContainmentLines = await apiCall('/firefighter/containment-line', 'POST', {
+          wkt,
+        } satisfies CreateContainmentLine);
+        onDraw();
         return saved;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : 'Unknown error';

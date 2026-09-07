@@ -90,7 +90,7 @@ services:
       timeout: 3s
       retries: 5
       start_period: 30s
-    command: ["yarn", "start", "-H", "0.0.0.0", "-p", "3000"]
+    command: ["node", "server.js"]
     environment:
       NODE_ENV: production
       BACKEND_INTERNAL_URL: http://staging-python-backend:8001
@@ -123,6 +123,7 @@ services:
       - caddy_staging_config:/config
     networks:
       - default
+      - edge
 
   valkey:
     image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd

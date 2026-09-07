@@ -26,8 +26,6 @@ ENV	PORT=3000 \
 # copy source as fallback (local bind mounts override this in compose)
 COPY app/frontend ./
 
-EXPOSE 3000
-
 CMD ["yarn", "dev"]
 
 # <----------------------------------------------------------------------------------------->
@@ -51,7 +49,7 @@ RUN yarn build
 #  Stage 4: Production Runner {Ultra-lean standalone output}
 # <----------------------------------------------------------------------------------------->
 # copy source as fallback (local bind mounts override this in compose)
-FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS runner
+FROM node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 AS prod
 
 WORKDIR /app
 
