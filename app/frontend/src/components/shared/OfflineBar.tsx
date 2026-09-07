@@ -1,20 +1,41 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { probeHealth } from '../../lib/offline/shared';
 import { offlineStore } from '../../lib/offlineStore';
 
 export const OfflineBar: React.FC = () => {
   const [isOffline, setIsOffline] = useState(false);
   const [queueCount, setQueueCount] = useState(0);
+  const failCountRef = useRef(0);
+  const lastFailRef = useRef(0);
 
   const checkStatus = async () => {
     if (typeof window === 'undefined') return;
+    
     if (!navigator.onLine) {
       setIsOffline(true);
-    } else {
-      const reachable = await probeHealth();
-      setIsOffline(!reachable);
+      const queued = await offlineStore.getQueuedActions();
+      setQueueCount(queued.length);
+      return;
     }
 
+    const now = Date.now();
+    const recentlyFailed = failCountRef.current > 0 && now - lastFailRef.current < 10000;
+    if (recentlyFailed) {
+      const queued = await offlineStore.getQueuedActions();
+      setQueueCount(queued.length);
+      return;
+    }
+
+    const reachable = await probeHealth();
+    if (reachable) {
+      failCountRef.current = 0;
+      setIsOffline(false);
+    } else {
+      failCountRef.current += 1;
+      if (failCountRef.current >= 2) {
+        setIsOffline(true);
+      }
+    }
     const queued = await offlineStore.getQueuedActions();
     setQueueCount(queued.length);
   };
@@ -24,6 +45,7 @@ export const OfflineBar: React.FC = () => {
 
     const handleOnline = async () => {
       setIsOffline(false);
+      failCountRef.current = 0;
 
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
       await offlineStore.syncQueuedActions(apiBaseUrl);
@@ -37,7 +59,7 @@ export const OfflineBar: React.FC = () => {
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    const interval = setInterval(checkStatus, 4000);
+    const interval = setInterval(checkStatus, 15000);
 
     return () => {
       window.removeEventListener('online', handleOnline);

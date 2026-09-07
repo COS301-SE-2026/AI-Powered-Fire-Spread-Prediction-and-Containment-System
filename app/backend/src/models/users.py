@@ -31,6 +31,6 @@ class User(Base):
     )
 
     fire_reports = relationship("FireReports", back_populates="user")
-    role_requests = relationship(
-        "RoleRequest", back_populates="user", foreign_keys="RoleRequest.user_id"
-    )
+    role_requests = relationship("models.role_request.RoleRequest",
+                                 foreign_keys="[RoleRequest.user_id]",
+                                back_populates="user")

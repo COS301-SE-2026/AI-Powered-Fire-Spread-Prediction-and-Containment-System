@@ -17,6 +17,13 @@ export function useAuth(): AuthProps {
     let isMounted = true;
 
     async function checkAuth(): Promise<void> {
+      if (sessionStorage.getItem('isGuest') === '1'){
+        if (isMounted){
+          setIsLoading(false);
+        }
+        return;
+      }
+      
       try {
         const data = await apiCall('/api/auth/me');
         if (isMounted) {

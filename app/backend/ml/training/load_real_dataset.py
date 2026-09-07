@@ -16,8 +16,8 @@ from app.datasets.scripts.fetch_historical_weather import (
     fetch_historical_weather,
     get_weather_at_timestamp,
 )
-from app.ml.features.fuel_load import process_sentinal2_and_worldcover
-from app.ml.features.terrain import extract_terrain_features
+from app.backend.ml.features.fuel_load import process_sentinal2_and_worldcover
+from app.backend.ml.features.terrain import extract_terrain_features
 
 os.environ.setdefault("AWS_NO_SIGN_REQUEST", "YES")
 
