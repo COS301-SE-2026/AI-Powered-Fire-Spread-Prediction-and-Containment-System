@@ -14,8 +14,8 @@ type NotificationToastProps = Readonly<{
 }>;
 
 const TOAST_STYLE: Record<FireNotification['type'], string> = {
-  alert: 'border-error bg-error/10 backdrop-blur-md',
-  update: 'border-info bg-info/10 backdrop-blur-md',
+  alert: 'border-error bg-carbon-side',
+  update: 'border-info bg-carbon-side',
 };
 
 export function NotificationToast({ notification, onDismiss }: NotificationToastProps) {
@@ -51,7 +51,7 @@ export function NotificationToast({ notification, onDismiss }: NotificationToast
   );
 
   return (
-    <div className={`alert border shadow-lg max-w-sm ${TOAST_STYLE[type]}`}>
+    <div className={`alert border-2 shadow-lg max-w-72 ${TOAST_STYLE[type]}`}>
       {icon}
       {isLive ? (
         <a href={mapLink} onClick={onDismiss} className="flex-1">
