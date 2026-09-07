@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { useState } from 'react';
 import { Plus, LocateFixed } from 'lucide-react';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useFireSelect } from '../../hooks/useFireSelect';

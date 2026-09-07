@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Map, CircleAlert, Plus, LocateFixed } from 'lucide-react';
 import { SideBar } from '../../components/layout/SideBar';
 import { NavLink } from '../../components/layout/NavLink';
@@ -15,7 +15,6 @@ import { NearbyReports } from '../../components/shared/nearbyReports';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useMapLink } from '../../hooks/useMapLink';
 
-import React from 'react';
 
 const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),

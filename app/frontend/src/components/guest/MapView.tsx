@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Plus, LocateFixed } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useMapLink } from '@/hooks/useMapLink';
 import { useFireSelect } from '../../hooks/useFireSelect';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { NearbyReports } from '../shared/nearbyReports';
 import { PageHeader } from '../layout/pageHeader';
 import { GuestEnvironment } from './GuestEnvironment';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
-import { useMapLink } from '@/hooks/useMapLink';
 
 const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) => mod.FireMap), {
   ssr: false,
