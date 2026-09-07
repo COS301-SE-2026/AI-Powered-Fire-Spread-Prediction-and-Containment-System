@@ -1,0 +1,1821 @@
+openapi: 3.1.0
+info:
+  title: FireAway API
+  description: Backend for the AI-Powered Fire Spread Prediction and Containment System
+  version: 1.0.0
+paths:
+  /api/admin/dashboard/summary:
+    get:
+      tags:
+        - Admin Dashboard
+      summary: Get Dashboard Summary
+      operationId: get_dashboard_summary_api_admin_dashboard_summary_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummaryResponse'
+        '400':
+          description: Could not retrieve dashboard summary
+  /api/admin/reported-fires:
+    get:
+      tags:
+        - Admin
+      summary: Get Reported Fires
+      operationId: get_reported_fires_api_admin_reported_fires_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/FireReportMapResponse'
+                type: array
+                title: Response Get Reported Fires Api Admin Reported Fires Get
+  /api/admin/reported-fires/{report_ref}:
+    get:
+      tags:
+        - Admin
+      summary: Get Fire Report Id
+      operationId: get_fire_report_id_api_admin_reported_fires__report_ref__get
+      parameters:
+        - name: report_ref
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Report Ref
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FireReportDetailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/reported-fires/{report_ref}/status:
+    patch:
+      tags:
+        - Admin
+      summary: Status Change
+      operationId: status_change_api_admin_reported_fires__report_ref__status_patch
+      parameters:
+        - name: report_ref
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Report Ref
+        - name: status
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/ReportStatus'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FireReportDetailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/analytics/overview:
+    get:
+      tags:
+        - Admin Analytics
+      summary: Get Analytics Overview
+      operationId: get_analytics_overview_api_admin_analytics_overview_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsOverviewResponse'
+        '404':
+          description: Could not retrieve analytics overview
+  /api/admin/role-requests:
+    get:
+      tags:
+        - Admin
+      summary: Get Role Requests
+      operationId: get_role_requests_api_admin_role_requests_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleRequestList'
+  /api/admin/role-requests/{request_id}/approve:
+    put:
+      tags:
+        - Admin
+      summary: Approve Role Request
+      operationId: approve_role_request_api_admin_role_requests__request_id__approve_put
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Request Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleRequestResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/role-requests/{request_id}/reject:
+    put:
+      tags:
+        - Admin
+      summary: Reject Role Request
+      operationId: reject_role_request_api_admin_role_requests__request_id__reject_put
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Request Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleRequestResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/admin/role-requests/{request_id}/revoke:
+    put:
+      tags:
+        - Admin
+      summary: Revoke Role Request
+      operationId: revoke_role_request_api_admin_role_requests__request_id__revoke_put
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Request Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleRequestResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login Route
+      operationId: login_route_api_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - $ref: '#/components/schemas/LoginResponse'
+                  - $ref: '#/components/schemas/Two_FA_Required_Response'
+                title: Response Login Route Api Auth Login Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Me Route
+      operationId: me_route_api_auth_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+  /api/auth/logout:
+    post:
+      tags:
+        - Auth
+      summary: Logout Route
+      operationId: logout_route_api_auth_logout_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Register Route
+      operationId: register_route_api_auth_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Two_FA_Required_Response'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/setup-2fa:
+    post:
+      tags:
+        - Auth
+      summary: Setup 2Fa Route
+      operationId: setup_2fa_route_api_auth_setup_2fa_post
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+            title: Username
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Two_FA_Create_Response'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/verify-2fa:
+    post:
+      tags:
+        - Auth
+      summary: Verify 2Fa Route
+      operationId: verify_2fa_route_api_auth_verify_2fa_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Two_FA_Verify_Request'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/firefighter/reported-fires:
+    get:
+      tags:
+        - Firefighter
+      summary: Get Fire Reports
+      operationId: get_fire_reports_api_firefighter_reported_fires_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportList'
+        '404':
+          description: No fire reports found
+  /api/firefighter/reported-fires/search:
+    get:
+      tags:
+        - Firefighter
+      summary: Search Location Table
+      operationId: search_location_table_api_firefighter_reported_fires_search_get
+      parameters:
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+            title: Key
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportList'
+        '404':
+          description: key is not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/firefighter/reported-fires/{ref}:
+    get:
+      tags:
+        - Firefighter
+      summary: Get Single Fire Report
+      operationId: get_single_fire_report_api_firefighter_reported_fires__ref__get
+      parameters:
+        - name: ref
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Ref
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FirefighterReportModal'
+        '404':
+          description: Fire report not found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/firefighter/dashboard:
+    get:
+      tags:
+        - Firefighter
+      summary: Get Nearby Fires
+      operationId: get_nearby_fires_api_firefighter_dashboard_get
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            title: Lat
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+            title: Lng
+        - name: radius_km
+          in: query
+          required: false
+          schema:
+            type: number
+            default: 20
+            title: Radius Km
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardData'
+        '404':
+          description: No nearby fires found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/firefighter/containment-line:
+    post:
+      tags:
+        - Firefighter
+      summary: Add Containment Line
+      operationId: add_containment_line_api_firefighter_containment_line_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContainmentLine'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContainmentLines'
+        '400':
+          description: fire not near the line
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/reported-fires:
+    get:
+      tags:
+        - Users
+      summary: Get Reported Fires
+      operationId: get_reported_fires_api_users_reported_fires_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/FireReportMapResponse'
+                type: array
+                title: Response Get Reported Fires Api Users Reported Fires Get
+    post:
+      tags:
+        - Users
+      summary: Create Fire Report
+      operationId: create_fire_report_api_users_reported_fires_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FireReportCreate'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FireReportDetailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/guests/reported-fires:
+    get:
+      tags:
+        - Guests
+      summary: Get Reported Fires
+      operationId: get_reported_fires_api_guests_reported_fires_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FireReportMapResponse'
+                title: Response Get Reported Fires Api Guests Reported Fires Get
+    post:
+      tags:
+        - Guests
+      summary: Create Fire Report
+      operationId: create_fire_report_api_guests_reported_fires_post
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: null
+            title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FireReportCreate'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FireReportDetailResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/guests/dashboard:
+    get:
+      tags:
+        - Guests
+      summary: Guest Dashboard
+      operationId: guest_dashboard_api_guests_dashboard_get
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+            description: User latitude
+            title: Lat
+          description: User latitude
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+            description: User longitude
+            title: Lng
+          description: User longitude
+        - name: radius_km
+          in: query
+          required: false
+          schema:
+            type: number
+            default: 20
+            title: Radius Km
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '500':
+          description: Internal server error while fetching dashboard data
+  /api/guests/nearby-fires:
+    post:
+      tags:
+        - Guests
+      summary: Get Nearby Fires For Guest
+      description: |-
+        Public endpoint: deliberately no get_current_user because they never log in,
+        hence no account to authenticate, no persistence here
+      operationId: get_nearby_fires_for_guest_api_guests_nearby_fires_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLocationIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/NotificationOut'
+                type: array
+                title: Response Get Nearby Fires For Guest Api Guests Nearby Fires Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/uploads/photo:
+    post:
+      tags:
+        - Uploads
+      summary: Upload Image Endpoint
+      description: |-
+        Anonymous image upload. Returns object_key string
+        Frontend passes this to FireReportCase.image_url  when calls POST /api/users/reported-fires
+      operationId: upload_image_endpoint_api_uploads_photo_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_image_endpoint_api_uploads_photo_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '400':
+          description: Invalid file type or file size to big
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/simulate:
+    post:
+      tags:
+        - simulation
+      summary: Run Simulation
+      description: |
+        Endpoint for all verified fires
+
+        Runs for 4 ticks which is a 1 hour spread simulation
+      operationId: run_simulation_api_simulate_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnDemandSimRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '500':
+          description: Internal server error simulation failed
+  /api/simulate/fire/{fire_id}:
+    post:
+      tags:
+        - simulation
+      summary: Run Single Fire Simulation
+      description: |
+        Endpiont for spread on a single spread which spreads for 72 hours
+
+        Runs the 72 hour spread which is 288 ticks for a fire selected on the map
+      operationId: run_single_fire_simulation_api_simulate_fire__fire_id__post
+      parameters:
+        - name: fire_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Fire Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnDemandSimRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+        '404':
+          description: Fire not found or verified
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '500':
+          description: Internal server error
+  /api/users/me/location:
+    patch:
+      tags:
+        - Users
+      summary: Update My Location
+      operationId: update_my_location_api_users_me_location_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLocationIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/notifications:
+    get:
+      tags:
+        - Notifications
+      summary: List Notifications
+      description: |-
+        Returns notifications from last `hours` (default 24h).
+        For notifications sidebar recent-history view.
+        Unread count scoped same way
+      operationId: list_notifications_api_notifications_get
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            title: Limit
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            title: Offset
+        - name: hours
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 24
+            title: Hours
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/notifications/{notification_id}/read:
+    post:
+      tags:
+        - Notifications
+      summary: Read Notification
+      operationId: read_notification_api_notifications__notification_id__read_post
+      parameters:
+        - name: notification_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Notification Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/notifications/read-all:
+    post:
+      tags:
+        - Notifications
+      summary: Read All
+      operationId: read_all_api_notifications_read_all_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /:
+    get:
+      summary: Read Root
+      operationId: read_root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /api/ping:
+    get:
+      summary: Ping
+      operationId: ping_api_ping_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+  /health:
+    get:
+      summary: Health Check
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+components:
+  schemas:
+    ActivityItemSchema:
+      properties:
+        id:
+          type: string
+          title: Id
+        message:
+          type: string
+          title: Message
+        timeAgo:
+          type: string
+          title: Timeago
+      type: object
+      required:
+        - id
+        - message
+        - timeAgo
+      title: ActivityItemSchema
+    AnalyticsOverviewResponse:
+      properties:
+        kpis:
+          $ref: '#/components/schemas/KPIs'
+        pending_requests:
+          items:
+            $ref: '#/components/schemas/RoleRequestResponse'
+          type: array
+          title: Pending Requests
+      type: object
+      required:
+        - kpis
+        - pending_requests
+      title: AnalyticsOverviewResponse
+    Body_upload_image_endpoint_api_uploads_photo_post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+      type: object
+      required:
+        - file
+      title: Body_upload_image_endpoint_api_uploads_photo_post
+    ContainmentLines:
+      properties:
+        id:
+          type: string
+          title: Id
+        fire_report_id:
+          type: string
+          title: Fire Report Id
+        line_geom:
+          type: string
+          title: Line Geom
+        drawn_at:
+          type: string
+          format: date-time
+          title: Drawn At
+      type: object
+      required:
+        - id
+        - fire_report_id
+        - line_geom
+        - drawn_at
+      title: ContainmentLines
+    CreateContainmentLine:
+      properties:
+        wkt:
+          type: string
+          title: Wkt
+      type: object
+      required:
+        - wkt
+      title: CreateContainmentLine
+    DashboardData:
+      properties:
+        nearby_fires:
+          $ref: '#/components/schemas/NearbyFiresList'
+        environment_variables:
+          $ref: '#/components/schemas/EnvironmentVariables'
+      type: object
+      required:
+        - nearby_fires
+        - environment_variables
+      title: DashboardData
+    DashboardSummaryResponse:
+      properties:
+        top_metrics:
+          $ref: '#/components/schemas/TopMetricsSchema'
+        activity_log:
+          items:
+            $ref: '#/components/schemas/ActivityItemSchema'
+          type: array
+          title: Activity Log
+        weekly_incidents:
+          items:
+            $ref: '#/components/schemas/WeeklyDataSchema'
+          type: array
+          title: Weekly Incidents
+        system_metrics:
+          $ref: '#/components/schemas/SystemMetricsSchema'
+      type: object
+      required:
+        - top_metrics
+        - activity_log
+        - weekly_incidents
+        - system_metrics
+      title: DashboardSummaryResponse
+    EnvironmentVariables:
+      properties:
+        wind:
+          type: number
+          title: Wind
+        wind_dir:
+          type: integer
+          title: Wind Dir
+        temperature:
+          type: number
+          title: Temperature
+        fire_danger:
+          $ref: '#/components/schemas/FireDanger'
+        humidity:
+          type: number
+          title: Humidity
+      type: object
+      required:
+        - wind
+        - wind_dir
+        - temperature
+        - fire_danger
+        - humidity
+      title: EnvironmentVariables
+    FireDanger:
+      type: string
+      enum:
+        - low
+        - medium
+        - high
+        - very high
+      title: FireDanger
+    FireReportCreate:
+      properties:
+        lat:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Lat
+        lng:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Lng
+        location_text:
+          type: string
+          maxLength: 255
+          minLength: 3
+          title: Location Text
+        description:
+          anyOf:
+            - type: string
+              maxLength: 1000
+            - type: null
+          title: Description
+        image_url:
+          anyOf:
+            - type: string
+            - type: null
+          title: Image Url
+        boundary_radius:
+          type: number
+          maximum: 50.0
+          exclusiveMinimum: 0.0
+          title: Boundary Radius
+        photo_hash:
+          anyOf:
+            - type: string
+            - type: null
+          title: Photo Hash
+      type: object
+      required:
+        - lat
+        - lng
+        - location_text
+        - boundary_radius
+      title: FireReportCreate
+    FireReportDetailResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        reference_number:
+          type: string
+          title: Reference Number
+        lat:
+          type: number
+          title: Lat
+        lng:
+          type: number
+          title: Lng
+        location_text:
+          type: string
+          title: Location Text
+        description:
+          anyOf:
+            - type: string
+            - type: null
+          title: Description
+        image_url:
+          type: string
+          title: Image Url
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        boundary_radius:
+          type: number
+          title: Boundary Radius
+        size:
+          type: number
+          title: Size
+        submitted_at:
+          type: string
+          format: date-time
+          title: Submitted At
+        reporter_name:
+          anyOf:
+            - type: string
+            - type: null
+          title: Reporter Name
+        priority:
+          $ref: '#/components/schemas/ReportPriority'
+        system_verified:
+          type: boolean
+          title: System Verified
+        verification_notes:
+          anyOf:
+            - type: string
+            - type: null
+          title: Verification Notes
+      type: object
+      required:
+        - id
+        - reference_number
+        - lat
+        - lng
+        - location_text
+        - image_url
+        - status
+        - boundary_radius
+        - size
+        - submitted_at
+        - priority
+        - system_verified
+      title: FireReportDetailResponse
+    FireReportMapResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+        reference_number:
+          type: string
+          title: Reference Number
+        lat:
+          type: number
+          title: Lat
+        lng:
+          type: number
+          title: Lng
+        location_text:
+          type: string
+          title: Location Text
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        boundary_radius:
+          type: number
+          title: Boundary Radius
+        size:
+          type: number
+          title: Size
+        submitted_at:
+          type: string
+          format: date-time
+          title: Submitted At
+        reporter_name:
+          anyOf:
+            - type: string
+            - type: null
+          title: Reporter Name
+        verification_notes:
+          anyOf:
+            - type: string
+            - type: null
+          title: Verification Notes
+      type: object
+      required:
+        - id
+        - reference_number
+        - lat
+        - lng
+        - location_text
+        - status
+        - boundary_radius
+        - size
+        - submitted_at
+      title: FireReportMapResponse
+    FirefighterReportModal:
+      properties:
+        id:
+          type: string
+          title: Id
+        ref:
+          type: string
+          title: Ref
+        location:
+          type: string
+          title: Location
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        reported:
+          type: string
+          format: date-time
+          title: Reported
+        reporter:
+          type: string
+          title: Reporter
+        description:
+          type: string
+          title: Description
+        image_url:
+          type: string
+          title: Image Url
+        size:
+          type: number
+          title: Size
+        verification_notes:
+          anyOf:
+            - type: string
+            - type: null
+          title: Verification Notes
+        lat:
+          type: number
+          title: Lat
+        lng:
+          type: number
+          title: Lng
+      type: object
+      required:
+        - id
+        - ref
+        - location
+        - status
+        - reported
+        - reporter
+        - description
+        - image_url
+        - size
+        - lat
+        - lng
+      title: FirefighterReportModal
+    FirefighterReportTable:
+      properties:
+        ref:
+          type: string
+          title: Ref
+        location:
+          type: string
+          title: Location
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        size:
+          type: number
+          title: Size
+        reported:
+          type: string
+          format: date-time
+          title: Reported
+        reporter:
+          type: string
+          title: Reporter
+        verification_notes:
+          anyOf:
+            - type: string
+            - type: null
+          title: Verification Notes
+        lat:
+          type: number
+          title: Lat
+        lng:
+          type: number
+          title: Lng
+      type: object
+      required:
+        - ref
+        - location
+        - status
+        - size
+        - reported
+        - reporter
+        - lat
+        - lng
+      title: FirefighterReportTable
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    KPIs:
+      properties:
+        total_users:
+          type: integer
+          title: Total Users
+        pending_role_requests:
+          type: integer
+          title: Pending Role Requests
+        total_firefighters:
+          type: integer
+          title: Total Firefighters
+        total_admins:
+          type: integer
+          title: Total Admins
+      type: object
+      required:
+        - total_users
+        - pending_role_requests
+        - total_firefighters
+        - total_admins
+      title: KPIs
+    LoginRequest:
+      properties:
+        email:
+          type: string
+          title: Email
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+        - email
+        - password
+      title: LoginRequest
+    LoginResponse:
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+        access_token:
+          type: string
+          title: Access Token
+      type: object
+      required:
+        - role
+        - access_token
+      title: LoginResponse
+    MeResponse:
+      properties:
+        role:
+          $ref: '#/components/schemas/UserRole'
+      type: object
+      required:
+        - role
+      title: MeResponse
+    NearbyFire:
+      properties:
+        location_text:
+          type: string
+          title: Location Text
+        distance:
+          type: number
+          title: Distance
+        time_ago:
+          type: string
+          title: Time Ago
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+      type: object
+      required:
+        - location_text
+        - distance
+        - time_ago
+        - status
+      title: NearbyFire
+    NearbyFiresList:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/NearbyFire'
+          type: array
+          title: Data
+        total:
+          type: integer
+          title: Total
+      type: object
+      required:
+        - data
+        - total
+      title: NearbyFiresList
+    NotificationListOut:
+      properties:
+        notifications:
+          items:
+            $ref: '#/components/schemas/NotificationOut'
+          type: array
+          title: Notifications
+        unread_count:
+          type: integer
+          title: Unread Count
+        locationEnabled:
+          type: boolean
+          title: Locationenabled
+      type: object
+      required:
+        - notifications
+        - unread_count
+        - locationEnabled
+      title: NotificationListOut
+    NotificationOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        fireId:
+          type: string
+          title: Fireid
+        fireLocation:
+          type: string
+          title: Firelocation
+        distance:
+          type: number
+          title: Distance
+        type:
+          $ref: '#/components/schemas/NotificationType'
+        severity:
+          $ref: '#/components/schemas/Severity'
+        message:
+          type: string
+          title: Message
+        time:
+          type: string
+          format: date-time
+          title: Time
+        read:
+          type: boolean
+          title: Read
+      type: object
+      required:
+        - id
+        - fireId
+        - fireLocation
+        - distance
+        - type
+        - severity
+        - message
+        - time
+        - read
+      title: NotificationOut
+      description: Mirrors frontend `FireNotification` type exactly
+    NotificationType:
+      type: string
+      enum:
+        - alert
+        - update
+      title: NotificationType
+    OnDemandSimRequest:
+      properties:
+        n_steps:
+          type: integer
+          maximum: 288.0
+          minimum: 1.0
+          title: N Steps
+          description: Number of sim steps
+          default: 288
+        containment_lines:
+          items:
+            type: string
+          type: array
+          title: Containment Lines
+          description: List of WKT containment lines
+      type: object
+      title: OnDemandSimRequest
+    Prediction:
+      properties:
+        ref:
+          type: string
+          title: Ref
+        lat:
+          type: number
+          title: Lat
+        lng:
+          type: number
+          title: Lng
+        history:
+          items:
+            items:
+              type: integer
+            type: array
+          type: array
+          title: History
+        burned_cells:
+          type: integer
+          title: Burned Cells
+        radius_m:
+          type: number
+          title: Radius M
+        truncated:
+          type: boolean
+          title: Truncated
+        lat_extent_deg:
+          type: number
+          title: Lat Extent Deg
+        lon_extent_deg:
+          type: number
+          title: Lon Extent Deg
+        grid_h:
+          type: integer
+          title: Grid H
+        grid_w:
+          type: integer
+          title: Grid W
+        cell_size_m:
+          type: number
+          title: Cell Size M
+      type: object
+      required:
+        - ref
+        - lat
+        - lng
+        - history
+        - burned_cells
+        - radius_m
+        - truncated
+        - lat_extent_deg
+        - lon_extent_deg
+        - grid_h
+        - grid_w
+        - cell_size_m
+      title: Prediction
+    RegisterRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+        password:
+          type: string
+          title: Password
+        name:
+          type: string
+          title: Name
+        surname:
+          type: string
+          title: Surname
+        id_number:
+          type: string
+          title: Id Number
+        license_number:
+          anyOf:
+            - type: string
+            - type: null
+          title: License Number
+      type: object
+      required:
+        - email
+        - password
+        - name
+        - surname
+        - id_number
+      title: RegisterRequest
+    ReportList:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/FirefighterReportTable'
+          type: array
+          title: Data
+        total:
+          type: integer
+          title: Total
+      type: object
+      required:
+        - data
+        - total
+      title: ReportList
+    ReportPriority:
+      type: string
+      enum:
+        - low
+        - normal
+        - high
+      title: ReportPriority
+    ReportStatus:
+      type: string
+      enum:
+        - received
+        - pending
+        - verified
+        - rejected
+      title: ReportStatus
+    RequestStatus:
+      type: string
+      enum:
+        - approved
+        - rejected
+        - pending
+        - revoked
+      title: RequestStatus
+    RoleRequestList:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/RoleRequestResponse'
+          type: array
+          title: Data
+        total:
+          type: integer
+          title: Total
+      type: object
+      required:
+        - data
+        - total
+      title: RoleRequestList
+    RoleRequestResponse:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+        user:
+          $ref: '#/components/schemas/UserSummary'
+        requested_role:
+          $ref: '#/components/schemas/UserRole'
+        current_role:
+          $ref: '#/components/schemas/UserRole'
+        status:
+          $ref: '#/components/schemas/RequestStatus'
+        firefighter_license_id:
+          anyOf:
+            - type: string
+            - type: null
+          title: Firefighter License Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        reviewed_at:
+          anyOf:
+            - type: string
+            - type: null
+          format: date-time
+          title: Reviewed At
+        reviewed_by:
+          anyOf:
+            - type: string
+            - type: null
+          title: Reviewed By
+      type: object
+      required:
+        - request_id
+        - user
+        - requested_role
+        - current_role
+        - status
+        - created_at
+      title: RoleRequestResponse
+    Severity:
+      type: string
+      enum:
+        - low
+        - moderate
+        - high
+        - extreme
+      title: Severity
+    SimulationResponse:
+      properties:
+        predictions:
+          items:
+            $ref: '#/components/schemas/Prediction'
+          type: array
+          title: Predictions
+        n_steps_run:
+          type: integer
+          title: N Steps Run
+      type: object
+      required:
+        - predictions
+        - n_steps_run
+      title: SimulationResponse
+    SystemMetricsSchema:
+      properties:
+        predictions_completed:
+          type: integer
+          title: Predictions Completed
+        model_health:
+          type: string
+          title: Model Health
+        avg_confidence_percent:
+          type: integer
+          title: Avg Confidence Percent
+        last_sync_time:
+          type: string
+          title: Last Sync Time
+      type: object
+      required:
+        - predictions_completed
+        - model_health
+        - avg_confidence_percent
+        - last_sync_time
+      title: SystemMetricsSchema
+    TopMetricsSchema:
+      properties:
+        active_fires:
+          type: integer
+          title: Active Fires
+        pending_approvals:
+          type: integer
+          title: Pending Approvals
+        total_users:
+          type: integer
+          title: Total Users
+        system_status:
+          type: string
+          title: System Status
+      type: object
+      required:
+        - active_fires
+        - pending_approvals
+        - total_users
+        - system_status
+      title: TopMetricsSchema
+    Two_FA_Create_Response:
+      properties:
+        otpauth_url:
+          type: string
+          title: Otpauth Url
+      type: object
+      required:
+        - otpauth_url
+      title: Two_FA_Create_Response
+    Two_FA_Required_Response:
+      properties:
+        requires_2fa:
+          type: boolean
+          title: Requires 2Fa
+          default: true
+        email:
+          type: string
+          title: Email
+        otpauth_url:
+          anyOf:
+            - type: string
+            - type: null
+          title: Otpauth Url
+      type: object
+      required:
+        - email
+      title: Two_FA_Required_Response
+    Two_FA_Verify_Request:
+      properties:
+        username:
+          type: string
+          title: Username
+        code:
+          type: string
+          title: Code
+      type: object
+      required:
+        - username
+        - code
+      title: Two_FA_Verify_Request
+    UserLocationIn:
+      properties:
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+      type: object
+      required:
+        - latitude
+        - longitude
+      title: UserLocationIn
+    UserRole:
+      type: string
+      enum:
+        - user
+        - firefighter
+        - admin
+      title: UserRole
+    UserSummary:
+      properties:
+        id:
+          type: string
+          title: Id
+        name:
+          type: string
+          title: Name
+        surname:
+          type: string
+          title: Surname
+        email:
+          type: string
+          title: Email
+        license_number:
+          anyOf:
+            - type: string
+            - type: null
+          title: License Number
+      type: object
+      required:
+        - id
+        - name
+        - surname
+        - email
+      title: UserSummary
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+    WeeklyDataSchema:
+      properties:
+        day:
+          type: string
+          title: Day
+        count:
+          type: integer
+          title: Count
+      type: object
+      required:
+        - day
+        - count
+      title: WeeklyDataSchema
