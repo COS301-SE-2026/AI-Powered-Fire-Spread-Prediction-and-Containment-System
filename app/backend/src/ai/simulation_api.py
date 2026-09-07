@@ -367,7 +367,7 @@ async def run_single_fire_simulation(
             FireReports.boundary_radius,
         )
         .filter(
-            FireReports.reference_number == fire_id,
+            FireReports.id == fire_id,
             FireReports.status == ReportStatus.verified,
         )
         .first()
