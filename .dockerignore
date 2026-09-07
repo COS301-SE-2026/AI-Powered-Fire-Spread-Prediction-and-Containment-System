@@ -17,3 +17,4 @@ dist
 **/.playwright-report
 **/.pytest_cache
 *.log
+database/

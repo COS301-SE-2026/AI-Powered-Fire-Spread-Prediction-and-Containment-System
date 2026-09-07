@@ -16,14 +16,6 @@ from app.backend.src.models.notification import Notification
 
 from unittest.mock import patch
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-# Points to app/backend/src and app/ml — skips the parent conftest
-# that loads the full backend app and requires minio/db dependencies
-root = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(root / "app"))
-sys.path.insert(0, str(root / "app" / "ml"))
-
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
 

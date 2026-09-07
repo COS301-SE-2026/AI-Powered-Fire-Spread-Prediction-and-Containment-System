@@ -1,3 +1,4 @@
+import { LocalLine } from '@/types/ContainmentLines';
 import { EnvironmentWidgets } from './EnvironmentWidgets';
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
@@ -7,8 +8,9 @@ interface SimulationResultsProps {
   predictions?: Prediction[];
   currentTick?: number;
   status?: SimulationStatus;
-  containmentLines?: string[];
+  containmentLines?: LocalLine[];
   selectedFireId?: string | null;
+  onDeleteLine?: (line: LocalLine) => void;
 }
 
 function countStates(grid: number[] | undefined) {
@@ -28,6 +30,7 @@ export function SimulationResults({
   status = 'idle',
   containmentLines = [],
   selectedFireId = null,
+  onDeleteLine = undefined,
 }: SimulationResultsProps) {
   const { environmentVariables } = useNearbyFires();
 
@@ -164,6 +167,7 @@ export function SimulationResults({
         <LoggedContainmentLine 
           lines={containmentLines}
           selectedFireId={selectedFireId}
+          onDeleteLine={onDeleteLine}
         />
       </div>
     </div>

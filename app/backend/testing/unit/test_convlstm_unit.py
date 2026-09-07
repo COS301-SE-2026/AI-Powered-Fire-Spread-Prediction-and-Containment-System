@@ -3,10 +3,10 @@ import torch
 import numpy as np
 import math
 import torch.nn as nn
-from app.ml.training.train_convlstm import tf_p_for_epoch, TrainConfig, Trainer
-from app.ml.training.losses import SmoothL1DeltaLoss
-from app.ml.training.metrics import MetricTracker
-from app.ml.training.dataset import (
+from app.backend.ml.training.train_convlstm import tf_p_for_epoch, TrainConfig, Trainer
+from app.backend.ml.training.losses import SmoothL1DeltaLoss
+from app.backend.ml.training.metrics import MetricTracker
+from app.backend.ml.training.dataset import (
     WeatherDatasetSplitConfig,
     WeatherRolloutDataset,
     _hour_angle,

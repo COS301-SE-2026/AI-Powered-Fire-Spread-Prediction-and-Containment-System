@@ -3,7 +3,7 @@ from __future__ import annotations
 import torch
 import numpy as np
 
-from app.ml.models.nowcast_model import WeatherDeltaModel
+from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.dca import run_dca
 
 
