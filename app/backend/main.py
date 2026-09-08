@@ -25,7 +25,11 @@ from app.backend.src.services.notifications.websocket_manager import set_main_lo
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    set_main_loop(asyncio.get_running_loop())
+
     ensure_bucket()
+
+    run_startup_migrations(engine)
 
     if os.environ.get("SKIP_DB_INIT") != "1":
         init_db()
@@ -47,10 +51,6 @@ app = FastAPI(
 # app = FastAPI(root_path="/api")
 
 
-@app.on_event("startup")
-def on_startup():
-    run_startup_migrations(engine)
-
 
 @app.exception_handler(ValueError)
 async def value_error_handler(request: Request, exc: ValueError):
@@ -59,7 +59,12 @@ async def value_error_handler(request: Request, exc: ValueError):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js local development URL
+    allow_origins=[
+        "http://localhost:3000",
+        "https://fireaway.site",
+        "https://www.fireaway.site",
+        "https://staging.fireaway.site",
+    ],  # Next.js local development URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -91,13 +96,4 @@ def ping():
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
-
-@app.on_event("startup")
-def startup():
-    ensure_bucket()
-
-
-@app.on_event("startup")
-async def capture_main_loop():
-    set_main_loop(asyncio.get_running_loop())
+    
