@@ -3,12 +3,13 @@
 
 services:
   backend:
-    container_name: prod-python-backend
     image: ${BACKEND_IMAGE}
     restart: always
-    volumes:
-      - /app
-      - ./app/ml:/app/ml:Z
+    depends_on:
+      valkey:
+          condition: service_started
+      minio:
+          condition: service_healthy
     deploy:
       resources:
         limits:
@@ -22,8 +23,10 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
+      start_period: 60s
     environment:
-      NODE_ENV: production
+      ENVIRONMENT: production
+      RUN_SEED: "0"
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/${POSTGRES_DB}
       AWS_REGION: ${AWS_REGION}
       SQS_QUEUE_URL: ${SQS_QUEUE_URL}
@@ -39,15 +42,11 @@ services:
       MINIO_PUBLIC_SECURE: "true"
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET: fire-images
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+      MINIO_BUCKET: fire-reports
 
   frontend:
-    container_name: prod-next-frontend
     image: ${FRONTEND_IMAGE}
     restart: always
-    volumes:
-      - /app
     deploy:
       resources:
         limits:
@@ -62,14 +61,11 @@ services:
       timeout: 3s
       retries: 5
       start_period: 30s
-    command: ["yarn", "start"]
     environment:
       NODE_ENV: production
-      BACKEND_INTERNAL_URL: http://prod-python-backend:8000
 
-  caddy:
+  gateway:
     image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
-    container_name: caddy-prod
     restart: always
     depends_on:
       - frontend
@@ -91,12 +87,9 @@ services:
       - /home/ubuntu/app/cloudflare-origin.key:/etc/caddy/cloudflare-origin.key:ro
       - caddy_prod_data:/data
       - caddy_prod_config:/config
-    networks:
-      - default
 
   valkey:
     image: valkey/valkey@sha256:a91d34ab33975b1054e26f1bd9995b268f7e0c507b5ded7f3d181a1a25521630
-    container_name: prod-valkey
     restart: always
     deploy: 
       resources:
@@ -111,7 +104,6 @@ services:
 
   minio:
     image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-    container_name: prod-minio
     restart: always
     command: ["server", "/data", "--console-address", ":9001"]
     deploy:
@@ -122,6 +114,11 @@ services:
         reservations:
           cpus: "0.05"
           memory: 32M
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}

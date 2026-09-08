@@ -277,7 +277,7 @@ def check_proximity_for_guest(
         matches.append(
             NotificationOut(
                 id=f"guest-{fire_report.id}",
-                fireId=fire_report.id,
+                fireId=fire_report.reference_number,
                 fireLocation=fire_report.location_text,
                 distance=round(distance, 1),
                 type=NotificationType.alert,

@@ -81,3 +81,4 @@ app/gpu-worker/venv/
 *.key
 *.pem
 *.key
+deploy.env

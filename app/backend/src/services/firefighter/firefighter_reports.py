@@ -9,9 +9,6 @@ from app.backend.src.models.users import User
 def get_fire_reports(db: Session):
     request = db.query(FireReports).all()
 
-    if not request:
-        raise ValueError("No reports have been found")
-
     formatted = []
     for fire in request:
         shape = to_shape(fire.location_geom)
@@ -36,7 +33,7 @@ def get_fire_reports(db: Session):
 def search_report_table(db: Session, key: str):
     request = (
         db.query(FireReports)
-        .outerjoin(FireReports.user)
+        .outerjoin(User, FireReports.user_id == User.id)
         .filter(
             or_(
                 FireReports.reference_number.ilike(f"%{key}%"),
@@ -47,9 +44,6 @@ def search_report_table(db: Session, key: str):
         )
         .all()
     )
-
-    if not request:
-        raise ValueError(f"{key} not found")
 
     formatted = []
     for fire in request:
