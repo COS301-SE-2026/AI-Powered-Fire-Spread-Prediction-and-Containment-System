@@ -51,7 +51,6 @@ FROM base AS prod
 RUN useradd -r -u 10001 -g users -s /usr/sbin/nologin appuser
 
 COPY app/__init__.py    /app/app/__init__.py
-COPY app/artifact_store /app/app/artifact_store
 COPY app/backend        /app/app/backend
 
 USER appuser
