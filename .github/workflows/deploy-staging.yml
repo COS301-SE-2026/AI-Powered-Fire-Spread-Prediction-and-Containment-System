@@ -110,7 +110,7 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy $TAG" \
             --parameters "commands=[
-              'set -euo pipefail',
+              'set -eu pipefail',
               'git config --global --add safe.directory ${{ env.APP_DIR }}',
               'sudo -u ubuntu bash -c \"cd ${{ env.APP_DIR }} && git fetch origin staging && git reset --hard origin/staging\"',
               'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}',
