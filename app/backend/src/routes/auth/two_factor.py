@@ -9,6 +9,7 @@ from app.backend.src.schemas.auth import (
     LoginResponse,
     Two_FA_Create_Response,
     Two_FA_Verify_Request,
+    TwoFAVerifyResponse
 )
 from app.backend.src.services.auth.two_factor import setup_2fa, verify_2fa
 
@@ -23,7 +24,7 @@ def setup_2fa_route(username: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail=str(err))
 
 
-@router.post("/verify-2fa", response_model=LoginResponse)
+@router.post("/verify-2fa", response_model=TwoFAVerifyResponse)
 def verify_2fa_route(
     request: Two_FA_Verify_Request,
     response: Response,

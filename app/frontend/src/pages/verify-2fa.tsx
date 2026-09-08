@@ -37,7 +37,7 @@ export default function Verify2FA() {
 
       const roleRedirects: Record<string, string> = {
         admin: '/admin/dashboard',
-        firefighter: 'firefighter/dashboard',
+        firefighter: '/firefighter/dashboard',
         user: '/users/live-map',
       };
 

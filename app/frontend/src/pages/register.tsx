@@ -138,7 +138,7 @@ export default function Register() {
         license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
       };
 
-      const data: TwoFARequiredResponse = await apiCall('api/auth/register', 'POST', payload);
+      const data: TwoFARequiredResponse = await apiCall('/api/auth/register', 'POST', payload);
 
       if (data.requires_2fa && data.otpauth_url) {
         router.push(

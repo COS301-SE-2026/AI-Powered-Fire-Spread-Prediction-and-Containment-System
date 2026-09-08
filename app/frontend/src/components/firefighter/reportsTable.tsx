@@ -13,7 +13,7 @@ interface ReportsTableProp {
 }
 
 export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
-  const filtered = requests.filter((req) => filter === 'all' || req.status === filter);
+  const filtered = requests.filter((req) => filter === 'all' || req.status === filter).sort((a,b) => new Date(b.reported).getTime() - new Date(a.reported).getTime());
   const router = useRouter();
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-carbon-stroke">

@@ -71,7 +71,6 @@ services:
       NODE_ENV: production
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     networks:
-      default:
       edge:
         aliases:
           - frontend-prod
@@ -124,6 +123,10 @@ services:
         reservations:
           cpus: "0.05"
           memory: 32M
+    networks:
+      internal:
+      edge:
+        aliases: [minio-prod]
 
 volumes:
   caddy_prod_data:
