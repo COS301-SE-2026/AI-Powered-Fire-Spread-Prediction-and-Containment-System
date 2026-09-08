@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
     if os.environ.get("SKIP_DB_INIT") != "1":
         init_db()
 
-    if os.environ.get("SKIP_SEED") != "1":
+    if os.environ.get("RUN_SEED") == "1":
         seed()
 
     yield

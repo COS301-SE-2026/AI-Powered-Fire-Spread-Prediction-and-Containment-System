@@ -1,20 +1,43 @@
 services:
   gateway:
-    ports:
-      - "127.0.0.1:3000:80"
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    ports: ["127.0.0.1:3000:80"]
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      [edge]
 
   backend:
-    build: { target: dev }
+    build: 
+      context: .
+      dockerfile: app/backend/Dockerfile
+      target: dev
     cap_add: [SYS_PTRACE]
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      RUN_SEED: "1"
     volumes:
       - ./app/__init__.py:/app/app/__init__.py:ro
       - ./app/backend:/app/app/backend
       - ./app/artifact_store:/app/app/artifact_store
     ports: ["127.0.0.1:8000:8000"]
     command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    depends_on:
+      postgres: { condition: service_healthy }
   
   frontend:
-    build: { target: dev }
+    build: 
+      context: .
+      dockerfile: app/frontend/Dockerfile
+      target: dev
+      args:
+        NEXT_PUBLIC_API_URL: ""
+        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:?}
     environment:
       NODE_ENV: development
     volumes:
@@ -23,8 +46,48 @@ services:
     command: ["sh", "-c", "yarn install --prefer-offline --frozen-lockfile && yarn dev -H 0.0.0.0"]
 
   postgres:
+    image: postgis/postgis:15-3.5
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     ports: ["127.0.0.1:5432:5432"]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      [internal]
+
+  reseed:
+    build:
+      context: .
+      dockerfile: ./app/backend/Dockerfile
+      target: dev
+    profiles: [ "tools" ]
+    env_file:
+      [.env]
+    environment:
+      - PYTHONPATH=/app
+      - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: [ "python", "-m", "app.backend.seed", "--reseed" ]
+    networks:
+      [internal]
+
   minio:
     ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
   valkey:
     ports: ["127.0.0.1:6379:6379"]
+
+volumes:
+  pgdata:
+  frontend_node_modules:

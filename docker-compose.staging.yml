@@ -1,55 +1,25 @@
 services:
-  postgres:
-    image: postgis/postgis@sha256:a2fc46b52819d25add4ed93d3da83e106e17ea3ace6883cce3791631c9820bb2
-    restart: unless-stopped
-    volumes:
-      - postgres_staging_data:/var/lib/postgresql/data
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
 
   backend:
     image: ${BACKEND_IMAGE}
     pull_policy: always
     restart: always
     environment:
+      RUN_SEED: "0"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_staging?sslmode=require
       ENVIRONMENT: staging
-      AWS_REGION: ${AWS_REGION}
-      INFERENCE_QUEUE_URL: ${INFERENCE_QUEUE_URL:?}
-      RESULTS_QUEUE_URL: ${RESULTS_QUEUE_URL:?}
-      ARTIFACTS_S3_BUCKET: ${ARTIFACTS_S3_BUCKET:?}
-      ARTIFACTS_ROOT: /mnt/fire-system-artifacts
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?}
-      MINIO_BUCKET: fire-reports
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 768M
+    networks:
+      internal:
+      edge:
+        aliases: [backend-staging]
+    
 
   frontend:
     image: ${FRONTEND_IMAGE}
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-
-  gateway:
-    image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
-    restart: always
-    volumes:
-      - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_staging_data:/data
-      - caddy_staging_config:/config
-    deploy:
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: 64M
+    pull_policy: always
+    networks:
+      edge:
+        aliases: [frontend-staging]
 
   valkey:
     image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd
@@ -63,16 +33,13 @@ services:
   minio:
     image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
     restart: always
-    volumes:
-      - minio_staging_data:/data
     deploy: 
       resources:
         limits:
           cpus: "0.3"
           memory: 128M
 
-volumes:
-  caddy_staging_data:
-  caddy_staging_config:
-  minio_staging_data:
-  postgres_staging_data:
+networks:
+  edge:
+    external: true
+    name: fireaway-edge
