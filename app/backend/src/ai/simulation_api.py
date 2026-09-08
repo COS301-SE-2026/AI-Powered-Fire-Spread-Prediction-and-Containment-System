@@ -23,7 +23,7 @@ from app.backend.ml.features.real_data_loader import load_real_inference_data
 from app.backend.src.ai.simulation import build_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
-from app.backend.src.models.containment_lines import ContainmentLines
+from models.containment_lines import ContainmentLines
 from collections import defaultdict
 
 router = APIRouter(prefix="/api", tags=["simulation"])
@@ -92,7 +92,7 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
-async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore) -> Prediction:
+async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore, containment_lines: list) -> Prediction:
     """
     Executes the whole DCA pipeline for a single fire
     """
@@ -122,7 +122,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         boundary_radius_m=boundary_m,
         n_steps=automatic_steps,
         cell_size_m=cell_size_m,
-        containment_lines=tuple(sorted(lines)),
+        containment_lines=tuple(sorted(containment_lines)),
     )
 
     cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
@@ -196,7 +196,7 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
     responses={500: {"description": "Internal server error simulation failed"}},
 )
 async def run_simulation(
-     db: Session = Depends(get_db)
+     req: OnDemandSimRequest, db: Session = Depends(get_db)
 ) -> SimulationResponse:
     """
     Endpoint for all verified fires
