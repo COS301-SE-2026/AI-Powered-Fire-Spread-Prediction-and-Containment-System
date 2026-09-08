@@ -8,6 +8,16 @@ services:
       RUN_SEED: "0"
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_staging?sslmode=require
       ENVIRONMENT: staging
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      VALKEY_HOST: valkey
+      VALKEY_PORT: 6379
+      MINIO_ENDPOINT: minio:9000
+      MINIO_SECURE: "false"
+      MINIO_PUBLIC_ENDPOINT: staging.fireaway.site
+      MINIO_PUBLIC_SECURE: "true"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: fire-reports
     networks:
       internal:
       edge:

@@ -69,6 +69,7 @@ services:
       start_period: 30s
     environment:
       NODE_ENV: production
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     networks:
       default:
       edge:
