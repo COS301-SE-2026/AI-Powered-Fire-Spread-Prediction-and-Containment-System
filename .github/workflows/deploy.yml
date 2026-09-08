@@ -20,7 +20,7 @@ jobs:
               run: |
                 cd app/backend
                 pip install --require-hashes -r requirements.txt -r requirements-dev.txt
-                pylint --rcfile=.pylintrc --fail-under=8.0 src main.py db.py startup_migrations.py
+                PYTHONPATH=../..:src pylint --rcfile=.pylintrc --fail-under=8.0 src main.py db.py startup_migrations.py
             
             - name: Lint frontend
               run: |
