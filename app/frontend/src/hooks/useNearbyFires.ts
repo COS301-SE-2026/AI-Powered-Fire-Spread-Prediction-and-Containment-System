@@ -37,7 +37,7 @@ export function useNearbyFires() {
       setLoading(true);
       setError(null);
 
-      const url = `/api/firefighter/dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+      const url = `/firefighter/dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
       try {
         const data = await apiCall(url);
         if (cancelled) return;
