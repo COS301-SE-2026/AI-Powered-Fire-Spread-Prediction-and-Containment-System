@@ -1,103 +1,143 @@
-# name: Deploy to Staging
+name: Deploy to Staging
 
-# on:
-#     push:
-#         branches:
-#             - staging
-# env:
-#     AWS_REGION: us-east-1
-#     ECR_REGISTRY: 827257544258.dkr.ecr.us-east-1.amazonaws.com
-#     BACKEND_REPO: fireaway-backend
-#     FRONTEND_REPO: fireaway-frontend
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
 
-# jobs:
-#     lint:
-#         runs-on: ubuntu-latest
-#         steps:
-#             - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-#             - name: Lint backend
-#               run: |
-#                 cd app/backend
-#                 pip install --require-hashes -r requirements.txt -r requirements-dev.txt
-#                 pylint --rcfile=.pylintrc --fail-under=8.0 src main.py db.py seed.py startup_migrations.py
-#             - name: Frontend lint
-#               run: |
-#                 cd app/frontend
-#                 corepack enable
-#                 yarn install --ignore-workspaces --frozen-lockfile
-#                 yarn lint
-    
-#     build-and-push:
-#         needs: lint
-#         runs-on: ubuntu-latest
-#         outputs:
-#             image_tag: ${{ steps.vars.outputs.image_tag }}
-#         steps:
-#             - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+env:
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 856820204904.dkr.ecr.us-east-1.amazonaws.com
+  BACKEND_REPO: fireaway-ryan-backend
+  FRONTEND_REPO: fireaway-ryan-frontend
+  APP_DIR: /home/ubuntu/FireAway
 
-#             - name: Set image tag
-#               id: vars
-#               run: echo "image_tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: ./.github/actions/setup-backend
+      - name: Lint backend
+        run: PYTHONPATH=. pylint --rcfile=app/backend/.pylintrc --recursive=y app
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: app/frontend/yarn.lock
+      - name: Frontend Lint
+        working-directory: app/frontend
+        run: |
+          yarn install --frozen-lockfile
+          yarn eslint . --ext .js,.jsx,.ts,.tsx
+  
+  build-and-push:
+    needs: lint
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.vars.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
-#             - name: Configure AWS credentials
-#               uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c
-#               with: 
-#                 aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#                 aws-region: ${{ env.AWS_REGION }}
+      - name: Set image tag 
+        id: vars
+        run: echo "image_tag=${GITHUB_SHA::8}" >> "$GITHUB_OUTPUT"
 
-#             - name: Login to ECR
-#               uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-#             - name: Build and push backend
-#               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
-#               with:
-#                 context: .
-#                 file: ./app/backend/Dockerfile
-#                 push: true
-#                 no-cache: true
-#                 target: prod
-#                 tags: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.vars.outputs.image_tag }}
-                
-#             - name: Build and push frontend
-#               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
-#               with: 
-#                 context: .
-#                 file: ./app/frontend/Dockerfile
-#                 push: true
-#                 target: prod
-#                 build-args: |
-#                     NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
-#                     NEXT_PUBLIC_API_URL=https://staging-fireaway.csml.co.za/api
-#                 tags: ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.vars.outputs.image_tag }}
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd
+      
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
 
-#     deploy:
-#         needs: build-and-push
-#         runs-on: ubuntu-latest
-#         steps:
-#             - name: Configure AWS credentials
-#               uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c 
-#               with: 
-#                 aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#                 aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#                 aws-region: ${{ env.AWS_REGION }}
+      - name: Build and push backend
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: ./app/backend/Dockerfile
+          target: prod
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.vars.outputs.image_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      
+      - name: Build and push frontend
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: ./app/frontend/Dockerfile
+          target: prod
+          push: true
+          build-args: |
+            NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
+            NEXT_PUBLIC_API_URL=
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.vars.outputs.image_tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-#             - name: Deploy via SSM
-#               run: |
-#                aws ssm send-command \
-#                 --instance-ids "${{ secrets.STAGING_INSTANCE_ID }}" \
-#                 --document-name "AWS-RunShellScript" \
-#                 --parameters "commands=[
-#                     'sudo git config --global --add safe.directory /home/ubuntu/staging',
-#                     'sudo -u ubuntu bash -c \"cd /home/ubuntu/staging && git fetch origin staging && git reset --hard origin/staging\"',
-#                     'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}',
-#                     'sudo -u ubuntu bash -c \"echo BACKEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} > /home/ubuntu/staging/deploy.env\"',
-#                     'sudo -u ubuntu bash -c \"echo FRONTEND_IMAGE=${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ needs.build-and-push.outputs.image_tag }} >> /home/ubuntu/staging/deploy.env\"',
-#                     'sudo -u ubuntu bash -c \"echo AWS_REGION=${{ env.AWS_REGION }} >> /home/ubuntu/staging/deploy.env\"',
-#                     'cd /home/ubuntu/staging && docker compose -p staging --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml pull',
-#                     'cd /home/ubuntu/staging && docker compose -p staging --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml up -d',
-#                     'docker system prune -f'
-#                     ]" \
-#                     --output text
-                
-              
+      - name: Verify mapbox token baked in 
+        run: |
+          docker pull ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.vars.outputs.image_tag }}
+          docker run --rm ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:${{ steps.vars.outputs.image_tag }} \
+          sh -c 'grep -rq "pk.ey" .next/' \
+          || (echo "Mapbox token is missing from the bundle" && exit 1)
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Deploy via SSM
+        run: |
+          set -euo pipefail
+          TAG="${{ needs.build-and-push.outputs.image_tag }}"
+          COMPOSE="docker compose --env-file .env --env-file deploy.env -f docker-compose.yml -f docker-compose.staging.yml"
+
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.STAGING_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy $TAG" \
+            --parameters "commands=[
+              'set -euo pipefail',
+              'git config --global --add safe.directory ${{ env.APP_DIR }}',
+              'sudo -u ubuntu bash -c \"cd ${{ env.APP_DIR }} && git fetch origin staging && git reset --hard origin/staging\"',
+              'aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}',
+              'sudo -u ubuntu bash -c \"cd ${{ env.APP_DIR }} && cp -f deploy.env deploy.env.prev 2>/dev/null || true\"',
+              'sudo -u ubuntu bash -c \"printf \\\"BACKEND_IMAGE=%s\\nFRONTEND_IMAGE=%s\\n\\\" ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:$TAG ${{ env.ECR_REGISTRY }}/${{ env.FRONTEND_REPO }}:$TAG > ${{ env.APP_DIR }}/deploy.env\"',
+              'sudo -u ubuntu bash -c \"cd ${{ env.APP_DIR }} && $COMPOSE pull\"',
+              'sudo -u ubuntu bash -c \"cd ${{ env.APP_DIR }} && $COMPOSE up -d --remove-orphans\"',
+              'sleep 45',
+              'sudo -u ubuntu bash -c \"cd ${{ env.APP_DIR }} && $COMPOSE ps\"',
+              'curl -fsS -o /dev/null https://3-212-5-105.nip.io/api/ping'
+            ]" \
+            --query "Command.CommandId" --output text)
+
+          echo "SSM command: $CMD_ID"
+          aws ssm wait command-executed \
+            --command-id "$CMD_ID" \
+            --instance-id "${{ secrets.STAGING_INSTANCE_ID }}" || true
+          
+          aws ssm get-command-invocation \
+            --command-id "$CMD_ID" \
+            --instance-id "${{ secrets.STAGING_INSTANCE_ID }}" \
+            --query "{Status:Status,Output:StandardOutputContent,Error:StandardErrorContent}" \
+            --output text
+          
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "$CMD_ID" \
+            --instance-id "${{ secrets.STAGING_INSTANCE_ID }}" \
+            --query "Status" --output text)
+          [ "$STATUS" = "Success" ] || exit 1
+
