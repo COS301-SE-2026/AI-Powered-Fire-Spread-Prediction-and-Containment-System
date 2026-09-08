@@ -4,9 +4,11 @@ import type { NearbyFire } from '../../types/FirefighterDashboard';
 
 interface NearbyFireReports {
   readonly nearbyFires: NearbyFire[];
+  readonly selectedFireId?: string | null;
+  readonly onSelectFire?: (ref: string) => void
 }
 
-export function NearbyReports({ nearbyFires }: NearbyFireReports) {
+export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire = undefined }: NearbyFireReports) {
   const fires = nearbyFires ?? [];
 
   if (fires.length === 0) {
@@ -22,8 +24,9 @@ export function NearbyReports({ nearbyFires }: NearbyFireReports) {
         const status = fire.status === 'received' ? 'pending' : fire.status;
         const style = statusBadge[status] ?? statusBadge.none;
         return (
-          <div
+          <button
             key={`${fire.location_text}-${fire.time_ago}-${fire.distance}`}
+            onClick={() => onSelectFire?.(fire.location_text)}
             className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors"
           >
             <div>
@@ -41,7 +44,7 @@ export function NearbyReports({ nearbyFires }: NearbyFireReports) {
               </span>
               <ChevronRight className="size-4 opacity-30" />
             </div>
-          </div>
+          </button>
         );
       })}
     </div>

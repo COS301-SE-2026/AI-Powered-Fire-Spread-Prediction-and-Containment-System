@@ -12,6 +12,8 @@ import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
+import { useFireSelect } from '../../hooks/useFireSelect';
+import { useRotate } from '../../hooks/useRotate';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
