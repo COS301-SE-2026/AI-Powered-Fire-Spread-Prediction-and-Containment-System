@@ -31,7 +31,7 @@ export function QuickActions({ onStartDraw }: QuickActionsProps) {
         icon={<PenLine />}
         title="Log containment line"
         description="Draw live on map"
-        onClick={onStartDraw}
+        onClick={() => router.push('/firefighter/report-fire')}
       />
       <ActionCard
         icon={<TrendingUp />}
