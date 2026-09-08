@@ -29,10 +29,10 @@ async def lifespan(app: FastAPI):
 
     ensure_bucket()
 
-    run_startup_migrations(engine)
-
     if os.environ.get("SKIP_DB_INIT") != "1":
         init_db()
+
+    run_startup_migrations(engine)
 
     if os.environ.get("RUN_SEED") == "1":
         seed()
