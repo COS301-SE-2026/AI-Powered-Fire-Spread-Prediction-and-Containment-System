@@ -54,15 +54,19 @@ jobs:
             - name: Build and push backend
               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
               with:
-                context: ./app/backend
+                context: .
+                file: ./app/backend/Dockerfile
                 push: true
+                target: prod
                 tags: ${{ env.ECR_REGISTRY }}/${{ env.BACKEND_REPO }}:${{ steps.vars.outputs.image_tag }}
                 
             - name: Build and push frontend
               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
               with: 
-                context: ./app/frontend
+                context: .
+                file: ./app/frontend/Dockerfile
                 push: true
+                target: prod
                 build-args: |
                     NEXT_PUBLIC_MAPBOX_TOKEN=${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
                     NEXT_PUBLIC_API_URL=https://fireaway.csml.co.za/api
