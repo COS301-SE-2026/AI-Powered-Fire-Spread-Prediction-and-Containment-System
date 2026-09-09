@@ -57,27 +57,38 @@ def push(notification: Notification) -> None:
         "data": NotificationOut.from_model(notification).model_dump(mode="json"),
     }
     loop = get_main_loop()
-    if loop is None:
+    if loop is None or loop.is_closed():
         logger.warning(
             "push() called before main_loop was set, notification %s for user %s was not delivered live",
             notification.id,
             notification.user_id,
         )
         return
-
-    future = asyncio.run_coroutine_threadsafe(
-        manager.send_to_user(notification.user_id, payload), loop
-    )
-
-    def log_if_failed(f: asyncio.Future) -> None:
-        exc = f.exception()
-        if exc is not None:
-            logger.error(
-                "Failed to push notification %s to user %s: %s",
+    try:
+        future = asyncio.run_coroutine_threadsafe(
+            manager.send_to_user(notification.user_id, payload), loop
+        )
+    except RuntimeError as exc:
+        logger.error(
+            "Failed to push notification %s to user %s: %s",
                 notification.id,
                 notification.user_id,
                 exc,
             )
+        return
+
+    def log_if_failed(f: asyncio.Future) -> None:
+        try:
+            exc = f.exception()
+            if exc is not None:
+                logger.error(
+                    "Failed to push notification %s to user %s: %s",
+                    notification.id,
+                    notification.user_id,
+                    exc,
+                )
+        except (asyncio.CancelledError, RuntimeError):
+            pass
 
     future.add_done_callback(log_if_failed)
 

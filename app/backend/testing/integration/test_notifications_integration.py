@@ -14,7 +14,7 @@ from app.backend.src.services.notifications import notifications as svc
 from conftest import make_report, make_user
 
 
-@pytest.fixture()
+@pytest.fixture(autouse=True)
 def patched_push(request):
     """
     Request this only in tests that assert something about push()
