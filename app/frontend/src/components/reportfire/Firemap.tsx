@@ -173,7 +173,7 @@ export function FireMap({
 
   }, [userPos])
 
-  useEffect(() => () => userMarkerRef.current?.remove(), [])
+  useEffect(() => () => {userMarkerRef.current?.remove()}, [])
 
   const handleRecenter = useCallback(() => {
     if(userPos) {
