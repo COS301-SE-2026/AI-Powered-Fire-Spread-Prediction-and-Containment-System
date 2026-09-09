@@ -270,6 +270,7 @@ jobs:
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'ci-test-key'}}
           VALKEY_HOST: localhost
           VALKEY_PORT: 6379
+          INFERENCE_QUEUE_URL: ${{ secrets.INFERENCE_QUEUE_URL }}
           SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
           SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
         run: |
@@ -313,5 +314,3 @@ jobs:
           name: playwright-report
           path: app/frontend/playwright-report/
           retention-days: 7
-
- 
