@@ -15,10 +15,14 @@ from conftest import make_report, make_user
 
 
 @pytest.fixture()
-def patched_push():
+def patched_push(request):
     """
     Request this only in tests that assert something about push()
     """
+    if request.node.name == "test_websocket_receives_a_real_in_app_notification":
+        yield
+        return
+
     with patch.object(svc, "push") as mock_push:
         yield mock_push
 
@@ -219,9 +223,9 @@ def test_check_proximity_for_guest_persists_nothing(db, patched_push):
     after = db.query(Notification).count()
 
     assert len(results) == 1
-    assert results[0].fireId == fire.id
+    assert results[0].fireId == fire.reference_number
     assert before == after == 0
-    patched_push.assery_not_called()
+    patched_push.assert_not_called()
 
 
 def test_excludes_fires_beyond_regular_user_tier(db):
@@ -319,7 +323,7 @@ def test_websocket_receives_a_real_in_app_notification(db, client):
             message = websocket.receive_json()
 
     assert message["event"] == "notification"
-    assert message["data"]["fireId"] == fire.id
+    assert message["data"]["fireId"] == fire.reference_number
 
 
 def test_websocket_rejects_missing_auth_cookie(client):

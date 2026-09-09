@@ -1,12 +1,12 @@
 'use client';
 
+import { LocateFixed } from 'lucide-react'
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { MapRef } from 'react-map-gl/mapbox';
 import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { probeHealth } from '../../lib/offline/shared';
-import { LocateFixed } from 'lucide-react'
 
 const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
 

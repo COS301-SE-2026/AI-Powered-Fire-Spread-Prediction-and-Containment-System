@@ -1,9 +1,10 @@
 'use client';
 
+import { LocateFixed } from 'lucide-react'
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
@@ -18,7 +19,6 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
-import { LocateFixed } from 'lucide-react'
 
 interface MapProps{
     lat: number;
