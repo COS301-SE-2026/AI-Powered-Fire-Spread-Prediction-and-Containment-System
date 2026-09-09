@@ -18,7 +18,7 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
-      MINIO_ENDPOINT: minio:9000
+      MINIO_ENDPOINT: minio-prod:9000
       MINIO_SECURE: "false"
       MINIO_PUBLIC_ENDPOINT: fireaway.site
       MINIO_PUBLIC_SECURE: "true"
