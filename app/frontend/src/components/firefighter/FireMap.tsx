@@ -18,6 +18,7 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+import { LocateFixed } from 'lucide-react'
 
 interface MapProps{
     lat: number;
@@ -203,6 +204,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         ),
     [activeFires]
   );
+
+  const handleRecenter = useCallback(() => {
+    setViewState((v) => ({
+      ...v,
+      longitude: lng,
+      latitude: lat,
+      zoom: Math.max(v.zoom, 13),
+    }))
+  }, [lat, lng])
 
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) return;
@@ -484,7 +494,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </Popup>
       )}
+      <Marker longitude={lng} latitude={lat} anchor='center'>
+        <div className='relative flex items-center justify-center size-6'>
+          <span className='animate-ping absolute inline-flex size-6 rounded-full bg-blue-400 opacity-60'/>
+          <span className='relative inline-flex size-3.5 rounded-full bg-blue-400 border-2 border-white shadow-lg'/>
+        </div>
+      </Marker>
     </Map>
+
+    <button
+      type='button'
+      onClick={handleRecenter}
+      aria-label='Center map location on me'
+      className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+    >
+      <LocateFixed className='w-5 h-5'/>
+    </button>
     </div>
   );
 }

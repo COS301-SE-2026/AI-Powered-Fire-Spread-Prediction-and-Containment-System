@@ -6,6 +6,7 @@ import type { MapRef } from 'react-map-gl/mapbox';
 import { makeCircle, getRimPos, realKm, output } from '../../lib/geo';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { probeHealth } from '../../lib/offline/shared';
+import { LocateFixed } from 'lucide-react'
 
 const { default: Map, Source, Layer } = require('react-map-gl/mapbox');
 
@@ -43,6 +44,16 @@ function createPinElement(): HTMLDivElement {
       <div class="w-1 h-5 bg-ignite/40"></div>
       <div class="w-1 h-1 rounded-full bg-ignite"></div>
     `;
+  return el;
+}
+
+function createUserLocationElement(): HTMLDivElement{
+  const el = document.createElement('div');
+  el.className = 'relative flex items-center pointer-events-none';
+  el.innerHTML = `
+    <div class="absolute w-6 h-6 rounded-full bg-blue-300/50 animate-ping"></div>
+    <div class="relative w-3.5 h-3.5 rounded-full bg-blue-300 border-2 border-white shadow-lg"></div>
+  `;
   return el;
 }
 
@@ -128,6 +139,68 @@ export function FireMap({
   const dragEndTime = useRef(0);
   const pinMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const rimMarkerRef = useRef<mapboxgl.Marker | null>(null);
+
+  const [userPos, setUserPos] = useState<{lng: number; lat: number} | null>(null);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+
+  useEffect(() => {
+    if(!navigator.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setUserPos({lng: pos.coords.longitude, lat: pos.coords.latitude});
+      },
+      (err) => {
+        console.warn('Location is unavailable');
+      }, {enableHighAccuracy: true, maximumAge: 30000, timeout: 10000}
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [])
+
+  useEffect(() => {
+    if(!userPos || !mapRef.current) return;
+
+    if(!userMarkerRef.current){
+      userMarkerRef.current = new mapboxgl.Marker({
+        element: createUserLocationElement(),
+        anchor: 'center',
+      }).setLngLat([userPos.lng, userPos.lat]).addTo(mapRef.current.getMap());
+    } else {
+      userMarkerRef.current.setLngLat([userPos.lng, userPos.lat]);
+    }
+
+  }, [userPos])
+
+  useEffect(() => () => userMarkerRef.current?.remove(), [])
+
+  const handleRecenter = useCallback(() => {
+    if(userPos) {
+      toLocation(mapRef, userPos.lng, userPos.lat);
+      return;
+    }
+
+    if(!navigator.geolocation) return;
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const next = {lng: pos.coords.longitude, lat: pos.coords.latitude}
+        setUserPos(next);
+        toLocation(mapRef, next.lng, next.lat);
+        setIsLocating(false);
+      }, () => setIsLocating(false),
+      {enableHighAccuracy: true, timeout: 10000}
+    );
+  }, [userPos]);
+
+  const hasCentered = useRef(false);
+  useEffect(() => {
+    if (!userPos || hasCentered.current || !mapRef.current) return;
+    hasCentered.current = true;
+    toLocation(mapRef, userPos.lng, userPos.lat);
+  }, [userPos])
 
   useEffect(() => {
     markerPosRef.current = markerPos;
@@ -232,6 +305,7 @@ export function FireMap({
   const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
 
   return (
+    <div className='relative w-full h-full'>
     <Map
       ref={mapRef}
       mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
@@ -241,6 +315,7 @@ export function FireMap({
       onClick={handleMapClick}
       cursor="crosshair"
     >
+    
       {circleData && (
         <Source id="boundary" type="geojson" data={circleData}>
           <Layer
@@ -256,5 +331,15 @@ export function FireMap({
         </Source>
       )}
     </Map>
+    <button
+      type='button'
+      onClick={handleRecenter}
+      disabled={isLocating}
+      aria-label='Center map location on me'
+      className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+    >
+      <LocateFixed className={`w-5 h-5 ${isLocating ? 'animate-spin' : ''}`}/>
+    </button>
+    </div>
   );
 }

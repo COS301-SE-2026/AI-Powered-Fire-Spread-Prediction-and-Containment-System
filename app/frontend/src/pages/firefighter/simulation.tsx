@@ -261,7 +261,7 @@ export default function Simulation() {
                     className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
                     <Trash2 size={20}/>
-                    Clear Drawings
+                    Clear
                   </button>
                 </div>
               </div>
