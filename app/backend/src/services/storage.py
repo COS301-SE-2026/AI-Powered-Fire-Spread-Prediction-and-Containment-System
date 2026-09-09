@@ -58,6 +58,7 @@ def upload_image(filename: str, content_type: str, contents: bytes) -> str:
         data=BytesIO(contents),
         length=len(contents),
         content_type=content_type,
+        part_size=10 * 1024 * 1024
     )
 
     return object_key
