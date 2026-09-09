@@ -5,13 +5,13 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from enums.notification_type import NotificationType
-from enums.report_status import ReportStatus
-from enums.user_role import UserRole
-from models.notification import Notification
-from models.reported_fires import FireReports
-from models.users import User
-from schemas.notification import NotificationOut
+from app.backend.src.enums.notification_type import NotificationType
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.models.notification import Notification
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.users import User
+from app.backend.src.schemas.notification import NotificationOut
 from .geo import haversine_km, point_to_latlng
 from .severity import severity_from_boundary_radius
 from .websocket_manager import manager, get_main_loop
@@ -57,27 +57,38 @@ def push(notification: Notification) -> None:
         "data": NotificationOut.from_model(notification).model_dump(mode="json"),
     }
     loop = get_main_loop()
-    if loop is None:
+    if loop is None or loop.is_closed():
         logger.warning(
             "push() called before main_loop was set, notification %s for user %s was not delivered live",
             notification.id,
             notification.user_id,
         )
         return
-
-    future = asyncio.run_coroutine_threadsafe(
-        manager.send_to_user(notification.user_id, payload), loop
-    )
-
-    def log_if_failed(f: asyncio.Future) -> None:
-        exc = f.exception()
-        if exc is not None:
-            logger.error(
-                "Failed to push notification %s to user %s: %s",
+    try:
+        future = asyncio.run_coroutine_threadsafe(
+            manager.send_to_user(notification.user_id, payload), loop
+        )
+    except RuntimeError as exc:
+        logger.error(
+            "Failed to push notification %s to user %s: %s",
                 notification.id,
                 notification.user_id,
                 exc,
             )
+        return
+
+    def log_if_failed(f: asyncio.Future) -> None:
+        try:
+            exc = f.exception()
+            if exc is not None:
+                logger.error(
+                    "Failed to push notification %s to user %s: %s",
+                    notification.id,
+                    notification.user_id,
+                    exc,
+                )
+        except (asyncio.CancelledError, RuntimeError):
+            pass
 
     future.add_done_callback(log_if_failed)
 
@@ -277,7 +288,7 @@ def check_proximity_for_guest(
         matches.append(
             NotificationOut(
                 id=f"guest-{fire_report.id}",
-                fireId=fire_report.id,
+                fireId=fire_report.reference_number,
                 fireLocation=fire_report.location_text,
                 distance=round(distance, 1),
                 type=NotificationType.alert,

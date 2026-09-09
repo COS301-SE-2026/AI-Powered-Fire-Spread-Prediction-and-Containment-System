@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Plus, LocateFixed } from 'lucide-react';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
+import { useFireSelect } from '../../hooks/useFireSelect';
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { UserSideBar } from '../../components/users/UserSideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
@@ -10,7 +11,6 @@ import { SidePanelRight } from '../../components/users/sidePanelRight';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { useMapLink } from '../../hooks/useMapLink';
-import { useFireSelect } from '../../hooks/useFireSelect';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 
@@ -28,12 +28,12 @@ export default function RegisteredUserDashboard() {
   useMapLink(handleSelectFire);
   return (
     <UserSideBar>
-      <div className="flex flex-col p-6">
+      <div className="flex flex-col px-2 py-2 ">
         <NotificationToastHost />
         <PageHeader title="Welcome" subtitle="Public Fire Map View" showIcons />
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
-          <MapPanel colSpan={8} height="lg">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-6">
+          <MapPanel colSpan={8} height="responsive">
             <FireMap
               lat={userLocation.lat}
               lng={userLocation.lng}

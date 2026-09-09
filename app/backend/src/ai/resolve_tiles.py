@@ -11,15 +11,13 @@ STAC_API = "https://earth-search.aws.element84.com/v1"
 S2_COLLECTION = "sentinel-2-c1-l2a"
 
 # Optical bands we need for our feature extraction
-S2_REQUIRED_BANDS = {
-    "red",
-    "nir",
-    "swir16"
-}
+S2_REQUIRED_BANDS = {"red", "nir", "swir16"}
+
 
 @dataclass
 class ResolvedTiles:
     """Container to hold the remote raster URLS for the simulation"""
+
     b04_path: str
     b08_path: str
     b11_path: str
@@ -27,6 +25,7 @@ class ResolvedTiles:
     scl_path: Optional[str] = None
     s2_item_id: Optional[str] = None
     s2_cloud_cover: Optional[float] = None
+
 
 def dem_tile_id(lat: float, lon: float) -> str:
     """
@@ -41,11 +40,9 @@ def dem_tile_id(lat: float, lon: float) -> str:
 
     return f"{ns}{lat_mag:02d}_00_{ew}{abs(tile_lon):03d}_00"
 
+
 def resolve_dem_path(
-    min_lon: float,
-    min_lat: float,
-    max_lon: float,
-    max_lat: float
+    min_lon: float, min_lat: float, max_lon: float, max_lat: float
 ) -> list[str]:
     """
     Gets the 1x1 DEM tile raster path that overlaps the fires bounding box
@@ -55,8 +52,8 @@ def resolve_dem_path(
 
     tiles = {
         dem_tile_id(lat + 0.5, lon + 0.5)
-        for lat in range (lat0, lat1 + 1)
-        for lon in range (lon0, lon1 + 1)
+        for lat in range(lat0, lat1 + 1)
+        for lon in range(lon0, lon1 + 1)
     }
 
     return [
@@ -65,6 +62,7 @@ def resolve_dem_path(
         for tile in sorted(tiles)
     ]
 
+
 def resolve_sentinel2_bands(
     min_lon: float,
     min_lat: float,
@@ -72,7 +70,7 @@ def resolve_sentinel2_bands(
     max_lat: float,
     when: Optional[datetime] = None,
     time_window: int = 14,
-    max_cloud_coverage = 10.0
+    max_cloud_coverage=10.0,
 ) -> ResolvedTiles:
     """
     Query the AWS STAC catalog to find the clearest image of the scene over the fire area
@@ -91,7 +89,7 @@ def resolve_sentinel2_bands(
             bbox=bbox,
             datetime=f"{date_start}/{date_end}",
             query={"eo:cloud_cover": {"lt": cloud_limit}},
-            max_items=20
+            max_items=20,
         )
         items = list(search.items())
         if items:
@@ -122,20 +120,21 @@ def resolve_sentinel2_bands(
         dem_path="",
         scl_path=assets["scl"].href if "scl" in assets else None,
         s2_item_id=best.id,
-        s2_cloud_cover=best.properties.get("eo:cloud_cover")
+        s2_cloud_cover=best.properties.get("eo:cloud_cover"),
     )
+
 
 def resolve_tile_paths(
     min_lon: float,
     min_lat: float,
     max_lon: float,
     max_lat: float,
-    when: Optional[datetime] = None
+    when: Optional[datetime] = None,
 ) -> ResolvedTiles:
     """
     A wrapper that resolves the Sentinel-2 and DEM paths
     """
-    
+
     s2 = resolve_sentinel2_bands(min_lon, min_lat, max_lon, max_lat, when=when)
 
     dem_paths = resolve_dem_path(min_lon, min_lat, max_lon, max_lat)

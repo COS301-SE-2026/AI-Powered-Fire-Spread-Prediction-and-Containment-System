@@ -30,14 +30,14 @@ export default function Verify2FA() {
     setIsLoading(true);
     setError('');
     try {
-      const data = await apiCall('/auth/verify-2fa', 'POST', {
+      const data = await apiCall('/api/auth/verify-2fa', 'POST', {
         username: email,
         code,
       });
 
       const roleRedirects: Record<string, string> = {
         admin: '/admin/dashboard',
-        firefighter: 'firefighter/dashboard',
+        firefighter: '/firefighter/dashboard',
         user: '/users/live-map',
       };
 

@@ -3,6 +3,7 @@ import { CircleCheck, Pencil, CircleDashed, Trash2 } from 'lucide-react';
 import { useMemo } from 'react';
 
 interface LoggedLine {
+  id?:string;
   line: string;
   direction: string;
   info: string;
@@ -107,9 +108,9 @@ export function LoggedContainmentLine({ cardData = undefined, lines = [], select
 
   return (
     <div className="flex flex-col gap-1 p-1">
-      {cardData.map((items) => (
+      {displayItems.map((items, idx) => (
         <div
-          key={items.line}
+          key={items.id ?? items.line ?? idx}
           className="flex items-center justify-between gap-1 p-1 border border-carbon-stroke rounded-xl"
         >
           <div className="flex items-center gap-2">

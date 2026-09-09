@@ -2,23 +2,27 @@ from unittest.mock import patch
 
 import pytest
 
-from dependencies.auth import create_access_token
-from enums.notification_type import NotificationType
-from enums.report_status import ReportStatus
-from enums.user_role import UserRole
-from enums.severity import Severity
-from models.notification import Notification
-from src.routes import notifications as notifications_route
-from services.notifications import notifications as svc
+from app.backend.src.dependencies.auth import create_access_token
+from app.backend.src.enums.notification_type import NotificationType
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.user_role import UserRole
+from app.backend.src.enums.severity import Severity
+from app.backend.src.models.notification import Notification
+from app.backend.src.routes import notifications as notifications_route
+from app.backend.src.services.notifications import notifications as svc
 
 from conftest import make_report, make_user
 
 
-@pytest.fixture()
-def patched_push():
+@pytest.fixture(autouse=True)
+def patched_push(request):
     """
     Request this only in tests that assert something about push()
     """
+    if request.node.name == "test_websocket_receives_a_real_in_app_notification":
+        yield
+        return
+
     with patch.object(svc, "push") as mock_push:
         yield mock_push
 
@@ -219,9 +223,9 @@ def test_check_proximity_for_guest_persists_nothing(db, patched_push):
     after = db.query(Notification).count()
 
     assert len(results) == 1
-    assert results[0].fireId == fire.id
+    assert results[0].fireId == fire.reference_number
     assert before == after == 0
-    patched_push.assery_not_called()
+    patched_push.assert_not_called()
 
 
 def test_excludes_fires_beyond_regular_user_tier(db):
@@ -288,7 +292,7 @@ def test_mark_all_read_only_affects_that_users_notifications(db):
 def test_websocket_receives_a_real_in_app_notification(db, client):
     import asyncio
     import threading
-    from services.notifications.websocket_manager import set_main_loop
+    from app.backend.src.services.notifications.websocket_manager import set_main_loop
 
     user = make_user(db, lat=-25.75, lng=28.24)
     fire = make_report(
@@ -319,7 +323,7 @@ def test_websocket_receives_a_real_in_app_notification(db, client):
             message = websocket.receive_json()
 
     assert message["event"] == "notification"
-    assert message["data"]["fireId"] == fire.id
+    assert message["data"]["fireId"] == fire.reference_number
 
 
 def test_websocket_rejects_missing_auth_cookie(client):

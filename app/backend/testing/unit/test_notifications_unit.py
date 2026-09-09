@@ -5,24 +5,24 @@ import pytest
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 
-from enums.notification_type import NotificationType
-from enums.report_status import ReportStatus
-from enums.severity import Severity
-from enums.user_role import UserRole
+from app.backend.src.enums.notification_type import NotificationType
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.severity import Severity
+from app.backend.src.enums.user_role import UserRole
 
-from models.reported_fires import FireReports
-from models.users import User
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.users import User
 
-from services.notifications import notifications as svc
-from services.notifications.geo import haversine_km, point_to_latlng
-from services.notifications.notifications import (
+from app.backend.src.services.notifications import notifications as svc
+from app.backend.src.services.notifications.geo import haversine_km, point_to_latlng
+from app.backend.src.services.notifications.notifications import (
     STAFF_TIER_THRESHOLDS_KM,
     TIER_THRESHOLDS_KM,
     distance_to_fire_edge,
     tier_for_distance,
     tier_thresholds_for_role,
 )
-from services.notifications.severity import (
+from app.backend.src.services.notifications.severity import (
     HIGH_MAX_KM,
     LOW_MAX_KM,
     MODERATE_MAX_KM,
@@ -494,7 +494,7 @@ class TestCheckProximityForGuest:
             results = svc.check_proximity_for_guest(db, -25.75, 28.24)
 
         assert len(results) == 1
-        assert results[0].fireId == fire.id
+        assert results[0].fireId == fire.reference_number
         assert results[0].distance == 3.0
         assert results[0].type == NotificationType.alert
 
@@ -539,7 +539,7 @@ class TestCheckProximityForGuest:
         ), patch.object(svc, "distance_to_fire_edge", return_value=3.0):
             results = svc.check_proximity_for_guest(db, -25.75, 28.24)
 
-        assert {r.fireId for r in results} == {"fire-1", "fire-2"}
+        assert {r.fireId for r in results} == {fire1.reference_number, fire2.reference_number}
 
     def test_id_is_synthesized_and_prefixed(self, db):
         fire = make_fire(id="fire-42")

@@ -33,11 +33,11 @@ def mock_db():
     app.dependency_overrides.clear()
 
 
-# #when client is called in tests this function gets called
-# #creates fake HTTP client wired directly to FASTAPI for calling endpoints
-# @pytest.fixture
-# def client():
-#     return TestClient(app)
+# when client is called in tests this function gets called
+# creates fake HTTP client wired directly to FASTAPI for calling endpoints
+@pytest.fixture
+def client():
+    return TestClient(app)
 
 
 @pytest.fixture
@@ -143,9 +143,11 @@ def test_ref_format(client, mock_db, sample_report_dict):
         assert response.status_code == 200
         assert "reference_number" in response.json()
 
-# #     ref = response.json()["reference_number"]
-# #     year = datetime.now().year
-# #     assert re.match(rf"FR-{year}-[A-F0-9]{{6}}", ref)
+
+#     ref = response.json()["reference_number"]
+#     year = datetime.now().year
+#     assert re.match(rf"FR-{year}-[A-F0-9]{{6}}", ref)
+
 
 # test status
 # def test_status(client, mock_db, sample_report_dict):

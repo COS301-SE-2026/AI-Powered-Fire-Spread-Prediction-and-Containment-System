@@ -18,6 +18,7 @@ disable=
     C0303,
     R0914,
     R0915,
+    E0401,
 
 [FORMAT]
 max-line-length=120

@@ -33,7 +33,7 @@ export default function MapView() {
 
 
   return (
-    <div className="flex flex-col p-6">
+    <div className="flex flex-col p-2">
       {/* Public View Header */}
       <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons />
 

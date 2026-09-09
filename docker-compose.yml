@@ -1,59 +1,7 @@
 name: fireaway
 
 services:
-  gateway:
-    image: nginx:1.27-alpine
-    restart: unless-stopped
-    volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-    networks:
-      [edge]
-
-  postgres:
-    image: postgis/postgis:15-3.5
-    platform: linux/amd64
-    restart: unless-stopped
-    env_file:
-      [.env]
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
-      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      [internal]
-
-  # pgadmin:
-  #   image: dpage/pgadmin4:latest
-  #   container_name: pgadmin
-  #   restart: unless-stopped
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-  #   volumes:
-  #     - pgadmin-data:/var/lib/pgadmin
-  #   ports:
-  #     - "127.0.0.1:8080:80"
-  #   depends_on:
-  #     - postgres
-
   backend:
-    build:
-      context: .
-      dockerfile: app/backend/Dockerfile
-      target: prod
     working_dir: /app
     env_file:
       [.env]
@@ -62,10 +10,13 @@ services:
       MINIO_ENDPOINT: minio:9000
       PYTHONPATH: /app
       VALKEY_PORT: "6379"
+      AWS_REGION: ${AWS_REGION}
+      INFERENCE_QUEUE_URL: ${INFERENCE_QUEUE_URL:?set in .env}
+      ARTIFACTS_S3_BUCKET: ${ARTIFACTS_S3_BUCKET:-fireaway-ryan-artifacts}
+      RESULTS_QUEUE_URL: ${RESULTS_QUEUE_URL:?set in .env}
+      ARTIFACTS_ROOT: /mnt/fire-system-artifacts
     restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
       minio:
         condition: service_healthy
       valkey:
@@ -82,13 +33,6 @@ services:
       [edge,internal]
 
   frontend:
-    build:
-      context: .
-      dockerfile: app/frontend/Dockerfile
-      target: runner
-      args:
-        NEXT_PUBLIC_API_URL: ""
-        NEXT_PUBLIC_MAPBOX_TOKEN: ${NEXT_PUBLIC_MAPBOX_TOKEN:?}
     restart: unless-stopped
     env_file:
       [.env]
@@ -98,7 +42,6 @@ services:
     expose:
       - "3000"
     environment:
-      NODE_ENV: production
       HOSTNAME: "0.0.0.0"
       PORT: "3000"
     healthcheck:
@@ -144,25 +87,6 @@ services:
     networks:
       [internal]
 
-  reseed:
-    build:
-      context: .
-      dockerfile: ./app/backend/Dockerfile
-      target: dev
-    profiles: [ "tools" ]
-    env_file:
-      [.env]
-    environment:
-      - PYTHONPATH=/app
-      - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
-      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: [ "python", "-m", "app.backend.seed", "--reseed" ]
-    networks:
-      [internal]
-
 networks:
   edge:
     driver: bridge
@@ -170,10 +94,8 @@ networks:
     driver: bridge
   
 volumes:
-  pgdata:
   miniodata:
   valkeydata:
-  frontend_node_modules:
 
   # pwa:
   #   build:

@@ -11,7 +11,7 @@ export function useContainmentLine(onDraw?: () => void) {
       setLoading(true);
       setError(null);
       try{
-        return await apiCall('/firefighter/containment-line', 'POST', body);
+        return await apiCall('/api/firefighter/containment-line', 'POST', body);
       }catch(err: unknown){
         const message = err instanceof Error ? err.message : 'unknown error';
         console.error('Failed to save containment line', err);

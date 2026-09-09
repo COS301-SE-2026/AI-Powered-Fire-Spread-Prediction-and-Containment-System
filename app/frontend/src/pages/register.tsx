@@ -10,7 +10,6 @@ interface RegisterForm {
   surname: string;
   email: string;
   idNumber: string;
-  licenceNumber: string;
   password: string;
   confirmPassword: string;
   role: 'User' | 'Firefighter';
@@ -23,7 +22,6 @@ interface FormErrors {
   idNumber?: string;
   password?: string;
   confirmPassword?: string;
-  licenceNumber?: string;
 }
 
 function validateEmail(email: string) {
@@ -51,7 +49,6 @@ export default function Register() {
     surname: '',
     email: '',
     idNumber: '',
-    licenceNumber: '',
     password: '',
     confirmPassword: '',
     role: 'User',
@@ -113,10 +110,6 @@ export default function Register() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    if (form.role === 'Firefighter' && !form.licenceNumber.trim()) {
-      newErrors.licenceNumber = 'Licence number is required for firefighters';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -135,10 +128,9 @@ export default function Register() {
         name: form.name,
         surname: form.surname,
         id_number: form.idNumber,
-        license_number: form.role === 'Firefighter' ? form.licenceNumber : null,
       };
 
-      const data: TwoFARequiredResponse = await apiCall('api/auth/register', 'POST', payload);
+      const data: TwoFARequiredResponse = await apiCall('/api/auth/register', 'POST', payload);
 
       if (data.requires_2fa && data.otpauth_url) {
         router.push(
@@ -291,25 +283,6 @@ export default function Register() {
               </select>
             </div>
 
-            {form.role === 'Firefighter' && (
-              <div className="md:col-span-2">
-                <label htmlFor="licenceNumber" className="block text-sm text-text-primary">
-                  Licence Number
-                </label>
-                <input
-                  id="licenceNumber"
-                  name="licenceNumber"
-                  placeholder="Licence number"
-                  value={form.licenceNumber}
-                  onChange={handleChange}
-                  className={fieldClass(errors.licenceNumber)}
-                />
-                {errors.licenceNumber && (
-                  <p className="text-flare text-xs mt-1">{errors.licenceNumber}</p>
-                )}
-              </div>
-            )}
-
             {apiError && (
               <div className="md:col-span-2 bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">
                 {apiError}
@@ -325,6 +298,16 @@ export default function Register() {
                 {isLoading ? 'Registering...' : 'Register now'}
               </button>
             </div>
+            <div className="md:col-span-2 mt-2">
+              <button
+                type="button"
+                onClick={() => router.push('/login')}
+                className="w-full py-2 bg-transparent border border-carbon-stroke hover:border-primary text-text-muted hover:text-text-primary font-bold rounded-md transition"
+              >
+                Back to login
+              </button>
+            </div>
+
           </form>
         </div>
       </div>

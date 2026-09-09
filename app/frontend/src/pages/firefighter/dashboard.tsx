@@ -8,12 +8,12 @@ import { EnvironmentWidgets } from '../../components/firefighter/EnvironmentWidg
 import { MapStatsOverlay } from '../../components/firefighter/mapStat';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { useContainmentLine } from '../../hooks/useContainmentLine';
+import { useFireSelect } from '../../hooks/useFireSelect';
+import { useRotate } from '../../hooks/useRotate';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
-import { useFireSelect } from '../../hooks/useFireSelect';
-import { useRotate } from '../../hooks/useRotate';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
@@ -53,8 +53,9 @@ export default function FirefighterDashboard() {
   useMapLink(handleSelectFire);
   return (
     <FirefighterSideBar hideLoginRegister>
-      <div className="flex flex-col p-6">
+      <div className="flex flex-col p-2 md:p-6">
         <NotificationToastHost />
+        <RotateHint show={showHint} onDismiss={dismiss} />
         <PageHeader
           title="Firefighter Dashboard"
           subtitle="Tshwane District • Real-time Monitoring"
@@ -62,8 +63,8 @@ export default function FirefighterDashboard() {
         />
 
         {/* Main Grid container */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1">
-          <div className="xl:col-span-8 flex flex-col gap-4">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 md:gap-4 xl:grid-rows-1">
+          <div className="xl:col-span-8 flex flex-col gap-3 md:gap-4">
             {/* Map */}
             <div className="rounded-2xl bg-carbon-side/40 border border-carbon-stroke backdrop-blur-sm flex flex-col overflow-hidden relative shadow-2xl shadow-black/20 h-96 sm:h-104 md:h-136">
               <div className="p-3 md:p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
@@ -73,12 +74,12 @@ export default function FirefighterDashboard() {
                 <button
                   type="button"
                   onClick={() => setClearDrawings((c) => c + 1)}
-                  className="text-xs font-medium text-text-primary/60 hover:text-ignite transition-colors"
+                  className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
                 >
                   Clear Lines
                 </button>
               </div>
-              <div className="flex-1 w-full h-full pt-[53px]">
+              <div className="flex-1 w-full h-full pt-12 md:pt-13">
                 <FireMap
                   lat={userLocation.lat}
                   lng={userLocation.lng}
@@ -94,17 +95,17 @@ export default function FirefighterDashboard() {
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
             </div>
-            <div className="grid grid-cols-2 gap-2 shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-2 shrink-0">
               <div className="flex flex-col">
-                <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase mb-3">
+                <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
                   Environment Variables
-                </h2>
+                </h3>
                 <EnvironmentWidgets variables={environmentVariables} />
               </div>
               <div className="flex flex-col">
-                <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase mb-3">
+                <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
                   Quick Actions
-                </h2>
+                </h3>
                 <QuickActions onStartDraw={() => setDrawMode(true)} />
               </div>
             </div>

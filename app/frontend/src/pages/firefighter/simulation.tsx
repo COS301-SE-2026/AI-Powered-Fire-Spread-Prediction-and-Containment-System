@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity } from 'lucide-react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
@@ -131,11 +131,11 @@ export default function Simulation() {
                 <RotateHint show={showHint} onDismiss={dismiss} />
                 <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
 
-        <div className="flex flex-row gap-4 min-w-0">
+        <div className="flex flex-col lg:flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
-          <div className="basis-3/4 flex flex-col gap-4">
+          <div className="basis-full lg:basis-3/4 flex flex-col gap-4 min-w-0">
             {/* Fire Map */}
-            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[70vh] overflow-hidden relative">
+            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[80vh] max-h-[420px] landscape:max-h-none overflow-hidden relative">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">
                   LIVE FIRE MAP
@@ -193,12 +193,12 @@ export default function Simulation() {
           </div>
 
             {/* simulation vars and buttons */}
-            <div className="flex gap-3 items-stretched">
+            <div className="flex flex-col lg:flex-row gap-3 items-stretch">
               {/* buttons to start simulation or draw page */}
-              <div className="flex flex-col gap-3 shrink-0 w-80">
+              <div className="flex flex-col gap-3 shrink-0 w-full lg:w-80">
                 <button
                   type="button"
-                  onClick={() => setDrawMode(true)}
+                  onClick={() => setDrawMode((prev) => !prev)}
                   className="btn btn-primary btn-outline w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold tracking-wide"
                 >
                   <Pencil size={20} />
@@ -222,7 +222,7 @@ export default function Simulation() {
 
                   {isLoading ? 'Cancel Simulation' : 'RUN'}
                 </button>
-                
+
                 {/* Pause and Resume buttons */}
                 <div className='flex gap-2'>
                   <button
@@ -257,11 +257,11 @@ export default function Simulation() {
                   </button>
                   <button
                     onClick={handleClear}
-                    disabled={!hasResult || isLoading}
+                    disabled={!canClear || isLoading}
                     className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
                     <Trash2 size={20}/>
-                    Clear Drawings
+                    Clear
                   </button>
                 </div>
               </div>
@@ -329,7 +329,7 @@ export default function Simulation() {
           </div>
 
           {/* Simulation results */}
-          <div className="basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto">
+          <div className="basis-full lg:basis-1/4 rounded-2xl bg-carbon-side border border-carbon-stroke overflow-y-auto max-h-[40vh] lg:max-h-none">
             <SimulationResults
               // Pass live stats so panel can show burning/burned counts per tick
               containmentLines={lines}

@@ -16,6 +16,16 @@ jobs:
       MINIO_ACCESS_KEY: admin
       MINIO_SECRET_KEY: miniosupersecretpassword
       MINIO_BUCKET: fire-reports
+      MINIO_ENDPOINT: localhost:9000
+      SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
+      SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: testing
+      AWS_SECRET_ACCESS_KEY: testing
+      INFERENCE_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-inference"
+      RESULTS_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-results"
+      ARTIFACTS_ROOT: "/tmp/artifacts"
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -94,6 +104,13 @@ jobs:
       VALKEY_PORT: 6379
       SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
       SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+      AWS_DEFAULT_REGION: us-east-1
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: testing
+      AWS_SECRET_ACCESS_KEY: testing
+      INFERENCE_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-inference"
+      RESULTS_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-results"
+      ARTIFACTS_ROOT: "/tmp/artifacts"
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -253,6 +270,11 @@ jobs:
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY || 'ci-test-key'}}
           VALKEY_HOST: localhost
           VALKEY_PORT: 6379
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_REGION: us-east-1
+          AWS_ACCESS_KEY_ID: testing
+          AWS_SECRET_ACCESS_KEY: testing
+          INFERENCE_QUEUE_URL: ${{ secrets.INFERENCE_QUEUE_URL }}
           SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
           SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
         run: |
@@ -296,5 +318,3 @@ jobs:
           name: playwright-report
           path: app/frontend/playwright-report/
           retention-days: 7
-
- 

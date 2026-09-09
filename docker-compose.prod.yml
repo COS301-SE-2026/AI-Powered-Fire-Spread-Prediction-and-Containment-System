@@ -3,12 +3,33 @@
 
 services:
   backend:
-    container_name: prod-python-backend
     image: ${BACKEND_IMAGE}
+    pull_policy: always
     restart: always
-    volumes:
-      - ./app/ml:/app/ml:Z
-      - ./app/artifact_store:/app/app/artifact_store:Z
+    environment:
+      ENVIRONMENT: production
+      RUN_SEED: "0"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_prod?sslmode=require
+      AWS_REGION: ${AWS_REGION}
+      INFERENCE_QUEUE_URL: ${INFERENCE_QUEUE_URL}
+      RESULTS_QUEUE_URL: ${RESULTS_QUEUE_URL}
+      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
+      WEATHER_API_SECRET_NAME: ${WEATHER_API_SECRET_NAME}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      VALKEY_HOST: valkey
+      VALKEY_PORT: 6379
+      MINIO_ENDPOINT: minio-prod:9000
+      MINIO_SECURE: "false"
+      MINIO_PUBLIC_ENDPOINT: fireaway.site
+      MINIO_PUBLIC_SECURE: "true"
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: fire-reports
+    depends_on:
+      valkey:
+          condition: service_started
+      minio:
+          condition: service_healthy
     deploy:
       resources:
         limits:
@@ -22,30 +43,14 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-    environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/${POSTGRES_DB}
-      AWS_REGION: ${AWS_REGION}
-      SQS_QUEUE_URL: ${SQS_QUEUE_URL}
-      GPU_RESULTS_QUEUE_URL: ${GPU_RESULTS_QUEUE_URL}
-      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
-      WEATHER_API_SECRET_NAME: ${WEATHER_API_SECRET_NAME}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      VALKEY_HOST: valkey
-      VALKEY_PORT: 6379
-      MINIO_ENDPOINT: minio:9000
-      MINIO_SECURE: "false"
-      MINIO_PUBLIC_ENDPOINT: fireaway.csml.co.za
-      MINIO_PUBLIC_SECURE: "true"
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET: fire-images
-      SEED_DEFAULT_PASSWORD: ${SEED_DEFAULT_PASSWORD}
-      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
-    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+      start_period: 60s
+    networks:
+      internal:
+      edge:
+        aliases:
+          - backend-prod
 
   frontend:
-    container_name: prod-next-frontend
     image: ${FRONTEND_IMAGE}
     restart: always
     deploy:
@@ -57,19 +62,21 @@ services:
           cpus: "0.1"
           memory: 128M
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 30s
-    command: ["node", "server.js"]
     environment:
       NODE_ENV: production
-      BACKEND_INTERNAL_URL: http://prod-python-backend:8000
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    networks:
+      edge:
+        aliases:
+          - frontend-prod
 
-  caddy:
+  gateway:
     image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
-    container_name: caddy-prod
     restart: always
     depends_on:
       - frontend
@@ -87,16 +94,13 @@ services:
           memory: 16M
     volumes:
       - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - /home/ubuntu/app/cloudflare-origin.pem:/etc/caddy/cloudflare-origin.pem:ro
-      - /home/ubuntu/app/cloudflare-origin.key:/etc/caddy/cloudflare-origin.key:ro
       - caddy_prod_data:/data
       - caddy_prod_config:/config
     networks:
-      - default
+      - edge
 
   valkey:
     image: valkey/valkey@sha256:a91d34ab33975b1054e26f1bd9995b268f7e0c507b5ded7f3d181a1a25521630
-    container_name: prod-valkey
     restart: always
     deploy: 
       resources:
@@ -106,12 +110,9 @@ services:
         reservations:
           cpus: "0.05"
           memory: 128M
-    volumes:
-      - valkey_prod_data:/data
 
   minio:
     image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-    container_name: prod-minio
     restart: always
     command: ["server", "/data", "--console-address", ":9001"]
     deploy:
@@ -122,15 +123,16 @@ services:
         reservations:
           cpus: "0.05"
           memory: 32M
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    volumes:
-      - minio_prod_data:/data
+    networks:
+      internal:
+      edge:
+        aliases: [minio-prod]
 
 volumes:
   caddy_prod_data:
   caddy_prod_config:
-  minio_prod_data:
-  valkey_prod_data:
 
+networks:
+  edge:
+    external: true
+    name: fireaway-edge

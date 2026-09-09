@@ -1,165 +1,61 @@
 services:
-  postgres:
-    container_name: staging-postgres-db
-    image: postgis/postgis@sha256:a2fc46b52819d25add4ed93d3da83e106e17ea3ace6883cce3791631c9820bb2
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:5433:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - postgres_staging_data:/var/lib/postgresql/data
-    deploy: 
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-        reservations:
-          cpus: "0.5"
-          memory: 64M
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  pgadmin:
-    container_name: staging-pgadmin
-    profiles: ["debug"]
-    ports: []
 
   backend:
-    container_name: staging-python-backend
     image: ${BACKEND_IMAGE}
-    ports: []
+    pull_policy: always
     restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
-      valkey:
-        condition: service_started
-    deploy:
-      resources:
-        limits:
-          cpus: "1.0"
-          memory: 768M
-        reservations:
-          cpus: "0.25"
-          memory: 256M
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
     environment:
-      NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      AWS_REGION: ${AWS_REGION}
-      SQS_QUEUE_URL: ${SQS_QUEUE_URL}
-      SQS_GPU_JOB_QUEUE_URL: ${SQS_GPU_JOB_QUEUE_URL}
-      GPU_RESULTS_QUEUE_URL: ${GPU_RESULTS_QUEUE_URL}
-      SNS_TOPIC_ARN: ${SNS_TOPIC_ARN}
-      WEATHER_API_SECRET_NAME: ${WEATHER_API_SECRET_NAME}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY?}
+      RUN_SEED: "0"
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_staging?sslmode=require
+      ENVIRONMENT: staging
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
-      MINIO_ENDPOINT: staging-minio:9000
+      MINIO_ENDPOINT: minio-staging:9000
+      MINIO_SECURE: "false"
+      MINIO_PUBLIC_ENDPOINT: staging.fireaway.site
+      MINIO_PUBLIC_SECURE: "true"
       MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
       MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET: fire-images
-    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8001"]
+      MINIO_BUCKET: fire-reports
+    networks:
+      internal:
+      edge:
+        aliases: [backend-staging]
+    
 
   frontend:
-    container_name: staging-next-frontend
     image: ${FRONTEND_IMAGE}
-    ports: []
-    restart: always
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-        reservations:
-          cpus: "0.1"
-          memory: 128M
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-      start_period: 30s
-    command: ["node", "server.js"]
+    pull_policy: always
     environment:
-      NODE_ENV: production
-      BACKEND_INTERNAL_URL: http://staging-python-backend:8001
-
-  caddy:
-    image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
-    container_name: caddy-staging
-    restart: always
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_healthy
-    ports:
-      - "80:80"
-      - "443:443"
-    deploy:
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: 64M
-        reservations:
-          cpus: "0.05"
-          memory: 16M
-    volumes:
-      - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - /home/ubuntu/app/cloudflare-origin.pem:/etc/caddy/cloudflare-origin.pem:ro
-      - /home/ubuntu/app/cloudflare-origin.key:/etc/caddy/cloudflare-origin.key:ro
-      - caddy_staging_data:/data
-      - caddy_staging_config:/config
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
     networks:
-      - default
-      - edge
+      edge:
+        aliases: [frontend-staging]
 
   valkey:
     image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd
-    container_name: staging-valkey
     restart: always
     deploy:
       resources:
         limits:
           cpus: "0.05"
           memory: "128M"
-        reservations:
-          cpus: "0.05"
-          memory: 32M
 
   minio:
     image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-    container_name: staging-minio
     restart: always
-    command: ["server", "/data", "--console-address", ":9001"]
     deploy: 
       resources:
         limits:
           cpus: "0.3"
           memory: 128M
-        reservations:
-          cpus: "0.05"
-          memory: 32M
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_DRIVE_MIN_FREE_DISK: "500MB"
-    volumes:
-      - minio_staging_data:/data
+    networks:
+      internal:
+      edge:
+        aliases: [minio-staging]
 
-volumes:
-  caddy_staging_data:
-  caddy_staging_config:
-  minio_staging_data:
-  postgres_staging_data:
+networks:
+  edge:
+    external: true
+    name: fireaway-edge

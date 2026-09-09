@@ -13,21 +13,21 @@ export function GuestActions({ onRecenter }: GuestActionsProps) {
     router.push('/guests/live-map');
   };
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="grid grid-cols-2 gap-2 w-full">
       <button
         type="button"
         onClick={handleReportFire}
-        className="w-46 px-4 py-2 text-lg font-medium rounded transition-colors bg-carbon-side/40 text-text-primary/70 hover:bg-carbon-side/60"
+        className="flex flex-col items-center justify-center gap-1 w-full px-2 py-3 text-sm sm:text-base font-medium rounded-lg transition-colors bg-carbon-side/40 text-text-muted hover:bg-carbon-side/60 border border-carbon-stroke"
       >
-        <Flame className="size-15" />
+        <Flame className="size-5 sm:size-6" />
         Report Fire
       </button>
       <button
         type="button"
         onClick={onRecenter}
-        className="w-46 px-4 py-2 text-lg font-medium rounded transition-colors bg-carbon-side/40 text-text-primary/70 hover:bg-carbon-side/60"
+        className="flex flex-col items-center justify-center gap-1 w-full px-2 py-3 text-sm sm:text-medium font-medium rounded-lg transition-colors bg-carbon-side/40 text-text-muted hover:bg-carbon-side/60 border border-carbon-stroke"
       >
-        <LocateFixed className="size-15" />
+        <LocateFixed className="size-5 sm:size-6" />
         Recenter
       </button>
     </div>

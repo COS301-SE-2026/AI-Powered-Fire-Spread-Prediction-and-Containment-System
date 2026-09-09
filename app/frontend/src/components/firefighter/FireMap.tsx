@@ -1,10 +1,11 @@
 'use client';
 
+import { LocateFixed } from 'lucide-react'
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
@@ -31,8 +32,8 @@ interface MapProps{
     recenter?: number;
     predictions?: Prediction[];
     currentTick?: number;
-    selectedFireId?: string | null;
     selectedFireLocation?: string | null;
+    selectedFireId?: string | null;
     onSelectFire?: (ref: string) => void;
     onDeselect?: () => void;
     showKey?: boolean;
@@ -53,8 +54,6 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
-  const [showUserLoctionTooltip, setShowUserLocationTooltip] = useState(false);
-
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
@@ -155,7 +154,8 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     };
   }, [drawMode, handleDrawCreate]);
 
-    const initialMount = useRef(true);
+  // Reset the containment lines on clear
+  const initialMount = useRef(true);
   useEffect(() => {
     if (initialMount.current){
       initialMount.current = false;
@@ -205,9 +205,18 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     [activeFires]
   );
 
+  const handleRecenter = useCallback(() => {
+    setViewState((v) => ({
+      ...v,
+      longitude: lng,
+      latitude: lat,
+      zoom: Math.max(v.zoom, 13),
+    }))
+  }, [lat, lng])
+
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) return;
-    const fire = activeFires.find((f) => (selectedFireId && f.id === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     if (!fire) return;
     setViewState((v) => ({
       ...v,
@@ -222,7 +231,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       setSelectedFire(null);
       return;
     }
-    const fire = activeFires.find((f) => (selectedFireId && f.id === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
+    const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     setSelectedFire(fire ?? null);
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
@@ -243,7 +252,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
     const girdFeautures = useMemo(() => {
         if(!predictions?.length) return [];
-        
+
         const features = [];
 
         for (const p of predictions){
@@ -322,52 +331,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       onMove={
         (evt) => {setViewState(evt.viewState);}
       }
-      onClick={() => {
-        setShowUserLocationTooltip(false);
-      }}
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
-      <NavigationControl position='bottom-right' showCompass={false}/>
-
-      {/* user's current location marker */}
-      {lat != null && lng != null && (
-        <Marker
-          longitude={lng}
-          latitude={lat}
-          anchor='center'
-          onClick={(e) => {
-            e.originalEvent.stopPropagation();
-            setShowUserLocationTooltip((prev) => !prev);
-          }}
-          >
-          <div 
-            role='button'
-            tabIndex={0}
-            aria-label='You are here'
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' '){
-                e.preventDefault();
-                setShowUserLocationTooltip((prev) => !prev);
-              }
-            }}
-            className='relative flex items-center justify-center w-11 h-11 cursor-pointer focus:outline-none'>
-              {showUserLoctionTooltip && (
-                <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95 border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shado-lg z-20 pointer-events-none'>
-                  Your location
-                </div>
-              )}
-              <span className='animate-ping absolute inline-flex w-5 h-5 rounded-full opacity-75 pointer-eventts-none'
-                    style={{ background: 'var(--color-wind, #378add)' }}
-              />
-
-              <span className='relative inline-flex rounded-full size-3 border-2 border-white shadow-md shadow-black pointer-events-none'
-                    style={{ backgroundColor: 'var(--color-wind, #378add)' }}
-              />
-          </div>
-        </Marker>
-      )}
-      
+      <NavigationControl position='top-right' showCompass={false}/>
 
       {activeFires.map((fire) => (
         <Marker
@@ -377,18 +344,17 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           anchor="center"
           onClick={(e) => {
             e.originalEvent.stopPropagation();
-            setSelectedFire(fire);
-            onSelectFire?.(fire.id);
+            onSelectFire?.(fire.ref)
           }}
         >
           <div className="relative flex items-center justify-center size-6">
             {/* The radar ping animation effect */}
             <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.id === selectedFireId ? '' : 'hidden'}`}
+              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
             />
             {/* The solid core so the marker remains visible */}
             <span
-              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.id === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
             />
           </div>
         </Marker>
@@ -436,7 +402,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             paint={{
               'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
               'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
-              'fill-antialias': true,
+              'fill-antialias': false,
             }}
           />
 
@@ -498,13 +464,19 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         <Popup
           longitude={selectedFire.lng}
           latitude={selectedFire.lat}
-          onClose={() => setSelectedFire(null)}
+          onClose={() => {
+            setSelectedFire(null);
+            onDeselect?.();
+          }}
           className="carbon-popup"
         >
           <div className="p-1">
             <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
               {selectedFire.location}
             </h3>
+            <p className="text-xs text-text-muted mt-1">
+              Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
+            </p>
             <p className="text-xs text-text-muted mt-1">
               Status: <span className="text-neutral-content">{selectedFire.status}</span>
             </p>
@@ -522,7 +494,22 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </Popup>
       )}
+      <Marker longitude={lng} latitude={lat} anchor='center'>
+        <div className='relative flex items-center justify-center size-6'>
+          <span className='animate-ping absolute inline-flex size-6 rounded-full bg-blue-400 opacity-60'/>
+          <span className='relative inline-flex size-3.5 rounded-full bg-blue-400 border-2 border-white shadow-lg'/>
+        </div>
+      </Marker>
     </Map>
+
+    <button
+      type='button'
+      onClick={handleRecenter}
+      aria-label='Center map location on me'
+      className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+    >
+      <LocateFixed className='w-5 h-5'/>
+    </button>
     </div>
   );
 }

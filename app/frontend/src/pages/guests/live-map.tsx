@@ -49,14 +49,14 @@ export default function GuestPublicDashboard() {
   );
 
   return (
-    <SideBar items={guestNavItems} hideLogout>
-      <div className="flex flex-col p-6">
+    <SideBar items={guestNavItems} hideLogout hideLoginRegister={false}>
+      <div className="flex flex-col px-1 py-1 sm:px-1 sm:py-1 lg:px-6 lg:py-6">
         {/* Header */}
         <NotificationToastHost />
         <PageHeader title="Incident Map" subtitle="Public Fire Map View" showIcons={false} />
 
         {/* Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-6">
           {/* Left column */}
           <div className="xl:col-span-8 flex flex-col gap-3 lg:gap-6">
             <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-125 sm:h-104 md:h-120 lg:h-137 w-full shadow-md">
@@ -90,10 +90,10 @@ export default function GuestPublicDashboard() {
           </div>
 
           {/* Right column – Nearby Reports */}
-          <div className="xl:col-span-4 flex flex-col gap-3">
-            <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase">
+          <div className="xl:col-span-4 flex flex-col gap-3 h-full">
+            <h4 className=" text-text-muted uppercase">
               Nearby Reports
-            </h2>
+            </h4>
             <div
               className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
               <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
