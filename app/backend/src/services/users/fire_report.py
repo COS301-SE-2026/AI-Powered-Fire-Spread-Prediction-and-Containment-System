@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, contains_eager
 from app.backend.src.enums.report_status import ReportStatus, status_level
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.schemas.fire_report import FireReportCreate
-from app.backend.src.services.storage import get_presigned_url
+from app.backend.src.services.storage import get_presigned_url, public_image_url
 from app.backend.src.services.notifications import notify_fire_alert, notify_fire_update
 
 
@@ -55,7 +55,7 @@ def get_fire_reports(
                 "boundary_radius": float(report.boundary_radius),
                 "user_id": report.user_id,
                 "description": report.description,
-                "image_url": get_presigned_url(report.image_url) if report.image_url else None,
+                "image_url": public_image_url(report.image_url),
                 "lat": lat,
                 "lng": lng,
                 "status": report.status.value if hasattr(report.status, "value") else report.status,
@@ -98,7 +98,7 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         "boundary_radius": float(report.boundary_radius),
         "user_id": report.user_id,
         "description": report.description,
-        "image_url": get_presigned_url(report.image_url) if report.image_url else None,
+        "image_url": public_image_url(report.image_url),
         "status": report.status.value,
         "size": calc_size(float(report.boundary_radius)),
         "submitted_at": report.submitted_at,
@@ -150,7 +150,7 @@ def create_fire_report(
         "boundary_radius": float(new_report.boundary_radius),
         "user_id": new_report.user_id,
         "description": new_report.description,
-        "image_url": get_presigned_url(new_report.image_url) if new_report.image_url else None,
+        "image_url": public_image_url(new_report.image_url),
         "status": new_report.status.value,
         "size": calc_size(float(new_report.boundary_radius)),
         "submitted_at": new_report.submitted_at,

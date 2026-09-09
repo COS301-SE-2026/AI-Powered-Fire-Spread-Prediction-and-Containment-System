@@ -77,3 +77,11 @@ def get_presigned_url(
 
 def delete_photo(object_key: str):
     minio_client.remove_object(BUCKET, object_key)
+
+def public_image_url(object_key: Optional[str]) -> Optional[str]:
+    if not object_key:
+        return None
+    secure = os.environ.get("MINIO_PUBLIC_SECURE", "false").lower() == "true"
+    scheme = "https" if secure else "http"
+    endpoint = os.environ.get("MINIO_PUBLIC_ENDPOINT")
+    return f"{scheme}://{endpoint}/{BUCKET}/{object_key}"
