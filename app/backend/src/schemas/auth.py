@@ -1,8 +1,9 @@
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 from app.backend.src.enums.user_role import UserRole
+from app.backend.src.services.verification.register_verification import validate_sa_id
 
 
 class RegisterRequest(BaseModel):
@@ -11,7 +12,12 @@ class RegisterRequest(BaseModel):
     name: str
     surname: str
     id_number: str
-    license_number: Optional[str] = None
+    requested_role: UserRole = UserRole.user
+
+    @field_validator("id_number")
+    @classmethod
+    def check_id_number(cls, v: str) -> str:
+        return validate_sa_id(v)["id_number"]
 
 
 class LoginRequest(BaseModel):
@@ -40,10 +46,14 @@ class MsgResponse(BaseModel):
 class Two_FA_Required_Response(BaseModel):
     requires_2fa: bool = True
     email: str
-    otpauth_url: Optional[str] = (
-        None  # present at register for new secret but not for login because already set up
-    )
+    otpauth_url: Optional[str] = None  # present at register for new secret but not for login because already set up
+    registration_token: Optional[str] = None
+    pending_approval: bool = False
 
+
+class CompleteRegistrationRequest(BaseModel):
+    registration_token: str
+    code: str
 
 class LoginResponse(BaseModel):
     role: UserRole

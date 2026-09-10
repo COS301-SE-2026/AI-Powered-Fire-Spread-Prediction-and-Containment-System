@@ -7,7 +7,6 @@ from sqlalchemy.orm import relationship
 from app.backend.db import Base
 from app.backend.src.enums.user_role import UserRole
 
-
 class User(Base):
     __tablename__ = "users"
 
@@ -16,11 +15,11 @@ class User(Base):
     surname = Column(String, nullable=False)
     email = Column(String(100), nullable=False, unique=True, index=True)
     id_number = Column(String(13), nullable=False, unique=True)
-    license_number = Column(String)
+    license_number = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False, default="")
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     created_at = Column(
-        DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc)
     )
     is_active = Column(Boolean, default=True)
     is_2fa_enabled = Column(Boolean, default=False)
@@ -31,6 +30,14 @@ class User(Base):
     )
 
     fire_reports = relationship("FireReports", back_populates="user")
-    role_requests = relationship("models.role_request.RoleRequest",
-                                 foreign_keys="[RoleRequest.user_id]",
-                                back_populates="user")
+    role_requests = relationship(
+                            "RoleRequest",
+                            foreign_keys="[RoleRequest.user_id]",
+                            back_populates="user",
+                            cascade="all, delete-orphan"
+                            )
+    reviewed_requests = relationship(
+                                "RoleRequest",
+                                foreign_keys="[RoleRequest.reviewed_by]",
+                                back_populates="reviewer"
+                            )
