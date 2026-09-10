@@ -5,9 +5,9 @@ import redis
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from dependencies.auth import create_access_token, verify_password
-from models.users import User
-from schemas.auth import LoginRequest
+from app.backend.src.dependencies.auth import create_access_token, verify_password
+from app.backend.src.models.users import User
+from app.backend.src.schemas.auth import LoginRequest
 
 # needs t.b. added to env files, these are just temp
 # odes not need to be ip address, that's only for fire reports
@@ -103,9 +103,7 @@ def login_user(db: Session, request: LoginRequest):
 
     user = db.query(User).filter(func.lower(User.email) == email_key).first()
 
-    hashed = user.hashed_password
-
-    if not user or not verify_password(request.password, hashed):
+    if not user or not verify_password(request.password, user.hashed_password):
         record_failure(email_key)
 
     reset_counters(email_key)

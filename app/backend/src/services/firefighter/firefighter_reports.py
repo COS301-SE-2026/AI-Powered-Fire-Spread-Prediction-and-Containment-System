@@ -2,21 +2,20 @@ from geoalchemy2.shape import to_shape
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from models.reported_fires import FireReports
-from models.users import User
+from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.models.users import User
+from app.backend.src.services.storage import public_image_url
 
 
 def get_fire_reports(db: Session):
     request = db.query(FireReports).all()
-
-    if not request:
-        raise ValueError("No reports have been found")
 
     formatted = []
     for fire in request:
         shape = to_shape(fire.location_geom)
         formatted.append(
             {
+                "id": fire.id,
                 "reference_number": fire.reference_number,
                 "location_text": fire.location_text,
                 "status": fire.status,
@@ -35,7 +34,7 @@ def get_fire_reports(db: Session):
 def search_report_table(db: Session, key: str):
     request = (
         db.query(FireReports)
-        .outerjoin(FireReports.user)
+        .outerjoin(User, FireReports.user_id == User.id)
         .filter(
             or_(
                 FireReports.reference_number.ilike(f"%{key}%"),
@@ -47,14 +46,12 @@ def search_report_table(db: Session, key: str):
         .all()
     )
 
-    if not request:
-        raise ValueError(f"{key} not found")
-
     formatted = []
     for fire in request:
         shape = to_shape(fire.location_geom)
         formatted.append(
             {
+                "id": fire.id,
                 "reference_number": fire.reference_number,
                 "location_text": fire.location_text,
                 "status": fire.status,
@@ -87,7 +84,7 @@ def get_single_fire_report(db: Session, ref: str):
         "submitted_at": request.submitted_at,
         "reporter": request.reporter,
         "description": request.description,
-        "image_url": request.image_url,
+        "image_url": public_image_url(request.image_url),
         "verification_notes": request.verification_notes,
         "lat": shape.y,
         "lng": shape.x,

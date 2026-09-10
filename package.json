@@ -1,10 +1,10 @@
 {
   "name": "fire-spread-monorepo",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "workspaces": [
     "app/backend/src",
-    "app/frontend/src",
-    "app/pwa"
+    "app/frontend/src"
   ],
   "scripts": {
     "dev": "yarn --cwd app/frontend/src dev",
@@ -12,7 +12,6 @@
     "lint": "yarn --cwd app/frontend/src lint",
     "test:e2e": "yarn --cwd app/frontend/src test:e2e",
     "test:e2e:backend": "pytest -q app/backend/src/testing_config/e2e",
-    "pwa:start": "yarn --cwd app/pwa start",
     "test:xgboost:unit": "pytest app/backend/src/tests/ai/test_xgboost_model_unit.py -v",
     "test:xgboost:integration": "pytest app/backend/src/tests/ai/test_xgboost_model_integration.py -v"
   },

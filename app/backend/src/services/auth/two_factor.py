@@ -1,9 +1,9 @@
 import pyotp
 from sqlalchemy.orm import Session
 
-from dependencies.auth import create_access_token
-from models.users import User
-from schemas.auth import Two_FA_Verify_Request
+from app.backend.src.dependencies.auth import create_access_token
+from app.backend.src.models.users import User
+from app.backend.src.schemas.auth import Two_FA_Verify_Request
 
 
 def setup_2fa(username: str, db: Session):

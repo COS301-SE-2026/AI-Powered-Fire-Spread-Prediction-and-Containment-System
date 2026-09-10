@@ -1,10 +1,10 @@
 [MASTER]
 ignore=testing_config
 ignore-paths=
-    .venv/.*,
-    __pycache__/.*,
-    .pytest_cache/.*,
-    artifact_store/.*
+    .*/\venv/.*,
+    .*/__pycache__/.*,
+    .*/\pytest_cache/.*,
+    ^app/artifact_store/.*$,
 
 [MESSAGES CONTROL]
 disable=
@@ -18,6 +18,7 @@ disable=
     C0303,
     R0914,
     R0915,
+    E0401,
 
 [FORMAT]
 max-line-length=120

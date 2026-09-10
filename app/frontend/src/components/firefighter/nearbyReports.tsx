@@ -30,8 +30,8 @@ export function NearbyReports({ nearbyFires }: NearbyFireReports) {
           className="flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors"
         >
           <div>
-            <p className="font-semibold text-sm">{fire.location_text}</p>
-            <p className="text-xs opacity-50">
+            <p className="font-semibold text-medium">{fire.location_text}</p>
+            <p className="text-sm opacity-50">
               {fire.distance} km · {fire.time_ago}
             </p>
           </div>

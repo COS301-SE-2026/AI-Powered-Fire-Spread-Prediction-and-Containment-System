@@ -5,10 +5,13 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from enums.report_status import ReportStatus
-from services.verification.rejection_checks import on_land, LocationCheckUnavailable
-from services.verification.verification_runner import run_verification
-from services.verification.auto_verification import (
+from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.services.verification.rejection_checks import (
+    on_land,
+    LocationCheckUnavailable,
+)
+from app.backend.src.services.verification.verification_runner import run_verification
+from app.backend.src.services.verification.auto_verification import (
     AUTO_REJECT,
     AUTO_VERIFY,
     MANUAL_REVIEW,
@@ -16,7 +19,7 @@ from services.verification.auto_verification import (
 
 
 # on_land
-@patch("services.verification.rejection_checks.httpx.get")
+@patch("app.backend.src.services.verification.rejection_checks.httpx.get")
 def test_on_land_no_water_returns_true(mock_get):
     """no water response means its on land"""
     mock_response = MagicMock()
@@ -26,7 +29,7 @@ def test_on_land_no_water_returns_true(mock_get):
     assert on_land(-25.7479, 28.2293) is True
 
 
-@patch("services.verification.rejection_checks.httpx.get")
+@patch("app.backend.src.services.verification.rejection_checks.httpx.get")
 def test_on_land_water_returns_false(mock_get):
     """water response means its in water"""
     mock_response = MagicMock()
@@ -36,7 +39,7 @@ def test_on_land_water_returns_false(mock_get):
     assert on_land(-25.7479, 28.2293) is False
 
 
-@patch("services.verification.rejection_checks.httpx.get")
+@patch("app.backend.src.services.verification.rejection_checks.httpx.get")
 def test_on_land_http_error_location_check_unavailable(mock_get):
     """network/HTTP failure should show LocationCheckUnavailable"""
     mock_get.side_effect = httpx.ConnectError("connection failed")
@@ -46,8 +49,8 @@ def test_on_land_http_error_location_check_unavailable(mock_get):
 
 
 # run_verification
-@patch("services.verification.verification_runner.auto_verify_report")
-@patch("services.verification.verification_runner.SessionLocal")
+@patch("app.backend.src.services.verification.verification_runner.auto_verify_report")
+@patch("app.backend.src.services.verification.verification_runner.SessionLocal")
 def test_run_verification_auto_reject_sets_status(mock_session_local, mock_auto_verify):
     """AUTO_REJECT should set report status to rejected and system_verified False"""
     mock_db = MagicMock()
@@ -63,8 +66,8 @@ def test_run_verification_auto_reject_sets_status(mock_session_local, mock_auto_
     mock_db.commit.assert_called_once()
 
 
-@patch("services.verification.verification_runner.auto_verify_report")
-@patch("services.verification.verification_runner.SessionLocal")
+@patch("app.backend.src.services.verification.verification_runner.auto_verify_report")
+@patch("app.backend.src.services.verification.verification_runner.SessionLocal")
 def test_run_verification_auto_verify_sets_status(mock_session_local, mock_auto_verify):
     """AUTO VERIFY should set report status to verified and system_verified True"""
     mock_db = MagicMock()
@@ -79,8 +82,8 @@ def test_run_verification_auto_verify_sets_status(mock_session_local, mock_auto_
     assert mock_report.system_verified is True
 
 
-@patch("services.verification.verification_runner.auto_verify_report")
-@patch("services.verification.verification_runner.SessionLocal")
+@patch("app.backend.src.services.verification.verification_runner.auto_verify_report")
+@patch("app.backend.src.services.verification.verification_runner.SessionLocal")
 def test_run_verification_manual_review_sets_pending_status(
     mock_session_local, mock_auto_verify
 ):
@@ -101,7 +104,7 @@ def test_run_verification_manual_review_sets_pending_status(
     assert mock_report.system_verified is False
 
 
-@patch("services.verification.verification_runner.SessionLocal")
+@patch("app.backend.src.services.verification.verification_runner.SessionLocal")
 def test_run_verification_report_not_found_does_not_commit(mock_session_local):
     """If the report no longer exists, run_verification should exit quietly without committing"""
     mock_db = MagicMock()
@@ -113,8 +116,8 @@ def test_run_verification_report_not_found_does_not_commit(mock_session_local):
     mock_db.commit.assert_not_called()
 
 
-@patch("services.verification.verification_runner.auto_verify_report")
-@patch("services.verification.verification_runner.SessionLocal")
+@patch("app.backend.src.services.verification.verification_runner.auto_verify_report")
+@patch("app.backend.src.services.verification.verification_runner.SessionLocal")
 def test_run_verification_exception_rolls_back(mock_session_local, mock_auto_verify):
     """If auto_verify_report raises, run_verification should roll back instead of committing"""
     mock_db = MagicMock()

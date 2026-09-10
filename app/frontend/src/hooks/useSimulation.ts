@@ -24,7 +24,7 @@ export interface SimulationResult {
 export type SimulationStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 const PLAYBACK_INTERVAL_MS = 300; // ms between ticks during autoplay
 
 // Hook
@@ -89,7 +89,6 @@ export function useSimulation() {
   // API call
   const runSimulation = useCallback(
     async (fireId: string | null = null, nSteps = 288, containmentLines: string[] = []) => {
-      abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
 

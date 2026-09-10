@@ -4,8 +4,8 @@ from geoalchemy2 import Geometry
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from db import Base
-from enums.user_role import UserRole
+from app.backend.db import Base
+from app.backend.src.enums.user_role import UserRole
 
 
 class User(Base):
@@ -34,6 +34,6 @@ class User(Base):
     )
 
     fire_reports = relationship("FireReports", back_populates="user")
-    role_requests = relationship(
-        "RoleRequest", back_populates="user", foreign_keys="RoleRequest.user_id"
-    )
+    role_requests = relationship("models.role_request.RoleRequest",
+                                 foreign_keys="[RoleRequest.user_id]",
+                                back_populates="user")

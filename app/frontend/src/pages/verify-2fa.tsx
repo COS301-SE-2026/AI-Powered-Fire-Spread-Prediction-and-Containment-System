@@ -8,7 +8,7 @@ export default function Verify2FA() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { email, otpauthUrl } = router.query;
+  const { email, otpauth_url: otpauthUrl } = router.query;
 
   const isValidEmail = email && typeof email === 'string';
   const hasQrSetup = isValidEmail && otpauthUrl && typeof otpauthUrl === 'string';
@@ -37,7 +37,7 @@ export default function Verify2FA() {
 
       const roleRedirects: Record<string, string> = {
         admin: '/admin/dashboard',
-        firefighter: 'firefighter/dashboard',
+        firefighter: '/firefighter/dashboard',
         user: '/users/live-map',
       };
 

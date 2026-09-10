@@ -3,20 +3,24 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from db import get_db
-from schemas.fire_report import (
+from app.backend.db import get_db
+from app.backend.src.schemas.fire_report import (
     FireReportCreate,
     FireReportDetailResponse,
     FireReportMapResponse,
 )
-from services.users import fire_report
+from app.backend.src.services.users import fire_report
 
 router = APIRouter(prefix="/api/guests", tags=["Guests"])
 
 
 @router.get("/reported-fires", response_model=List[FireReportMapResponse])
-def get_reported_fires(db: Session = Depends(get_db)):
-    return fire_report.get_fire_reports(db)
+def get_reported_fires(
+    db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0,
+):
+    return fire_report.get_fire_reports(db, limit=limit, offset=offset)
 
 
 @router.post("/reported-fires", response_model=FireReportDetailResponse)

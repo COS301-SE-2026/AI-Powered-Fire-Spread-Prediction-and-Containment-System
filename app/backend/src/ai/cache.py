@@ -14,7 +14,13 @@ VALKEY_PORT = int(os.getenv("VALKEY_PORT", 6379))
 
 client = redis.Redis(host=VALKEY_HOST, port=VALKEY_PORT, db=0)
 
-def filter_containment_lines(lat: float, lng:float, containment_lines: List[str], extent_buffer_deg: float = 0.15) -> List[str]:
+
+def filter_containment_lines(
+    lat: float,
+    lng: float,
+    containment_lines: List[str],
+    extent_buffer_deg: float = 0.15,
+) -> List[str]:
     """
     Filters the containment lines and only picks the ones that intersect with a bounding box
     """
@@ -26,7 +32,7 @@ def filter_containment_lines(lat: float, lng:float, containment_lines: List[str]
         lng - extent_buffer_deg,
         lat - extent_buffer_deg,
         lng + extent_buffer_deg,
-        lat + extent_buffer_deg
+        lat + extent_buffer_deg,
     )
 
     relevent_lines: List[str] = []
@@ -46,20 +52,21 @@ def filter_containment_lines(lat: float, lng:float, containment_lines: List[str]
 
     return sorted(relevent_lines)
 
+
 def build_fire_cache_key(
-        ref: str,
-        lat: float,
-        lng: float,
-        boundary_radius_m: float,
-        n_steps: int,
-        cell_size_m: float,
-        containment_lines: Optional[List[str]] = None,
-        model_version: str = "dca-v1"
+    ref: str,
+    lat: float,
+    lng: float,
+    boundary_radius_m: float,
+    n_steps: int,
+    cell_size_m: float,
+    containment_lines: Optional[List[str]] = None,
+    model_version: str = "dca-v1",
 ) -> str:
-    """ This function builds a deterministic sha-256 key for a specific fire simulation run"""
+    """This function builds a deterministic sha-256 key for a specific fire simulation run"""
     raw_lines = containment_lines or []
 
-    locationially_relevent_lines = filter_containment_lines(lat, lng, raw_lines) 
+    locationially_relevent_lines = filter_containment_lines(lat, lng, raw_lines)
 
     payload = {
         "ref": ref,
@@ -76,6 +83,7 @@ def build_fire_cache_key(
     hash = hashlib.sha256(encoded).hexdigest()[:16]
     return f"sim:fire:{ref}:{hash}"
 
+
 def get_cached_prediction(key: str) -> dict | None:
     """Retrieve and decompress the cached data"""
     try:
@@ -87,14 +95,17 @@ def get_cached_prediction(key: str) -> dict | None:
         compressed_hist = data[b"history"]
 
         raw_bytes = zlib.decompress(compressed_hist)
-        history_arr = np.frombuffer(raw_bytes, dtype=np.int64).reshape(meta["n_steps"], meta["grid_h"], meta["grid_w"])
+        history_arr = np.frombuffer(raw_bytes, dtype=np.int64).reshape(
+            meta["n_steps"], meta["grid_h"], meta["grid_w"]
+        )
 
         meta["history"] = [g.ravel().tolist() for g in history_arr]
         return meta
     except Exception:
         None
 
-def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 1800):
+
+def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 3600):
     """Stores the prediction metadata and compressed grid history in valkey"""
 
     try:
@@ -121,13 +132,7 @@ def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 1800):
             "n_steps": len(prediction_data["history"]),
         }
 
-        client.hset(
-            key,
-            mapping={
-                "meta": json.dumps(meta),
-                "history": compressed_hist
-            }
-        )
+        client.hset(key, mapping={"meta": json.dumps(meta), "history": compressed_hist})
         client.expire(key, ttl_seconds)
     except Exception:
         pass

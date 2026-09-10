@@ -19,15 +19,15 @@ export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire
     );
   }
   return (
-    <div className="h-full overflow-y-auto flex flex-col p-2">
+    <div className="h-194 overflow-y-auto flex flex-col p-2">
       {fires.map((fire) => (
           <button
             key={fire.location_text}
             onClick={() => onSelectFire?.(fire.location_text)}
             className={`flex items-center justify-between rounded-lg px-3 py-2.5 border border-carbon-stroke hover:border-ignite mb-2 hover:bg-carbon-card/50 cursor-pointer transition-colors ${fire.location_text === selectedFireId ? 'bg-carbon-card/70 border-ignite' : '' }`}>
             <div>
-              <p className="font-semibold text-sm">{fire.location_text}</p>
-              <p className="text-xs opacity-50">
+              <p className="font-semibold text-medium">{fire.location_text}</p>
+              <p className="text-sm text-text-muted">
                 {fire.distance} km · {fire.time_ago}
               </p>
             </div>

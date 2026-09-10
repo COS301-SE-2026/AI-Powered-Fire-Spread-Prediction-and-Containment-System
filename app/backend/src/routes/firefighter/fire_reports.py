@@ -1,15 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from db import get_db
-from schemas.firefighter_reports import (
+from app.backend.db import get_db
+from app.backend.src.schemas.firefighter_reports import (
     FirefighterReportModal,
     FirefighterReportTable,
     ReportList,
 )
-from services.firefighter import firefighter_reports
+from app.backend.src.services.firefighter import firefighter_reports
 
 router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 
@@ -35,7 +35,7 @@ def get_fire_reports(db: Session = Depends(get_db)):
     response_model=ReportList,
     responses={404: {"description": "key is not found"}},
 )
-def search_location_table(key: str, db: Session = Depends(get_db)):
+def search_location_table(key: str=Query(min_length=1), db: Session = Depends(get_db)):
     try:
         request = firefighter_reports.search_report_table(db, key)
 
