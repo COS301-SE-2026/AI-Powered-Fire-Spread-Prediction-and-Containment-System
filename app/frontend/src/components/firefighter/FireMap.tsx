@@ -498,7 +498,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </Popup>
       )}
-      {lat != null && lng != null && (
+      {lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng) && (
         <Marker
           longitude={lng}
           latitude={lat}
