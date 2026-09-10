@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
-import { apiCall } from '../lib/api';
+import PasswordInput from '../components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 
 function validateEmail(email: string) {
@@ -154,16 +154,15 @@ export default function Login() {
               <label htmlFor="password" className="block text-sm text-white/60 mb-1">
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
-                placeholder="••••••••"
-                className={fieldClass(errors.password)}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
+                placeholder="Enter your password"
+                error={errors.password}
               />
               {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
             </div>
@@ -200,8 +199,7 @@ export default function Login() {
             </button>
           </form>
           <div className="text-center mt-4 text-sm text-white/40">
-            {/* <Link href="/forgot-password" className="hover:text-primary">Forgot password? </Link>
-            <Link href="/cant-login" className="hover:text-primary"> Can&apos;t log in?</Link> */}
+            <Link href="/forgot-password" className="hover:text-primary">Forgot password? </Link>
           </div>
         </div>
       </div>

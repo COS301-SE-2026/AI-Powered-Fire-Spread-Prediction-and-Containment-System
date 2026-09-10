@@ -3,14 +3,14 @@ import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple
- 
+
 from sqlalchemy.orm import Session
- 
-from dependencies.auth import hash_password
-from models.users import User
-from schemas.auth import ResetPasswordRequest
-from services.auth.email import send_password_reset_email
-from services.auth.login import valkey_client
+
+from app.backend.src.dependencies.auth import hash_password
+from app.backend.src.models.users import User
+from app.backend.src.schemas.auth import ResetPasswordRequest
+from app.backend.src.services.auth.email import send_password_reset_email
+from app.backend.src.services.auth.login import valkey_client
 
 RESET_TOKEN_TTL_MINUTES = 15
 RESET_REQUEST_LIMIT = 3
@@ -37,6 +37,9 @@ def request_password_reset(db: Session, email: str) -> Optional[Tuple[str, str]]
     if attempts > RESET_REQUEST_LIMIT:
         return None
 
+    user = db.query(User).filter(User.email == email_key).first()
+    if not user:
+        return None 
     raw_token = secrets.token_urlsafe(32)
     user.reset_token = _hash_token(raw_token)
     user.reset_token_expires = datetime.now(timezone.utc) + timedelta(
@@ -51,20 +54,20 @@ def reset_password(db: Session, request: ResetPasswordRequest) -> None:
         raise ValueError(
             f"Password must be at least {MIN_PASSWORD_LENGTH} characters"
         )
- 
+
     hashed_token = _hash_token(request.token)
     user = db.query(User).filter(User.reset_token == hashed_token).first()
- 
+
     if not user or not user.reset_token_expires:
         raise ValueError("Invalid or expired reset link")
- 
+
     expires_at = user.reset_token_expires
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
- 
+
     if expires_at < datetime.now(timezone.utc):
         raise ValueError("Invalid or expired reset link")
- 
+
     user.hashed_password = hash_password(request.new_password)
     user.reset_token = None
     user.reset_token_expires = None

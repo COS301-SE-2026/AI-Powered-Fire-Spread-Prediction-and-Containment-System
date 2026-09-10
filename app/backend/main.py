@@ -10,6 +10,7 @@ from app.backend.src.ai.simulation_api import router as simulation_router
 from app.backend.db import init_db, engine
 from app.backend.src.routes import image_uploads
 from app.backend.src.routes import router as notifications_and_location_router
+from app.backend.src.routes.auth.forgot_password import router as forgot_password_router
 
 from app.backend.src.routes.admin import router as admin_router
 from app.backend.src.routes.firefighter import router as firefighter_router
@@ -78,6 +79,7 @@ app.include_router(guest_router)
 app.include_router(image_uploads.router)
 app.include_router(simulation_router)
 app.include_router(notifications_and_location_router)
+app.include_router(forgot_password_router)
 
 
 @app.get("/")
