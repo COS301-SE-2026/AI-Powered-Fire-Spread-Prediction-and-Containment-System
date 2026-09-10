@@ -164,7 +164,7 @@ export default function Simulation() {
             {/* Fire Map */}
             <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[80vh] max-h-[420px] landscape:max-h-none overflow-hidden relative">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                <span className="font-bold text-lg tracking-wide text-neutral/80 uppercase">
+                <span className="font-bold text-lg tracking-wide text-text-primary uppercase">
                   LIVE FIRE MAP
                 </span>
 
@@ -336,7 +336,7 @@ export default function Simulation() {
                       Target Fire
                     </p>
                     <select
-                      className="select select-sm select-bordered rounded-lg bg-carbon-bg text-neutral-content w-full"
+                      className="select select-sm select-bordered rounded-lg bg-carbon-bg text-text-primary w-full"
                       value={selectedFireId ?? ''}
                       onChange={(e) => setSelectedFireId(e.target.value || null)}
                     >
@@ -344,7 +344,7 @@ export default function Simulation() {
                       {fires
                         .filter((f) => f.status === 'verified')
                         .map((f) => (
-                          <option key={f.ref} value={f.ref} className="bg-carbon-bg text-neutral">
+                          <option key={f.ref} value={f.ref} className="bg-carbon-bg text-text-primary">
                             {f.location ?? f.ref}
                           </option>
                         ))}
