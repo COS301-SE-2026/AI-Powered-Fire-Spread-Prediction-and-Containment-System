@@ -12,7 +12,13 @@
 
 # from conftest import make_role_request, make_user
 
+# from app.backend.src.dependencies.auth import get_current_admin_user
+# from app.backend.src.models.users import User
 
+# def _fake_admin():
+#     return User(id="usr_01", role="admin", ...)
+
+# app.dependency_overrides[get_current_admin_user] = _fake_admin
 # # ---------------------------------------------------------------------------
 # # GET /api/admin/roles/role-requests
 # # ---------------------------------------------------------------------------

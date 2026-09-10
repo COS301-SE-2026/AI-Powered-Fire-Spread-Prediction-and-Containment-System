@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import PasswordInput from '@/components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
 import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
@@ -33,8 +34,7 @@ function validateSAId(id: string) {
 }
 
 const fieldClass = (hasError?: string) =>
-  `w-full px-3 py-2 bg-carbon-input border rounded-md text-text-muted focus:outline-none focus:ring-1 focus:ring-primary ${
-    hasError ? 'border-flare' : 'border-carbon-stroke'
+  `w-full px-3 py-2 bg-carbon-input border rounded-md text-text-muted focus:outline-none focus:ring-1 focus:ring-primary ${hasError ? 'border-flare' : 'border-carbon-stroke'
   }`;
 
 const ROLE_REQUEST: Record<string, string> = {
@@ -237,14 +237,14 @@ export default function Register() {
               <label htmlFor="password" className="block text-sm text-text-primary">
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
-                type="password"
                 name="password"
                 placeholder="Min 8 chars, 1 uppercase, 1 number"
                 value={form.password}
                 onChange={handleChange}
-                className={fieldClass(errors.password)}
+                autoComplete="new-password"
+                className={`${fieldClass(errors.password)} pr-10`}
               />
               {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
             </div>
@@ -253,14 +253,14 @@ export default function Register() {
               <label htmlFor="confirmPassword" className="block text-sm text-text-primary">
                 Confirm Password
               </label>
-              <input
+              <PasswordInput
                 id="confirmPassword"
-                type="password"
                 name="confirmPassword"
                 placeholder="Repeat password"
                 value={form.confirmPassword}
                 onChange={handleChange}
-                className={fieldClass(errors.confirmPassword)}
+                autoComplete="new-password"
+                className={`${fieldClass(errors.confirmPassword)} pr-10`}
               />
               {errors.confirmPassword && (
                 <p className="text-flare text-xs mt-1">{errors.confirmPassword}</p>
