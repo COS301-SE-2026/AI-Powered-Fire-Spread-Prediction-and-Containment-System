@@ -269,7 +269,7 @@ export function SimulationResults({
             </span>
           )}
         </div>
-          
+
 
         {!hasResult ? (
           <p className="text-xs text-text-disabled">Run the simulation to see spread data</p>
@@ -298,7 +298,7 @@ export function SimulationResults({
 
                 radiusses.push(currRadius);
               }
-              
+
               const maxRadius = radiusses.length > 0 ? Math.max(...radiusses) : 0;
               const barWidth = Math.min((maxRadius / upperBoundSpread) * 100, 100);
 
@@ -325,7 +325,7 @@ export function SimulationResults({
       {/* logged containment lines */}
       <div>
         <p className="text-sm uppercase py-2">containment lines logged</p>
-        <LoggedContainmentLine 
+        <LoggedContainmentLine
           lines={containmentLines}
           selectedFireId={selectedFireId}
           onDeleteLine={onDeleteLine}
