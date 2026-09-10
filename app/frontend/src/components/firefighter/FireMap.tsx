@@ -54,6 +54,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+  const [showUserLocationTooltip, setShowUserLocationTooltip] = useState(false);
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
@@ -331,6 +332,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       onMove={
         (evt) => {setViewState(evt.viewState);}
       }
+      onClick={() => {
+        setShowUserLocationTooltip(false);
+      }}
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
@@ -494,12 +498,50 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </Popup>
       )}
-      <Marker longitude={lng} latitude={lat} anchor='center'>
-        <div className='relative flex items-center justify-center size-6'>
-          <span className='animate-ping absolute inline-flex size-6 rounded-full bg-blue-400 opacity-60'/>
-          <span className='relative inline-flex size-3.5 rounded-full bg-blue-400 border-2 border-white shadow-lg'/>
-        </div>
-      </Marker>
+      {lat != null && lng != null && (
+        <Marker
+          longitude={lng}
+          latitude={lat}
+          anchor="center"
+          onClick={(e) => {
+            e.originalEvent.stopPropagation();
+            setShowUserLocationTooltip((prev) => !prev);
+          }}
+        >
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Your location marker"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowUserLocationTooltip((prev) => !prev);
+              }
+            }}
+            className='relative flex items-center justify-center w-11 h-11 cursor-pointer focus:outline-none'
+          >
+            {/*Click to show badge*/}
+            {showUserLocationTooltip && (
+              <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
+               border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
+                Your location
+              </div>
+            )}
+
+            {/*pulse for marker*/}
+            <span
+              className='animate-ping absolute inline-flex w-5 h-5 rounded-full opacity-75 pointer-events-none'
+              style={{ backgroundColor: 'var(--color-wind, #378add)' }}
+            />
+
+            {/*solid marker dot*/}
+            <span
+              className='relative inline-flex rounded-full size-3 border-2 border-white shadow-md shadow-black pointer-events-none'
+              style={{ backgroundColor: 'var(--color-wind, #378add)' }}
+            />
+          </div>
+        </Marker>
+      )}
     </Map>
 
     <button
