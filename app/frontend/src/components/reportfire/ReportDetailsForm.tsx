@@ -90,8 +90,7 @@ export default function ReportDetailsForm({
     }
 
     if (!photo) {
-      newErrors.photo =
-        'Field evidence attachment is mandatory on desktop. Please upload a telemetry image.';
+      newErrors.photo = 'Please attach image.';
     }
 
     if (Object.keys(newErrors).length > 0) {
