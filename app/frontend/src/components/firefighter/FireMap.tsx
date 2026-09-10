@@ -520,7 +520,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             }}
             className='relative flex items-center justify-center w-11 h-11 cursor-pointer focus:outline-none'
           >
-            {/*Click to show badge*/}
+            {/* Click to show badge */}
             {showUserLocationTooltip && (
               <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
                border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
@@ -528,13 +528,13 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               </div>
             )}
 
-            {/*pulse for marker*/}
+            {/* pulse for marker */}
             <span
               className='animate-ping absolute inline-flex w-5 h-5 rounded-full opacity-75 pointer-events-none'
               style={{ backgroundColor: 'var(--color-wind, #378add)' }}
             />
 
-            {/*solid marker dot*/}
+            {/* solid marker dot */}
             <span
               className='relative inline-flex rounded-full size-3 border-2 border-white shadow-md shadow-black pointer-events-none'
               style={{ backgroundColor: 'var(--color-wind, #378add)' }}
