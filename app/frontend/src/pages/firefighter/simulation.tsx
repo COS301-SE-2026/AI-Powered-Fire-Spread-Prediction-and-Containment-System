@@ -17,7 +17,7 @@ export default function Simulation() {
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
-  const [userLocation] = useState(defaultLocation);
+  const [userLocation, setUserLocation] = useState(defaultLocation);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [lines, setLines] = useState<LocalLine[]>([])
   const { showHint, dismiss } = useRotate();
@@ -46,6 +46,33 @@ export default function Simulation() {
   const isLoading = status === 'loading';
   const isPlaying = status === 'playing';
   const hasResult = totalTicks > 0;
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      return;
+    }
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (err) => {
+        console.warn('Geolocation access failed or denied:', err.message);
+      },
+      {
+        enableHighAccuracy:true,
+        timeout: 10000,
+        maximumAge: 5000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
 
   useEffect(() => {
     clearMap();
