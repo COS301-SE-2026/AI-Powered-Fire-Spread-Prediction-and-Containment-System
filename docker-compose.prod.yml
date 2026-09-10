@@ -66,6 +66,7 @@ services:
     environment:
       NODE_ENV: production
       BACKEND_INTERNAL_URL: http://prod-python-backend:8000
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 
   caddy:
     image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
