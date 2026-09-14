@@ -10,7 +10,7 @@ WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app \
+    PYTHONPATH=/app:/app/app/backend:/app/app/backend/src \
     UV_COMPILE_BYTECODE=1
 
 # Layer base lockfile early for docker caching
@@ -51,7 +51,6 @@ FROM base AS prod
 RUN useradd -r -u 10001 -g users -s /usr/sbin/nologin appuser
 
 COPY --chown=appuser:appuser app/__init__.py    /app/app/__init__.py
-COPY --chown=appuser:appuser app/artifact_store /app/app/artifact_store
 COPY --chown=appuser:appuser app/backend        /app/app/backend
 
 USER appuser
