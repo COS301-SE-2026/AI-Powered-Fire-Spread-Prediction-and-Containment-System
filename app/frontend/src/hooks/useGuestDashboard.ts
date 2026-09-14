@@ -17,7 +17,15 @@ export function useGuestDashboard(radiusKm = 20) {
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {}
+      (err) => {
+        console.error('Geolocation error:', err.message, err.code);
+        setError(
+          err.code === err.PERMISSION_DENIED ?
+          'Location permission denied, showing default location instead.' :
+          'Could not determine location, showing default location instead.'
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, []);
 
@@ -50,14 +58,26 @@ export function useGuestDashboard(radiusKm = 20) {
   }, [location, radiusKm]);
 
   const recenter = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {}
+    if (!navigator.geolocation) {
+      setError('Geolocation not supported by this browser.');
+      setLocation({...DEFAULT_LOCATION});
+      return;
+    } 
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setError(null);
+          setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        (err) => {
+          console.error('Geolocation Error:', err.message, err.code);
+          setError(
+            err.code === err.PERMISSION_DENIED ?
+            'Location permission denied, showing default location instead.' :
+            'Could not determine location, showing default location instead.'
+          );
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
-    } else {
-      setLocation({ ...DEFAULT_LOCATION });
-    }
   };
 
   return { location, environmentVariables, reports, loading, error, recenter };
