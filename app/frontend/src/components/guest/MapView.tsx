@@ -73,7 +73,7 @@ export default function MapView() {
         <div className="xl:col-span-4 flex flex-col gap-3 h-full">
           <h4 className="tracking-widest text-text-muted uppercase">
             Nearby Reports
-          </h2>
+          </h4>
 
           {/* Enforces strict scrolling constraints tailored to Ryan's height layout tree */}
           <div

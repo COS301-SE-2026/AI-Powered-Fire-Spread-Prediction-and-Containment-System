@@ -11,7 +11,6 @@ import { usePathname } from 'next/navigation';
 import type { FireNotification } from '../types/Notifications';
 import { useAuth } from './useAuth';
 
-const { isAuth, isLoading: isAuthLoading } = useAuth();
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -25,7 +24,7 @@ function isWithinRetention(time: string): boolean {
 function getWebSocketUrl(path: string): string {
   const httpBase = API_URL || window.location.origin;
   const base = httpBase.endsWith('/api') && path.startsWith('/api/') ? httpBase.slice(0, -4) : httpBase;
-  return httpBase.replace(/^http/, 'ws') + path;
+  return base.replace(/^http/, 'ws') + path;
 }
 
 type NotificationState = Readonly<{
@@ -60,6 +59,8 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set());
   const dismissIsRef = useRef<Set<string>>(new Set());
+  const { isAuth, isLoading: isAuthLoading } = useAuth();
+
 
   const showToast = useCallback((notification: FireNotification): void => {
     setActiveToast(notification);

@@ -10,6 +10,7 @@ import { SidePanelRight } from '../../components/users/sidePanelRight';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { useMapLink } from '../../hooks/useMapLink';
+import { useFireSelect } from '../../hooks/useFireSelect';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 

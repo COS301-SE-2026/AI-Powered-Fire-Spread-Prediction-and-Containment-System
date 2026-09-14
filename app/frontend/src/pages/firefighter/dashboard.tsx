@@ -28,7 +28,7 @@ export default function FirefighterDashboard() {
     error: lineError,
     fetchLines,
     deleteLine
-  } = useContainmentLine(() => setClearDrawings((c) => c + 1));
+  } = useContainmentLine();
 
   async function handleDrawComplete(wkt: string) {
     const localId = crypto.randomUUID();
