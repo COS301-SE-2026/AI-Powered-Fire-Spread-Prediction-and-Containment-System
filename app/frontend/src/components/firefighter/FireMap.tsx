@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Map, Marker, Popup, Layer, Source} from 'react-map-gl/mapbox';
+import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
@@ -32,7 +32,9 @@ interface MapProps{
     predictions?: Prediction[];
     currentTick?: number;
     selectedFireId?: string | null;
+    selectedFireLocation?: string | null;
     onSelectFire?: (ref: string) => void;
+    onDeselect?: () => void;
     showKey?: boolean;
 }
 
@@ -153,6 +155,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     };
   }, [drawMode, handleDrawCreate]);
 
+    const initialMount = useRef(true);
   useEffect(() => {
     if (initialMount.current){
       initialMount.current = false;
