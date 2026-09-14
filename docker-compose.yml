@@ -60,7 +60,7 @@ services:
     environment:
       VALKEY_HOST: valkey
       MINIO_ENDPOINT: minio:9000
-      PYTHONPATH: /app
+      PYTHONPATH: /app:/app/app/backend:/app/app/backend/src
       VALKEY_PORT: "6379"
     restart: unless-stopped
     depends_on:
@@ -153,7 +153,7 @@ services:
     env_file:
       [.env]
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/app/backend:/app/backend/src
       - SEED_DEFAULT_PASSWORD=${SEED_DEFAULT_PASSWORD}
       - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
     depends_on:
