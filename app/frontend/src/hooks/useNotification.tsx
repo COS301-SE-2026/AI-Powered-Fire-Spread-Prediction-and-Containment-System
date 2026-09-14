@@ -9,10 +9,14 @@ import React, {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import type { FireNotification } from '../types/Notifications';
+import { useAuth } from './useAuth';
+
+const { isAuth, isLoading: isAuthLoading } = useAuth();
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 const PANEL_RETENTION_MS = 24 * 60 * 60 * 1000;
+
 
 function isWithinRetention(time: string): boolean {
   return Date.now() - new Date(time).getTime() < PANEL_RETENTION_MS;
@@ -20,6 +24,7 @@ function isWithinRetention(time: string): boolean {
 
 function getWebSocketUrl(path: string): string {
   const httpBase = API_URL || window.location.origin;
+  const base = httpBase.endsWith('/api') && path.startsWith('/api/') ? httpBase.slice(0, -4) : httpBase;
   return httpBase.replace(/^http/, 'ws') + path;
 }
 
@@ -127,7 +132,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
   // initial load: recent notification history, unread count, whether user has location on file at all
   useEffect(() => {
-    if (isAuthPage){
+    if (isAuthPage || isAuthLoading || !isAuth){
       return;
     }
 
@@ -148,12 +153,12 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       cancelled = true;
     };
-  }, [fetchNotifications, isAuthPage]);
+  }, [fetchNotifications, isAuthPage, isAuth, isAuthLoading]);
 
   // Live push over WebSocket. Auth comes from same access_token cookie
   // REST calls use, browsers attach it to WS handshake automatically so no token neeeds to be passed here
   useEffect(() => {
-    if (isAuthPage) {
+    if (isAuthPage || isAuthLoading || !isAuth) {
       return;
     }
 
@@ -183,7 +188,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => {
       ws.close();
     };
-  }, [showToast, isAuthPage]);
+  }, [showToast, isAuthPage, isAuth, isAuthLoading]);
 
   const markAsRead = useCallback((id: string): void => {
     dismissIsRef.current.add(id);

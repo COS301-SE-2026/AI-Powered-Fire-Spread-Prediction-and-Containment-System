@@ -17,7 +17,7 @@ export function useAuth(): AuthProps {
     let isMounted = true;
 
     async function checkAuth(): Promise<void> {
-      if (sessionStorage.getItem('isGuest') === '1'){
+      if (sessionStorage.getItem('isGuest') === '1' || window.location.pathname.startsWith('/guests')){
         if (isMounted){
           setIsLoading(false);
         }
