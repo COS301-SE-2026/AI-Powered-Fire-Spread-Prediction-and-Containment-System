@@ -18,6 +18,7 @@
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@turf/circle": "^7.3.5",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
+    "client-only": "^0.0.1",
     "jose": "^6.2.3",
     "lucide": "^1.27.0",
     "lucide-react": "^0.577.0",
