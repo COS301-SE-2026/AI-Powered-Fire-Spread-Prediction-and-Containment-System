@@ -1,5 +1,10 @@
+import os
+import uuid
+
 import numpy as np
 import pytest
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 
 from app.backend.src.models.users import User
 from app.backend.src.models.reported_fires import FireReports
@@ -49,3 +54,69 @@ def small_grids():
         return weather, static, burn
 
     return _make
+
+
+# --------Fixtures for admin role request approval---------------
+from app.backend.db import Base
+from app.backend.src.enums.role_request_status import RequestStatus
+from app.backend.src.enums.user_role import UserRole
+
+ADMIN_ID = "admin-1"
+
+@pytest.fixture(scope="session")
+def engine():
+    engine = create_engine(os.environ["DATABASE_URL"])
+    Base.metadata.creaate_all(engine)
+    yield engine
+    Base.metadata.drop_all(engine)
+    engine.dispose()
+    
+@pytest.fixture()
+def db_session(engine):
+    """
+    Each test runs inside its own transaction, rolled back at the end -
+    fast, isolated, and doesn't require recreating the schema per test.
+    """
+    connection = engine.connect()
+    outer_transaction = connection.begin()
+    session = sessionmaker(bind=connection, autoflush=False, autocommit=False)()
+    try:
+        yield session
+    finally:
+        session.close()
+        outer_transaction.rollback()
+        connection.close()
+        
+@pytest.fixture()
+def admin_id(db_session):
+    """
+    A real admin User row. reviewed_by is a FK to users.id, so a base string
+    with no matching row fails againts postgres
+    """
+    admin = User(id=ADMIN_ID, name="Ada", surname="Admin", email="admin@example.com", role=UserRole.admin)
+    db_session.add(admin)
+    db_session.commit()
+    return admin.id
+
+@pytest.fixture()
+def scenario(db_session, admin_id):
+    """
+    Factory for building (admin_is, user, role_request) trio.
+    
+    Usage:
+        admin_id, user, req = scenario()
+        admin_id, user, req = scenario(status=RequestStatus.approved)
+        admin_id, user, request = scenario(orphan=True) # user row doesn't exist
+    """
+    
+    def make(status=RequestStatus.pending, requested_role=UserRole.admin, current_role=UserRole.user, orphan=False):
+        if orphan:
+            db_session.execute(text("ALTER TABLE role_requests DISABLE TRIGGER ALTER"))
+            req = RoleRequest(
+                request_id=str(uuid.uuid4()),
+                user_id="nonexistent-user",
+                requested_role=requested_role,
+                current_role=current_role,
+                status=status,
+            )
+            
