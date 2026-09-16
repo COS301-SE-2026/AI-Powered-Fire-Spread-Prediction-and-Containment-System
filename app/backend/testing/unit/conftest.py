@@ -2,6 +2,10 @@ import os
 import uuid
 import itertools
 
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env.test")
+
 import numpy as np
 import pytest
 from sqlalchemy import create_engine, text
@@ -71,7 +75,7 @@ def fake_id_number():
 
 @pytest.fixture(scope="session")
 def engine():
-    engine = create_engine(os.environ["DATABASE_URL"])
+    engine = create_engine(os.environ["TEST_DATABASE_URL"])
     Base.metadata.create_all(engine)
     yield engine
     Base.metadata.drop_all(engine)
