@@ -25,6 +25,12 @@ def test_approve_grants_requested_role_to_user(db_session, scenario):
     assert user.role == UserRole.admin
     
 def test_approve_missing_request_returns_none(db_session, scenario):
+    """Approving a request_id that does not exist should return Non, not raise"""
+    admin_id, _, _ = scenario()
+    result = role_request.approve_role_request("does-not-exist", admin_id, db_session)
+    assert result is None
+
+def test_approve_already_approved_raises(db_session, scenario):
     """A request that's aleady approved cannot be approved again"""
     admin_id, user, req = scenario(status=RequestStatus.approved)
     try:
