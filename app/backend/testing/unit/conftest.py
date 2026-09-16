@@ -119,4 +119,33 @@ def scenario(db_session, admin_id):
                 current_role=current_role,
                 status=status,
             )
+            db_session.add(req)
+            db_session.commit()
+            db_session.execute(text("ALTER TABLE role_requests ENABLE TRIGGER ALL"))
+            db_session.commit()
+            return admin_id, None, req
+        
+        user = User(
+            id=str(uuid.uuid4()),
+            name="Jane",
+            surname="Doe",
+            email=f"{uuid.uuid4()}@example.com",
+            rol=current_role,
+        )
+        db_session.add(user)
+        db_session.commit()
+        
+        req = RoleRequest(
+            request_id=str(uuid.uuid4()),
+            user_id=user.id,
+            requested_role=requested_role,
+            current_role=current_role,
+            status=status,
+        )
+        db_session.add(req)
+        db_session.commit()
+        db_session.refresh(req)
+        return admin_id, user, req
+    
+    return make
             
