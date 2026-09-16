@@ -24,4 +24,11 @@ def test_approve_grants_requested_role_to_user(db_session, scenario):
     db_session.refresh(user)
     assert user.role == UserRole.admin
     
-
+def test_approve_missing_request_returns_none(db_session, scenario):
+    """A request that's aleady approved cannot be approved again"""
+    admin_id, user, req = scenario(status=RequestStatus.approved)
+    try:
+        role_request.approve_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "already approved" in str(e)
