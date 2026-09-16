@@ -125,3 +125,13 @@ def test_revoke_missing_request_returns_none(db_session, scenario):
     admin_id, _, _ = scenario()
     result = role_request.revoke_role_request("does-not-exist", admin_id, db_session)
     assert result is None
+    
+def test_revoke_non_approved_raises(db_session, scenario):
+    """Only approved requests can be revoked"""
+    admin_id, user, req = scenario(status=RequestStatus.pending)
+    try:
+        role_request.revoke_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "Only approved" in str(e)
+
