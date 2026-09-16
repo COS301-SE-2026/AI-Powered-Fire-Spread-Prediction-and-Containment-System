@@ -135,3 +135,11 @@ def test_revoke_non_approved_raises(db_session, scenario):
     except ValueError as e:
         assert "Only approved" in str(e)
 
+def test_revoke_already_revoked_raises(db_session, scenario):
+    """A request that's already revoked cannot be revoked again"""
+    admin_id, user, req = scenario(status=RequestStatus.revoked)
+    try:
+        role_request.revoke_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "Only approved" in str(e)
