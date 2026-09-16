@@ -67,3 +67,10 @@ def test_approve_failed_lookup_leaves_status_pending(db_session, scenario):
     db_session.refresh(req)
     assert req.status == RequestStatus.pending
     assert req.reviewed_by is None
+    
+#-------reject role request------------
+def test_reject_sets_status_rejected(db_session, scenario):
+    """Rejecting a pending request should change status to rejected"""
+    admin_id, user, req = scenario(status=RequestStatus.pending)
+    result = role_request.reject_role_request(req.request_id, admin_id, db_session)
+    assert result.status == RequestStatus.rejected
