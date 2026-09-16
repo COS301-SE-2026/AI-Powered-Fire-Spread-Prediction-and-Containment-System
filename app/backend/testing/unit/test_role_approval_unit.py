@@ -38,3 +38,13 @@ def test_approve_already_approved_raises(db_session, scenario):
         assert False, "expected ValueError"
     except ValueError as e:
         assert "already approved" in str(e)
+
+def test_approve_already_rejected_raises(db_session, scenario):
+    """A rejected request cannot be approved"""
+    admin_id, user, req = scenario(status=RequestStatus.rejected)
+    try:
+        role_request.approve_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "already rejected" in str(e)
+        
