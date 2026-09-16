@@ -57,3 +57,13 @@ def test_approve_orphaned_user_raises(db_session, scenario):
     except ValueError as e:
         assert "User not found" in str(e)
         
+def test_approve_failed_lookup_leaves_status_pending(db_session, scenario):
+    """A failed approval (missing user) must not leave the request half-updated"""
+    admin_id, _, req = scenario(status=RequestStatus.pending, orphan=True)
+    try:
+        role_request.approve_role_request(req.request_id, admin_id, db_session)
+    except ValueError:
+        pass
+    db_session.refresh(req)
+    assert req.status == RequestStatus.pending
+    assert req.reviewed_by is None
