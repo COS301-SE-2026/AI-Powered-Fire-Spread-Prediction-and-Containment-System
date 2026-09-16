@@ -82,4 +82,8 @@ def test_reject_does_not_change_user_role(db_session, scenario):
     db_session.refresh(user)
     assert user.role == UserRole.user
     
-    
+def test_reject_missing_request_returns_none(db_session, scenario):
+    """Rejecting a request_id that doesn't exist should return None, not raise"""
+    admin_id, _, _ = scenario()
+    result = role_request.reject_role_request("does-not-exist", admin_id, db_session)
+    assert result is None
