@@ -17,3 +17,11 @@ def test_approve_records_reviewer_and_timestamp(db_session, scenario):
     assert result.reviewed_by == admin_id
     assert result.reviewed_at is not None
     
+def test_approve_grants_requested_role_to_user(db_session, scenario):
+    """Approve should promote requesting user to requested role"""
+    admin_id, user, req = scenario(status=RequestStatus.pending, requested_role=UserRole.admin, current_role=UserRole.user)
+    role_request.approve_role_request(req.request_id, admin_id, db_session)
+    db_session.refresh(user)
+    assert user.role == UserRole.admin
+    
+
