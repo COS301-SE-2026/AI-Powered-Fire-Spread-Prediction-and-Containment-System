@@ -143,3 +143,13 @@ def test_revoke_already_revoked_raises(db_session, scenario):
         assert False, "expected ValueError"
     except ValueError as e:
         assert "Only approved" in str(e)
+        
+def test_revoke_orphaned_user_raises(db_session, scenario):
+    """If the request's user_id no longer resolves to a user, revoke should fail"""
+    admin_id, _, req = scenario(status=RequestStatus.approved, orphan=True)
+    try:
+        role_request.revoke_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "User not found" in str(e)
+        
