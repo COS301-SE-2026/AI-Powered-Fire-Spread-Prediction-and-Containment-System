@@ -113,4 +113,11 @@ def test_revoke_sets_status_revoked(db_session, scenario):
     result = role_request.revoke_role_request(req.request_id, admin_id, db_session)
     assert result.status == RequestStatus.revoked
     
+def test_revoke_restores_users_previous_role(db_session, scenario):
+    """Revoking should roll the user's role back to current_role at request time"""
+    admin_id, user, req = scenario(status=RequestStatus.approved, requested_role=UserRole.admin, current_role=UserRole.user)
+    role_request.revoke_role_request(req.request_id, admin_id, db_session)
+    db_session.refresh(user)
+    assert user.role == UserRole.user
+    
     
