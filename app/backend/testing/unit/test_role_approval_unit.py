@@ -87,3 +87,14 @@ def test_reject_missing_request_returns_none(db_session, scenario):
     admin_id, _, _ = scenario()
     result = role_request.reject_role_request("does-not-exist", admin_id, db_session)
     assert result is None
+    
+def test_reject_non_pending_raises(db_session, scenario):
+    """Only pending requests can be rejected"""
+    admin_id, user, req = scenario(status=RequestStatus.revoked)
+    try:
+        role_request.reject_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "already revoked" in str(e)
+    
+    
