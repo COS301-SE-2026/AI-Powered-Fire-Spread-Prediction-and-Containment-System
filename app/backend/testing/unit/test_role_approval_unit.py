@@ -105,4 +105,12 @@ def test_reject_orphaned_user_raises(db_session, scenario):
         assert False, "expected ValueError"
     except ValueError as e:
         assert "User not found" in str(e)
+        
+#--------revoke role request----------
+def test_revoke_sets_status_revoked(db_session, scenario):
+    """Revoking an approved request should change its status to revoked"""
+    admin_id, user, req = scenario(status=RequestStatus.approved)
+    result = role_request.revoke_role_request(req.request_id, admin_id, db_session)
+    assert result.status == RequestStatus.revoked
+    
     
