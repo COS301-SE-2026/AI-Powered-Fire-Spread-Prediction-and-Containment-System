@@ -153,3 +153,10 @@ def test_revoke_orphaned_user_raises(db_session, scenario):
     except ValueError as e:
         assert "User not found" in str(e)
         
+#---------get role requests-----------
+def test_get_role_requests_empty(db_session, admin_id):
+    """With no requests in db, listing should be empty with total 0"""
+    result = role_request.get_role_requests(db_session)
+    assert result == {"data": [], "total": 0}
+    
+    
