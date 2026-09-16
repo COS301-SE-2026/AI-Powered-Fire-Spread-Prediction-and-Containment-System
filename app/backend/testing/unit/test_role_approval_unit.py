@@ -74,3 +74,12 @@ def test_reject_sets_status_rejected(db_session, scenario):
     admin_id, user, req = scenario(status=RequestStatus.pending)
     result = role_request.reject_role_request(req.request_id, admin_id, db_session)
     assert result.status == RequestStatus.rejected
+    
+def test_reject_does_not_change_user_role(db_session, scenario):
+    """Rejecting must not alter user's existing role"""
+    admin_id, user, req = scenario(status=RequestStatus.pending, current_role=UserRole.user)
+    role_request.reject_role_request(req.request_id, admin_id, db_session)
+    db_session.refresh(user)
+    assert user.role == UserRole.user
+    
+    
