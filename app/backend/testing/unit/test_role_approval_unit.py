@@ -120,4 +120,8 @@ def test_revoke_restores_users_previous_role(db_session, scenario):
     db_session.refresh(user)
     assert user.role == UserRole.user
     
-    
+def test_revoke_missing_request_returns_none(db_session, scenario):
+    """Revoking a request_id that doesn't exist should return None, not raise"""
+    admin_id, _, _ = scenario()
+    result = role_request.revoke_role_request("does-not-exist", admin_id, db_session)
+    assert result is None
