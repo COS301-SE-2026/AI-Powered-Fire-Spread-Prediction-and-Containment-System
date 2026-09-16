@@ -1,5 +1,6 @@
 import os
 import uuid
+import itertools
 
 import numpy as np
 import pytest
@@ -63,10 +64,15 @@ from app.backend.src.enums.user_role import UserRole
 
 ADMIN_ID = "admin-1"
 
+id_num_seq = itertools.count(1)
+
+def fake_id_number():
+    return f"{next(id_num_seq):013d}"
+
 @pytest.fixture(scope="session")
 def engine():
     engine = create_engine(os.environ["DATABASE_URL"])
-    Base.metadata.creaate_all(engine)
+    Base.metadata.create_all(engine)
     yield engine
     Base.metadata.drop_all(engine)
     engine.dispose()
@@ -93,7 +99,7 @@ def admin_id(db_session):
     A real admin User row. reviewed_by is a FK to users.id, so a base string
     with no matching row fails againts postgres
     """
-    admin = User(id=ADMIN_ID, name="Ada", surname="Admin", email="admin@example.com", role=UserRole.admin)
+    admin = User(id=ADMIN_ID, name="Ada", surname="Admin", email="admin@example.com", id_number=fake_id_number(), role=UserRole.admin)
     db_session.add(admin)
     db_session.commit()
     return admin.id
@@ -111,7 +117,7 @@ def scenario(db_session, admin_id):
     
     def make(status=RequestStatus.pending, requested_role=UserRole.admin, current_role=UserRole.user, orphan=False):
         if orphan:
-            db_session.execute(text("ALTER TABLE role_requests DISABLE TRIGGER ALTER"))
+            db_session.execute(text("ALTER TABLE role_requests DISABLE TRIGGER ALL"))
             req = RoleRequest(
                 request_id=str(uuid.uuid4()),
                 user_id="nonexistent-user",
@@ -130,7 +136,8 @@ def scenario(db_session, admin_id):
             name="Jane",
             surname="Doe",
             email=f"{uuid.uuid4()}@example.com",
-            rol=current_role,
+            id_number=fake_id_number(),
+            role=current_role,
         )
         db_session.add(user)
         db_session.commit()
