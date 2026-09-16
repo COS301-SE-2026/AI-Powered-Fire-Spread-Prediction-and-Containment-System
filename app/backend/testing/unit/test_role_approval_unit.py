@@ -48,3 +48,12 @@ def test_approve_already_rejected_raises(db_session, scenario):
     except ValueError as e:
         assert "already rejected" in str(e)
         
+def test_approve_orphaned_user_raises(db_session, scenario):
+    """If request's user_id no longer resolves to a user, approval shaould fail"""
+    admin_id, _, req = scenario(status=RequestStatus.pending, orphan=True)
+    try:
+        role_request.approve_role_request(req.request_id, admin_id, db_session)
+        assert False, "expected ValueError"
+    except ValueError as e:
+        assert "User not found" in str(e)
+        
