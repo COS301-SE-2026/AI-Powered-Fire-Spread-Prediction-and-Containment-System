@@ -159,4 +159,11 @@ def test_get_role_requests_empty(db_session, admin_id):
     result = role_request.get_role_requests(db_session)
     assert result == {"data": [], "total": 0}
     
-    
+def test_get_role_requests_returns_created_requests(db_session, scenario):
+    """Listing should include requests that were created"""
+    admin_id, _, req1 = scenario()
+    _, _, req2 = scenario()
+    result = role_request.get_role_requests(db_session)
+    ids = {r.request_id for r in result["data"]}
+    assert {req1.request_id, req2.request_id} <= ids
+    assert result["total"] == len(result["data"])
