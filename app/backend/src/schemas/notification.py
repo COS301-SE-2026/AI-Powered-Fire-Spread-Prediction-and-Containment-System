@@ -27,7 +27,7 @@ class NotificationOut(BaseModel):
     def from_model(cls, n) -> "NotificationOut":
         return cls(
             id=n.id,
-            fireId=n.fire_report_id,
+            fireId=n.fire_report.reference_number,
             fireLocation=n.fire_location,
             distance=round(n.distance, 1),
             type=n.type,

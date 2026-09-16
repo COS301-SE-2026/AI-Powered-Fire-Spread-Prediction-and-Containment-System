@@ -494,7 +494,7 @@ class TestCheckProximityForGuest:
             results = svc.check_proximity_for_guest(db, -25.75, 28.24)
 
         assert len(results) == 1
-        assert results[0].fireId == fire.id
+        assert results[0].fireId == fire.reference_number
         assert results[0].distance == 3.0
         assert results[0].type == NotificationType.alert
 
@@ -539,7 +539,7 @@ class TestCheckProximityForGuest:
         ), patch.object(svc, "distance_to_fire_edge", return_value=3.0):
             results = svc.check_proximity_for_guest(db, -25.75, 28.24)
 
-        assert {r.fireId for r in results} == {"fire-1", "fire-2"}
+        assert {r.fireId for r in results} == {fire1.reference_number, fire2.reference_number}
 
     def test_id_is_synthesized_and_prefixed(self, db):
         fire = make_fire(id="fire-42")

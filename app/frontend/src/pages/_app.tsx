@@ -34,7 +34,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     const handleReconnection = async () => {
       const isReachable = await probeHealth();
       if (isReachable) {
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
         await offlineStore.syncQueuedActions(apiBaseUrl);
       }
     };

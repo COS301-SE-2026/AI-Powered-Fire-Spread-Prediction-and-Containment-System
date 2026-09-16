@@ -116,7 +116,7 @@ def run_dca(
                 update_model_tensors(model, weather_grids[weather_idx], device)
 
             if hasattr(model, "state") and isinstance(model.state, torch.Tensor):
-                model.state[:, containment_tensor] = False
+                model.state[:, containment_tensor] = 0
 
             model.compute()
 

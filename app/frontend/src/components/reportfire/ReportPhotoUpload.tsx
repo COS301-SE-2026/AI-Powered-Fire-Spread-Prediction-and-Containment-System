@@ -10,9 +10,13 @@ interface PhotoProps {
   readonly onChange: (file: File | null) => void;
 }
 
+const TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_SIZE = 10 * 1024 * 1024;
+
 export function PhotoField({ value, error = '', onChange }: PhotoProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [localError, setLocalError] = useState('');
 
   useEffect(() => {
     if (!value) {
@@ -30,20 +34,25 @@ export function PhotoField({ value, error = '', onChange }: PhotoProps) {
 
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!TYPES.includes(file.type)) {
+      setLocalError('Please upload a JPG, PNG or WEBP image.');
       onChange(null);
       e.target.value = '';
       return;
     }
+    setLocalError('');
     onChange(file);
   }
+
+  const displayError = localError || error;
+
   return (
     <div className="w-full">
       <span className="label-text font-semibold text-white mb-2 block">Attach Evidence</span>
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        accept="image/png, image/jpeg, image/webp"
         onChange={handlePhotoChange}
         className="hidden"
       />
@@ -74,7 +83,7 @@ export function PhotoField({ value, error = '', onChange }: PhotoProps) {
           />
         </div>
       )}
-      {error && <Alert variant="error" message={error} />}
+      {displayError && <Alert variant="error" message={displayError} />}
     </div>
   );
 }

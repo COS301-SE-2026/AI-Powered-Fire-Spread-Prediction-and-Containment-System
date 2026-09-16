@@ -51,11 +51,10 @@ FROM base AS prod
 RUN useradd -r -u 10001 -g users -s /usr/sbin/nologin appuser
 
 COPY app/__init__.py    /app/app/__init__.py
-COPY app/artifact_store /app/app/artifact_store
 COPY app/backend        /app/app/backend
 
 USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

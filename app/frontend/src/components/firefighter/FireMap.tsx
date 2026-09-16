@@ -1,9 +1,10 @@
 'use client';
 
+import { LocateFixed } from 'lucide-react'
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
-import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
@@ -53,6 +54,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
   const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
+  const [showUserLocationTooltip, setShowUserLocationTooltip] = useState(false);
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
@@ -204,6 +206,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     [activeFires]
   );
 
+  const handleRecenter = useCallback(() => {
+    setViewState((v) => ({
+      ...v,
+      longitude: lng,
+      latitude: lat,
+      zoom: Math.max(v.zoom, 13),
+    }))
+  }, [lat, lng])
+
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) return;
     const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
@@ -321,6 +332,9 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       onMove={
         (evt) => {setViewState(evt.viewState);}
       }
+      onClick={() => {
+        setShowUserLocationTooltip(false);
+      }}
       style={{ width: '100%', height: '100%' }}
       mapStyle="mapbox://styles/mapbox/navigation-night-v1"
     >
@@ -484,7 +498,60 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           </div>
         </Popup>
       )}
+      {lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng) && (
+        <Marker
+          longitude={lng}
+          latitude={lat}
+          anchor="center"
+          onClick={(e) => {
+            e.originalEvent.stopPropagation();
+            setShowUserLocationTooltip((prev) => !prev);
+          }}
+        >
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Your location marker"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowUserLocationTooltip((prev) => !prev);
+              }
+            }}
+            className='relative flex items-center justify-center w-11 h-11 cursor-pointer focus:outline-none'
+          >
+            {/* Click to show badge */}
+            {showUserLocationTooltip && (
+              <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
+               border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
+                Your location
+              </div>
+            )}
+
+            {/* pulse for marker */}
+            <span
+              className='animate-ping absolute inline-flex w-5 h-5 rounded-full opacity-75 pointer-events-none'
+              style={{ backgroundColor: 'var(--color-wind, #378add)' }}
+            />
+
+            {/* solid marker dot */}
+            <span
+              className='relative inline-flex rounded-full size-3 border-2 border-white shadow-md shadow-black pointer-events-none'
+              style={{ backgroundColor: 'var(--color-wind, #378add)' }}
+            />
+          </div>
+        </Marker>
+      )}
     </Map>
+
+    <button
+      type='button'
+      onClick={handleRecenter}
+      aria-label='Center map location on me'
+      className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+    >
+      <LocateFixed className='w-5 h-5'/>
+    </button>
     </div>
   );
 }
