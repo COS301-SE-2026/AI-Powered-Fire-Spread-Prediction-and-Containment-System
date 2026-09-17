@@ -32,7 +32,7 @@ export const mockResources: ResourceTable[] = [
     lng: 28.2043,
     location_text: 'Wonderboom volunteer base, Pretoria',
     owner_name: 'Thabo Nkosi',
-    owner_contact: 'thabo.nkosi@example.com',
+    owner_contact: '082 905 4523',
     fire_ref: 'FR-2026-00417',
   },
   {
@@ -66,7 +66,7 @@ export const mockResources: ResourceTable[] = [
     lng: 28.1319,
     location_text: 'Wonderboom Airport hangar 3',
     owner_name: 'AgriAir Charters',
-    owner_contact: 'ops@agriair.example.com',
+    owner_contact: '095 345 7832',
     fire_ref: null,
   },
   {
@@ -134,7 +134,7 @@ export const mockResources: ResourceTable[] = [
     lng: 28.3102,
     location_text: 'Silverton community hall',
     owner_name: 'Nomvula Dlamini',
-    owner_contact: 'nomvula.d@example.com',
+    owner_contact: '095 678  3412',
     fire_ref: null,
   },
   {
