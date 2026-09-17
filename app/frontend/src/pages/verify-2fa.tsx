@@ -65,7 +65,7 @@ export default function Verify2FA() {
           code,
         });
       }else{
-        const data = await apiCall('/api/auth/verify-2fa', 'POST', {
+        data = await apiCall('/api/auth/verify-2fa', 'POST', {
           username: authData.email,
           code,
         });
