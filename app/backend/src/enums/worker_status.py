@@ -1,21 +1,44 @@
 from enum import Enum
 
 class WorkerStatus(str, Enum):
-    # machine found not capable after pen test
-    rejected = "rejected" 
 
-    # approved, waiting for user to "activate" their machine
-    pending = "pending"
 
-    # machine can be used to run a simulation
-    # on graph page
+    # where set
+    # meaning
+    # colour in UI
+
+
+    # backend on WS handshake
+    # connected, jealthy, idle in Valkey pool, ready for jobs
+    # green UI
     active = "active"
 
-    # machine powered off or not connected to network
-    idle = "idle"
+    # backend on task dispatch
+    # actively processing fire spread
+    # blue UI
+    busy = "busy"
 
-    # user deactivated their machine, does not want it to be used anymore
+    # watchdog on heartbeat loss
+    # WS closed or ping.pong timed out (>15s)
+    # greay UI
+    offline = "offline"
+
+    # local runner/ backend during registration
+    # hardware check failed
+    # red UI
+    rejected = "rejected" 
+
+    # backend watchdog on simulation timeout or crash
+    # failed mid-run / exceeded 10s, backoff 15 min
+    # orange UI
+    quarentined = "quarentined"
+
+    # volunteer user via dashboard
+    # volunteer opts out / pauses their runner
+    # slate UI
     deactivated = "deactivated"
 
-    # admin removed for some reason, was idle for long, or unable to complete runs or something
+    # admin via detail modal
+    # admin revoked / blacklisted node; stores removal reason
+    # red badge
     removed = "removed"
