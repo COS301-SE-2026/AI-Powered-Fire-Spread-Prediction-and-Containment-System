@@ -12,7 +12,11 @@ from app.backend.src.enums.user_role import UserRole
 class RoleRequest(Base):
     __tablename__ = "role_requests"
     __table_args__ = (
-        Index("uq_one_pending_role_request", "user_id", unique=True, postgresql=text("status = 'pending'"))
+        Index("uq_one_pending_role_request", 
+              "user_id", 
+              unique=True, 
+              postgresql_where=text("status = 'pending'")
+            ),
     )
 
     request_id = Column(String, primary_key=True, default=lambda: f"req_{uuid.uuid4().hex[:8]}")

@@ -6,12 +6,13 @@ from sqlalchemy.orm import Session
 from app.backend.src.dependencies.auth import ACCESS_TOKEN_EXPIRE_MINUTES
 from app.backend.db import get_db
 from app.backend.src.schemas.auth import (
+    CompleteRegistrationRequest,
     LoginResponse,
     Two_FA_Create_Response,
     Two_FA_Verify_Request,
     TwoFAVerifyResponse
 )
-from app.backend.src.services.auth.two_factor import setup_2fa, verify_2fa
+from app.backend.src.services.auth.two_factor import setup_2fa, verify_2fa, complete_registration
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -46,3 +47,26 @@ def verify_2fa_route(
     )
 
     return {"role": result["role"]}
+
+@router.post("/complete-registration", response_model=TwoFAVerifyResponse)
+def complete_registration(
+    request: CompleteRegistrationRequest,
+    respone: Response,
+    db: Annotated[Session, Depends(get_db)]
+):
+    try:
+        result = complete_registration(db, request)
+    except ValueError as err:
+        raise HTTPException(status_code=401, detail=str(err))
+
+    respone.set_cookie(
+        key="access_token",
+        value=result["access_token"],
+        httponly=True,
+        secure=False, # CHANGE TO TRUE WHEN ON HTTPS
+        samesite="lax",
+        max_age=60 * ACCESS_TOKEN_EXPIRE_MINUTES,
+        path="/",
+    )
+
+    return {"role": result["role"], "pending_approval": result["pending_approval"]}

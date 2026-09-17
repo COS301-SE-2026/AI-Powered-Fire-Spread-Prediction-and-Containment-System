@@ -65,6 +65,7 @@ class MeResponse(BaseModel):
 
 class TwoFAVerifyResponse(BaseModel):
     role: str
+    pending_approval: bool = False
 
 
 LoginResponse.model_rebuild()

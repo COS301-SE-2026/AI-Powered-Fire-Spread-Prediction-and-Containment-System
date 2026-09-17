@@ -2,11 +2,15 @@ from datetime import datetime
 
 def validate_sa_id(id_num: str) -> dict:
 
+    if not (isinstance(id_num, str)):
+        raise ValueError("ID number not inputed")
+
+    id_num = id_num.replace(" ", "")
+
     # length and number check
-    if not (isinstance(id_num, str) and len(id_num) == 13 and id_num.isdigit()):
+    if not (len(id_num) == 13 and id_num.isdigit()):
         raise ValueError("ID number needs to be 13 digits long")
 
-    id_num = id_num.strip(" ", "")
     
     # date verification oldest year to accept will be 1926 100 year window 
     yy, mm, dd = int(id_num[:2]), int(id_num[2:4]), int(id_num[4:6])
@@ -20,7 +24,7 @@ def validate_sa_id(id_num: str) -> dict:
         raise ValueError("ID number contains an invalid date of birth")
 
     if birth_date > datetime.now():
-            raise ValueError("ID contains a future birthday")
+        raise ValueError("ID contains a future birthday")
 
     # citezenship
     if id_num[10] not in ('0', '1'):
@@ -53,4 +57,4 @@ def is_valid_id(id_num: str) -> bool:
         validate_sa_id(id_num)
         return True
     except ValueError:
-        False
+        return False
