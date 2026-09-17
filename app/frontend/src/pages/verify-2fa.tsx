@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { apiCall } from '../lib/api';
@@ -8,13 +8,43 @@ export default function Verify2FA() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { email, otpauth_url: otpauthUrl } = router.query;
+  
+  const [authData, setAuthData] = useState<{
+    email: string;
+    otpauthUrl?: string;
+    registrationToken?: string;
+  }>({email: ''});
 
-  const isValidEmail = email && typeof email === 'string';
-  const hasQrSetup = isValidEmail && otpauthUrl && typeof otpauthUrl === 'string';
+  useEffect(() => {
+    if(!router.isReady) return;
+
+    let email = (router.query.email as string) || '';
+    let otpauthUrl = (router.query.otpauth_url as string) || '';
+    let registrationToken = (router.query.registration_token as string) || '';
+
+    if(typeof window !== 'undefined'){
+      const stored = sessionStorage.getItem('pending_2fa');
+      if(stored){
+        try{
+          const parsed = JSON.parse(stored);
+          email = email || parsed.email || '';
+          otpauthUrl = otpauthUrl || parsed.otpauthUrl || parsed.otpauth_url || '';
+          registrationToken = registrationToken || parsed.registrationToken || parsed.registration_token || '';
+        }catch {
+
+        }
+      }
+    }
+
+    setAuthData({email, otpauthUrl, registrationToken})
+  }, [router.isReady, router.query]);
+
+  const isRegistration = Boolean(authData.registrationToken);
+  const isValidSession = Boolean(authData.email || authData.registrationToken);
+  const hasQrSetup = Boolean(authData.otpauthUrl);
 
   const qrCodeSrc = hasQrSetup
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(otpauthUrl as string)}`
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(authData.otpauthUrl as string)}`
     : '';
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -23,17 +53,32 @@ export default function Verify2FA() {
       setError('Enter the 6‑digit code');
       return;
     }
-    if (!email || typeof email !== 'string') {
-      setError('No email provided. Please go back and login again.');
-      return;
-    }
     setIsLoading(true);
     setError('');
+
     try {
-      const data = await apiCall('/api/auth/verify-2fa', 'POST', {
-        username: email,
-        code,
-      });
+      let data: {role?: string; pending_approval?: boolean};
+
+      if(isRegistration){
+        data = await apiCall('/api/auth/complete-registration', 'POST', {
+          registration_token: authData.registrationToken,
+          code,
+        });
+      }else{
+        const data = await apiCall('/api/auth/verify-2fa', 'POST', {
+          username: authData.email,
+          code,
+        });
+      }
+
+      if(typeof window !== 'undefined'){
+        sessionStorage.removeItem('pending_2fa');
+      }
+
+      if(data?.pending_approval){
+        router.push('/users/live-map');
+        return;
+      }
 
       const roleRedirects: Record<string, string> = {
         admin: '/admin/dashboard',
@@ -74,10 +119,10 @@ export default function Verify2FA() {
 
         <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-6 text-center shadow-2xl backdrop-blur-sm">
           <h2 className="text-2xl font-bold text-text-primary mb-2">Two‑Factor Authentication</h2>
-          {!isValidEmail ? (
+          {!isValidSession ? (
             <>
               <p className="text-white/60 text-sm mb-4">
-                No verification email provided. Please log in again.
+                No active session found. Please log in or register again.
               </p>
               <button
                 onClick={() => router.push('/login')}
@@ -103,7 +148,7 @@ export default function Verify2FA() {
                       className="rounded-md border border-carbon-stroke"
                     />
                   </div>
-                  <a href={otpauthUrl as string} className='block text-sm text-primary hover:text-ember underline mb-4'>
+                  <a href={authData.otpauthUrl as string} className='block text-sm text-primary hover:text-ember underline mb-4'>
                     On this device? Tab here to open your authenticator app
                   </a>
                 </>

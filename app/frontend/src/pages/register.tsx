@@ -128,13 +128,14 @@ export default function Register() {
         name: form.name,
         surname: form.surname,
         id_number: form.idNumber,
+        requested_role: form.role.toLowerCase() as 'user' | 'firefighter'
       };
 
       const data: TwoFARequiredResponse = await apiCall('/api/auth/register', 'POST', payload);
 
       if (data.requires_2fa && data.otpauth_url) {
         router.push(
-          `/verify-2fa?email=${encodeURIComponent(data.email)}&otpauth_url=${encodeURIComponent(data.otpauth_url)}`
+          `/verify-2fa?email=${encodeURIComponent(data.email)}&otpauth_url=${encodeURIComponent(data.otpauth_url)}&registration_token=${encodeURIComponent(data.registration_token ?? '')}`
         );
       } else {
         setApiError('Unexpected response from server');

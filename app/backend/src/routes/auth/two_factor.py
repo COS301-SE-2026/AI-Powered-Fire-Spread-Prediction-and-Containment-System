@@ -49,9 +49,9 @@ def verify_2fa_route(
     return {"role": result["role"]}
 
 @router.post("/complete-registration", response_model=TwoFAVerifyResponse)
-def complete_registration(
+def complete_registration_route(
     request: CompleteRegistrationRequest,
-    respone: Response,
+    response: Response,
     db: Annotated[Session, Depends(get_db)]
 ):
     try:
@@ -59,7 +59,7 @@ def complete_registration(
     except ValueError as err:
         raise HTTPException(status_code=401, detail=str(err))
 
-    respone.set_cookie(
+    response.set_cookie(
         key="access_token",
         value=result["access_token"],
         httponly=True,
