@@ -71,7 +71,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-          image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+          image: quay.io/minio/minio:latest
           env:
             MINIO_ROOT_USER: admin
             MINIO_ROOT_PASSWORD: miniosupersecretpassword
@@ -79,7 +79,7 @@ jobs:
             - 9000:9000
           command: server /data
           options: >-
-            --health-cmd "curl -f http://localhost:9000/minio/health/ready || exit 1"
+            --health-cmd "mc ready local"
             --health-interval 10s
             --health-timeout 5s
             --health-retries 5
@@ -235,7 +235,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-        image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+        image: quay.io/minio/minio:latest
         env:
           MINIO_ROOT_USER: admin
           MINIO_ROOT_PASSWORD: miniosupersecretpassword

@@ -31,7 +31,7 @@ export default function Verify2FA() {
           otpauthUrl = otpauthUrl || parsed.otpauthUrl || parsed.otpauth_url || '';
           registrationToken = registrationToken || parsed.registrationToken || parsed.registration_token || '';
         }catch {
-
+          // eslint-disable-next-line no-empty
         }
       }
     }
