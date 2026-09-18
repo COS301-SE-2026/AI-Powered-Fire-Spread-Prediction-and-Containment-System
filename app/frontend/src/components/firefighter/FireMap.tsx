@@ -19,6 +19,8 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+import { useWaterBodies } from '../../hooks/useWaterBodies';
+import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDamsFromOSM';
 
 interface MapProps{
     lat: number;
@@ -59,6 +61,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const { refetchAfterAction, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
   const checkGuestNotifications = useGuestNotifications(showToast);
+  const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
+  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
+
+  const combinedWaterFeatures = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
 
   useEffect(() => {
     async function syncFires() {
@@ -419,6 +425,26 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               'line-width': 0.5,
             }}
           />
+        </Source>
+      )}
+
+      {/* Water bodies - dams, lakes, resevoir */}
+      {combinedWaterFeatures.features.length > 0 && (
+        <Source id="large-water-bodies" type="geojson" data={combinedWaterFeatures}>
+          <Layer id="water-highlight-fill" type="fill"
+            paint={{ 'fill-color': '#38bdf8', 'fill-opacity': 0.35 }} />
+          <Layer id="water-highlight-outline" type="line"
+            paint={{ 'line-color': '#38bdf8', 'line-width': 2.5, 'line-opacity': 0.9}} />
+        </Source>
+      )}
+
+      {/* Rivers */}
+      {riverFeatureCollection.features.length > 0 && (
+        <Source id="rivers-highlight" type="geojson" data={riverFeatureCollection}>
+          <Layer id="river-highlight-glow" type="line"
+            paint={{ 'line-color': '#38bdf8', 'line-width': 6, 'line-opacity': 0.4, 'line-blur': 2 }} />
+          <Layer id="river-highlight-line" type="line"
+            paint={{ 'line-color': '#7dd3fc', 'line-width': 2 }} />
         </Source>
       )}
 
