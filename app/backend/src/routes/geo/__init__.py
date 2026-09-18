@@ -157,5 +157,34 @@ def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
         
     return {"type": "FeatureCollection", "features": features}
 
-
-            
+@router.get("/water-bodies")
+async def get_water_bodies(
+    min_lat: float = Query(..., ge=-90, le=90),
+    min_lng: float = Query(..., ge=-180, le=180),
+    max_lat: float = Query(..., ge=-90, le=90),
+    max_lng: float = Query(..., ge=-180, le=180),
+    min_area_m2: float = Query(2000, ge=0, description="Minimum polygon area to include (m^2)"),
+):
+    """
+    Returns dams, resevoirs and ponds from OpenStreetMap within a bounding box as a GeoJSON FeatureCollection.
+    Intended to run alongside Mapbox's own water layer, which this just fills the gaps
+    """
+    if max_lat <= min_lat or max_lng <= min_lng:
+        raise HTTPException(status_code=400, detail="max_lat/max_lng must exceed min_lat/min_lng")
+    
+    if (max_lat - min_lat) > MAX_BBOX_SIDE_DEG or (max_lng - min_lng) > MAX_BBOX_SIDE_DEG:
+        raise HTTPException(status_code=400, detail=f"Bounding box too large; each side must be under {MAX_BBOX_SIDE_DEG} degrees",)
+    
+    key = cache_key(min_lat, min_lng, max_lat, max_lng, min_area_m2)
+    
+    cached = cache_client.get(key)
+    if cached:
+        return json.loads(cached)
+    
+    query = build_query(min_lat, min_lng, max_lat, max_lng)
+    raw = await query_overpass(query)
+    geojson = elements_to_geojson(raw.get("elements", []), min_area_m2)
+    
+    cache_client.set(key, json.dumps(geojson), ex=CACHE_TTL_SECONDS)
+    
+    return geojson
