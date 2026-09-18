@@ -17,6 +17,7 @@
   "dependencies": {
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@serwist/next": "^9.5.12",
+    "@turf/area": "^7.4.0",
     "@turf/circle": "^7.3.5",
     "@types/mapbox__mapbox-gl-draw": "^1.4.9",
     "jose": "^6.2.3",
