@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert } from '../shared/Alerts';
 
 interface CapacityProps {
@@ -22,13 +22,24 @@ export function Capacity({ value, unit, min, max, step=1, label='Capacity', help
         ticks.push(min + ((max - min) / (tickCount - 1)) * i);
     }
 
+    const clamp = (n: number): number => Math.min(Math.max(n, min), max);
+    const [draft, setDraft] = useState<string | null>(null);
+
+    const commitDraft = (): void => {
+        if (draft !== null) {
+            onChange(Math.min(Math.max(Number(draft), min), max));
+        }
+        setDraft(null);
+    }
+
     return (
         <div className='w-full'>
             <div className='flex items-baseline justify-between mb-2'>
                 <h4>{label}</h4>
-                <span className=" text-primary font-bold text-lg ">
-                    {value.toLocaleString()} {unit}
-                </span>
+                <label className='flex items-center gap-2'>
+                    <input type='number' inputMode='numeric' min={min} max={max} step={step} value={draft ?? value} onChange={(e) => onChange(clamp(Number(e.target.value)))} onBlur={commitDraft} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} aria-label={`${label} in ${unit}`} className='input input-bordered bg-surface-inpu t border-carbon-stroke input-xs w-24 text-left text-primary font-semibold focus:outline-primary text-lg'/>
+                        <span className='text-primary font-bold text-lg'>{unit}</span>
+                </label>
             </div>
             <input type='range' min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className='range range-primary range-xs w-full' />
 
