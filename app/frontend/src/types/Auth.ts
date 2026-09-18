@@ -6,7 +6,6 @@ export interface RegisterRequest {
   name: string;
   surname: string;
   id_number: string;
-  license_number?: string | null;
   requested_role: UserRole | string | null;
 }
 

@@ -15,7 +15,6 @@ class User(Base):
     surname = Column(String, nullable=False)
     email = Column(String(100), nullable=False, unique=True, index=True)
     id_number = Column(String(13), nullable=False, unique=True)
-    license_number = Column(String, nullable=True)
     hashed_password = Column(String, nullable=False, default="")
     role = Column(Enum(UserRole), default=UserRole.user, nullable=False)
     created_at = Column(

@@ -36,7 +36,6 @@ SEED_USERS = [
         "name": "Sipho",
         "surname": "Ndlovu",
         "id_number": "8505125800081",
-        "license_number": None,
         "role": "admin",
     },
     {
@@ -45,7 +44,6 @@ SEED_USERS = [
         "name": "Lerato",
         "surname": "Botha",
         "id_number": "9008234800082",
-        "license_number": None,
         "role": "admin",
     },
     {
@@ -54,7 +52,6 @@ SEED_USERS = [
         "name": "Johan",
         "surname": "van der Merwe",
         "id_number": "8201145000083",
-        "license_number": None,
         "role": "admin",
     },
     {
@@ -63,7 +60,6 @@ SEED_USERS = [
         "name": "Thandiwe",
         "surname": "Khumalo",
         "id_number": "9302284800084",
-        "license_number": "FF-1001",
         "role": "firefighter",
     },
     {
@@ -72,7 +68,6 @@ SEED_USERS = [
         "name": "Pieter",
         "surname": "Mokoena",
         "id_number": "9507115000085",
-        "license_number": "FF-1002",
         "role": "firefighter",
     },
     {
@@ -81,7 +76,6 @@ SEED_USERS = [
         "name": "Fatima",
         "surname": "Patel",
         "id_number": "9804054800086",
-        "license_number": "FF-1003",
         "role": "firefighter",
     },
     {
@@ -90,7 +84,6 @@ SEED_USERS = [
         "name": "Siyabonga",
         "surname": "Zulu",
         "id_number": "9109155000087",
-        "license_number": "FF-1004",
         "role": "firefighter",
     },
     {
@@ -99,7 +92,6 @@ SEED_USERS = [
         "name": "Kagiso",
         "surname": "Mahlangu",
         "id_number": "9412125000088",
-        "license_number": "FF-1005",
         "role": "firefighter",
     },
     {
@@ -108,7 +100,6 @@ SEED_USERS = [
         "name": "Amahle",
         "surname": "Dlamini",
         "id_number": "0103144800089",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -117,7 +108,6 @@ SEED_USERS = [
         "name": "Heinrich",
         "surname": "Kruger",
         "id_number": "0005185000080",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -126,7 +116,6 @@ SEED_USERS = [
         "name": "Zanele",
         "surname": "Mbatha",
         "id_number": "9906214800081",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -135,7 +124,6 @@ SEED_USERS = [
         "name": "Ruan",
         "surname": "Venter",
         "id_number": "0208255000082",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -144,7 +132,6 @@ SEED_USERS = [
         "name": "Naledi",
         "surname": "Moeng",
         "id_number": "9701304800083",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -153,7 +140,6 @@ SEED_USERS = [
         "name": "Willem",
         "surname": "Coetzee",
         "id_number": "9604125000084",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -162,7 +148,6 @@ SEED_USERS = [
         "name": "Kgotsofalang",
         "surname": "Baloyi",
         "id_number": "0309115000085",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -171,7 +156,6 @@ SEED_USERS = [
         "name": "Bianca",
         "surname": "Naidoo",
         "id_number": "0107194800086",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -180,7 +164,6 @@ SEED_USERS = [
         "name": "Lungile",
         "surname": "Ngcobo",
         "id_number": "9811224800087",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -189,7 +172,6 @@ SEED_USERS = [
         "name": "Deon",
         "surname": "Steyn",
         "id_number": "9510085000088",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -198,7 +180,6 @@ SEED_USERS = [
         "name": "Anika",
         "surname": "Smit",
         "id_number": "0402144800089",
-        "license_number": None,
         "role": "user",
     },
     {
@@ -207,7 +188,6 @@ SEED_USERS = [
         "name": "Tshepo",
         "surname": "Moroka",
         "id_number": "0008165000080",
-        "license_number": None,
         "role": "user",
     },
 ]
@@ -523,7 +503,6 @@ def seed_users(db):
             surname=data["surname"],
             email=data["email"],
             id_number=data["id_number"],
-            license_number=data["license_number"],
             hashed_password=new_hash,
             role=data["role"],
             is_active=True,

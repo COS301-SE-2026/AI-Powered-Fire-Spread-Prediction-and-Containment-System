@@ -11,7 +11,6 @@ class UserCreate(BaseModel):
     surname: str
     email: str
     id_number: str
-    license_number: Optional[str] = None
     role: UserRole = UserRole.user
 
 
