@@ -95,5 +95,67 @@ async def query_overpass(query: str) -> dict:
                 continue
     raise HTTPException(status_code=502, details=f"Overpass query failed: {last_error}")
 
+def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
+    features = []
+    
+    for el in elements:
+        tags = el.get("tags", {})
+        name = tags.get("name")
+        source_tag = tags.get("water") or tags.get("landuse") or tags.get("waterway") or "water"
+        
+        if el["type"] == "way" and el.get("geometry"):
+            coords = [(pt["lon"], pt["lat"]) for pt in el["geometry"]]
+            if len(coords) < 3 or coords[0] != coords[-1]:
+                # not a closed ring (eg. linear dam wall), represent it as a line instead
+                if len(coords) >= 2:
+                    features.append(
+                        {
+                            "type": "Feature",
+                            "properties": {
+                                "id": f"way/{el['id']}",
+                                "name": name,
+                                "source": source_tag,
+                                "kind": "dam_wall",
+                            },
+                            "geometry": {"type": "LineString", "coordinates": coords},
+                        }
+                    )
+                continue
+            
+            ref_lat = sum(lat for _, lat in coords) / len(coords)
+            area_m2 = planar_area_m2(coords, ref_lat)
+            if area_m2 < main_area_m2:
+                continue
+        
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "id": f"way/{el['id']}",
+                        "name": name,
+                        "source": source_tag,
+                        "kind": "resevoir",
+                        "areaHa": round(area_m2 / 10000, 2),
+                    },
+                    "geometry": {"type": "Polygon", "coordinates": [coords]},
+                }
+            )
+            
+        elif el["type"] == "node":
+            features.append(
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "id": f"node/{el['id']}",
+                        "name": name,
+                        "source": source_tag,
+                        "kind": "dam_point",
+                    },
+                    "geometry": {"type": "Point", "coordinates": [el["lon"], el["lat"]]},
+                }
+            )
+        
+    return {"type": "FeatureCollection", "features": features}
+
 
             
