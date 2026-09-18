@@ -69,5 +69,18 @@ def planar_area_m2(coords: list[tuple[float, float]], ref_lat: float) -> float:
         total += x1 * y2 - x2 * y1
     return abs(total) / 2.0
 
+def cache_key(min_lat: float, min_lng: float, max_lat: float, max_lng: float, min_area_m2: float) -> str:
+   # Round bbox so nearby/identical requests hit the same cache entry instead of each spawning a fresh Overpass call
+   payload = {
+       "min_lat": round(min_lat, 3),
+       "min_lng": round(min_lng, 3),
+       "max_lat": round(max_lat, 3),
+       "max_lng": round(max_lng, 3),
+       "min_area_m2": round(min_area_m2, 0),
+   }
+   encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
+   digest = hashlib.sha256(encoded).hexdigest()[:20]
+   return f"geo:water_bodies:{digest}"
+
 
             
