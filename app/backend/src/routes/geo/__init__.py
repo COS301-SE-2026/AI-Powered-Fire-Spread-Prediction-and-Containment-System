@@ -82,5 +82,18 @@ def cache_key(min_lat: float, min_lng: float, max_lat: float, max_lng: float, mi
    digest = hashlib.sha256(encoded).hexdigest()[:20]
    return f"geo:water_bodies:{digest}"
 
+async def query_overpass(query: str) -> dict:
+    last_error: Optional[Exception] = None
+    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as http_client:
+        for endpoint in OVERPASS_ENDPOINTS:
+            try:
+                resp = await http_client.post(endpoint, data={"data": query})
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as exc:
+                last_error = exc
+                continue
+    raise HTTPException(status_code=502, details=f"Overpass query failed: {last_error}")
+
 
             
