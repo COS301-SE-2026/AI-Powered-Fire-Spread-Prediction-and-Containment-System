@@ -83,3 +83,23 @@ class TestCacheKey:
         key_from_ints = cache_key(-26, 28, -25, 29, 2000)
         key_from_floats = cache_key(-26.0, 28.0, -25.0, 29.0, 2000.0)
         assert key_from_ints == key_from_floats
+        
+# Test build_query
+class TestBuildQuery:
+    def test_bbox_is_included(self):
+        query = build_query(-26.0, 28.0, -25.9, 28.1)
+        assert "-26.0,28.0,-25.9,28.1" in query
+        
+    def test_includes_reservoir_pond_basin_filter(self):
+        query = build_query(-26.0, 28.0, -25.9, 28.1)
+        assert 'natural"="water"' in query
+        assert "reservoir|pond|basin" in query
+        
+    def test_includes_landuse_reservoir_filter(self):
+        query = build_query(-26.0, 28.0, -25.9, 28.1)
+        assert 'landuse"="reservoir"' in query
+        
+    def test_includes_dam_way_and_node_filters(self):
+        query = build_query(-26.0, 28.0, -25.9, 28.1)
+        assert 'way["waterway"="dam"]' in query
+        assert 'node["waterway"="dam"]' in query
