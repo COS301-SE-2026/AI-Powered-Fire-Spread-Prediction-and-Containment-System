@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import area from '@turf/area';
 import union from '@turf/union';
-import { featureCollection as turfFeatureCollection } from '@turf/helpers';
+import flatten from '@turf/flatten';
+import { multiPolygon, polygon, featureCollection as turfFeatureCollection } from '@turf/helpers';
 import type { MapRef } from 'react-map-gl/mapbox';
 import type {
     Feature,
@@ -91,29 +92,43 @@ export function useWaterBodies(
 
         }
 
-        
+        const polygonFragments = waterFeatures.filter(
+            (f): f is Feature<Polygon | MultiPolygon> =>
+                !!f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+        );
 
         const seenWater = new Map<string, WaterBody>();
-        for (const f of waterFeatures) {
-            if (!f.geometry || (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon')){
-                continue;
-            }
-            const a = area(f as Feature<Polygon | MultiPolygon>);
-            if (a < minAreaM2) continue;
 
-            const name = (f.properties?.name as string | undefined) ?? undefined;
-            const key = `${name ?? 'unnamed'}-${Math.round(a / 5000)}`;
-            const existing = seenWater.get(key);
-            if (!existing || a > existing.areaM2) {
-                seenWater.set(key, {
-                    id: key,
-                    name,
-                    areaM2: a,
-                    areaHa: a / 1000,
-                    geometry: f.geometry as Polygon | MultiPolygon,
+        if (polygonFragments.length > 0) {
+            let mergedResult: Feature<Polygon | MultiPolygon> | FeatureCollection<Polygon | MultiPolygon> | null = null;
+            try {
+                mergedResult = union(turfFeatureCollection(polygonFragments)) as Feature<Polygon | MultiPolygon> | null;
+            } catch {
+                mergedResult = null;
+            }
+
+            if (mergedResult) {
+                const parts = flatten(mergedResult as Feature<Polygon | MultiPolygon>);
+                parts.features.forEach((part, idx) => {
+                    const a = area(part);
+                    if (a < minAreaM2) return;
+
+                    const name = polygonFragments.find((f) => f.properties?.name)?.properties?.name as 
+                        | string
+                        | undefined;
+                    
+                    const key = `merged-${idx}-${Math.round(a)}`;
+                    seenWater.set(key, {
+                        id: key,
+                        name,
+                        areaM2: a,
+                        areaHa: a / 1000,
+                        geometry: part.geometry as Polygon | MultiPolygon,
+                    });
                 });
             }
         }
+        
 
         // Rivers
         let waterwayFeatures: Array<Feature<Geometry>> = [];
