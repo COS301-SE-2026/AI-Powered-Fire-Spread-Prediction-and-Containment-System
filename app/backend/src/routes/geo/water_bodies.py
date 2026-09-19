@@ -56,12 +56,12 @@ def planar_area_m2(coords: list[tuple[float, float]], ref_lat: float) -> float:
         return 0.0
 
     meters_per_deg_lat = 111_320.0
-    meters_pre_deg_lng = 11_320.0 * math.cos(math.radians(ref_lat))
+    meters_per_deg_lng = 111_320.0 * math.cos(math.radians(ref_lat))
 
-    projected = [(lng * meters_pre_deg_lng, lat * meters_per_deg_lat) for lng, lat in coords]
+    projected = [(lng * meters_per_deg_lng, lat * meters_per_deg_lat) for lng, lat in coords]
     
     # Shoelace formula
-    toatl = 0.0
+    total = 0.0
     n = len(projected)
     for i in range(n):
         x1, y1 = projected[i]
@@ -72,11 +72,11 @@ def planar_area_m2(coords: list[tuple[float, float]], ref_lat: float) -> float:
 def cache_key(min_lat: float, min_lng: float, max_lat: float, max_lng: float, min_area_m2: float) -> str:
    # Round bbox so nearby/identical requests hit the same cache entry instead of each spawning a fresh Overpass call
    payload = {
-       "min_lat": round(min_lat, 3),
-       "min_lng": round(min_lng, 3),
-       "max_lat": round(max_lat, 3),
-       "max_lng": round(max_lng, 3),
-       "min_area_m2": round(min_area_m2, 0),
+       "min_lat": round(float(min_lat), 3),
+       "min_lng": round(float(min_lng), 3),
+       "max_lat": round(float(max_lat), 3),
+       "max_lng": round(float(max_lng), 3),
+       "min_area_m2": round(float(min_area_m2), 0),
    }
    encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
    digest = hashlib.sha256(encoded).hexdigest()[:20]
