@@ -51,7 +51,7 @@ async def verify_worker_token(token: str) -> str:
         )
 
 
-@router.post("/kets", status_code=status.HTTP_201_CREATED)
+@router.post("/keys", status_code=status.HTTP_201_CREATED)
 def generate_worker_enrollment_key(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
