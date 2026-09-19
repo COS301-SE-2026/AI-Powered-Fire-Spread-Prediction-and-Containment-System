@@ -15,7 +15,7 @@ interface CapacityProps {
     readonly onChange: (value: number) => void;
 }
 
-export function Capacity({ value, unit, min, max, step=1, label='Capacity', helperText, error = '', onChange, }: CapacityProps){
+export function Capacity({ value, unit, min, max, step=1, label='Capacity', helperText = '', error = '', onChange, }: CapacityProps){
     const tickCount = 5;
     const ticks: number[] = [];
     for (let i = 0; i < tickCount; i++) {
@@ -37,20 +37,18 @@ export function Capacity({ value, unit, min, max, step=1, label='Capacity', help
             <div className='flex items-baseline justify-between mb-2'>
                 <h4>{label}</h4>
                 <label className='flex items-center gap-2'>
-                    <input type='number' inputMode='numeric' min={min} max={max} step={step} value={draft ?? value} onChange={(e) => onChange(clamp(Number(e.target.value)))} onBlur={commitDraft} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} aria-label={`${label} in ${unit}`} className='input input-bordered bg-surface-inpu t border-carbon-stroke input-xs w-24 text-left text-primary font-semibold focus:outline-primary text-lg'/>
+                    <input type='number' inputMode='numeric' min={min} max={max} step={step} value={draft ?? value} onChange={(e) => setDraft(e.target.value)} onBlur={commitDraft} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} aria-label={`${label} in ${unit}`} className='input input-bordered bg-surface-input border-carbon-stroke input-xs w-24 text-left text-primary font-semibold focus:outline-primary text-lg'/>
                         <span className='text-primary font-bold text-lg'>{unit}</span>
                 </label>
             </div>
             <input type='range' min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className='range range-primary range-xs w-full' />
 
             <div className="flex w-full justify-between px-1 mt-1">
-                {ticks.map((tick) => {
-                    return (
+                {ticks.map((tick) => (
                         <span key={tick} className="text-[10px] text-text-muted">
                             {Math.round(tick).toLocaleString()}
                         </span>
-                    );
-                })}
+                    ))}
             </div>
 
             {helperText && !error && (

@@ -18,7 +18,7 @@ interface DropdownProps<T> {
     readonly error?: string;
 }
 
-export function Dropdown<T extends string>({ id, value, options, onChange, placeholder, error }: DropdownProps<T>) {
+export function Dropdown<T extends string>({ id, value, options, onChange, placeholder = '', error = '', }: DropdownProps<T>) {
     const { open, setOpen, ref: containerRef } = useDropdown<HTMLDivElement>();
     const selected = options.find((opt) => opt.value === value);
 

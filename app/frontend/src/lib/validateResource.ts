@@ -9,18 +9,18 @@ export type ResourceFormErrors = Partial<Record<'location' | 'otherResource' | '
 export function validateResourceForm(form: ResourceFormValues): ResourceFormErrors {
     const errors: ResourceFormErrors = {};
 
-    //location validation
+    // location validation
     const hasPin = form.externalPin !== null && (form.externalPin.lat !== 0 || form.externalPin.lng !== 0);
     if (!hasPin){
         errors.location = 'Pin a location on the map or search for an address.';
     }
 
-    //resource type validation
+    // resource type validation
     if (form.resource === 'other' && form.otherResource.trim() === '') {
         errors.otherResource = 'Tell us what type of resource this is.';
     }
 
-    //name validation
+    // name validation
     if (form.name.trim() === '') {
         errors.name = 'Enter a name for this resource.';
     } else if (/^\d+$/.test(form.name.trim())) {
@@ -30,7 +30,7 @@ export function validateResourceForm(form: ResourceFormValues): ResourceFormErro
         errors.name = 'Name must be at least 3 characters long.';
     }
 
-    //contact number validation
+    // contact number validation
     const digits = form.contact.replaceAll(/\D/g, '');
     const isLocal = digits.length === 10 && digits.startsWith('0');
     const isIntl = digits.length === 11 && digits.startsWith('27');
@@ -42,7 +42,7 @@ export function validateResourceForm(form: ResourceFormValues): ResourceFormErro
         errors.contact = 'This phone number is invalid.';
     }
 
-    //capacity validation
+    // capacity validation
     if (isNaN(form.capacity) || form.capacity <= 0) {
         errors.capacity = 'Capacity must be a positive number.';
     }

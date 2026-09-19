@@ -24,7 +24,7 @@ interface ResourceDropdownProps{
     readonly error?: string;
 }
 
-export function ResourceDropdown({ value, other, otherCapacity, onChange, onChangeOther, onChangeOtherCapacity, error }: ResourceDropdownProps) {
+export function ResourceDropdown({ value, other, otherCapacity, onChange, onChangeOther, onChangeOtherCapacity, error = ''}: ResourceDropdownProps) {
     return (
         <>
             <Dropdown id="resource-type" value={value} options={RESOURCE_TYPES} onChange={onChange} error={error} />

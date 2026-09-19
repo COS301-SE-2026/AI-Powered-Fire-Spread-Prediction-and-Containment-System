@@ -7,7 +7,7 @@ import { LOCATION_PLACEHOLDER } from '../reportfire/locationConstants';
 import { PageHeader } from '../layout/pageHeader';
 import { ResourceDropdown } from './ResourceDropdown';
 import type { Resource } from '../../types/Resource';
-import { Info } from '../resources/Info';
+import { Info } from "./Info";
 import { Capacity } from './Capacity';
 import { LocationField } from '../reportfire/LocationField';
 import { Availability } from './Availability';
@@ -50,22 +50,6 @@ const initialFormState: FormStateProps = {
   availableFrom: '',
   availableUntil: '',
 };
-
-type FieldErrorProps = Readonly<{
-  id: string;
-  message?: string;
-}>;
-
-function FieldError({ id, message }: FieldErrorProps) {
-  if (!message) {
-    return null;
-  }
-  return (
-    <p id={id} role="alert" className="text-error text-xs mt-1 px-1">
-      {message}
-    </p>
-  );
-}
 
 interface SetLocationAction {
   type: 'SET_LOCATION';
@@ -112,7 +96,7 @@ interface ResetAfterSubmitAction {
   type: 'RESET_AFTER_SUBMIT';
 }
 
-type FormAction = SetLocationAction | SetResourceAction | SetOtherResourceAction  | SetOtherCapacityAction | SetNameAction | SetContactAction | SetCapacityAction | SetAvailabilityAction | ResetAfterSubmitAction; //| SetBoundarySizeAction ;
+type FormAction = SetLocationAction | SetResourceAction | SetOtherResourceAction  | SetOtherCapacityAction | SetNameAction | SetContactAction | SetCapacityAction | SetAvailabilityAction | ResetAfterSubmitAction; // | SetBoundarySizeAction ;
 
 function formReducer(state: FormStateProps, action: FormAction): FormStateProps {
   switch (action.type) {
@@ -160,7 +144,7 @@ function getCapacityConfig(resource: Resource, otherCapacity: string): CapacityC
   return { unit: 'L', min: 0, max: 150000, label: 'Water Capacity', helperText: 'Used to calculate total available water capacity',};
 }
 
-export default function RegisterResource({ showHeaderIcons = true }: RegisterResourceProps) {
+export default function RegisterResourcePage({ showHeaderIcons = true }: RegisterResourceProps) {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
   const capacityConfig = getCapacityConfig(form.resource, form.otherCapacity);
   const router = useRouter();
@@ -232,7 +216,7 @@ export default function RegisterResource({ showHeaderIcons = true }: RegisterRes
     if (created){
       dispatch({ type: 'RESET_AFTER_SUBMIT' });
       setShowErrors(false);
-      //router.push('/resources');//change to real route
+      // router.push('/resources');//change to real route
     }
   }
 
