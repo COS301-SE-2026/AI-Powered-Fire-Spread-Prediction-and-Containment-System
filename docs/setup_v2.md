@@ -141,6 +141,7 @@ yarn test
 yarn lint
 yarn shell
 yarn clean
+yarn test:unit  # runs only the unit tests folder
 ```
 
 ### Frontend
