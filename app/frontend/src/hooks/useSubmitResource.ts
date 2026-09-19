@@ -1,24 +1,22 @@
 import { useState } from 'react';
-import { apiCall } from '../lib/api';
+//import { apiCall } from '../lib/api';
 import { mockResources } from '../mockData/Resources';
-import type { ResourceTable, ResourceInput } from '../types/Resource';
+import type { Capacity, ResourceTable } from '../types/Resource';
+import { isResourceFormValid } from '../lib/validateResource';
+import type { ResourceFormValues } from '../lib/validateResource';
 
-export type ResourceFormValues = Omit<ResourceInput, 'externalPin' | 'fireRef'> & {
-  externalPin: { lat: number; lng: number } | null;
-};
+function todayLocalISO(): string {
+    return new Date().toLocaleDateString('en-CA');
+}
 
-export function isResourceFormValid(form: ResourceFormValues): boolean {
-  const hasPin =
-    form.externalPin !== null &&
-    (form.externalPin.lat !== 0 || form.externalPin.lng !== 0);
-
-  return (
-    hasPin &&
-    form.name.trim() !== '' &&
-    form.contact.trim() !== '' &&
-    form.capacity > 0 &&
-    (form.resource !== 'other' || form.otherResource.trim() !== '')
-  );
+function getCapacityUnit(form: ResourceFormValues): Capacity {
+    if (form.resource === 'other') {
+        return 'other';
+    }
+    if (form.resource === 'crew') {
+        return 'members';
+    }
+    return 'liters';
 }
 
 export function useSubmitResource(){
@@ -32,14 +30,20 @@ export function useSubmitResource(){
         setError(null);
 
         try {
-            const isOther = form.resource === 'other';
+            let otherResource = '';
+            let otherCapacity = '';
+            if (form.resource === 'other') {
+                otherResource = form.otherResource.trim();
+                otherCapacity = form.otherCapacity.trim();
+            }
+
             const body: Omit<ResourceTable, 'id' | 'status'> = {
                 resource: form.resource,
-                otherResource: isOther ? form.otherResource.trim() : '',
-                otherCapacity: isOther ? form.otherCapacity.trim() : '',
+                otherResource,
+                otherCapacity,
                 capacity: form.capacity,
-                capacityUnit: isOther ? 'other' : form.resource === 'crew' ? 'members' : 'liters',
-                availableFrom: form.availableFrom,
+                capacityUnit: getCapacityUnit(form),
+                availableFrom: form.availableFrom || todayLocalISO(),
                 availableUntil: form.availableUntil,
                 location: form.location,
                 externalPin: form.externalPin,
@@ -53,7 +57,7 @@ export function useSubmitResource(){
             return created;
 
             // ...and uncomment this one
-            // return await apiCall('/api/users/resources', 'POST', input);
+            // return await apiCall('/api/users/resources', 'POST', body);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Failed to register resource. Please try again.');
             return null;
