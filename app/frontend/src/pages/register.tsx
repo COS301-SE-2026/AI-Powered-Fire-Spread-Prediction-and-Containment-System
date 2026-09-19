@@ -140,8 +140,19 @@ export default function Register() {
       } else {
         setApiError('Unexpected response from server');
       }
-    } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+    } catch (err: any) {
+      const detail = err?.detail || err?.response?.data?.detail;
+      let msg = 'Registration failed try again.'
+
+      if(Array.isArray(detail) && detail[0]?.msg) {
+        msg = detail[0].msg.replace(/^Value error,\s*/, '');
+      } else if(typeof detail === 'string'){
+        msg = detail;
+      }else if(err instanceof Error && err.message !== '[object Object]'){
+        msg = err.message.replace(/^Value error,\s*/, '');
+      }
+
+      setApiError(msg);
     } finally {
       setIsLoading(false);
     }
