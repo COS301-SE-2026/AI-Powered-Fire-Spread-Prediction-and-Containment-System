@@ -39,8 +39,8 @@ def build_query(min_lat: float, min_lng: float, max_lat: float, max_lng: float) 
     return f"""
     [out:json][timeout:{REQUEST_TIMEOUT_SECONDS}];
     (
-        way["natural"="water"]["water"~"^(resevoir|pond|basin)$"]({bbox});
-        way["landuse"="resevoir"]({bbox});
+        way["natural"="water"]["water"~"^(reservoir|pond|basin)$"]({bbox});
+        way["landuse"="reservoir"]({bbox});
         way["waterway"="dam"]({bbox});
         node["waterway"="dam"]({bbox});
     );
@@ -134,7 +134,7 @@ def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
                         "id": f"way/{el['id']}",
                         "name": name,
                         "source": source_tag,
-                        "kind": "resevoir",
+                        "kind": "reservoir",
                         "areaHa": round(area_m2 / 10000, 2),
                     },
                     "geometry": {"type": "Polygon", "coordinates": [coords]},
@@ -166,7 +166,7 @@ async def get_water_bodies(
     min_area_m2: float = Query(2000, ge=0, description="Minimum polygon area to include (m^2)"),
 ):
     """
-    Returns dams, resevoirs and ponds from OpenStreetMap within a bounding box as a GeoJSON FeatureCollection.
+    Returns dams, reservoirs and ponds from OpenStreetMap within a bounding box as a GeoJSON FeatureCollection.
     Intended to run alongside Mapbox's own water layer, which this just fills the gaps
     """
     if max_lat <= min_lat or max_lng <= min_lng:
