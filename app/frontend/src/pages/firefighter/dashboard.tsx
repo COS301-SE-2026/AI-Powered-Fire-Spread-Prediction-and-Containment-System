@@ -18,6 +18,7 @@ import { useMapLink } from '../../hooks/useMapLink';
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
+  const [showWater, setShowWater] = useState(true);
   const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
@@ -71,13 +72,31 @@ export default function FirefighterDashboard() {
                 <span className="font-bold text-sm md:text-m tracking-wide text-text-primary/80">
                   LIVE FIRE MAP
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setClearDrawings((c) => c + 1)}
-                  className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
-                >
+                <div className='flex items-center gap-4'>
+                  <label className='flex items-center gap-2 cursor-pointer select-none'>
+                    <span className='text-sm font-medium text-text-muted'>
+                      Show Water
+                    </span>
+                    <button
+                      type='button'
+                      role='switch'
+                      aria-checked={showWater}
+                      onClick={() => setShowWater((w) => !w)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${showWater ? 'bg-ignite' : 'bg-carbon-stroke'}`}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform ${showWater ? 'translate-x-4' : 'translate-x-1'}`} />
+                    </button>
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => setClearDrawings((c) => c + 1)}
+                    className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
+                  >
                   Clear Lines
                 </button>
+                </div>
+                
               </div>
               <div className="flex-1 w-full h-full pt-12 md:pt-13">
                 <FireMap
@@ -91,6 +110,7 @@ export default function FirefighterDashboard() {
                   onSelectFire={handleSelectFire}
                   onDeselect={clearSelect}
                   selectedFireId={fireLocation}
+                  showWater={showWater}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />

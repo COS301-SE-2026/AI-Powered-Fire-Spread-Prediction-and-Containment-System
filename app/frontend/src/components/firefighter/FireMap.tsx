@@ -39,6 +39,7 @@ interface MapProps{
     onSelectFire?: (ref: string) => void;
     onDeselect?: () => void;
     showKey?: boolean;
+    showWater?: boolean;
 }
 
 function wktCoords(wkt: string): number[][]{
@@ -46,7 +47,7 @@ function wktCoords(wkt: string): number[][]{
   return inner.split(',').map(p => p.trim().split(/\s+/).map(Number));
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined}: MapProps) {
+export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined, showWater = true}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -429,7 +430,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       )}
 
       {/* Water bodies - dams, lakes, resevoir */}
-      {combinedWaterFeatures.features.length > 0 && (
+      {showWater && combinedWaterFeatures.features.length > 0 && (
         <Source id="large-water-bodies" type="geojson" data={combinedWaterFeatures}>
           <Layer id="water-highlight-fill" type="fill"
             paint={{ 'fill-color': '#38bdf8', 'fill-opacity': 0.35 }} />
@@ -439,7 +440,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
       )}
 
       {/* Rivers */}
-      {riverFeatureCollection.features.length > 0 && (
+      {showWater && riverFeatureCollection.features.length > 0 && (
         <Source id="rivers-highlight" type="geojson" data={riverFeatureCollection}>
           <Layer id="river-highlight-glow" type="line"
             paint={{ 'line-color': '#38bdf8', 'line-width': 6, 'line-opacity': 0.4, 'line-blur': 2 }} />
