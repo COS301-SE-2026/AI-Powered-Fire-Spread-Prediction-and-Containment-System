@@ -103,3 +103,90 @@ class TestBuildQuery:
         query = build_query(-26.0, 28.0, -25.9, 28.1)
         assert 'way["waterway"="dam"]' in query
         assert 'node["waterway"="dam"]' in query
+        
+# Test elements_to_geojson
+def closed_way(area_side_deg=0.01, lat0=-25.70, lon0=28.20, **tags):
+    """A closed way roughly area_side_deg square centered near lat0/lon0"""
+    return {
+        "type": "way",
+        "id": 111,
+        "tags": tags,
+        "geometry": [
+            {"lat": lat0, "lon": lon0},
+            {"lat": lat0, "lon": lon0 + area_side_deg},
+            {"lat": lat0 + area_side_deg, "lon": lon0 + area_side_deg},
+            {"lat": lat0 + area_side_deg, "lon": lon0},
+            {"lat": lat0, "lon": lon0},
+        ],
+    }
+    
+class TestElementsToGeojson:
+    def test_large_reservoir_way_is_included(self):
+        el = closed_way(area_side_deg=0.01, name="Klein Dam", water="reservoir")
+        result = elements_to_geojson([el], min_area_m2=2000)
+        
+        assert len(result["features"]) == 1
+        feature = result["features"][0]
+        assert feature["geometry"]["type"] == "Polygon"
+        assert feature["properties"]["name"] == "Klein Dam"
+        assert feature["properties"]["source"] == "reservoir"
+        assert feature["properties"]["kind"] == "reservoir"
+        assert feature["properties"]["areaHa"] > 0
+        
+    def test_small_pond_below_threshold_is_excluded(self):
+        # ~0.0001 deg square is roughly 11mx11m (well under 2000m^2 threshold)
+        el = closed_way(area_side_deg=0.0001, name="Tiny puddle", water="pond")
+        result = elements_to_geojson([el], min_area_m2=2000)
+        assert result["features"] == []
+        
+    def test_open_way_becomes_dam_wall_linestring(self):
+        el = {
+            "type": "way",
+            "id": 222,
+            "tags": {"waterway": "dam", "name": "Main Wall"},
+            "geometry": [
+                {"lat": -25.70, "lon": 28.20},
+                {"lat": -25.701, "lon": 28.201},
+            ],
+        }
+        result = elements_to_geojson([el], min_area_m2=2000)
+        
+        assert len(result["features"]) == 1
+        feature = result["features"][0]
+        assert feature["geometry"]["type"] == "LineString"
+        assert feature["properties"]["kind"] == "dam_wall"
+        assert feature["properties"]["source"] == "dam"
+        assert feature["properties"]["name"] == "Main Wall"
+        
+    def test_node_becomes_point_feature(self):
+        el = {
+            "type": "node",
+            "id": 333,
+            "lat": -25.70,
+            "lon": 28.20,
+            "tags": {"waterway": "dam", "name": "Wall Marker"},
+        }
+        result = elements_to_geojson([el], min_area_m2=2000)
+        
+        assert len(result["features"]) == 1
+        feature = result["features"][0]
+        assert feature["geometry"] == {"type": "Point", "coordinates": [28.20, -25.70]}
+        assert feature["properties"]["kind"] == "dam_point"
+        
+    def test_way_missing_geometry_is_skipped(self):
+        el = {"type": "way", "id": 444, "tags": {"water": "reservoir"}}
+        result = elements_to_geojson([el], min_area_m2=0)
+        assert result["features"] == []
+        
+    def test_unnamed_feature_has_null_name(self):
+        el = closed_way(area_side_deg=0.01, water="reservoir")
+        result = elements_to_geojson([el], min_area_m2=2000)
+        assert result["features"][0]["properties"]["name"] is None
+        
+    def test_multiple_elements_produce_multiple_features(self):
+        elements = [
+            closed_way(area_side_deg=0.01, lon0=28.20, name="Dam A", water="reservoir"),
+            closed_way(area_side_deg=0.01, lon0=29.00, name="Dam B", water="reservoir"),
+        ]
+        result = elements_to_geojson(elements, min_area_m2=2000)
+        assert len(result["features"]) == 2

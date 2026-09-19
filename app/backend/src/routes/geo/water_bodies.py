@@ -95,7 +95,7 @@ async def query_overpass(query: str) -> dict:
                 continue
     raise HTTPException(status_code=502, details=f"Overpass query failed: {last_error}")
 
-def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
+def elements_to_geojson(elements: list[dict], min_area_m2: float) -> dict:
     features = []
     
     for el in elements:
@@ -124,7 +124,7 @@ def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
             
             ref_lat = sum(lat for _, lat in coords) / len(coords)
             area_m2 = planar_area_m2(coords, ref_lat)
-            if area_m2 < main_area_m2:
+            if area_m2 < min_area_m2:
                 continue
         
             features.append(
