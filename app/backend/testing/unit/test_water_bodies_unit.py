@@ -52,3 +52,34 @@ class TestPlanarAreaM2:
         area_high_lat = planar_area_m2(coords, ref_lat=60.0)
         assert area_high_lat < area_equator
     
+# Test cache_key
+class TestCacheKey:
+    def test_deterministic_for_same_inputs(self):
+        key_a = cache_key(-26.0, 28.0, -25.9, 28.1, 2000)
+        key_b = cache_key(-26.0, 28.0, -25.9, 28.1, 2000)
+        assert key_a == key_b
+        
+    def test_tiny_bbox_jitter_within_rounding_hits_same_key(self):
+        # rounded to 3 decimal places so sub-mm diff shouldn't change key
+        key_a = cache_key(-26.00001, 28.00001, -25.9, 28.1, 2000)
+        key_b = cache_key(-26.00002, 28.00002, -25.9, 28.1, 2000)
+        assert key_a == key_b
+        
+    def test_different_bbox_produces_different_key(self):
+        key_a = cache_key(-26.0, 28.0, -25.9, 28.1, 2000)
+        key_b = cache_key(-24.0, 30.0, -23.9, 30.1, 2000)
+        assert key_a != key_b
+        
+    def test_different_min_area_produces_different_key(self):
+        key_a = cache_key(-26.0, 28.0, -25.9, 28.1, 2000)
+        key_b = cache_key(-26.0, 28.0, -25.9, 28.1, 5000)
+        assert key_a != key_b
+        
+    def test_key_is_namespaced(self):
+        key = cache_key(-26.0, 28.0, -25.9, 28.1, 2000)
+        assert key.startswith("geo:water_bodies")
+        
+    def test_int_and_float_args_produce_the_same_key(self):
+        key_from_ints = cache_key(-26, 28, -25, 29, 2000)
+        key_from_floats = cache_key(-26.0, 28.0, -25.0, 29.0, 2000.0)
+        assert key_from_ints == key_from_floats
