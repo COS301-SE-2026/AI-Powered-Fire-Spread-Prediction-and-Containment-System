@@ -15,7 +15,7 @@ export function FirefighterSideBar({
     <SideBar
       items={<FirefighterItems />}
       hideLogout={hideLogout}
-      hideLoginRegister={!hideLoginRegister}
+      hideLoginRegister={hideLoginRegister}
     >
       {children}
     </SideBar>

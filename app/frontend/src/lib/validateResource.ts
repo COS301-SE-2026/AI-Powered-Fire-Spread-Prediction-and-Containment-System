@@ -37,7 +37,7 @@ export function validateResourceForm(form: ResourceFormValues): ResourceFormErro
     const isRepeated = /^(\d)\1+$/.test(digits);
 
     if (!isLocal && !isIntl) {
-        errors.contact = 'Enter a valid 10-digit number (e.g. 082 123 4567).';
+        errors.contact = 'Enter a valid 10-digit number.';
     } else if (isRepeated) {
         errors.contact = 'This phone number is invalid.';
     }

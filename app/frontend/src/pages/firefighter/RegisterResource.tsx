@@ -3,7 +3,7 @@ import RegisterResource from '../../components/resources/RegisterResourcePage';
 
 export default function RegisteredReportFire() {
   return (
-    <FirefighterSideBar>
+    <FirefighterSideBar hideLoginRegister>
       <RegisterResource />
     </FirefighterSideBar>
   );
