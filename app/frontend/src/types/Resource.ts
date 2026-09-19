@@ -1,28 +1,29 @@
 export type Resource = 'water_tank' | 'borehole' | 'trailer' | 'dam' | 'aircraft' | 'crew' | 'other';
 
-export type Capacity = 'liters' | 'members';
+export type Capacity = 'liters' | 'members' | 'other';
 
 export type Status = 'available' | 'dispatched' | 'unavailable';
 
 export interface ResourceTable {
     id: string;
     resource: Resource;
-    other: string | null;
-    capacity: Capacity;
-    capacity_value: number;
-    capacity_other: string | null;
+    otherResource: string;
+    capacity: number;
+    capacityUnit: Capacity;
+    otherCapacity: string;
     status: Status;
-    available_from: string;
-    available_until: string | null;
-    lat: number;
-    lng: number;
-    location_text: string;
-    owner_name: string;
-    owner_contact: string;
-    fire_ref: string | null;
+    availableFrom: string;
+    availableUntil: string | null;
+    location: string;
+    externalPin: { lat: number; lng: number };
+    name: string;
+    contact: string;
+    fireRef: string | null;
 }
 
 export interface ResourceList {
     data: ResourceTable[];
     total: number;
 }
+
+export type ResourceInput = Omit<ResourceTable, 'id' | 'status' | 'capacityUnit'>
