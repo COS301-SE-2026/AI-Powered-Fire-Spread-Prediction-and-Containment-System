@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import area from '@turf/area';
+import union from '@turf/union';
+import { featureCollection as turfFeatureCollection } from '@turf/helpers';
 import type { MapRef } from 'react-map-gl/mapbox';
 import type {
     Feature,
@@ -36,6 +38,33 @@ interface UseWaterBodiesOptions {
 const EMPTY_POLYGONS: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const EMPTY_LINES: FeatureCollection = { type: 'FeatureCollection', features: []};
 
+function mergeFragments(
+    fragments: Array<Feature<Polygon | MultiPolygon>>
+): Polygon | MultiPolygon | null {
+    if (fragments.length === 0) return null;
+    if (fragments.length === 1) return fragments[0].geometry;
+
+    let merged: Feature<Polygon | MultiPolygon> | null = null;
+    for (const frag of fragments) {
+        if (!merged) {
+            merged = frag;
+            continue;
+        }
+        try {
+            const result = union(turfFeatureCollection([merged, frag]));
+            if (result && (result.geometry.type === 'Polygon' || result.geometry.type === 'MultiPolygon')) {
+                merged = result as Feature<Polygon | MultiPolygon>;
+            }
+            // If union fails to produce a polygon result, just keep largest fragment 
+        } catch {
+            // Nono-overlapping/topologically invalid frags, hence skip merge
+        }
+
+    }
+
+    return merged?.geometry ?? null;
+}
+
 export function useWaterBodies(
     mapRef: React.RefObject<MapRef | null>,
     {
@@ -61,6 +90,8 @@ export function useWaterBodies(
         } catch {
 
         }
+
+        
 
         const seenWater = new Map<string, WaterBody>();
         for (const f of waterFeatures) {
