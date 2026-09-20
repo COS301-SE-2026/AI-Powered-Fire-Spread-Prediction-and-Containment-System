@@ -59,7 +59,7 @@ export function useWaterBodies(
                 sourceLayer: 'water',
             }) as Array<Feature<Geometry>>;
         } catch {
-
+            // ignore
         }
 
         const seenWater = new Map<string, WaterBody>();
