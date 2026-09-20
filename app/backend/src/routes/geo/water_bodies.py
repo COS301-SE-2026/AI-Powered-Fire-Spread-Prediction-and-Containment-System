@@ -93,7 +93,7 @@ async def query_overpass(query: str) -> dict:
             except Exception as exc:
                 last_error = exc
                 continue
-    raise HTTPException(status_code=502, details=f"Overpass query failed: {last_error}")
+    raise HTTPException(status_code=502, detail=f"Overpass query failed: {last_error}")
 
 def elements_to_geojson(elements: list[dict], min_area_m2: float) -> dict:
     features = []
