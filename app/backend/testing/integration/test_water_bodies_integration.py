@@ -94,3 +94,65 @@ class TestQueryOverpassRealHttpClient:
                 asyncio.run(query_overpass("fake query"))
                 
         assert exc_info.value.status_code == 502
+        
+# Test real Valkey/Redis cache round trip
+@pytest.fixture
+def require_valkey():
+    try:
+        real_cache_client.ping()
+    except Exception:
+        pytest.skip(
+            "Valkey/Redis not reachable at VALKEY_HOST/VALKEY_PORT -"
+            "start it locally or run against docker-compose.test.yml with valkey service added"
+        )
+        
+@pytest.fixture
+def clean_cache_key(require_valkey):
+    key = cache_key(
+        VALID_BBOX["min_lat"],
+        VALID_BBOX["min_lng"],
+        VALID_BBOX["max_lat"],
+        VALID_BBOX["max_lng"],
+        VALID_BBOX["min_area_m2"],
+    )
+    real_cache_client.delete(key)
+    yield key
+    real_cache_client.delete(key)
+    
+class TestRealCacheRoundTrip:
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    def test_second_identical_request_is_served_from_real_cache(
+        self, mock_query_overpass, client, clean_cache_key
+    ):
+        mock_query_overpass.return_value = SAMPLE_OVERPASS_RESPONSE
+        
+        first = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        second = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        
+        assert first.status_code == 200
+        assert second.status_code == 200
+        assert first.json() == second.json()
+        mock_query_overpass.assert_awaited_once()   # only first request hit Overpass
+        
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    def test_cached_value_survives_a_real_redis_round_trip(
+        self, mock_query_overpass, client, clean_cache_key
+    ):
+        mock_query_overpass.return_value = SAMPLE_OVERPASS_RESPONSE
+        
+        resp = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        assert resp.status_code == 200
+        
+        raw = real_cache_client.get(clean_cache_key)
+        assert raw is not None
+        stored = json.loads(raw)
+        assert stored == resp.json()
+        assert stored["features"][0]["properties"]["name"] == "Integration Test Dam"
+        
+    def test_cache_entry_has_the_configured_ttl(self, client, clean_cache_key):
+        with patch(f"{MODULE}.query_overpass", new_callable=AsyncMock) as mock_query_overpass:
+            mock_query_overpass.return_value = SAMPLE_OVERPASS_RESPONSE
+            client.get("/api/geo/water-bodies", params=VALID_BBOX)
+            
+        ttl = real_cache_client.ttl(clean_cache_key)
+        assert 0 < ttl <= CACHE_TTL_SECONDS
