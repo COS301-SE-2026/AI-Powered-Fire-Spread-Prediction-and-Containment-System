@@ -39,8 +39,8 @@ def build_query(min_lat: float, min_lng: float, max_lat: float, max_lng: float) 
     return f"""
     [out:json][timeout:{REQUEST_TIMEOUT_SECONDS}];
     (
-        way["natural"="water"]["water"~"^(resevoir|pond|basin)$"]({bbox});
-        way["landuse"="resevoir"]({bbox});
+        way["natural"="water"]["water"~"^(reservoir|pond|basin)$"]({bbox});
+        way["landuse"="reservoir"]({bbox});
         way["waterway"="dam"]({bbox});
         node["waterway"="dam"]({bbox});
     );
@@ -56,12 +56,12 @@ def planar_area_m2(coords: list[tuple[float, float]], ref_lat: float) -> float:
         return 0.0
 
     meters_per_deg_lat = 111_320.0
-    meters_pre_deg_lng = 11_320.0 * math.cos(math.radians(ref_lat))
+    meters_per_deg_lng = 111_320.0 * math.cos(math.radians(ref_lat))
 
-    projected = [(lng * meters_pre_deg_lng, lat * meters_per_deg_lat) for lng, lat in coords]
+    projected = [(lng * meters_per_deg_lng, lat * meters_per_deg_lat) for lng, lat in coords]
     
     # Shoelace formula
-    toatl = 0.0
+    total = 0.0
     n = len(projected)
     for i in range(n):
         x1, y1 = projected[i]
@@ -72,11 +72,11 @@ def planar_area_m2(coords: list[tuple[float, float]], ref_lat: float) -> float:
 def cache_key(min_lat: float, min_lng: float, max_lat: float, max_lng: float, min_area_m2: float) -> str:
    # Round bbox so nearby/identical requests hit the same cache entry instead of each spawning a fresh Overpass call
    payload = {
-       "min_lat": round(min_lat, 3),
-       "min_lng": round(min_lng, 3),
-       "max_lat": round(max_lat, 3),
-       "max_lng": round(max_lng, 3),
-       "min_area_m2": round(min_area_m2, 0),
+       "min_lat": round(float(min_lat), 3),
+       "min_lng": round(float(min_lng), 3),
+       "max_lat": round(float(max_lat), 3),
+       "max_lng": round(float(max_lng), 3),
+       "min_area_m2": round(float(min_area_m2), 0),
    }
    encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
    digest = hashlib.sha256(encoded).hexdigest()[:20]
@@ -93,9 +93,9 @@ async def query_overpass(query: str) -> dict:
             except Exception as exc:
                 last_error = exc
                 continue
-    raise HTTPException(status_code=502, details=f"Overpass query failed: {last_error}")
+    raise HTTPException(status_code=502, detail=f"Overpass query failed: {last_error}")
 
-def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
+def elements_to_geojson(elements: list[dict], min_area_m2: float) -> dict:
     features = []
     
     for el in elements:
@@ -124,7 +124,7 @@ def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
             
             ref_lat = sum(lat for _, lat in coords) / len(coords)
             area_m2 = planar_area_m2(coords, ref_lat)
-            if area_m2 < main_area_m2:
+            if area_m2 < min_area_m2:
                 continue
         
             features.append(
@@ -134,7 +134,7 @@ def elements_to_geojson(elements: list[dict], main_area_m2: float) -> dict:
                         "id": f"way/{el['id']}",
                         "name": name,
                         "source": source_tag,
-                        "kind": "resevoir",
+                        "kind": "reservoir",
                         "areaHa": round(area_m2 / 10000, 2),
                     },
                     "geometry": {"type": "Polygon", "coordinates": [coords]},
@@ -166,7 +166,7 @@ async def get_water_bodies(
     min_area_m2: float = Query(2000, ge=0, description="Minimum polygon area to include (m^2)"),
 ):
     """
-    Returns dams, resevoirs and ponds from OpenStreetMap within a bounding box as a GeoJSON FeatureCollection.
+    Returns dams, reservoirs and ponds from OpenStreetMap within a bounding box as a GeoJSON FeatureCollection.
     Intended to run alongside Mapbox's own water layer, which this just fills the gaps
     """
     if max_lat <= min_lat or max_lng <= min_lng:

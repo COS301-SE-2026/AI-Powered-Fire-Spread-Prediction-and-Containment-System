@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import area from '@turf/area';
+import union from '@turf/union';
+import flatten from '@turf/flatten';
+import centroid from '@turf/centroid';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
+import { multiPolygon, polygon, featureCollection as turfFeatureCollection } from '@turf/helpers';
 import type { MapRef } from 'react-map-gl/mapbox';
 import type {
     Feature,
@@ -36,6 +41,46 @@ interface UseWaterBodiesOptions {
 const EMPTY_POLYGONS: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const EMPTY_LINES: FeatureCollection = { type: 'FeatureCollection', features: []};
 
+function nameForPart(
+    fragments: Array<Feature<Polygon | MultiPolygon>>,
+    partGeometry: Polygon | MultiPolygon
+): string | undefined {
+    const partFeature: Feature<Polygon | MultiPolygon> = {
+        type: 'Feature',
+        properties: {},
+        geometry: partGeometry,
+    };
+
+    for (const frag of fragments){
+        const name = frag.properties?.name as string | undefined;
+        if (!name) continue;
+        try {
+            if (booleanPointInPolygon(centroid(frag), partFeature)) {
+                return name;
+            }
+        } catch {
+            continue;   // degenerate fragment geometry
+        }
+    }
+    return undefined;
+}
+
+function mergeFragments(
+    fragments: Array<Feature<Polygon | MultiPolygon>>
+): Array<Feature<Polygon | MultiPolygon>> {
+    if (fragments.length === 0) return null;
+    if (fragments.length === 1) return fragments;
+
+   
+    try {
+        const merged = union(turfFeatureCollection(fragments));
+        if (!merged) return fragments;  // fallback to un-merged rather than dropping everything
+        return flatten(merged as Feature<Polygon | MultiPolygon>).features;
+    } catch {
+        return fragments
+    }
+}
+
 export function useWaterBodies(
     mapRef: React.RefObject<MapRef | null>,
     {
@@ -59,31 +104,34 @@ export function useWaterBodies(
                 sourceLayer: 'water',
             }) as Array<Feature<Geometry>>;
         } catch {
-            // ignore
+            waterFeatures = [];
         }
+
+        const polygonFragments = waterFeatures.filter(
+            (f): f is Feature<Polygon | MultiPolygon> =>
+                !!f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
+        );
+
+        const mergedParts = mergeFragments(polygonFragments);
 
         const seenWater = new Map<string, WaterBody>();
-        for (const f of waterFeatures) {
-            if (!f.geometry || (f.geometry.type !== 'Polygon' && f.geometry.type !== 'MultiPolygon')){
-                continue;
-            }
-            const a = area(f as Feature<Polygon | MultiPolygon>);
-            if (a < minAreaM2) continue;
+        mergedParts.forEach((part, idx) => {
+            const a = area(part);
+            if (a < minAreaM2) return;
 
-            const name = (f.properties?.name as string | undefined) ?? undefined;
-            const key = `${name ?? 'unnamed'}-${Math.round(a / 5000)}`;
-            const existing = seenWater.get(key);
-            if (!existing || a > existing.areaM2) {
-                seenWater.set(key, {
-                    id: key,
-                    name,
-                    areaM2: a,
-                    areaHa: a / 1000,
-                    geometry: f.geometry as Polygon | MultiPolygon,
-                });
-            }
-        }
+            const geometry = part.geometry as Polygon | MultiPolygon;
+            const name = nameForPart(polygonFragments, geometry);
+            const key = `merged-${idx}-${Math.round(a)}`;
 
+            seenWater.set(key, {
+                id: key,
+                name,
+                areaM2: a,
+                areaHa: a / 10000,
+                geometry,
+            });
+        });
+            
         // Rivers
         let waterwayFeatures: Array<Feature<Geometry>> = [];
         try {
@@ -92,7 +140,7 @@ export function useWaterBodies(
                 filter: ['in', ['get', 'class'], ['literal', riverClasses]],
             }) as Array<Feature<Geometry>>;
         } catch {
-            // ignore
+            waterwayFeatures = [];
         }
 
         const seenRivers = new Map<string, River>();
