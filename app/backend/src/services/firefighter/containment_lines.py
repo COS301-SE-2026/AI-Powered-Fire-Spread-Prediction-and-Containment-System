@@ -134,7 +134,7 @@ async def get_suggested_containment_lines(
 
     existing_wkts = [row.line_geom for row in get_lines_for_fire(db, fire_ref)["data"]]
 
-    semaphor = asyncio.Semaphore(1)
+    semaphore = asyncio.Semaphore(1)
     prediction = await simulate_single_fire(
         fire, SUGGESTION_HORIZON_STEPS, semaphore, existing_wkts
     )

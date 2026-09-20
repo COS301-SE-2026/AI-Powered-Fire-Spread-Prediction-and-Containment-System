@@ -7,7 +7,8 @@ from app.backend.db import get_db
 from app.backend.src.schemas.containment_lines import (
     ContainmentLines,
     CreateContainmentLine,
-    ContainmentLinesList
+    ContainmentLinesList,
+    SuggestedContainmentLinesList
 )
 from app.backend.src.schemas.firefighter_dashboard import DashboardData
 from app.backend.src.schemas.fuel_conditions import FuelConditions
