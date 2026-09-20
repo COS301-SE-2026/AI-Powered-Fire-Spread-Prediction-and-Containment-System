@@ -6,8 +6,8 @@ import uuid
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 
-from db import Base
-from models.users import User
+from app.backend.db import Base
+from app.backend.src.models.users import User
 
 
 def generate_uuid() -> str:
@@ -18,7 +18,7 @@ class WorkerNode(Base):
     __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=generate_uuid)
-    user_id = Column(String, ForeignKey("user.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
 
     label = Column(String(100), nullable=False)
     gpu_name = Column(String(100), nullable=False)

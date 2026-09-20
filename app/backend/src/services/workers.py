@@ -7,9 +7,9 @@ from fastapi import HTTPException, status
 import redis
 from sqlalchemy.orm import Session
 
-from dependencies.auth import create_access_token
-from models.workers import WorkerNode
-from schemas.workers import WorkerRegisterRequest
+from app.backend.src.dependencies.auth import create_access_token
+from app.backend.src.models.workers import WorkerNode
+from app.backend.src.schemas.workers import WorkerRegisterRequest
 
 VALKEY_HOST = os.getenv("VALKEY_HOST", "localhost")
 VALKEY_PORT = int(os.getenv("VALKEY_PORT", 6379))

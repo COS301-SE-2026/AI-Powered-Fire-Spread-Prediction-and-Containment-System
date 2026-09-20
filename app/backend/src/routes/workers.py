@@ -10,12 +10,12 @@ from fastapi import (APIRouter, Depends, HTTPException, Query, WebSocket, WebSoc
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
-from db import get_db
-from dependencies.auth import get_current_user
-from models.users import User
-from models.workers import WorkerNode
-from schemas.workers import WorkerRegisterRequest, WorkerTokenResponse
-from services import workers as worker_service
+from app.backend.db import get_db
+from app.backend.src.dependencies.auth import get_current_user
+from app.backend.src.models.users import User
+from app.backend.src.models.workers import WorkerNode
+from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse
+from app.backend.src.services import workers as worker_service
 
 log = logging.getLogger("workers_route")
 
