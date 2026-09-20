@@ -13,9 +13,9 @@ from models.users import User
 def generate_uuid() -> str:
     return str(uuid.uuid4())
 
-class WorkerNodeRequest(Base):
-    __tablename__ = "worker_node_request"
-    __tablen_args__ = {"extend_existing": True}
+class WorkerNode(Base):
+    __tablename__ = "worker_nodes"
+    __table_args__ = {"extend_existing": True}
 
     id = Column(String, primary_key=True, default=generate_uuid)
     user_id = Column(String, ForeignKey("user.id"), nullable=False)
@@ -42,19 +42,3 @@ class WorkerNodeRequest(Base):
     deactivated_at = Column(DateTime(timezone=True), nullable=True)
     removed_at = Column(DateTime(timezone=True), nullable=True)
     removal_reason = Column(Text, nullable=True)
-
-    created_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        nullable=False,
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-        nullable=False,
-    )
-
-    user = relationship(User, foreign_keys=[user_id], backref="worker_nodes")
-
-
