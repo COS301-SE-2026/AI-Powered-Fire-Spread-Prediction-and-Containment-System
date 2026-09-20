@@ -18,6 +18,8 @@
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@serwist/next": "^9.5.12",
     "@turf/area": "^7.4.0",
+    "@turf/boolean-point-in-polygon": "^7.4.0",
+    "@turf/centroid": "^7.4.0",
     "@turf/circle": "^7.3.5",
     "@turf/flatten": "^7.4.0",
     "@turf/helpers": "^7.4.0",
