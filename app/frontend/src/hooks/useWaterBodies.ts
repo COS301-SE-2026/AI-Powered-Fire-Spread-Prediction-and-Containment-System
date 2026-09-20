@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import area from '@turf/area';
 import union from '@turf/union';
 import flatten from '@turf/flatten';
+import centroid from '@turf/centroid';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import { multiPolygon, polygon, featureCollection as turfFeatureCollection } from '@turf/helpers';
 import type { MapRef } from 'react-map-gl/mapbox';
 import type {
@@ -39,31 +41,44 @@ interface UseWaterBodiesOptions {
 const EMPTY_POLYGONS: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const EMPTY_LINES: FeatureCollection = { type: 'FeatureCollection', features: []};
 
+function nameForPart(
+    fragments: Array<Feature<Polygon | MultiPolygon>>,
+    partGeometry: Polygon | MultiPolygon
+): string | undefined {
+    const partFeature: Feature<Polygon | MultiPolygon> = {
+        type: 'Feature',
+        properties: {},
+        geometry: partGeometry,
+    };
+
+    for (const frag of fragments){
+        const name = frag.properties?.name as string | undefined;
+        if (!name) continue;
+        try {
+            if (booleanPointInPolygon(centroid(frag), partFeature)) {
+                return name;
+            }
+        } catch {
+            continue;   // degenerate fragment geometry
+        }
+    }
+    return undefined;
+}
+
 function mergeFragments(
     fragments: Array<Feature<Polygon | MultiPolygon>>
-): Polygon | MultiPolygon | null {
+): Array<Feature<Polygon | MultiPolygon>> {
     if (fragments.length === 0) return null;
-    if (fragments.length === 1) return fragments[0].geometry;
+    if (fragments.length === 1) return fragments;
 
-    let merged: Feature<Polygon | MultiPolygon> | null = null;
-    for (const frag of fragments) {
-        if (!merged) {
-            merged = frag;
-            continue;
-        }
-        try {
-            const result = union(turfFeatureCollection([merged, frag]));
-            if (result && (result.geometry.type === 'Polygon' || result.geometry.type === 'MultiPolygon')) {
-                merged = result as Feature<Polygon | MultiPolygon>;
-            }
-            // If union fails to produce a polygon result, just keep largest fragment 
-        } catch {
-            // Nono-overlapping/topologically invalid frags, hence skip merge
-        }
-
+   
+    try {
+        const merged = union(turfFeatureCollection(fragments));
+        if (!merged) return fragments;  // fallback to un-merged rather than dropping everything
+        return flatten(merged as Feature<Polygon | MultiPolygon>).features;
+    } catch {
+        return fragments
     }
-
-    return merged?.geometry ?? null;
 }
 
 export function useWaterBodies(
@@ -89,7 +104,7 @@ export function useWaterBodies(
                 sourceLayer: 'water',
             }) as Array<Feature<Geometry>>;
         } catch {
-
+            waterFeatures = [];
         }
 
         const polygonFragments = waterFeatures.filter(
@@ -97,39 +112,26 @@ export function useWaterBodies(
                 !!f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')
         );
 
+        const mergedParts = mergeFragments(polygonFragments);
+
         const seenWater = new Map<string, WaterBody>();
+        mergedParts.forEach((part, idx) => {
+            const a = area(part);
+            if (a < minAreaM2) return;
 
-        if (polygonFragments.length > 0) {
-            let mergedResult: Feature<Polygon | MultiPolygon> | FeatureCollection<Polygon | MultiPolygon> | null = null;
-            try {
-                mergedResult = union(turfFeatureCollection(polygonFragments)) as Feature<Polygon | MultiPolygon> | null;
-            } catch {
-                mergedResult = null;
-            }
+            const geometry = part.geometry as Polygon | MultiPolygon;
+            const name = nameForPart(polygonFragments, geometry);
+            const key = `merged-${idx}-${Math.round(a)}`;
 
-            if (mergedResult) {
-                const parts = flatten(mergedResult as Feature<Polygon | MultiPolygon>);
-                parts.features.forEach((part, idx) => {
-                    const a = area(part);
-                    if (a < minAreaM2) return;
-
-                    const name = polygonFragments.find((f) => f.properties?.name)?.properties?.name as 
-                        | string
-                        | undefined;
-                    
-                    const key = `merged-${idx}-${Math.round(a)}`;
-                    seenWater.set(key, {
-                        id: key,
-                        name,
-                        areaM2: a,
-                        areaHa: a / 1000,
-                        geometry: part.geometry as Polygon | MultiPolygon,
-                    });
-                });
-            }
-        }
-        
-
+            seenWater.set(key, {
+                id: key,
+                name,
+                areaM2: a,
+                areaHa: a / 10000,
+                geometry,
+            });
+        });
+            
         // Rivers
         let waterwayFeatures: Array<Feature<Geometry>> = [];
         try {
@@ -138,7 +140,7 @@ export function useWaterBodies(
                 filter: ['in', ['get', 'class'], ['literal', riverClasses]],
             }) as Array<Feature<Geometry>>;
         } catch {
-            // ignore
+            waterwayFeatures = [];
         }
 
         const seenRivers = new Map<string, River>();
