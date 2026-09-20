@@ -27,12 +27,12 @@ class ContainmentSuggestion:
     margin_min: float
     shielded_cell_score: float
 
-def compute_arrival_ticks(history: list[np.array]) -> np.ndarray:
+def compute_arrival_ticks(history):
     H, W = history[0].shape
-    arrival = np.full((H, W), -1, dtype = np.int32)
+    arrival = np.full((H, W), -1, dtype=np.int32)
     for t, grid in enumerate(history):
-        reached = (grid != UNBURNED) & (arrival)
-        arrival[reached] = t
+        newly_reached = (grid != UNBURNED) & (arrival == -1)
+        arrival[newly_reached] = t
     return arrival
 
 def _standoff_mask(ignition_mask : np.array, standoff_cells: int) -> np.ndarray:
@@ -48,13 +48,13 @@ def _frontier_cells(arrival: np.ndarray, stride : int)-> list[tuple[int,int]]:
     H, W = arrival.shape
     reached = arrival != -1
     never_reached = ~reached
-    neighbor_never_reached = np.zeros_like(reached)
+    neighbour_never_reached = np.zeros_like(reached)
     neighbour_never_reached[:-1, :] |= never_reached[1:, :]
     neighbour_never_reached[1:, :] |= never_reached[:-1, :]
     neighbour_never_reached[:, :-1] |= never_reached[:, 1:]
     neighbour_never_reached[:, 1:] |= never_reached[:, :-1]
 
-    frontier = reached & neighbor_never_reached
+    frontier = reached & neighbour_never_reached
     rows, cols = np.nonzero(frontier)
     return list(zip(rows[::stride].tolist(), cols[::stride].tolist()))
 
@@ -72,7 +72,7 @@ def _local_gradient_angle(arrival : np.ndarray, row: int, col: int)-> float:
     cy, cx = gy.shape[0] // 2, gy.shape[1]//2
     dy, dx = gy[cy, cx], gx[cy, cx]
 
-    if dy == 0 and dx == 0
+    if dy == 0 and dx == 0:
         return 0.0
     return math.atan2(dy, dx)
 
@@ -98,7 +98,7 @@ def _rasterize_segment(
 ) -> list[tuple[int, int]]:
     r0, c0 = p0
     r1, c1 = p1
-    n = max(int(math.hypot(r1 - r0, c1 - c0))) * 2
+    n = max(int(round(math.hypot(r1 - r0, c1 - c0))), 1) * 2
     rows = np.linspace(r0, r1, n).round().astype(int)
     cols = np.linspace(c0, c1, n).round().astype(int)
     valid = (rows >= 0) & (rows < H) & (cols >= 0) & (cols < W)
@@ -116,7 +116,7 @@ def _score_candidate(
 
     pad = lookahead_pad_cells
     r_min, r_max = max(0, rows.min() - pad), min(H, rows.max() + pad + 1)
-    c_min, c_max = max(0, cols.min() - pad), min(H, cols.max() + pad + 1)
+    c_min, c_max = max(0, cols.min() - pad), min(W, cols.max() + pad + 1)
 
     window = arrival[r_min:r_max, c_min:c_max]
     yy, xx =np.mgrid[r_min:r_max, c_min:c_max]
@@ -148,9 +148,9 @@ def suggest_containment_line(
     arrival = compute_arrival_ticks(history)
     ignition_mask = build_boundary_ignition_mask(H, W, cell_size_m, boundary_radius_m)
     standoff_cells = max(1, round(MIN_STANDOFF_M/ cell_size_m))
-    excluded = _standoff_mask(ginition_mask, standoff_cells)
+    excluded = _standoff_mask(ignition_mask, standoff_cells)
 
-    max_len_cells = MAX_LINE_LENGTH /cell_size_m
+    max_len_cells = MAX_LINE_LENGTH_M /cell_size_m
     lookahead_pad_cells = max(1, round(LOOKAHEAD_PAD_M / cell_size_m))
     candidates : list[ConatainmentSuggestion] = []
 
@@ -170,10 +170,10 @@ def suggest_containment_line(
         if length_m <= 0:
             continue
         
-        arrivals_here = [arrival[r,c] for r,c in cells if arrival[r,c] != -1]:
+        arrivals_here = [arrival[r, c] for r, c in cells if arrival[r, c] != -1]
         if not arrivals_here:
-            continue #fire does not reach this line within the horizon
-        
+            continue
+
         arrival_at_line_min = min(arrivals_here) * TICK_MINUTES
         build_time_min = length_m / BUILD_RATE_M_PER_MIN
         margin_min = arrival_at_line_min - build_time_min
