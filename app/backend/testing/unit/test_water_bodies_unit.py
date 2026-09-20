@@ -190,3 +190,113 @@ class TestElementsToGeojson:
         ]
         result = elements_to_geojson(elements, min_area_m2=2000)
         assert len(result["features"]) == 2
+        
+# Test GET /api/geo/water-bodies endpoint
+VALID_BBOX = dict(min_lat=-26.0, min_lng=28.0, max_lat=-25.9, max_lng=28.1, min_area_m2=2000)
+
+class TestGetWaterBodiesEndpoint:
+    def test_rejects_inverted_bbox(self, client):
+        params = dict(VALID_BBOX, max_lat=-26.1) #max_lat < min_lat
+        resp = client.get("/api/geo/water-bodies", params=params)
+        assert resp.status_code == 400
+        assert "max_lat/max_lng" in resp.json()["detail"]
+        
+    def test_rejects_bbox_exceeding_max_side(self, client):
+        params = dict(VALID_BBOX, max_lat=VALID_BBOX["min_lat"] + MAX_BBOX_SIDE_DEG + 0.5)
+        resp = client.get("/api/geo/water-bodies", params=params)
+        assert resp.status_code == 400
+        assert "too large" in resp.json()["detail"].lower()
+        
+    def test_rejects_out_of_range_latitude(self, client):
+        params = dict(VALID_BBOX, min_lat=-95.0)
+        resp = client.get("/api/geo/water-bodies", params=params)
+        assert resp.status_code == 422  # FastAPI query validation (ge=-90)
+        
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    @patch(f"{MODULE}.cache_client")
+    def test_cache_hit_skips_overpass(self, mock_cache, mock_query_overpass, client):
+        cached_payload = {
+            "type": "FeatureCollection",
+            "features": [{"type": "Feature", "properties": {"name": "Cached Dam"}, "geometry": None}],
+        }
+        mock_cache.get.return_value = json.dumps(cached_payload).encode("utf-8")
+        
+        resp = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        
+        assert resp.status_code == 200
+        assert resp.json() == cached_payload
+        mock_query_overpass.assert_not_called()
+        mock_cache.set.assert_not_called()
+        
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    @patch(f"{MODULE}.cache_client")
+    def test_cache_miss_queries_overpass_and_populates_cache(
+        self, mock_cache, mock_query_overpass, client
+    ):
+        mock_cache.get.return_value = None
+        mock_query_overpass.return_value = {
+            "elements": [closed_way(area_side_deg=0.01, name="Fresh Dam", water="reservoir")]
+        }
+        
+        resp = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        
+        assert resp.status_code == 200
+        body = resp.json()
+        assert len(body["features"]) == 1
+        assert body["features"][0]["properties"]["name"] == "Fresh Dam"
+        
+        mock_query_overpass.assert_awaited_once()
+        mock_cache.set.assert_called_once()
+        set_args, set_kwargs = mock_cache.set.call_args
+        cache_key_used = set_args[0]
+        assert cache_key_used.startswith("geo:water_bodies:")
+        assert set_kwargs["ex"] == CACHE_TTL_SECONDS
+        
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    @patch(f"{MODULE}.cache_client")
+    def test_empty_overpass_result_returns_empty_feature_collection(
+        self, mock_cache, mock_query_overpass, client
+    ):
+        mock_cache.get.return_value = None
+        mock_query_overpass.return_value = {"elements": []}
+        
+        resp = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        
+        assert resp.status_code == 200
+        assert resp.json() == {"type": "FeatureCollection", "features": []}
+        
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    @patch(f"{MODULE}.cache_client")
+    def test_overpass_failure_returns_502(self, mock_cache, mock_query_overpass, client):
+        from fastapi import HTTPException
+        
+        mock_cache.get.return_value = None
+        mock_query_overpass.side_effect = HTTPException(
+            status_code=502, detail="Overpass query failed: all mirrors down"
+        )
+        
+        resp = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+        
+        assert resp.status_code == 502
+        assert "Overpass query failed" in resp.json()["detail"]
+        mock_cache.set.assert_not_called()
+        
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    @patch(f"{MODULE}.cache_client")
+    def test_min_area_filter_is_forwarded_to_overpass_results(
+        self, mock_cache, mock_query_overpass, client
+    ):
+        mock_cache.get.return_value = None
+        # one large, one tiny - only large should survive min_area_m2 filter
+        mock_query_overpass.return_value = {
+            "elements": [
+                closed_way(area_side_deg=0.01, lon0=28.20, name="Big Dam", water="reservoir"),
+                closed_way(area_side_deg=0.0001, lon0=28.50, name="Small Puddle", water="pond"),
+            ]
+        }
+        
+        resp = client.get("/api/geo/water-bodies", params=dict(VALID_BBOX, min_area_m2=2000))
+        
+        body = resp.json()
+        names = [f["properties"]["name"] for f in body["features"]]
+        assert names == ["Big Dam"]
