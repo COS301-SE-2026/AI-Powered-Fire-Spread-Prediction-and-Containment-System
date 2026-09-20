@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from app.backend.src.enums.report_status import ReportStatus
@@ -291,3 +291,20 @@ def mock_on_land():
         return_value=True,
     ):
         yield
+
+def make_orphaned_role_request(db, role="admin", status="pending"):
+    """A RoleReequest whose user_id doesn't exist in `users`"""
+    db.execute(text("ALTER TABLE role_requests DISABLE TRIGGER ALL"))
+    request = RoleRequest(
+        request_id=str(uuid.uuid4()),
+        user_id="nonexistent-user",
+        requested_role=role,
+        current_role="user",
+        status=status,
+        firefighter_license_id="LIC-001",
+    )
+    db.add(request)
+    db.commit()
+    db.execute(text("ALTER TABLE role_requests ENABLE TRIGGER ALL"))
+    db.commit()
+    return request

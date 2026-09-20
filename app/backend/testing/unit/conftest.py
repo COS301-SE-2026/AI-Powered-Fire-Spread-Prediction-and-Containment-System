@@ -1,12 +1,21 @@
+import os
+import uuid
+import itertools
+
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent.parent / ".env.test")
+
 import numpy as np
 import pytest
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker
 
 from app.backend.src.models.users import User
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.notification import Notification
 from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.role_request import RoleRequest
-
 
 @pytest.fixture
 def small_grids():
@@ -49,3 +58,5 @@ def small_grids():
         return weather, static, burn
 
     return _make
+
+

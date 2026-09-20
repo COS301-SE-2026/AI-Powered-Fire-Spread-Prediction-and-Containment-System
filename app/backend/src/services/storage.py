@@ -6,6 +6,7 @@ from io import BytesIO
 from typing import Optional
 
 from minio import Minio
+from minio.error import S3Error
 
 minio_client = Minio(
     os.getenv("MINIO_ENDPOINT"),
@@ -30,8 +31,12 @@ MAX_SIZE_MB = 10
 
 
 def ensure_bucket():
-    if not minio_client.bucket_exists(BUCKET):
-        minio_client.make_bucket(BUCKET)
+    try:
+        if not minio_client.bucket_exists(BUCKET):
+            minio_client.make_bucket(BUCKET)
+    except S3Error as err:
+        if err.code not in ("BucketAlreadyOwnedByYou", "BucketAlreadyExists"):
+            raise
 
 
 def validate_image(content_type: str, size_bytes: int):
@@ -53,6 +58,7 @@ def upload_image(filename: str, content_type: str, contents: bytes) -> str:
         data=BytesIO(contents),
         length=len(contents),
         content_type=content_type,
+        part_size=10 * 1024 * 1024
     )
 
     return object_key
@@ -72,3 +78,11 @@ def get_presigned_url(
 
 def delete_photo(object_key: str):
     minio_client.remove_object(BUCKET, object_key)
+
+def public_image_url(object_key: Optional[str]) -> Optional[str]:
+    if not object_key:
+        return None
+    secure = os.environ.get("MINIO_PUBLIC_SECURE", "false").lower() == "true"
+    scheme = "https" if secure else "http"
+    endpoint = os.environ.get("MINIO_PUBLIC_ENDPOINT")
+    return f"{scheme}://{endpoint}/{BUCKET}/{object_key}"

@@ -77,4 +77,8 @@ ml/checkpoints/
 app/gpu-worker/.env
 app/gpu-worker/venv/
 
-**/.env
+**/.env*.pem
+*.key
+*.pem
+*.key
+deploy.env

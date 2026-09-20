@@ -35,7 +35,7 @@ export async function probeHealth(apiBaseUrl?: string): Promise<boolean> {
     return inflightProbe;
   }
 
-  const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const baseUrl = apiBaseUrl || process.env.NEXT_PUBLIC_API_URL || '';
   const healthBaseUrl = baseUrl.replace(/\/api\/?$/, '');
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3000);
