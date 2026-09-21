@@ -179,7 +179,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
       }
     })),
   }), [lines]);
-  
+
   //suggested line memo
   const suggestedLineFeature = useMemo(() => {
     if (!suggestedLine) return null;
@@ -476,7 +476,28 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
 
           </Source>
         )}
-
+        {suggestedLineFeature && (
+          <Source id="suggested-containment-line" type="geojson" data={suggestedLineFeature}>
+            <Layer
+              id="suggested-line-glow"
+              type="line"
+              paint={{
+                'line-color': '#a855f7',
+                'line-width': 8,
+                'line-opacity': 0.35,
+              }}
+            />
+            <Layer
+              id="suggested-line-dash"
+              type="line"
+              paint={{
+                'line-color': '#a855f7',
+                'line-width': 3,
+                'line-dasharray': [0.2, 1.5],
+              }}
+            />
+          </Source>
+        )}
         {selectedFire && (
           <Popup
             longitude={selectedFire.lng}
