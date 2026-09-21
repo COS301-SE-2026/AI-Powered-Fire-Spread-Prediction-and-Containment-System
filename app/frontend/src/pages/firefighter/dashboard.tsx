@@ -14,12 +14,16 @@ import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
+import { NearbyResources } from '../../components/firefighter/NearbyResources';
+import { useNearbyResources } from '../../hooks/useNearbyResources';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [showWater, setShowWater] = useState(true);
   const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
+  const { nearbyResources } = useNearbyResources(userLocation);
+  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
   const [lines, setLines] = useState<LocalLine[]>([])
@@ -75,7 +79,7 @@ export default function FirefighterDashboard() {
                 <div className='flex items-center gap-4'>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <span className='text-sm font-medium text-text-muted'>
-                      Show Water
+                      Show Water &amp; Resources
                     </span>
                     <button
                       type='button'
@@ -96,7 +100,7 @@ export default function FirefighterDashboard() {
                   Clear Lines
                 </button>
                 </div>
-                
+
               </div>
               <div className="flex-1 w-full h-full pt-12 md:pt-13">
                 <FireMap
@@ -132,13 +136,19 @@ export default function FirefighterDashboard() {
           </div>
 
           {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-3 h-full">
-              <h4 className=" text-text-muted uppercase">
+          <div className="xl:col-span-4 flex flex-col gap-3 xl:h-0 xl:min-h-full">
+              <h4 className=" text-text-muted uppercase shrink-0">
                 Nearby Reports
               </h4>
-              <div
-                className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
+              <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
                 <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+              </div>
+
+              <h4 className=" text-text-muted uppercase shrink-0">
+                Nearby Resources
+              </h4>
+              <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
+                <NearbyResources resources={nearbyResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
               </div>
             </div>
         </div>
