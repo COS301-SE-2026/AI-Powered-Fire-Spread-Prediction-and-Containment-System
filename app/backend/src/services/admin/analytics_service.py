@@ -67,7 +67,6 @@ def get_pending_role_reqs(db: Session, limit: int = 20) -> list[RoleRequestRespo
                         name=user.name,
                         surname=user.surname,
                         email=user.email,
-                        license_number=user.license_number,
                     ),
                     requested_role=req.requested_role,
                     current_role=req.current_role,

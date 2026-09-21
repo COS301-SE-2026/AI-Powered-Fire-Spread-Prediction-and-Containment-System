@@ -141,7 +141,7 @@ export default function Register() {
         setApiError('Unexpected response from server');
       }
     } catch (err: unknown) {
-      setApiError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
+      setApiError(err instanceof Error ? err.message : 'Registration falied try again');
     } finally {
       setIsLoading(false);
     }
