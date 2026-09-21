@@ -1,6 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
-import { STATUS_LABEL, resourceLabel, capacityLabel } from '../../lib/resourceLabels';
+import { STATUS_LABEL, resourceLabel, capacityLabel } from '../../lib/ResourceLabels';
 import type { Status } from '../../types/Resource';
 
 const STATUS_BADGE: Record<Status, { label: string; className: string }> = {

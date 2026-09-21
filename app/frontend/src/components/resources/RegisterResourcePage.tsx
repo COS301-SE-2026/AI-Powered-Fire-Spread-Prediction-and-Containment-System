@@ -12,8 +12,8 @@ import { Capacity } from './Capacity';
 import { LocationField } from '../reportfire/LocationField';
 import { Availability } from './Availability';
 import {useSubmitResource } from '../../hooks/useSubmitResource';
-import { validateResourceForm } from '../../lib/validateResource';
-import type { ResourceFormErrors } from '../../lib/validateResource';
+import { validateResourceForm } from '../../lib/ValidateResource';
+import type { ResourceFormErrors } from '../../lib/ValidateResource';
 
 interface RegisterResourceProps {
   showHeaderIcons?: boolean;
