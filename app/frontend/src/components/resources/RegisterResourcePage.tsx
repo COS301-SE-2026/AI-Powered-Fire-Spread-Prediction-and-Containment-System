@@ -208,11 +208,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
       return;
     }
 
-    let fireRef: string | null = null;
-    if (typeof router.query.fire === 'string') {
-      fireRef = router.query.fire;
-    }
-    const created = await submitResource(form, fireRef);
+    const created = await submitResource(form);
     if (created){
       dispatch({ type: 'RESET_AFTER_SUBMIT' });
       setShowErrors(false);

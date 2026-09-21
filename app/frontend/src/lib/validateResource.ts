@@ -1,6 +1,6 @@
 import type { ResourceInput } from '../types/Resource';
 
-export type ResourceFormValues = Omit<ResourceInput, 'externalPin' | 'fireRef'> & {
+export type ResourceFormValues = Omit<ResourceInput, 'externalPin'> & {
     externalPin: { lat: number; lng: number; } | null;
 }
 
@@ -45,6 +45,8 @@ export function validateResourceForm(form: ResourceFormValues): ResourceFormErro
     // capacity validation
     if (isNaN(form.capacity) || form.capacity <= 0) {
         errors.capacity = 'Capacity must be a positive number.';
+    } else if (form.resource === 'crew' && !Number.isInteger(form.capacity)){
+        errors.capacity = 'Crew size must be a whole number.'
     }
     return errors;
 }

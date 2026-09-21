@@ -18,7 +18,6 @@ export interface ResourceTable {
     externalPin: { lat: number; lng: number };
     name: string;
     contact: string;
-    fireRef: string | null;
 }
 
 export interface ResourceList {
