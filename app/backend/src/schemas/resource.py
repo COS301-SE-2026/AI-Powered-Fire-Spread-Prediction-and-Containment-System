@@ -39,7 +39,6 @@ class ResourceCreate(CamelModel):
     external_pin: Pin
     name: str = Field(..., max_length=100)
     contact: str = Field(..., max_length=30)
-    fire_ref: Optional[str] = Field(default=None, max_length=20)
     
     @field_validator("available_from", "available_until", "fire_ref", mode="before")
     @classmethod
@@ -131,7 +130,6 @@ class ResourceResponse(CamelModel):
     external_pin: Pin
     name: str
     contact: str
-    fire_ref: Optional[str] = None
     
 class ResourceListResponse:
     data: List[ResourceResponse]

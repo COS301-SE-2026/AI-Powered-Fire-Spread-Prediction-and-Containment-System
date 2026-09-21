@@ -37,13 +37,6 @@ class WaterResource(Base):
     name = Column(String(100), nullable=False)
     contact = Column(String(30), nullable=False)
     
-    fire_report_ref = Column(
-        String(20),
-        ForeignKey("fire_reports.reference_number", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
-    
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
