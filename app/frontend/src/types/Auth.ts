@@ -6,7 +6,12 @@ export interface RegisterRequest {
   name: string;
   surname: string;
   id_number: string;
-  license_number?: string | null;
+  requested_role: UserRole | string | null;
+}
+
+export interface CompleteRegistrationRequest{
+  registration_token: string;
+  code: string;
 }
 
 export interface LoginRequest {
@@ -36,8 +41,16 @@ export interface TwoFARequiredResponse {
   requires_2fa: boolean;
   email: string;
   otpauth_url: string | null;
+  registration_token?: string;
+  pending_approval: boolean;
+}
+
+export interface TwoFAVerifyResponse {
+  role: UserRole | string;
+  pending_approval: boolean;
 }
 
 export interface LoginResponse {
   role: UserRole;
+  access_token: string;
 }
