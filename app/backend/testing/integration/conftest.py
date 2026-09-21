@@ -28,6 +28,7 @@ from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
+from app.backend.src.models.water_resource import WaterResource
 
 # seed data
 from app.backend.seed import (
@@ -59,6 +60,7 @@ def create_tables():
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
+            WaterResource.__table__,
         ],
     )
     yield
@@ -71,6 +73,7 @@ def create_tables():
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
+            WaterResource.__table__,
         ],
     )
 
