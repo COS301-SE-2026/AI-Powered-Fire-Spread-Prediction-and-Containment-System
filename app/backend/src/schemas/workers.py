@@ -31,3 +31,11 @@ class WorkerStatusResponse(BaseModel):
     deactivated_at: Optional[datetime] = None
     removed_at: Optional[datetime] = None
     removal_reason: Optional[str] = None
+
+
+class CalculateDistrubutionRatio(BaseModel):
+    active: int
+    busy: int
+    quarantined: int
+    offline: int
+    total: int

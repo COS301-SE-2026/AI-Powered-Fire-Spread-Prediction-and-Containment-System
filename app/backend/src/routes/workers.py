@@ -8,13 +8,14 @@ from typing import Annotated, Dict, Optional
 
 from fastapi import (APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status)
 from jose import JWTError, jwt
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
 from app.backend.src.models.workers import WorkerNode
-from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse
+from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, CalculateDistrubutionRatio
 from app.backend.src.services import workers as worker_service
 
 log = logging.getLogger("workers_route")
@@ -49,6 +50,38 @@ async def verify_worker_token(token: str) -> str:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate worker credentails",
         )
+
+
+@router.get(
+    "/calculate-distribution",
+    response_model=CalculateDistrubutionRatio,
+    status_code=status.HTTP_200_OK,
+)
+def get_calculate_distribution(db: Session = Depends(get_db)):
+    operational_statuses = ["active", "busy", "quarantined", "offline"]
+
+    counts = (
+        db.query(WorkerNode.status, func.count(WorkerNode.id))
+        .filter(WorkerNode.status.in_(operational_statuses))
+        .group_by(WorkerNode.status)
+        .all()
+    )
+
+    counts_dict = {status_key: count for status_key, count in counts}
+
+    active_count = counts_dict.get("active", 0)
+    busy_count = counts_dict.get("busy", 0)
+    quarantined_count = counts_dict.get("quarantined", 0)
+    offline_count = counts_dict.get("offline", 0)
+    total_count = active_count + busy_count + quarantined_count + offline_count
+
+    return CalculateDistrubutionRatio(
+        active=active_count,
+        busy=busy_count,
+        quarantined=quarantined_count,
+        offline=offline_count,
+        total=total_count,
+    )
 
 
 @router.post("/keys", status_code=status.HTTP_201_CREATED)
