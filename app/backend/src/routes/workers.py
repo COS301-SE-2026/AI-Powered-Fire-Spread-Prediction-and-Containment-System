@@ -106,6 +106,10 @@ async def websocket_worker_endpoint(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    if node.status == "quarantined" and node.quarentine_until > datetime.now(timezone.utc):
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await websocket.accept()
     active_worker_connections[worker_id] = websocket
 
@@ -128,7 +132,7 @@ async def websocket_worker_endpoint(
                 msg_type = data.get("type")
 
                 if msg_type == "pong" or msg_type == "ping":
-                    node.last_heartbeat = datetime.now(timezone.uts)
+                    node.last_heartbeat = datetime.now(timezone.utc)
                     db.commit()
                     if msg_type == "ping":
                         await websocket.send_text(json.dumps({"type": "pong"}))
@@ -139,7 +143,7 @@ async def websocket_worker_endpoint(
                     job_id = data.get("job_id")
                     log.info("Received simulation result for job %s from worker %s", job_id, worker_id)
                     # to dispatcher
-                    valkey.setex(f"worker:sim:result:{job_id}", 60, json.dumbs(data.get("payload", {})))
+                    valkey.setex(f"worker:sim:result:{job_id}", 60, json.dumps(data.get("payload", {})))
                     # return to idle
                     node.status = "active"
                     db.commit()

@@ -27,7 +27,7 @@ BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL")
 WEBSOCKET_URL = os.getenv("WEBSOCKET_URL")
 REGISTRATION_KEY = os.getenv("REGISTRATION_KEY")
 WORKER_LABEL = os.getenv("WORKER_LABEL", os.getenv("HOSTNAME", "volunteer-desktop"))
-MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cackend/ml/models/weather_convlstm.pt")
+MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cached/ml/models/weather_convlstm.pt")
 
 MIN_VRAM_MB = 4096
 BENCHMARK_DURATION_SECONDS = 1.0
@@ -62,7 +62,7 @@ def run_pre_flight_check() -> Tuple[bool, str, int]:
 
     log.info("Executing synthetic matrix stress test on CUDA...")
     try:
-        x = torch.randn((4096, 4096), device="cude:0", dtype=torch.float32)
+        x = torch.randn((4096, 4096), device="cuda:0", dtype=torch.float32)
         start_time = time.monotonic()
         iterations = 0
 
@@ -198,7 +198,7 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
         try:
             async with websockets.connect(
                 WEBSOCKET_URL,
-                extra_headers=headers,
+                additional_headers=headers,
                 ping_interval=15,
                 ping_timeout=5,
             ) as websocket:
@@ -220,7 +220,7 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                             start_t = time.monotonic()
                             result = execute_pipeline_task(model, job_payload)
                             duration = time.monotonic() - start_t
-                            log.infp("Job %s completed in %.2fs. Sending results.", job_id, duration)
+                            log.info("Job %s completed in %.2fs. Sending results.", job_id, duration)
 
                             await websocket.send(
                                 json.dumps(
@@ -245,8 +245,8 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                                 )
                             )
 
-        except websockets.exceptions.InvalidStatusCode as err:
-            log.error("Authentication rejected: HTTP %d", err.status_code)
+        except websockets.exceptions.InvalidStatus as err:
+            log.error("Authentication rejected: HTTP %d", err)
             return
         except (websockets.exceptions.ConnectionClosed, OSError) as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
@@ -274,7 +274,7 @@ def main():
     jwt_token, worker_id = registration_result
     model = load_inference_model()
 
-    asyncio.run(run_worker_loop(jwt_token))
+    asyncio.run(run_worker_loop(model, jwt_token))
 
 if __name__ == "__main__":
     main()
