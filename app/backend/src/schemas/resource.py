@@ -40,10 +40,10 @@ class ResourceCreate(CamelModel):
     name: str = Field(..., max_length=100)
     contact: str = Field(..., max_length=30)
     
-    @field_validator("available_from", "available_until", "fire_ref", mode="before")
+    @field_validator("available_from", "available_until", mode="before")
     @classmethod
     def blank_to_none(cls, v):
-        # form sends '' for "no end date" / "no fire"
+        # form sends '' for "no end date"
         if isinstance(v, str) and v.strip() == "":
             return None
         return v
@@ -111,7 +111,7 @@ class ResourceCreate(CamelModel):
             self.other_capacity = ""
             
         if self.available_from is None:
-            self.available_from = datetime.now(timezone.utc).data()
+            self.available_from = datetime.now(timezone.utc).date()
         if self.available_until is not None and self.available_until < self.available_from:
             raise ValueError("'Available until' cannot be before 'available from'.")
         return self
@@ -131,7 +131,7 @@ class ResourceResponse(CamelModel):
     name: str
     contact: str
     
-class ResourceListResponse:
+class ResourceListResponse(CamelModel):
     data: List[ResourceResponse]
     total: int
     
