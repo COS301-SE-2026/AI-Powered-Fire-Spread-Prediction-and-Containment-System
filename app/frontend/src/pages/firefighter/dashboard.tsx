@@ -35,6 +35,7 @@ export default function FirefighterDashboard() {
     fetchLines,
     deleteLine
   } = useContainmentLine();
+  const [showResources, setShowResources] = useState(true);
 
   const availableResources = nearbyResources.filter((r) => r.status === 'available');
 
@@ -62,7 +63,7 @@ export default function FirefighterDashboard() {
 
   function handleSelectResource(r: { id: string }) {
     setSelectedResourceId(r.id);
-    setShowWater(true);
+    setShowResources(true);
   }
   return (
     <FirefighterSideBar hideLoginRegister>
@@ -87,7 +88,7 @@ export default function FirefighterDashboard() {
                 <div className='flex items-center gap-4'>
                   <label className='flex items-center gap-2 cursor-pointer select-none'>
                     <span className='text-sm font-medium text-text-muted'>
-                      Show Water &amp; Resources
+                      Show Water
                     </span>
                     <button
                       type='button'
@@ -124,14 +125,14 @@ export default function FirefighterDashboard() {
                   selectedFireId={fireLocation}
                   showWater={showWater}
                   resources={availableResources}
-                  showResources={showWater}
+                  showResources={showResources}
                   selectedResourceId={selectedResourceId}
                   onSelectResource={handleSelectResource}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
             </div>
-            {showWater && <ResourceMapLegend />}
+            <ResourceMapLegend />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-2 shrink-0">
               <div className="flex flex-col">
