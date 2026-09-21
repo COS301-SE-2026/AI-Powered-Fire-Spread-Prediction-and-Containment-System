@@ -33,7 +33,7 @@ class WorkerStatusResponse(BaseModel):
     removal_reason: Optional[str] = None
 
 
-class CalculateDistrubutionRatio(BaseModel):
+class ComputeDistrubutionRatio(BaseModel):
     active: int
     busy: int
     quarantined: int

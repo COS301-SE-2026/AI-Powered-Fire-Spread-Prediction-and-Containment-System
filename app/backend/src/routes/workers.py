@@ -15,7 +15,7 @@ from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
 from app.backend.src.models.workers import WorkerNode
-from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, CalculateDistrubutionRatio
+from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, ComputeDistrubutionRatio
 from app.backend.src.services import workers as worker_service
 
 log = logging.getLogger("workers_route")
@@ -53,11 +53,11 @@ async def verify_worker_token(token: str) -> str:
 
 
 @router.get(
-    "/calculate-distribution",
-    response_model=CalculateDistrubutionRatio,
+    "/compute-distribution",
+    response_model=ComputeDistrubutionRatio,
     status_code=status.HTTP_200_OK,
 )
-def get_calculate_distribution(db: Session = Depends(get_db)):
+def get_compute_distribution(db: Session = Depends(get_db)):
     operational_statuses = ["active", "busy", "quarantined", "offline"]
 
     counts = (
@@ -75,7 +75,7 @@ def get_calculate_distribution(db: Session = Depends(get_db)):
     offline_count = counts_dict.get("offline", 0)
     total_count = active_count + busy_count + quarantined_count + offline_count
 
-    return CalculateDistrubutionRatio(
+    return ComputeDistrubutionRatio(
         active=active_count,
         busy=busy_count,
         quarantined=quarantined_count,
