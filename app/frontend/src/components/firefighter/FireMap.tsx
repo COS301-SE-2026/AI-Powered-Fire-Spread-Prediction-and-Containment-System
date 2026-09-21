@@ -388,7 +388,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
         </Marker>
       ))}
 
-      {/*Show resources*/}
+      {/* Show resources */}
       {showResources && (
         <ResourceMarkers resources={resources} selectedResourceId={selectedResourceId} onSelectResource={onSelectResource} />      )}
 

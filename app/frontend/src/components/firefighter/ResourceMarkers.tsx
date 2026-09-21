@@ -14,7 +14,7 @@ export function ResourceMarkers({ resources, selectedResourceId = null, onSelect
         <>
             {resources.map((r) => {
                 const selected = r.id === selectedResourceId;
-                const color = RESOURCE_GROUPS[GROUP_BY_RESOURCE[r.resource]].color;
+                const {color} = RESOURCE_GROUPS[GROUP_BY_RESOURCE[r.resource]];
                 const size = selected ? 36 : 28;
 
                 return (

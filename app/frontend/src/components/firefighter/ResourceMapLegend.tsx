@@ -7,7 +7,7 @@ export function ResourceMapLegend() {
                 const Icon = g.icon;
                 return (
                     <span key={g.label} className="flex items-center gap-1.5">
-                        <span className="inline-block size-3 rounded-sm" style={{ background: g.color }}></span>
+                        <span className="inline-block size-3 rounded-sm" style={{ background: g.color }} />
                         {g.label}
                     </span>
                 );

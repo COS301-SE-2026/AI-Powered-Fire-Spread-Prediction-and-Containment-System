@@ -1,5 +1,5 @@
-import type { Resource } from '../types/Resource';
 import { Droplets, Truck, Users, Plane, Package } from 'lucide-react';
+import type { Resource } from '../types/Resource';
 
 export const RESOURCE_GROUPS = {
     water: { label: 'Water', color: 'var(--color-info)', icon: Droplets },
