@@ -13,7 +13,7 @@ class WaterResource(Base):
     __table_args__ = {"extend_existing": True}
     
     id = Column(String, primary_key=True)
-    user_id = Column(String, ForeignKey("user.id", ondelete="SET NULL"), nullable=True, index=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     
     resource_type = Column(Enum(ResourceType), nullable=False, index=True)
     other_resource = Column(String(100), nullable=True) # only set when type == other

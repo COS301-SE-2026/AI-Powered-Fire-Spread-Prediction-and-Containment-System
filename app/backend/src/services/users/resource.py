@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 
 from app.backend.src.enums.resource import ResourceStatus, capacity_unit_for
 from app.backend.src.enums.user_role import UserRole
-from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.users import User
 from app.backend.src.models.water_resource import WaterResource
 from app.backend.src.schemas.resource import ResourceCreate
