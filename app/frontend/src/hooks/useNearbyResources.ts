@@ -13,7 +13,7 @@ function distance(lat1: number, lng1: number, lat2: number, lng2: number) {
     return Math.hypot(lat, lng);
 }
 
-export function useNearbyResources(userLocation: { lat: number, lng: number }, radiusKm = 50) {
+export function useNearbyResources(userLocation: { lat: number, lng: number }, radiusKm?: number) {
   const [nearbyResources, setNearbyResources] = useState<NearbyResource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export function useNearbyResources(userLocation: { lat: number, lng: number }, r
             // MOCK: delete this block when backend is live
             const data: ResourceTable[] = mockResources;
             if (cancelled) return;
-            setNearbyResources( data.map((r) => ({ ...r, distance: distance( userLocation.lat, userLocation.lng, r.externalPin.lat, r.externalPin.lng ),})).filter((r) => r.distance <= radiusKm).sort((a, b) => a.distance - b.distance));
+            setNearbyResources( data.map((r) => ({ ...r, distance: distance( userLocation.lat, userLocation.lng, r.externalPin.lat, r.externalPin.lng ),})).filter((r) => radiusKm == null || r.distance <= radiusKm).sort((a, b) => a.distance - b.distance));
       } catch (err: unknown) {
         if (cancelled) return;
         console.error('Was unable to find/retrieve dashboard data', err);

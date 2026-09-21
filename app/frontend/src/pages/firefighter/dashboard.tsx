@@ -16,6 +16,7 @@ import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
 import { NearbyResources } from '../../components/firefighter/NearbyResources';
 import { useNearbyResources } from '../../hooks/useNearbyResources';
+import { ResourceMapLegend } from '../../components/firefighter/ResourceMapLegend';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
@@ -34,6 +35,8 @@ export default function FirefighterDashboard() {
     fetchLines,
     deleteLine
   } = useContainmentLine();
+
+  const availableResources = nearbyResources.filter((r) => r.status === 'available');
 
   async function handleDrawComplete(wkt: string) {
     const localId = crypto.randomUUID();
@@ -56,6 +59,11 @@ export default function FirefighterDashboard() {
     }
   }
   useMapLink(handleSelectFire);
+
+  function handleSelectResource(r: { id: string }) {
+    setSelectedResourceId(r.id);
+    setShowWater(true);
+  }
   return (
     <FirefighterSideBar hideLoginRegister>
       <div className="flex flex-col p-2 md:p-6">
@@ -115,10 +123,16 @@ export default function FirefighterDashboard() {
                   onDeselect={clearSelect}
                   selectedFireId={fireLocation}
                   showWater={showWater}
+                  resources={availableResources}
+                  showResources={showWater}
+                  selectedResourceId={selectedResourceId}
+                  onSelectResource={handleSelectResource}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
             </div>
+            {showWater && <ResourceMapLegend />}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-2 shrink-0">
               <div className="flex flex-col">
                 <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
@@ -140,15 +154,15 @@ export default function FirefighterDashboard() {
               <h4 className=" text-text-muted uppercase shrink-0">
                 Nearby Reports
               </h4>
-              <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
+              <div className="shrink-0 max-h-64 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
                 <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
               </div>
 
               <h4 className=" text-text-muted uppercase shrink-0">
-                Nearby Resources
+                Available Resources
               </h4>
               <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-                <NearbyResources resources={nearbyResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
+                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
               </div>
             </div>
         </div>
