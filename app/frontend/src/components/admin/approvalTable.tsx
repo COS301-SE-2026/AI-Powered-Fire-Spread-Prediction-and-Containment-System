@@ -1,6 +1,6 @@
 import React from 'react';
 import { RoleRequest, RoleStatus } from '../../types/RoleRequest';
-import { statusBadge, BadgeStyle } from './statusBadge';
+import { RoleStatusBadge } from './RoleStatusBadge';
 
 interface RoleRequestTableProps {
   requests: RoleRequest[];
@@ -45,11 +45,6 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
             </tr>
           ) : (
             filtered.map((req) => {
-              const badge: BadgeStyle = statusBadge[req.status] ?? statusBadge.none;
-              const badgeClasses = badge.bg
-                ? `${badge.bg} ${badge.text} ${badge.border}`
-                : 'bg-carbon-card text-text-primary/50';
-
               return (
                 <tr
                   key={req.request_id}
@@ -74,11 +69,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                     })}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badgeClasses}`}
-                    >
-                      {req.status}
-                    </span>
+                    <RoleStatusBadge status={req.status} />
                   </td>
                   <td className="px-4 py-3">
                     <button
