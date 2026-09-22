@@ -51,3 +51,38 @@ def test_admin_allowed(client, db):
     admin = make_user(db, role="admin")
     res = nearby(client, admin)
     assert res.status_code == 200
+    
+# Test data shape and sorting
+def test_lists_available_resource_with_distance(client, db):
+    owner = make_user(db, role="user")
+    register(client, owner, name="Near Tank")
+    firefighter = make_user(db, role="firefighter")
+    
+    res = nearby(client, firefighter)
+    
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["total"] == 1
+    item = body["data"][0]
+    assert item["name"] == "Near Tank"
+    assert item["distance"] == 0.0
+    assert item["externalPin"] == HERE
+    assert set(item) == {
+        "id", "resource", "otherResource", "capacity", "capacityUnit", "otherCapacity",
+        "status", "availableFrom", "availableUntil", "location", "externalPin", "name",
+        "contact", "distance",
+    }
+    
+def test_sorted_nearest_first(client, db):
+    owner = make_user(db, role="user")
+    register(client, owner, name="Near", externalPin={"lat": -25.7461, "lng": 28.1881})
+    register(client, owner, name="Far", externalPin={"lat": -26.5, "lng": 29.5})
+    register(client, owner, name="Middle", externalPin={"lat": -25.9, "lng": 28.4})
+    firefighter = make_user(db, role="firefighter")
+    
+    body = nearby(client, firefighter).json()
+    
+    names = [r["name"] for r in body["data"]]
+    assert names == ["Near", "Middle", "Far"]
+    distances = [r["distance"] for r in body["data"]]
+    assert distances == sorted(distances)

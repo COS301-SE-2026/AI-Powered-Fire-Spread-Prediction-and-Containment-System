@@ -18,7 +18,7 @@ def get_nearby_resources(
     status: Optional[ResourceStatus] = ResourceStatus.available,
 ) -> dict:
     """Resources near (lat, lng) nearest first"""
-    point = WKTElement(f"POINT({lat} {lng})", srid=4326)
+    point = WKTElement(f"POINT({lng} {lat})", srid=4326)
     point_geog = cast(point, Geography)
     distance_m = ST_Distance(cast(WaterResource.location_geom, Geography), point_geog)
     
