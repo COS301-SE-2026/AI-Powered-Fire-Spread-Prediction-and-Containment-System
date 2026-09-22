@@ -49,3 +49,69 @@ class TestNearbyResourceResponseSchema:
         assert dumped["externalPin"] == {"lat": -25.7461, "lng": 28.1881}
         assert "external_pin" not in dumped
         
+# Test route
+def fake_user(role):
+    user = MagicMock()
+    user.id = "user-1"
+    user.role = role
+    return user
+
+@pytest.fixture
+def mock_db():
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    yield db
+    app.dependency_overrides.clear()
+    
+    
+@pytest.fixture
+def client():
+    return TestClient(app)
+
+class TestNearbyResourcesRoute:
+    def test_route_registered(self):
+        matching = [r for r in app.routes if getattr(r, "path", None) == "/api/resources"]
+        assert matching, "GET /api/resources is not registered"
+        assert "GET" in matching[0].methods
+        
+    def test_requires_authentication(self, client, mock_db):
+        res = client.get("/api/resources", params={"lat": -25.7461, "lng": 28.1881})
+        assert res.status_code == 401
+        
+    def test_regular_user_forbidden(self, client, mock_db):
+        from app.backend.src.dependencies import auth as auth_module
+        
+        app.dependency_overrides[auth_module.get_current_user] = lambda: fake_user(UserRole.user)
+        res = client.get("/api/resources", params={"lat": -25.7461, "lng": 28.1881})
+        assert res.status_code == 403
+        
+    def test_firefighter_allower(self, client, mock_db):
+        from app.backend.src.dependencies import auth as auth_module
+        
+        app.dependency_overrides[auth_module.get_current_user] = lambda: fake_user(UserRole.firefighter)
+        mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
+        res = client.get("/api/resources", params={"lat": -25.7461, "lng": 28.1881})
+        assert res.status_code == 200, res.text
+        assert res.json() == {"data": [], "total": 0}
+        
+    def test_admin_allowed(self, client, mock_db):
+        from app.backend.src.dependencies import auth as auth_module
+        
+        app.dependency_overrides[auth_module.get_current_user] = lambda: fake_user(UserRole.admin)
+        mock_db.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
+        res = client.get("/api/resources", params={"lat": -25.7461, "lng": 28.1881})
+        assert res.status_code == 200, res.text
+        
+    def test_missing_lat_lng_is_422(self, client, mock_db):
+        from app.backend.src.dependencies import auth as auth_modeule
+        
+        app.dependency_overrides[auth_modeule.get_current_user] = lambda: fake_user(UserRole.admin)
+        assert client.get("/api/resources").status_code == 422
+        assert client.get("/api/resources", params={"lat": -25.7461}).status_code == 422
+        
+    def test_radius_km_must_be_positive(self, client, mock_db):
+        from app.backend.src.dependencies import auth as auth_module
+        
+        app.dependency_overrides[auth_module.get_current_user] = lambda: fake_user(UserRole.admin)
+        res = client.get("/api/resources", params={"lat": -25.7461, "lng": 28.1881, "radius_km": 0})
+        assert res.status_code == 422
