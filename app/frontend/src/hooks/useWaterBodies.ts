@@ -68,7 +68,7 @@ function nameForPart(
 function mergeFragments(
     fragments: Array<Feature<Polygon | MultiPolygon>>
 ): Array<Feature<Polygon | MultiPolygon>> {
-    if (fragments.length === 0) return null;
+    if (fragments.length === 0) return [];
     if (fragments.length === 1) return fragments;
 
    
