@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { apiCall } from '../lib/api';
-import type { ResourceInput, ResourceTable } from '../types/Resource';
-import { isResourceFormValid } from '../lib/validateResource';
-import type { ResourceFormValues } from '../lib/validateResource';
+// import { apiCall } from '../lib/api';
+import { mockResources } from '../mockData/Resources';
+import type { Capacity, ResourceTable } from '../types/Resource';
+import { isResourceFormValid } from '../lib/ValidateResource';
+import type { ResourceFormValues } from '../lib/ValidateResource';
 
 function todayLocalISO(): string {
     return new Date().toLocaleDateString('en-CA');
