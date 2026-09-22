@@ -1,7 +1,6 @@
 import { useState } from 'react';
-// import { apiCall } from '../lib/api';
-import { mockResources } from '../mockData/Resources';
-import type { Capacity, ResourceTable } from '../types/Resource';
+import { apiCall } from '../lib/api';
+import type { ResourceInput, ResourceTable } from '../types/Resource';
 import { isResourceFormValid } from '../lib/ValidateResource';
 import type { ResourceFormValues } from '../lib/ValidateResource';
 
@@ -27,7 +26,7 @@ export function useSubmitResource(){
                 otherCapacity = form.otherCapacity.trim();
             }
 
-            const body: ResourceInput = {
+            const body: ResourceInput= {
                 resource: form.resource,
                 otherResource,
                 otherCapacity,
