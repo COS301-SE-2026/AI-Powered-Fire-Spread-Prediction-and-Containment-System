@@ -63,7 +63,7 @@ resource "aws_iam_role_policy" "queues_and_bucket" {
       },
       {
         Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:PutObject"]
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
         Resource = ["arn:aws:s3:::fireaway-ryan-artifacts/*", "arn:aws:s3:::fireaway-ryan-fire-reports/*"]
       },
       {
