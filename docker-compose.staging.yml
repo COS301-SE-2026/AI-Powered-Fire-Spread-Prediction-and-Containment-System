@@ -1,5 +1,16 @@
 services:
 
+  gateway:
+    image: caddy:2-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    restart: always
+    depends_on: [frontend, backend]
+    ports: ["80:80", "443:443"]
+    volumes:
+      - /home/ubuntu/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_staging_data:/data
+      - caddy_staging_config:/config
+    networks: [edge]
+
   backend:
     image: ${BACKEND_IMAGE}
     pull_policy: always
@@ -43,7 +54,7 @@ services:
           memory: "128M"
 
   minio:
-    image: minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+    image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
     restart: always
     deploy: 
       resources:
@@ -59,3 +70,7 @@ networks:
   edge:
     external: true
     name: fireaway-edge
+
+volumes:
+  caddy_staging_data:
+  caddy_staging_config:

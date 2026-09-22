@@ -4,12 +4,15 @@ exec > >(tee /var/log/fireaway-bootstrap.log) 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y ca-certificates curl unzip jq amazon-ecr-credential-helper
+apt-get install -y ca-certificates curl unzip jq
 
 # docker compose 
 curl -fsSL https://get.docker.com | sh
 systemctl enable --now docker
 usermod -aG docker ubuntu
+
+# After Docker, without recommends, so apt doesn't pull in Ubuntu's docker.io
+apt-get install -y --no-install-recommends amazon-ecr-credential-helper
 
 # AWS CLI v2
 curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
@@ -44,6 +47,7 @@ cd /opt/fireaway
 aws s3 cp s3://fireaway-ryan-artifacts/deploy/ . --recursive --exclude "*" --include "docker-compose*.yml"
 aws secretsmanager get-secret-value --region ${aws_region} --secret-id ${env_secret_name} \
   --query SecretString --output text > .env
+printf 'BACKEND_IMAGE=%s\nFRONTEND_IMAGE=%s\n' "$BACKEND_IMAGE" "$FRONTEND_IMAGE" >> .env
 chmod 600 .env
 
 COMPOSE="docker compose -f docker-compose.yml -f docker-compose.${compose_env}.yml"

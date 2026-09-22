@@ -1,0 +1,19 @@
+staging.fireaway.site, demo.fireaway.site {
+    encode zstd gzip
+
+    handle /health {
+        reverse_proxy backend-staging:8000
+    }
+
+    handle /api/* {
+        reverse_proxy backend-staging:8000
+    }
+
+    handle /fire-reports/* {
+        reverse_proxy minio-staging:9000
+    }
+
+    handle {
+        reverse_proxy frontend-staging:3000
+    }
+}

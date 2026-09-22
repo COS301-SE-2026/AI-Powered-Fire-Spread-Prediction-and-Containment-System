@@ -54,7 +54,7 @@ services:
       [edge]
 
   minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     restart: unless-stopped
     env_file:
       [.env]
