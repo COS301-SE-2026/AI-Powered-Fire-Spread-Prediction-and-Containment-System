@@ -91,6 +91,7 @@ export default function MapView() {
               showResources={showResources}
               selectedResourceId={selectedResourceId}
               onSelectResource={handleSelectResource}
+              showWater={showWater}
             />
           <div className='absolute top-3 left-3 z-20 flex flex-col gap-2'>
               <Link href='/admin/report-fire' aria-label='Report a fire' title='Report a fire' className='w-10 h-10 rounded-full bg-primary text-text-primary flex items-center justify-center shadow-lg ring-lg ring-black/10 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-150'>
