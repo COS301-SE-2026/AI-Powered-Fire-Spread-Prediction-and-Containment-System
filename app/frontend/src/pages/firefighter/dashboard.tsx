@@ -14,12 +14,17 @@ import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
+import { NearbyResources } from '../../components/shared/NearbyResources';
+import { useNearbyResources } from '../../hooks/useNearbyResources';
+import { ResourceMapLegend } from '../../components/shared/ResourceMapLegend';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [showWater, setShowWater] = useState(true);
   const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
+  const { nearbyResources } = useNearbyResources(userLocation);
+  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
   const [lines, setLines] = useState<LocalLine[]>([])
@@ -30,6 +35,9 @@ export default function FirefighterDashboard() {
     fetchLines,
     deleteLine
   } = useContainmentLine();
+  const [showResources, setShowResources] = useState(true);
+
+  const availableResources = nearbyResources.filter((r) => r.status === 'available');
 
   async function handleDrawComplete(wkt: string) {
     const localId = crypto.randomUUID();
@@ -52,6 +60,11 @@ export default function FirefighterDashboard() {
     }
   }
   useMapLink(handleSelectFire);
+
+  function handleSelectResource(r: { id: string }) {
+    setSelectedResourceId(r.id);
+    setShowResources(true);
+  }
   return (
     <FirefighterSideBar hideLoginRegister>
       <div className="flex flex-col p-2 md:p-6">
@@ -96,7 +109,7 @@ export default function FirefighterDashboard() {
                   Clear Lines
                 </button>
                 </div>
-                
+
               </div>
               <div className="flex-1 w-full h-full pt-12 md:pt-13">
                 <FireMap
@@ -111,10 +124,16 @@ export default function FirefighterDashboard() {
                   onDeselect={clearSelect}
                   selectedFireId={fireLocation}
                   showWater={showWater}
+                  resources={availableResources}
+                  showResources={showResources}
+                  selectedResourceId={selectedResourceId}
+                  onSelectResource={handleSelectResource}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
             </div>
+            <ResourceMapLegend />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-2 shrink-0">
               <div className="flex flex-col">
                 <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
@@ -132,13 +151,19 @@ export default function FirefighterDashboard() {
           </div>
 
           {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-3 h-full">
-              <h4 className=" text-text-muted uppercase">
+          <div className="xl:col-span-4 flex flex-col gap-3 xl:h-0 xl:min-h-full">
+              <h4 className=" text-text-muted uppercase shrink-0">
                 Nearby Reports
               </h4>
-              <div
-                className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
+              <div className="shrink-0 max-h-64 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
                 <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+              </div>
+
+              <h4 className=" text-text-muted uppercase shrink-0">
+                Available Resources
+              </h4>
+              <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
+                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
               </div>
             </div>
         </div>
