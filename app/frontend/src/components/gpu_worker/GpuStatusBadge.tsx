@@ -9,7 +9,7 @@ const gpuStatusColors: Record<string, BadgeStyle> = {
   rejected: { bg: 'bg-ignite/10', text: 'text-ignite', border: 'border-ignite/25' },
   quarantined: { bg: 'bg-torch/10', text: 'text-torch', border: 'border-torch/25' },
   deactivated: { bg: 'bg-carbon-card', text: 'text-text-muted', border: 'border-carbon-stroke' },
-  removed: { bg: 'bg-carbon-card', text: 'text-text-disabled', border: 'border-carbon-stroke' },
+  removed: { bg: 'bg-error/10', text: 'text-error', border: 'border-error/25' },
 };
 
 interface GpuStatusBadgeProps {
