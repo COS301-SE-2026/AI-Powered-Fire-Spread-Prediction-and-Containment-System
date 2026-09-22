@@ -125,7 +125,6 @@ def sample_user():
         "name": "Test",
         "surname": "User",
         "id_number": "12345678",
-        "licence_number": "LIC-001",
         "role": "user",
     }
 
@@ -149,7 +148,6 @@ def make_user(db, full_name="Test User", email=None, role="user", lat=None, lng=
         name=name,
         surname=surname,
         id_number=str(uuid.uuid4().int)[:13],
-        license_number=None,
         role=role,
         totp_secret=None,
         is_2fa_enabled=False,
@@ -169,7 +167,6 @@ def make_role_request(db, user, role="firefighter", status="pending"):
         requested_role=role,
         current_role=user.role,
         status=status,
-        firefighter_license_id="LIC-001",
     )
     db.add(request)
     db.commit()
@@ -221,7 +218,6 @@ def seed_users_table(db):
             surname=data["surname"],
             email=data["email"],
             id_number=data["id_number"],
-            license_number=data["license_number"],
             hashed_password=hash_password(data["password"]),
             role=data["role"],
             is_active=True,
@@ -301,7 +297,6 @@ def make_orphaned_role_request(db, role="admin", status="pending"):
         requested_role=role,
         current_role="user",
         status=status,
-        firefighter_license_id="LIC-001",
     )
     db.add(request)
     db.commit()
