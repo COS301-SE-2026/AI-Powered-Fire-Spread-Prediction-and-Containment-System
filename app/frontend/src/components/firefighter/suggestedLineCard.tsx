@@ -1,5 +1,5 @@
-import { Sparkles, Check, X } from "lucide-react";
-import type { SuggestedContainmentLine } from "@/types/ContainmentLines";
+import { Sparkles, Check, X } from 'lucide-react';
+import type { SuggestedContainmentLine } from '@/types/ContainmentLines';
 
 interface SuggestedLineCardProps {
     suggestion: SuggestedContainmentLine;
