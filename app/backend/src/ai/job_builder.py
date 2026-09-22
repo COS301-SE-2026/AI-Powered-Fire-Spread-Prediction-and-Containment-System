@@ -58,7 +58,7 @@ def fetch_weather_history(job: dict) -> list:
                 "wind_u": np.full((grid_h, grid_w), wind_u, dtype=np.float32),
                 "wind_v": np.full((grid_h, grid_w), wind_v, dtype=np.float32),
                 "temperature": np.full((grid_h, grid_w), temperature_c, dtype=np.float32),
-                "rel_humidity": np.full((grid_h, grid_w), rel_humidity_pct / 100, dtype=np.float32)
+                "rel_humidity": np.full((grid_h, grid_w), rel_humidity_pct, dtype=np.float32)
             }
         )
 
@@ -130,8 +130,8 @@ def build_volunteer_payload(
             [
                 f["wind_u"].tolist(),
                 f["wind_v"].tolist(),
-                f["rel_humidity"].tolist(),
                 f["temperature"].tolist(),
+                f["rel_humidity"].tolist(),
             ]
             for f in weather_history
         ],

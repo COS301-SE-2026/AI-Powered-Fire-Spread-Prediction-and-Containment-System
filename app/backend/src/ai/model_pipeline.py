@@ -46,8 +46,8 @@ def autoregressive_weather_forecast(
         {
             "wind_u": base[0],
             "wind_v": base[1],
-            "rel_humidity": base[2],
-            "temperature": base[3],
+            "temperature": base[2],
+            "rel_humidity": base[3],
         }
     )
 
@@ -73,17 +73,18 @@ def autoregressive_weather_forecast(
 
             wind_u_clamped = np.clip(frame[0], -20.0, 20.0)  # max 72km/h wind vectors
             wind_v_clamped = np.clip(frame[1], -20, 20)
-            rel_humidity_clamped = np.clip(frame[2], 0.0, 1.0)  # 5% to 95% humidity
             temperature_clamped = np.clip(
-                frame[3], 0.0, 48.0
+                frame[2], 0.0, 48.0
             )  # 0 degrees to 48 degrees
+            rel_humidity_clamped = np.clip(frame[3], 0.0, 100.0)  # 5% to 95% humidity
+            
 
             forecasted_weather.append(
                 {
                     "wind_u": wind_u_clamped,
                     "wind_v": wind_v_clamped,
-                    "rel_humidity": rel_humidity_clamped,
                     "temperature": temperature_clamped,
+                    "rel_humidity": rel_humidity_clamped,
                 }
             )
 
@@ -91,8 +92,8 @@ def autoregressive_weather_forecast(
                 [
                     wind_u_clamped,
                     wind_v_clamped,
-                    rel_humidity_clamped,
                     temperature_clamped,
+                    rel_humidity_clamped,
                 ],
                 axis=0,
             ).astype(np.float32)

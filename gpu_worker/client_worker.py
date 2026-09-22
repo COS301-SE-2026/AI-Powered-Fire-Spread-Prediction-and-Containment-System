@@ -149,8 +149,8 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
             [
                 frame["wind_u"],
                 frame["wind_v"],
+                frame["temperature"],
                 frame["rel_humidity"],
-                frame["temperature"]
             ],
             axis=0
         ).astype(np.float32)
@@ -220,7 +220,7 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                         job_id = job_payload.get("job_id", "unknown")
                         try:
                             start_t = time.monotonic()
-                            result = execute_pipeline_task(model, job_payload)
+                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload)
                             duration = time.monotonic() - start_t
                             log.info("Job %s completed in %.2fs. Sending results.", job_id, duration)
 
