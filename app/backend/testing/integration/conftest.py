@@ -1,6 +1,8 @@
 import os
+import socket
 import sys
 import uuid
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -9,6 +11,13 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+
+TEST_DB_URL = (
+    os.getenv("TEST_DATABASE_URL")
+    or os.getenv("TEST_DB_URL")
+    or"postgresql+psycopg2://postgres:postgres@localhost:5433/test_fire_db"
+)
+os.environ["DATABASE_URL"] = TEST_DB_URL
 
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
@@ -35,11 +44,18 @@ from app.backend.seed import (
     REGIONAL_LOCATIONS as SEED_FIRE_REPORTS,
     SEED_USERS,
     seed_fire_reports,
+    seed_water_resources,
 )
 
-TEST_DB_URL = os.getenv(
-    "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-)
+def minio_reachable() -> bool:
+    host, _, port = os.getenv("MINIO_ENDPOINT", "localhost:9000").partition(":")
+    try:
+        socket.create_connection((host, int(port or 9000)), timeout=1).close()
+        return True
+    except (OSError, ValueError):
+        return False
+    
+MINIO_UP = minio_reachable()
 
 engine = create_engine(TEST_DB_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -236,6 +252,13 @@ def seeded_fire_reports(db):
     seed_users_table(db)
     seed_fire_reports(db)
     return db.query(FireReports).all()
+
+@pytest.fixture
+def seeded_water_resources(db):
+    seed_users_table(db)
+    seed_water_resources(db)
+    db.commit()
+    return db.query(WaterResource).order_by(WaterResource.id).all()
 
 
 @pytest.fixture
