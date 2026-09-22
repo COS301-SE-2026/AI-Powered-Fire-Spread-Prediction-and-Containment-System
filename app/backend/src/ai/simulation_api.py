@@ -30,6 +30,8 @@ from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 from app.backend.src.models.containment_lines import ContainmentLines
 from collections import defaultdict
+from app.backend.src.ai.job_builder import fetch_weather_history, fetch_static_grids, build_volunteer_payload
+from app.backend.src.routes.workers import dispatch_simulation_task, has_active_volunteer_workers
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -206,30 +208,62 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             return Prediction(**cached_result)
 
         job_id = f"{fire.reference_number}-{uuid.uuid4().hex[:8]}"
-        job = {
-            "job_id": job_id,
-            "region_id": fire.reference_number,
-            "center_lat": fire.lat,
-            "center_lon": fire.lng,
-            "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
-            "duration_hours": automatic_steps / TICKS_PER_HOUR,
-            "n_steps": automatic_steps,
-            "cell_size_m": cell_size_m,
-            "grid_h": H,
-            "grid_w": W,
-            "boundary_radius_m": boundary_m,
-            "containment_lines": lines,
-        }
+        grid_bounds = [min_lon, min_lat, max_lon, max_lat]
+        raw_result = None
 
-        await asyncio.to_thread(
-            sqs.send_message,
-            QueueUrl=INFERENCE_QUEUE_URL,
-            MessageBody=json.dumps(job),
-        )
+        # Volunteer gpu dispatch
+        if has_active_volunteer_workers():
+            weather_hist = await asyncio.to_thread(
+                fetch_weather_history, 
+                {"grid_h": H, "grid_w": W, "center_lat": fire.lat, "center_lon": fire.lng}
+            )
 
-        raw_result = await wait_for_result(job_id)
+            static_grids = await asyncio.to_thread(
+                fetch_static_grids,
+                {"grid_bounds": grid_bounds, "grid_h": H, "grid_w": W},
+            )
+
+            ignition_mask = build_boundary_ignition_mask(H=H, W=W, cell_size_m=cell_size_m, boundary_radius_m=boundary_m)
+
+            volunteer_payload = build_volunteer_payload(
+                job_id=job_id,
+                weather_history=weather_hist,
+                static_grids=static_grids,
+                ignition_mask=ignition_mask,
+                cell_size_m=cell_size_m,
+                n_steps=automatic_steps,
+                grid_bounds=grid_bounds,
+                containment_lines=lines
+            )
+            dispatch_result = await dispatch_simulation_task(volunteer_payload)
+            if dispatch_result.get("status") == "completed":
+                raw_result = dispatch_result
+
         if raw_result is None:
-            raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+            job = {
+                "job_id": job_id,
+                "region_id": fire.reference_number,
+                "center_lat": fire.lat,
+                "center_lon": fire.lng,
+                "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
+                "duration_hours": automatic_steps / TICKS_PER_HOUR,
+                "n_steps": automatic_steps,
+                "cell_size_m": cell_size_m,
+                "grid_h": H,
+                "grid_w": W,
+                "boundary_radius_m": boundary_m,
+                "containment_lines": lines,
+            }
+
+            await asyncio.to_thread(
+                sqs.send_message,
+                QueueUrl=INFERENCE_QUEUE_URL,
+                MessageBody=json.dumps(job),
+            )
+
+            raw_result = await wait_for_result(job_id)
+            if raw_result is None:
+                raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
 
         raw_history = raw_result.get("history", [])
 

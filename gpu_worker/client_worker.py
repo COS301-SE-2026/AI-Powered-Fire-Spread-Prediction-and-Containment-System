@@ -201,6 +201,7 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                 additional_headers=headers,
                 ping_interval=15,
                 ping_timeout=5,
+                max_size=None
             ) as websocket:
                 log.info("Persistent WebSocket connection established. Node ready.")
 
@@ -246,7 +247,8 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                             )
 
         except websockets.exceptions.InvalidStatus as err:
-            log.error("Authentication rejected: HTTP %d", err)
+            status_code = getattr(err.response, "status_code", "Unknown")
+            log.error("Authentication rejected: HTTP %s (%s)", status_code, err)
             return
         except (websockets.exceptions.ConnectionClosed, OSError) as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)

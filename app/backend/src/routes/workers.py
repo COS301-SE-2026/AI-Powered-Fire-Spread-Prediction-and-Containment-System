@@ -1,6 +1,6 @@
 # for volunteer gpus
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import json
 import logging
 import os
@@ -28,6 +28,7 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 JOB_TIMEOUT_SECONDS = float(os.getenv("SIMULATION_JOB_TIMEOUT", "90.0"))
 
+QUARANTINE_DURATION = timedelta(minutes=0) # will increase for prod
 
 async def verify_worker_token(token: str) -> str:
     """Decodes and validates scoped Worker Device JWT.
@@ -106,9 +107,13 @@ async def websocket_worker_endpoint(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    if node.status == "quarantined" and node.quarentine_until > datetime.now(timezone.utc):
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
-        return
+    if node.status == "quarantined": # testing check atm
+        log.info("auto clearing quarantine for reconnection for worker %s", worker_id)
+        node.status = "active"
+        node.quarentine_until = None
+        node.consecutive_failures = 0
+        #await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        db.commit()
 
     await websocket.accept()
     active_worker_connections[worker_id] = websocket
@@ -157,6 +162,7 @@ async def websocket_worker_endpoint(
                     log.error("Worker %s failed simulation job %s: %s", worker_id, job_id, data.get("error"))
                     node.consecutive_failures += 1
                     node.status = "quarantined"
+                    node.quarentine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION
                     db.commit()
                     valkey.srem("worker:pool:busy", worker_id)
                     valkey.srem("worker:pool:idle", worker_id)
@@ -254,6 +260,7 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
+            node.quarentine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
             session.commit()
         valkey.srem("worker:pool:busy", worker_id)
 
@@ -262,6 +269,7 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
+            node.quarentine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
             session.commit()
         valkey.srem("worker:pool:busy", worker_id)
     finally:
