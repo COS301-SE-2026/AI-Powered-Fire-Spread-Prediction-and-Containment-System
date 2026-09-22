@@ -86,3 +86,47 @@ def test_sorted_nearest_first(client, db):
     assert names == ["Near", "Middle", "Far"]
     distances = [r["distance"] for r in body["data"]]
     assert distances == sorted(distances)
+    
+# Test filters
+def test_default_status_filter_excludes_non_available(client, db):
+    owner = make_user(db, role="user")
+    register(client, owner, name="Available One")
+    unavailable = register(client, owner, name="Unavailable One")
+    db.query(WaterResource).filter_by(id=unavailable["id"]).update({"status": "unavailable"})
+    db.commit()
+    firefighter = make_user(db, role="firefighter")
+    
+    body = nearby(client, firefighter).json()
+    
+    assert [r["name"] for r in body["data"]] == ["Available One"]
+    
+def test_status_filter_can_be_overridden(client, db):
+    owner = make_user(db, role="user")
+    dispatched = register(client, owner, name="Dispatched One")
+    db.query(WaterResource).filter_by(id=dispatched["id"]).update({"status": "dispatched"})
+    db.commit()
+    firefighter = make_user(db, role="firefighter")
+    
+    body = nearby(client, firefighter, status="dispatched").json()
+    
+    assert [r["name"] for r in body["data"]] == ["Dispatched One"]
+    
+def test_radius_km_excludes_far_resources(client, db):
+    owner = make_user(db, role="user")
+    register(client, owner, name="Near", externalPin={"lat": -25.7461, "lng": 28.1881})
+    register(client, owner, name="Far", externalPin={"lat": -26.5, "lng": 29.5})
+    firefighter = make_user(db, role="firefighter")
+    
+    body = nearby(client, firefighter, radius_km=5).json()
+    
+    assert [r["name"] for r in body["data"]] == ["Near"]
+    
+def test_radius_km_must_be_positive(client, db):
+    firefighter = make_user(db, role="firefighter")
+    res = nearby(client, firefighter, radius_km=0)
+    assert res.status_code == 422
+    
+def test_missing_lat_lng_is_422(client, db):
+    firefighter = make_user(db, role="firefighter")
+    res = client.get("/api/resources", headers=auth(firefighter))
+    assert res.status_code == 422
