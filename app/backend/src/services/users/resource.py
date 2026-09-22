@@ -65,7 +65,7 @@ def list_resources(db: Session, user: User, limit: int = 50, offset = 0) -> dict
         query.with_entities(
             WaterResource,
             func.ST_Y(WaterResource.location_geom).label("lat"),
-            func.ST_Y(WaterResource.location_geom).label("lng"),
+            func.ST_X(WaterResource.location_geom).label("lng"),
         )
         .order_by(WaterResource.created_at.desc(), WaterResource.id)
         .limit(limit)
