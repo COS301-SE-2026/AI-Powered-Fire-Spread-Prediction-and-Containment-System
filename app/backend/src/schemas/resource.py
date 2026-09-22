@@ -135,3 +135,11 @@ class ResourceListResponse(CamelModel):
     data: List[ResourceResponse]
     total: int
     
+class NearbyResourceResponse(ResourceResponse):
+    distance: float = Field(..., description="Distance from the given point (km)")
+    
+class NearbyResourceListResponse(CamelModel):
+    data: List[NearbyResourceResponse]
+    total: int
+
+    
