@@ -99,7 +99,7 @@ export default function Simulation() {
       })));
     });
     return () => { cancled = true };
-  }, [selectedFireId, fetchLines, clearMap])
+  }, [selectedFireId, fetchLines, clearMap, clearSuggestion])
 
   function handleRun() {
     const steps = selectedFireId ? 288 : 4
@@ -176,7 +176,8 @@ export default function Simulation() {
       }
       clearSuggestion();
       handleRun();
-    } catch {
+    } catch (err) {
+      console.error('Failed to accept suggested containment line', err);
     } finally {
       setAcceptingSuggestion(false);
     }

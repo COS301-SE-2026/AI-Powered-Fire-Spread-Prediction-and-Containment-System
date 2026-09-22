@@ -180,7 +180,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
     })),
   }), [lines]);
 
-  //suggested line memo
+  // suggested line memo
   const suggestedLineFeature = useMemo(() => {
     if (!suggestedLine) return null;
     return {

@@ -14,7 +14,11 @@ export function SuggestedLineCard({
     onDismiss,
     accepting = false,
 }: SuggestedLineCardProps) {
-    const { length_m, build_time_min, margin_min } = suggestion;
+    const { 
+        length_m: lengthM,
+        build_time_min: buildTimeMin,
+        margin_min: marginMin,
+    } = suggestion;
     return (
         <div className="flex flex-col gap-2 p-3 border border-purple-400/40 rounded-xl bg-purple-400/10">
             <div className="flex items-center gap-2">
@@ -27,17 +31,17 @@ export function SuggestedLineCard({
                 <div className="flex flex-col">
                     <span className="text-text-muted">Length</span>
                     <span>
-                        {length_m >= 1000 ? `${(length_m / 1000).toFixed(2)} km` : `${length_m.toFixed(0)} m`}
+                        {lengthM >= 1000 ? `${(lengthM / 1000).toFixed(2)} km` : `${lengthM.toFixed(0)} m`}
                     </span>
                 </div>
                 <div className="flex flex-col">
                     <span className="text-text-muted">Build time</span>
-                    <span>{build_time_min.toFixed(0)} min</span>
+                    <span>{buildTimeMin.toFixed(0)} min</span>
                 </div>
                 <div className="flex flex-col">
                     <span className="text-text-muted">Margin</span>
-                    <span className={margin_min < 30 ? 'text-yellow-400' : 'text-green-400'}>
-                        {margin_min.toFixed(0)} min
+                    <span className={marginMin < 30 ? 'text-yellow-400' : 'text-green-400'}>
+                        {marginMin.toFixed(0)} min
                     </span>
                 </div>
             </div>
