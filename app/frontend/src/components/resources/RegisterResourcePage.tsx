@@ -208,11 +208,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
       return;
     }
 
-    let fireRef: string | null = null;
-    if (typeof router.query.fire === 'string') {
-      fireRef = router.query.fire;
-    }
-    const created = await submitResource(form, fireRef);
+    const created = await submitResource(form);
     if (created){
       dispatch({ type: 'RESET_AFTER_SUBMIT' });
       setShowErrors(false);
@@ -233,7 +229,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
   return (
     <div className="flex flex-col p-2">
       <header>
-        <PageHeader title="Register a Resources" subtitle="Add your water trailer, tank, dam, hydrant, crew or equipment to be used in a fire." showIcons={showHeaderIcons} />
+        <PageHeader title="Register a Resource" subtitle="Add your water trailer, tank, dam, hydrant, crew or equipment to be used in a fire." showIcons={showHeaderIcons} />
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1 mt-4">

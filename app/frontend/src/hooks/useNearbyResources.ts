@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-// import { apiCall } from '../lib/api';
-import { mockResources } from '../mockData/Resources';
+import { apiCall } from '../lib/api';
 import type { ResourceTable } from '../types/Resource';
 
 export interface NearbyResource extends ResourceTable {
@@ -25,14 +24,15 @@ export function useNearbyResources(userLocation: { lat: number, lng: number }, r
       setError(null);
 
       try {
-            // const data = await apiCall(url);
-            // if (cancelled) return;
-            // setNearbyResources(data.resources?.data ?? []);
+            const params = new URLSearchParams({
+              lat: String(userLocation.lat),
+              lng: String(userLocation.lng),
+            });
+            if (radiusKm != null) params.set('radius_k.', String(radiusKm));
 
-            // MOCK: delete this block when backend is live
-            const data: ResourceTable[] = mockResources;
+            const res = await apiCall(`/api/resources?${params.toString()}`);
             if (cancelled) return;
-            setNearbyResources( data.map((r) => ({ ...r, distance: distance( userLocation.lat, userLocation.lng, r.externalPin.lat, r.externalPin.lng ),})).filter((r) => radiusKm == null || r.distance <= radiusKm).sort((a, b) => a.distance - b.distance));
+            setNearbyResources((res.data ?? []) as NearbyResource[]);
       } catch (err: unknown) {
         if (cancelled) return;
         console.error('Was unable to find/retrieve dashboard data', err);
