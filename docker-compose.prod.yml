@@ -18,18 +18,10 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
-      MINIO_ENDPOINT: minio-prod:9000
-      MINIO_SECURE: "false"
-      MINIO_PUBLIC_ENDPOINT: fireaway.site
-      MINIO_PUBLIC_SECURE: "true"
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET: fire-reports
+      STORAGE_BUCKET: fireaway-ryan-fire-reports
     depends_on:
       valkey:
           condition: service_started
-      minio:
-          condition: service_healthy
     deploy:
       resources:
         limits:
@@ -111,22 +103,22 @@ services:
           cpus: "0.05"
           memory: 128M
 
-  minio:
-    image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
-    restart: always
-    command: ["server", "/data", "--console-address", ":9001"]
-    deploy:
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: 128M
-        reservations:
-          cpus: "0.05"
-          memory: 32M
-    networks:
-      internal:
-      edge:
-        aliases: [minio-prod]
+  # minio:
+  #   image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+  #   restart: always
+  #   command: ["server", "/data", "--console-address", ":9001"]
+  #   deploy:
+  #     resources:
+  #       limits:
+  #         cpus: "0.3"
+  #         memory: 128M
+  #       reservations:
+  #         cpus: "0.05"
+  #         memory: 32M
+  #   networks:
+  #     internal:
+  #     edge:
+  #       aliases: [minio-prod]
 
 volumes:
   caddy_prod_data:

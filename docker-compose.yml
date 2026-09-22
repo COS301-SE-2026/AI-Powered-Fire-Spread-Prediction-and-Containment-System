@@ -7,7 +7,6 @@ services:
       [.env]
     environment:
       VALKEY_HOST: valkey
-      MINIO_ENDPOINT: minio:9000
       PYTHONPATH: /app
       VALKEY_PORT: "6379"
       AWS_REGION: ${AWS_REGION}
@@ -17,8 +16,6 @@ services:
       ARTIFACTS_ROOT: /mnt/fire-system-artifacts
     restart: unless-stopped
     depends_on:
-      minio:
-        condition: service_healthy
       valkey:
         condition: service_healthy
     expose:
@@ -53,25 +50,25 @@ services:
     networks:
       [edge]
 
-  minio:
-    image: quay.io/minio/minio:latest
-    restart: unless-stopped
-    env_file:
-      [.env]
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_DRIVE_MIN_FREE_DISK: "500MB"
-    volumes:
-      - miniodata:/data
-    command: server /data --console-address ":9001"
-    healthcheck:
-      test: [ "CMD", "mc", "ready", "local" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      [internal]
+  # minio:
+  #   image: quay.io/minio/minio:latest
+  #   restart: unless-stopped
+  #   env_file:
+  #     [.env]
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+  #     MINIO_DRIVE_MIN_FREE_DISK: "500MB"
+  #   volumes:
+  #     - miniodata:/data
+  #   command: server /data --console-address ":9001"
+  #   healthcheck:
+  #     test: [ "CMD", "mc", "ready", "local" ]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     [internal]
 
   valkey:
     image: valkey/valkey:latest
@@ -94,7 +91,7 @@ networks:
     driver: bridge
   
 volumes:
-  miniodata:
+  # miniodata:
   valkeydata:
 
   # pwa:

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.users import User
-from app.backend.src.services.storage import public_image_url
+from app.backend.src.services.storage import get_presigned_url
 
 
 def get_fire_reports(db: Session):
@@ -84,7 +84,7 @@ def get_single_fire_report(db: Session, ref: str):
         "submitted_at": request.submitted_at,
         "reporter": request.reporter,
         "description": request.description,
-        "image_url": public_image_url(request.image_url),
+        "image_url": get_presigned_url(request.image_url),
         "verification_notes": request.verification_notes,
         "lat": shape.y,
         "lng": shape.x,

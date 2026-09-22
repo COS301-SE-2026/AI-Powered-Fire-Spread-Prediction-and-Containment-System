@@ -84,10 +84,28 @@ services:
       [internal]
 
   minio:
-    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    image: quay.io/minio/minio:latest
+    restart: unless-stopped
+    env_file:
+      [.env]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DRIVE_MIN_FREE_DISK: "500MB"
+    volumes:
+      - miniodata:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      [internal]
   valkey:
     ports: ["127.0.0.1:6379:6379"]
 
 volumes:
   pgdata:
   frontend_node_modules:
+  miniodata:

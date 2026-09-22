@@ -1,42 +1,43 @@
 # MinIO client and upload/presign logic
 import os
 import uuid
-from datetime import timedelta
-from io import BytesIO
 from typing import Optional
 
-from minio import Minio
-from minio.error import S3Error
 
-minio_client = Minio(
-    os.getenv("MINIO_ENDPOINT"),
-    access_key=os.environ["MINIO_ACCESS_KEY"],
-    secret_key=os.environ["MINIO_SECRET_KEY"],
-    secure=os.environ.get("MINIO_SECURE", "false").lower() == "true",
-    region="us-east-1",
-)
+import boto3
+from botocore.client import Config
+from botocore.exceptions import ClientError
 
-# Separate client only for generating presigned URLs, using the browser-reachable endpoint
-presign_client = Minio(
-    os.environ.get("MINIO_PUBLIC_ENDPOINT", "minio:9000"),
-    access_key=os.environ["MINIO_ACCESS_KEY"],
-    secret_key=os.environ["MINIO_SECRET_KEY"],
-    secure=os.environ.get("MINIO_PUBLIC_SECURE", "false").lower() == "true",
-    region="us-east-1",
-)
+# Dev -> STORAGE_ENDPOINT_URL=http://minio:9000 + access keys
+# staging/prod -> endpoint and keys gotten via real s3 instance role
+ENDPOINT = os.getenv("STORAGE_ENDPOINT_URL") or None
+PUBLIC_ENDPOINT = os.getenv("STORAGE_PUBLIC_ENDPOINT_URL") or ENDPOINT
+REGION = os.getenv("AWS_REGION", "us-east-1")
 
-BUCKET = os.environ["MINIO_BUCKET"]
-ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp"}
+KEYS = {}
+if os.getenv("STORAGE_ACCESS_KEY"):
+    KEYS = {
+        "aws_access_key_id": os.environ["STORAGE_ACCESS_KEY"],
+        "aws_secret_access_key": os.environ["STORAGE_SECRET_KEY"]
+    }
+
+CFG = Config(signature_version="s3v4", s3={"addressing_style": "path" if ENDPOINT else "virtual"})
+
+s3 = boto3.client("s3", endpoint_url=ENDPOINT, region_name=REGION, config=CFG, **KEYS)
+presign_client = boto3.client("s3", endpoint_url=PUBLIC_ENDPOINT, region_name=REGION, config=CFG, **KEYS) # signs url against host browser
+
+BUCKET = os.environ["STORAGE_BUCKET"]
+PREFIX = os.getenv("ENVIRONMENT", "dev") # prod and staging share a bucket
+ALLOWED_TYPES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
 MAX_SIZE_MB = 10
 
-
 def ensure_bucket():
+    if not ENDPOINT:
+        return
     try:
-        if not minio_client.bucket_exists(BUCKET):
-            minio_client.make_bucket(BUCKET)
-    except S3Error as err:
-        if err.code not in ("BucketAlreadyOwnedByYou", "BucketAlreadyExists"):
-            raise
+        s3.head_bucket(Bucket=BUCKET)
+    except ClientError:
+        s3.create_bucket(Bucket=BUCKET)
 
 
 def validate_image(content_type: str, size_bytes: int):
@@ -47,20 +48,10 @@ def validate_image(content_type: str, size_bytes: int):
 
 
 def upload_image(filename: str, content_type: str, contents: bytes) -> str:
-    """Uploads to MinIO, returns object_key to store in FireReports.image_url"""
+    """Uploads the image, returns object_key to store in FireReports.image_url"""
     validate_image(content_type, len(contents))
-    ext = filename.split(".")[-1]
-    object_key = f"reports/{uuid.uuid4()}.{ext}"
-
-    minio_client.put_object(
-        BUCKET,
-        object_key,
-        data=BytesIO(contents),
-        length=len(contents),
-        content_type=content_type,
-        part_size=10 * 1024 * 1024
-    )
-
+    object_key = f"{PREFIX}/reports/{uuid.uuid4()}.{ALLOWED_TYPES[content_type]}"
+    s3.put_object(Bucket=BUCKET, Key=object_key, Body=contents, ContentType=content_type)
     return object_key
 
 
@@ -69,20 +60,12 @@ def get_presigned_url(
 ) -> Optional[str]:
     if not object_key:
         return None
-    return presign_client.presigned_get_object(
-        BUCKET,
-        object_key,
-        expires=timedelta(minutes=expires_minutes),
+    return presign_client.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": BUCKET, "Key": object_key},
+        ExpiresIn=expires_minutes * 60,
     )
 
 
 def delete_photo(object_key: str):
-    minio_client.remove_object(BUCKET, object_key)
-
-def public_image_url(object_key: Optional[str]) -> Optional[str]:
-    if not object_key:
-        return None
-    secure = os.environ.get("MINIO_PUBLIC_SECURE", "false").lower() == "true"
-    scheme = "https" if secure else "http"
-    endpoint = os.environ.get("MINIO_PUBLIC_ENDPOINT")
-    return f"{scheme}://{endpoint}/{BUCKET}/{object_key}"
+    s3.delete_object(Bucket=BUCKET, Key=object_key)
