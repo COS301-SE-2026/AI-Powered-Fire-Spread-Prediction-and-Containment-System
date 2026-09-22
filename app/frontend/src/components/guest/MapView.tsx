@@ -57,6 +57,23 @@ export default function MapView() {
       {/* Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-8 flex flex-col gap-6">
+          {/* Show water toggle above map */}
+          <div className='flex justify-end'>
+              <label className='flex items-center gap-2 cursor-pointer select-none bg-carbon-bg/90 border border-carbon-card rounded-full px-3 py-1.5 shadow-lg backdrop-blur-sm'>
+                <span className='text-sm font-medium text-text-muted'>
+                  Show Water
+                </span>
+                <button
+                  type='button'
+                  role='switch'
+                  aria-checked={showWater}
+                  onClick={() => setShowWater((w) => !w)}
+                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${showWater ? 'bg-ignite' : 'bg-carbon-stroke'}`}
+                >
+                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform ${showWater ? 'translate-x-4' : 'translate-x-1'}`} />
+                </button>
+              </label>
+            </div>
           {/* Map */}
           <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-96 sm:h-104 lg:h-140 w-full shadow-md">
             <PublicFireMap
@@ -75,22 +92,6 @@ export default function MapView() {
               selectedResourceId={selectedResourceId}
               onSelectResource={handleSelectResource}
             />
-          <div className='absolute top-3 right-3 z-20'>
-              <label className='flex items-center gap-2 cursor-pointer select-none bg-carbon-bg/90 border border-carbon-card rounded-full px-3 py-1.5 shadow-lg backdrop-blur-sm'>
-                <span className='text-sm font-medium text-text-muted'>
-                  Show Water
-                </span>
-                <button
-                  type='button'
-                  role='switch'
-                  aria-checked={showWater}
-                  onClick={() => setShowWater((w) => !w)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${showWater ? 'bg-ignite' : 'bg-carbon-stroke'}`}
-                >
-                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform ${showWater ? 'translate-x-4' : 'translate-x-1'}`} />
-                </button>
-              </label>
-            </div>
           <div className='absolute top-3 left-3 z-20 flex flex-col gap-2'>
               <Link href='/admin/report-fire' aria-label='Report a fire' title='Report a fire' className='w-10 h-10 rounded-full bg-primary text-text-primary flex items-center justify-center shadow-lg ring-lg ring-black/10 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-150'>
                 <Plus className='w-5 h-5' />
