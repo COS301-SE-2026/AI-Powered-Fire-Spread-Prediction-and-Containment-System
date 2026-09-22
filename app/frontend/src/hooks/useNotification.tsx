@@ -81,10 +81,6 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    knownIdsRef.current = new Set(notifications.map((n) => n.id));
-  }, [notifications]);
-
   const fetchNotifications = useCallback(
     async (options: { toastIfNew: boolean }) => {
       try {
@@ -100,11 +96,8 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
         setLocationEnabled(data.locationEnabled);
         setError(null);
 
-        if (options.toastIfNew) {
-          const toastCandidate =
-            newlyArrived.find((n) => !n.read && !dismissIsRef.current.has(n.id)) ??
-            data.notifications.find((n) => !n.read && !dismissIsRef.current.has(n.id));
-
+        if (options.toastIfNew && newlyArrived.length > 0) {
+          const toastCandidate = newlyArrived.find((n) => !n.read);
           if (toastCandidate) {
             showToast(toastCandidate);
           }
