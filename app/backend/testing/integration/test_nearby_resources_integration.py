@@ -31,3 +31,23 @@ def register(client, user, **overrides):
 
 def nearby(client, user, **params):
     return client.get("/api/resources", params={**HERE, **params}, headers=auth(user))
+
+# Test access control
+def test_requires_login(client, db):
+    res = client.get("/api/resources", params=HERE)
+    assert res.status_code == 401
+    
+def test_regular_user_forbidden(client, db):
+    user = make_user(db, role="user")
+    res = nearby(client, user)
+    assert res.status_code == 403
+    
+def test_firefighter_allowed(client, db):
+    firefighter = make_user(db, role="firefighter")
+    res = nearby(client, firefighter)
+    assert res.status_code == 200
+    
+def test_admin_allowed(client, db):
+    admin = make_user(db, role="admin")
+    res = nearby(client, admin)
+    assert res.status_code == 200
