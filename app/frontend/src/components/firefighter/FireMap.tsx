@@ -21,7 +21,7 @@ import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
 import { useWaterBodies } from '../../hooks/useWaterBodies';
 import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDamsFromOSM';
-import { ResourceMarkers } from './ResourceMarkers';
+import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 
 interface MapProps{

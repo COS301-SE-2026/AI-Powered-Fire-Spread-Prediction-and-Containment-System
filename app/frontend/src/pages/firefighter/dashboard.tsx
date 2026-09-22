@@ -14,9 +14,9 @@ import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
-import { NearbyResources } from '../../components/firefighter/NearbyResources';
+import { NearbyResources } from '../../components/shared/NearbyResources';
 import { useNearbyResources } from '../../hooks/useNearbyResources';
-import { ResourceMapLegend } from '../../components/firefighter/ResourceMapLegend';
+import { ResourceMapLegend } from '../../components/shared/ResourceMapLegend';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
