@@ -14,12 +14,13 @@ variable "security_group_id" {
 
 variable "key_name" {
   type        = string
-  description = "Name of the existing EC2 key pair in AWS"
+  default     = null
+  description = "Optional ec2 key pair, now using ssm which doesnt need key pair"
 }
 
 variable "env_secret_name" {
   type        = string
-  description = "fireaway/prod/env or fireaway/prod/env as an example"
+  description = "fireaway/prod/env or fireaway/staging/env as an example"
 }
 
 variable "caddyfile_content" {

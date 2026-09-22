@@ -1,0 +1,64 @@
+#!/bin/bash
+set -euxo pipefail
+exec > >(tee /var/log/fireaway-bootstrap.log) 2>&1
+
+export DEBIAN_FRONTEND=noninteractive
+apt-get update
+apt-get install -y ca-certificates curl unzip jq amazon-ecr-credential-helper
+
+# docker compose 
+curl -fsSL https://get.docker.com | sh
+systemctl enable --now docker
+usermod -aG docker ubuntu
+
+# AWS CLI v2
+curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+unzip -q /tmp/awscliv2.zip -d /tmp
+/tmp/aws/install
+
+#ECR auth via instance role(no 12hr token expiry)
+for home in /root /home/ubuntu; do
+  mkdir -p $home/.docker
+  echo '{"credsStore":"ecr-login"}' > $home/.docker/config.json
+done
+chown -R ubuntu:ubuntu /home/ubuntu/.docker
+
+# network the compose files expect
+docker network create fireaway-edge || true
+
+# caddyfile path matches the gateway mount in compose
+mkdir -p /home/ubuntu/caddy /opt/fireaway
+cat > /home/ubuntu/caddy/Caddyfile <<'CADDY'
+${caddyfile_content}
+CADDY
+
+# Deploy script /opt/fireaway/deploy.sh <backend_image_uri> <frontend_image_uri>
+cat > /opt/fireaway/deploy.sh << 'DEPLOY'
+#!/bin/bash
+set -euo pipefail
+BACKEND_IMAGE="$1"
+FRONTEND_IMAGE="$2"
+export BACKEND_IMAGE FRONTEND_IMAGE
+cd /opt/fireaway
+
+aws s3 cp s3://fireaway-ryan-artifacts/deploy/ . --recursive --exclude "*" --include "docker-compose*.yml"
+aws secretsmanager get-secret-value --region ${aws_region} --secret-id ${env_secret_name} \
+  --query SecretString --output text > .env
+chmod 600 .env
+
+COMPOSE="docker compose -f docker-compose.yml -f docker-compose.${compose_env}.yml"
+$COMPOSE pull
+$COMPOSE up -d --remove-orphans
+
+for i in $(seq 1 30); do
+  if $COMPOSE ps backend --format '{{.Health}}' | grep -q '^healthy$'; then
+    echo "backend healthy"
+    exit 0
+  fi
+  sleep 10
+done
+echo "backend never became healthy" >&2
+$COMPOSE logs --tail 100 backend >&2
+exit 1
+DEPLOY
+chmod +x /opt/fireaway/deploy.sh
