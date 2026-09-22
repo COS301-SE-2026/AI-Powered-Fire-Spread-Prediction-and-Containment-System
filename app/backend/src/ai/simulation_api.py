@@ -208,52 +208,40 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             return Prediction(**cached_result)
 
         job_id = f"{fire.reference_number}-{uuid.uuid4().hex[:8]}"
-        grid_bounds = [min_lon, min_lat, max_lon, max_lat]
+
+    
+        job = {
+            "job_id": job_id,
+            "region_id": fire.reference_number,
+            "center_lat": fire.lat,
+            "center_lon": fire.lng,
+            "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
+            "duration_hours": automatic_steps / TICKS_PER_HOUR,
+            "n_steps": automatic_steps,
+            "cell_size_m": cell_size_m,
+            "grid_h": H,
+            "grid_w": W,
+            "boundary_radius_m": boundary_m,
+            "containment_lines": lines,
+        }
+
         raw_result = None
 
-        # Volunteer gpu dispatch
+        # Try to see if a volunteer is avaliable
         if has_active_volunteer_workers():
-            weather_hist = await asyncio.to_thread(
-                fetch_weather_history, 
-                {"grid_h": H, "grid_w": W, "center_lat": fire.lat, "center_lon": fire.lng}
-            )
+            try:
+                logger.info(f"Volunteer worker is online. Dispatching job {job_id}")
+                dispatch_res = await dispatch_simulation_task(job)
+                if dispatch_res and dispatch_res.get("status") == "completed":
+                    raw_result = dispatch_res
+                    logger.info(f"Volunteer completed for the following job: {job_id} successfully") 
+                else:
+                    logger.warning(f"Volunteer failed for the following job: {job_id}. Now falling back onto server workers")
+            except Exception as err:
+                logger.exception(f"Error during volunteer dispatch job {job_id}. Now falling back onto server workers")
 
-            static_grids = await asyncio.to_thread(
-                fetch_static_grids,
-                {"grid_bounds": grid_bounds, "grid_h": H, "grid_w": W},
-            )
-
-            ignition_mask = build_boundary_ignition_mask(H=H, W=W, cell_size_m=cell_size_m, boundary_radius_m=boundary_m)
-
-            volunteer_payload = build_volunteer_payload(
-                job_id=job_id,
-                weather_history=weather_hist,
-                static_grids=static_grids,
-                ignition_mask=ignition_mask,
-                cell_size_m=cell_size_m,
-                n_steps=automatic_steps,
-                grid_bounds=grid_bounds,
-                containment_lines=lines
-            )
-            dispatch_result = await dispatch_simulation_task(volunteer_payload)
-            if dispatch_result.get("status") == "completed":
-                raw_result = dispatch_result
-
+        #Cloud fall back
         if raw_result is None:
-            job = {
-                "job_id": job_id,
-                "region_id": fire.reference_number,
-                "center_lat": fire.lat,
-                "center_lon": fire.lng,
-                "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
-                "duration_hours": automatic_steps / TICKS_PER_HOUR,
-                "n_steps": automatic_steps,
-                "cell_size_m": cell_size_m,
-                "grid_h": H,
-                "grid_w": W,
-                "boundary_radius_m": boundary_m,
-                "containment_lines": lines,
-            }
 
             await asyncio.to_thread(
                 sqs.send_message,
@@ -264,6 +252,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             raw_result = await wait_for_result(job_id)
             if raw_result is None:
                 raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+
+        # Format and cache the output
 
         raw_history = raw_result.get("history", [])
 

@@ -16,6 +16,8 @@ import websockets
 
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
+from app.backend.src.ai.simulation import build_boundary_ignition_mask
+from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -134,36 +136,35 @@ def register_worker(reg_key: str, gpu_name: str, vram_mb: int) -> Optional[Tuple
 
 def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
     job_id = payload.get("job_id", "sim_task")
-    log.info("Executing fire simulation pipeline for job: %s", job_id)
+    log.info("Fetching remote terrain and weather data for job: %s", job_id)
 
-    weather_raw = payload["weather_history"]
-    weather_tensor = torch.as_tensor(weather_raw, dtype=torch.float32)
-    if weather_tensor.ndim == 4:
-        weather_tensor = weather_tensor.unsqueeze(0)
+    # fetch satelite and weather data
+    weather_history = fetch_weather_history(payload)
+    static_grids = fetch_static_grids(payload)
 
-    static_grids = {
-        "elevation": np.array(payload["static_grids"]["elevation"], dtype=np.float32),
-        "slope": np.array(payload["static_grids"]["slope"], dtype=np.float32),
-        "aspect_sin": np.array(payload["static_grids"]["aspect_sin"], dtype=np.float32),
-        "aspect_cos": np.array(payload["static_grids"]["aspect_cos"], dtype=np.float32),
-        "fuel_load": np.array(payload["static_grids"]["fuel_load"], dtype=np.float32),
-        "dryness": np.array(payload["static_grids"]["dryness"], dtype=np.float32),
-    }
+    # build the [1 T 4 H W] tensor for lstm
+    frames = []
+    for frame in weather_history:
+        stacked = np.stack(
+            [
+                frame["wind_u"],
+                frame["wind_v"],
+                frame["rel_humidity"],
+                frame["temperature"]
+            ],
+            axis=0
+        ).astype(np.float32)
+        frames.append(stacked)
+    weather_tensor = torch.from_numpy(np.stack(frames, axis=0)).unsqueeze(0)
 
-    ignition_mask = (
-        np.array(payload["ignition_mask"], dtype=bool)
-        if "ignition_mask" in payload
-        else None
+    ignition_mask = build_boundary_ignition_mask(
+        H=payload["grid_h"],
+        W=payload["grid_w"],
+        cell_size_m=payload["cell_size_m"],
+        boundary_radius_m=payload["boundary_radius_m"]
     )
 
-    cell_size_m = float(payload.get("cell_size_m", 15.0))
-    n_steps = int(payload.get("n_steps", 4))
-    containment_lines = payload.get("containment_lines")
-    grid_bounds = (
-        tuple(payload["grid_bounds"]) if "grid_bounds" in payload else None
-    )
-
-    raw_params = payload.get("params", {})
+    raw_params = payload.get("params", DEFAULT_DCA_PARAMS)
     params = (
         {k: torch.as_tensor(v, dtype=torch.float32) for k, v in raw_params.items()}
         if raw_params
@@ -174,11 +175,11 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         convlstm_model=model,
         weather_history=weather_tensor,
         static_grids=static_grids,
-        cell_size_m=cell_size_m,
-        n_steps=n_steps,
+        cell_size_m=payload["cell_size_m"],
+        n_steps=payload["n_steps"],
         ignition_mask=ignition_mask,
-        containment_lines=containment_lines,
-        grid_bounds=grid_bounds,
+        containment_lines=payload.get("containment_lines"),
+        grid_bounds=payload.get("grid_bounds"),
         params=params,
     )
 
