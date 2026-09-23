@@ -18,6 +18,7 @@ from app.backend.src.routes.users import router as user_router
 from app.backend.src.routes.guests import router as guest_router
 from app.backend.src.routes.auth import router as auth_router
 from app.backend.src.routes.workers import router as workers_router
+from app.backend.src.routes.resources import router as resources_router
 
 from app.backend.startup_migrations import run_startup_migrations
 from app.backend.seed import seed
@@ -82,6 +83,7 @@ app.include_router(simulation_router)
 app.include_router(notifications_and_location_router)
 app.include_router(forgot_password_router)
 app.include_router(workers_router)
+app.include_router(resources_router)
 
 
 @app.get("/")

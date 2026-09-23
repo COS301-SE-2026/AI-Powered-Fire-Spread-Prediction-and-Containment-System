@@ -934,6 +934,7 @@
     picocolors "1.1.1"
     pretty-format "^27.0.2"
 
+<<<<<<< HEAD
 "@turf/boolean-disjoint@7.4.0":
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/@turf/boolean-disjoint/-/boolean-disjoint-7.4.0.tgz#77054351221bc62064fd35c8f99e5338bf6d05c2"
@@ -957,6 +958,19 @@
     tslib "^2.8.1"
 
 "@turf/boolean-point-in-polygon@7.4.0":
+=======
+"@turf/area@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/area/-/area-7.4.0.tgz#9495392ef45f3eb93cc5e54dd857cc4c0faabe97"
+  integrity sha512-B7q5f6QwKIxxbl4/L59lAYA+FF7h2hv6st96PuKue0TGCYGSxAG/lV8LHSPUSOuOrLywN4jytJcKK3vOFBs7Nw==
+  dependencies:
+    "@turf/helpers" "7.4.0"
+    "@turf/meta" "7.4.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/boolean-point-in-polygon@^7.4.0":
+>>>>>>> 7163a79479cb54faf177ad52ae0152cc48ec1262
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/@turf/boolean-point-in-polygon/-/boolean-point-in-polygon-7.4.0.tgz#8b773bba216fc054600fce55d56e824f7b241fe9"
   integrity sha512-GQrHc6WSDHhf32GB/b9AGyOeC05AQ3nGN7ooWTrlCYefKn7X9/2wG9BNexF47AuyDq5jPdOvITVR26BLFWV+mA==
@@ -967,6 +981,19 @@
     point-in-polygon-hao "^1.1.0"
     tslib "^2.8.1"
 
+<<<<<<< HEAD
+=======
+"@turf/centroid@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/centroid/-/centroid-7.4.0.tgz#0f69120f105cef8c91154f915cb7863691654cd5"
+  integrity sha512-WglCFe+TnMqeYa/LcbUp37NgIF0zHTNYmlxwUm40fyyzyLsYeDq4dgFWLTYpvRNqb5oIMV6xsBjSf+vCPtVJ6w==
+  dependencies:
+    "@turf/helpers" "7.4.0"
+    "@turf/meta" "7.4.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+>>>>>>> 7163a79479cb54faf177ad52ae0152cc48ec1262
 "@turf/circle@^7.3.5":
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/@turf/circle/-/circle-7.4.0.tgz#e8aac64d9589afa0fc2dc2f0ebc5b93ed9c2e165"
@@ -996,7 +1023,21 @@
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
+<<<<<<< HEAD
 "@turf/helpers@7.4.0", "@turf/helpers@^7.3.5":
+=======
+"@turf/flatten@^7.4.0":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/flatten/-/flatten-7.4.0.tgz#bae4209dea22ce50e836c3f3e9925a371c4da230"
+  integrity sha512-yrXpvXtmPlXIIoRuonQ7z+Uj47Sw9KYlH9oh9NBb3QRfz53LN+OTNndkGeXPaI00BDXxO/aZ7wEGmzuoCaDn1w==
+  dependencies:
+    "@turf/helpers" "7.4.0"
+    "@turf/meta" "7.4.0"
+    "@types/geojson" "^7946.0.10"
+    tslib "^2.8.1"
+
+"@turf/helpers@7.4.0", "@turf/helpers@^7.4.0":
+>>>>>>> 7163a79479cb54faf177ad52ae0152cc48ec1262
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/@turf/helpers/-/helpers-7.4.0.tgz#5589f04812ac95f8985e9396db01d9e70f4a35d5"
   integrity sha512-7PAwLZqOdRzTI5g9bHvUwlloAXPDH/mlajtryk0tw4ZwGMtmXsAyF4QundsAMfy4u48Fyd3AUqMXY0SMxqJGWg==
@@ -1054,7 +1095,11 @@
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
+<<<<<<< HEAD
 "@turf/union@^7.3.5":
+=======
+"@turf/union@^7.4.0":
+>>>>>>> 7163a79479cb54faf177ad52ae0152cc48ec1262
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/@turf/union/-/union-7.4.0.tgz#903a7ce68c90b71bf541235cc54e8551364b32e1"
   integrity sha512-SYVtsCW9IznTyKlcGWxssRrf90p/hdpch1UeIcZc31pkSVdmeLOyuzPx0ef3UPmaF//fgXAphMph6JWA/FpKbA==
@@ -4101,11 +4146,14 @@ rimraf@^3.0.2:
   dependencies:
     glob "^7.1.3"
 
+<<<<<<< HEAD
 robust-predicates@^2.0.4:
   version "2.0.4"
   resolved "https://registry.yarnpkg.com/robust-predicates/-/robust-predicates-2.0.4.tgz#0a2367a93abd99676d075981707f29cfb402248b"
   integrity sha512-l4NwboJM74Ilm4VKfbAtFeGq7aEjWL+5kVFcmgFA2MrdnQWx9iE/tUGvxY5HyMI7o/WpSIUFLbC5fbeaHgSCYg==
 
+=======
+>>>>>>> 7163a79479cb54faf177ad52ae0152cc48ec1262
 robust-predicates@^3.0.2:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/robust-predicates/-/robust-predicates-3.0.3.tgz#1099061b3349e2c5abec6c2ab0acd440d24d4062"
