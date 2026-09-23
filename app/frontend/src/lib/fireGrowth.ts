@@ -14,6 +14,11 @@ export interface FireEnvironment {
     humidityPct: number;
 }
 
+export interface DirectionalBias {
+    bearing_deg: number;
+    factor: number;
+}
+
 export interface GrowableFire {
     id: string;
     ref: string;
