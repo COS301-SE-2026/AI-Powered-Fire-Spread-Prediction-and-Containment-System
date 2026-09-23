@@ -1,7 +1,7 @@
 import React from 'react';
+import { useGPUWorkers } from '@/hooks/useGPUWorkers';
 import { GpuWorkersTable } from './GPUTable';
 import type { Status } from '../../types/GPUWorkers';
-import { useGPUWorkers } from '@/hooks/useGPUWorkers';
 import { PageHeader } from '../layout/pageHeader';
 
 export default function VolunteerPage() {

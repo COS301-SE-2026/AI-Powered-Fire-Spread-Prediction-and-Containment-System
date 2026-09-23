@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { GPUWorker } from '../../types/GPUWorkers';
 import {X} from 'lucide-react';
+import type { GPUWorker } from '../../types/GPUWorkers';
 
 interface RemoveModalProps {
     readonly worker: GPUWorker;

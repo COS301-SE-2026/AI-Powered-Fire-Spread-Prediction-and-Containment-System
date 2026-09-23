@@ -44,8 +44,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
               </td>
             </tr>
           ) : (
-            filtered.map((req) => {
-              return (
+            filtered.map((req) => (
                 <tr
                   key={req.request_id}
                   className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-smoke-hover even:bg-carbon-bg/80"
@@ -82,8 +81,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                     </button>
                   </td>
                 </tr>
-              );
-            })
+              ))
           )}
         </tbody>
       </table>

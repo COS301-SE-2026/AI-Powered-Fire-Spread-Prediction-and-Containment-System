@@ -1,5 +1,5 @@
-import { useFetch } from './useFetch';
 import { useState } from 'react';
+import { useFetch } from './useFetch';
 import type { GPUWorker, Status } from '../types/GPUWorkers';
 import { mockGpuWorkers } from '../mockData/GPUWorkers';
 
