@@ -12,6 +12,7 @@ export interface FireEnvironment {
     windDirDeg: number;
     temperatureC: number;
     humidityPct: number;
+    drynessGrass?: number;
 }
 
 export interface DirectionalBias {
@@ -49,10 +50,17 @@ function windSpeedFactor(windKph: number): number {
     return 1.5;
 }
 
-function dryFactor(humidityPct: number, temperatureC: number): number {
+function crudeDryFactor(humidityPct: number, temperatureC: number): number {
     const humidityTerm = Math.max(0, (70 - humidityPct) / 70);
     const tempTerm = Math.max(0, (temperatureC - 15) / 25);
     return 0.4 + 1.2 * Math.min(1, 0.5 * humidityTerm + 0.5 * tempTerm);
+}
+
+function drynessFactor(env: FireEnvironment): number {
+    if (env.drynessGrass != null) {
+        return 0.4 + 1.2 * Math.max(0, Math.min(1, env.drynessGrass));
+    }
+    return crudeDryFactor(env.humidityPct, env.temperatureC);
 }
 
 function lengthToBreadth(windKph: number): number {
@@ -60,14 +68,26 @@ function lengthToBreadth(windKph: number): number {
 }
 
 export function headRateOfSpreadKmPerMin(env: FireEnvironment): number {
-    return BASE_ROS_KM_PER_MIN * windSpeedFactor(env.windKph) * dryFactor(env.humidityPct, env.temperatureC);
+    return BASE_ROS_KM_PER_MIN * windSpeedFactor(env.windKph) * drynessFactor(env);
 }
 
 function easeIn(elapsedMin: number): number {
     return 1 - Math.exp(-elapsedMin / EASE_IN_MINS);
 }
 
-export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs: number): Feature<Polygon> {
+// angularly interpolates nearest two /terrain-bias samples for an arbitrary bearing
+function terrainFactorAt(bearingDeg: number, bias: DirectionalBias[] | undefined): number {
+    if (!bias || bias.length === 0) return 1;
+    const n = bias.length;
+    const step = 360 / n;
+    const idx = ((bearingDeg / step) % n + n) % n;
+    const i0 = Math.floor(idx)
+    const i1 = (i0 + 1) % n;
+    const t = idx - i0;
+    return bias[i0].factor * (1 - t) + bias[i1].factor * t;
+}
+
+export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs: number, terrainBias?: DirectionalBias[]): Feature<Polygon> {
     const elapsedMin = Math.max(0, (nowMs - fire.ignitedAtMs) / 60000);
     const growth = easeIn(elapsedMin);
     const headROS = headRateOfSpreadKmPerMin(env);
@@ -85,7 +105,8 @@ export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs
 
         const downwindness = Math.cos(bearingRad - downwindRad);
         const t = (downwindness + 1) / 2;
-        const baseRadiusKm = backDistKm + (headDistKm - backDistKm) * Math.pow(t, 1 / Math.max(1, lbr * 0.5));
+        const windShapedRadiusKm = backDistKm + (headDistKm - backDistKm) * Math.pow(t, 1 / Math.max(1, lbr * 0.5));
+        const baseRadiusKm = windShapedRadiusKm * terrainFactorAt(bearingDeg, terrainBias);
 
         const noise =
             1 + 
@@ -125,7 +146,8 @@ export function mergeOverlappingFires(polygons: Feature<Polygon>[]): Feature<Pol
 export function buildFireFeatureCollection(
     fires: GrowableFire[],
     env: FireEnvironment,
-    nowMs: number
+    nowMs: number,
+    terrainBiasByFireId?: Map<string, DirectionalBias[]>
 ): FeatureCollection {
     const polygons = fires.filter((f) => f.initialRadiusKm > 0).map((f) => buildFirePolygon(f, env, nowMs));
     const merged = mergeOverlappingFires(polygons);

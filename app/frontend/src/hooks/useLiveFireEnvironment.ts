@@ -8,15 +8,6 @@ import type { FireEnvironment } from '@/lib/fireGrowth';
 
 const REFRESH_MS = 2 * 60 * 1000;
 
-function toFireEnvironment(env: EnvironmentVariables): FireEnvironment {
-    return {
-        windKph: env.wind,
-        windDirDeg: env.wind_dir,
-        temperatureC: env.temperature,
-        humidityPct: env.humidity,
-    };
-}
-
 // round to ~1km so small GPS jitter on a moving device doesn't trigger a refetch
 function roundCoord(n: number): number {
     return Math.round(n * 100) / 100;
@@ -28,18 +19,41 @@ export function useLiveFireEnvironment(lat: number, lng: number, enabled = true)
     const roundedLng = Number.isFinite(lng) ? roundCoord(lng) : null;
 
     useEffect(() => {
-        if (roundedLat == null || roundedLng == null) return undefined;
+        if (!enabled || roundedLat == null || roundedLng == null) return undefined;
         let cancelled = false;
 
         const fetchEnv = async () => {
-            try {
-                const data = await apiCall(`/api/firefighter/dashboard?lat=${roundedLat}&lng=${roundedLng}`);
-                if (!cancelled && data?.environment_variables) {
-                    setEnv(toFireEnvironment(data.environment_variables));
-                }
-            } catch (err) {
-                console.error('Unable to fetch live environment for fire growth', err);
+            const [dashboardResult, fuelConditionsResult] = await Promise.allSettled([
+                apiCall(`/api/firefighter/dashboard?lat=${roundedLat}&lng=${roundedLng}`),
+                apiCall(`/api/firefighter/fuel-conditions?lat=${roundedLat}&lng=${roundedLng}`),
+            ]);
+
+            if (cancelled) return;
+            
+            if (dashboardResult.status === 'rejected') {
+                console.error('Unable to fetch live environment for fire growth', dashboardResult.reason);
+                return;
             }
+
+            const envVars = dashboardResult.value?.environment_variables as EnvironmentVariables | undefined;
+            if (!envVars) return;
+
+            // dryness_grass optional, buildFirePolygon falls back to a cruder
+            // temp/humidity estimate when missing so failed/slow
+            // fuel-conditions call degrades gracefully rather than blocking growth
+            const drynessGrass =
+                fuelConditionsResult.status === 'fulfilled' ? fuelConditionsResult.value?.dryness_grass : undefined;
+            if (fuelConditionsResult.status === 'rejected') {
+                console.error('Unable to fetch fuel conditions for fire growth', fuelConditionsResult.reason);
+            }
+
+            setEnv({
+                windKph: envVars.wind,
+                windDirDeg: envVars.wind_dir,
+                temperatureC: envVars.temperature,
+                humidityPct: envVars.humidity,
+                drynessGrass,
+            });
         };
 
         fetchEnv();
