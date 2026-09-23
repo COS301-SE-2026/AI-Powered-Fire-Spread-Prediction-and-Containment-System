@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
-
+os.environ["MINIO_ENDPOINT"] = "localhost:9000"
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
 from app.backend.main import app
