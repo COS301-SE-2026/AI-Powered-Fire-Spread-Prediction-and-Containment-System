@@ -60,6 +60,8 @@ def get_presigned_url(
 ) -> Optional[str]:
     if not object_key:
         return None
+    if object_key.startswith(("http://", "https://")):
+        return object_key # e.g. seed placeholders
     return presign_client.generate_presigned_url(
         "get_object",
         Params={"Bucket": BUCKET, "Key": object_key},
