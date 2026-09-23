@@ -22,7 +22,7 @@ function roundCoord(n: number): number {
     return Math.round(n * 100) / 100;
 }
 
-export function useLiveFireEnvironment(lat: number, lng: number): FireEnvironment | null {
+export function useLiveFireEnvironment(lat: number, lng: number, enabled = true): FireEnvironment | null {
     const [env, setEnv] = useState<FireEnvironment | null>(null);
     const roundedLat = Number.isFinite(lat) ? roundCoord(lat) : null;
     const roundedLng = Number.isFinite(lng) ? roundCoord(lng) : null;
@@ -48,7 +48,7 @@ export function useLiveFireEnvironment(lat: number, lng: number): FireEnvironmen
             cancelled = true;
             clearInterval(id);
         };
-    }, [roundedLat, roundedLng]);
+    }, [roundedLat, roundedLng, enabled]);
 
     return env;
 }

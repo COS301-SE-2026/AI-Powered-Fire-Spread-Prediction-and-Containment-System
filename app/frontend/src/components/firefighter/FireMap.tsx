@@ -3,6 +3,7 @@
 import { LocateFixed } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
 import type { Feature, LineString } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
@@ -19,6 +20,11 @@ import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
 import { probeHealth } from '../../lib/offline/shared';
 import type { ReportStatus } from '../../types/Report';
 import { useUpdateUserLocation } from '../../hooks/useUpdateUserLocation';
+import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+import { buildFireFeatureCollection, type GrowableFire } from '@/lib/fireGrowth';
+
+// How often animated fire params are recomputed and pushed to map
+const FIRE_GROWTH_TICK_MS = 2000;
 
 interface MapProps {
   lat: number;
@@ -38,6 +44,7 @@ interface MapProps {
   onDeselect?: () => void;
   showKey?: boolean;
   suggestedLine?: string | null;
+  disableGrowth?: boolean;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -45,7 +52,7 @@ function wktCoords(wkt: string): number[][] {
   return inner.split(',').map(p => p.trim().split(/\s+/).map(Number));
 }
 
-export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick = 0, onDeselect = undefined, selectedFireId = null, selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined, suggestedLine = null, }: MapProps) {
+export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick = 0, onDeselect = undefined, selectedFireId = null, selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined, suggestedLine = null, disableGrowth = false }: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -205,9 +212,31 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
     }
   }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
 
-  const circleFeatures = useMemo(
-    () =>
-      activeFires
+  // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
+  const fireEnvironment = useLiveFireEnvironment(lat, lng, !disableGrowth);
+
+  // min shape growth model needs. `size` is treated as the radius at time fire reported,
+  // not its current size.
+  const growableFires = useMemo<GrowableFire[]>(
+    () => disableGrowth ? []
+                        : activeFires
+                          .filter((f) => f.size != null && f.size > 0)
+                          .map((f) => ({
+                            id: f.id,
+                            ref: f.ref,
+                            lat: f.lat,
+                            lng: f.lng,
+                            initialRadiusKm: f.size,
+                            ignitedAtMs: f.reported ? new Date(f.reported).getTime() : Date.now(),
+                          })),
+          [activeFires, disableGrowth]            
+  );
+
+  // disableGrowth path (simulation pages)
+  const staticCircleFeatures = useMemo(
+    () => !disableGrowth
+      ? []
+      : activeFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -215,9 +244,25 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
             units: 'kilometers',
             properties: { ref: f.ref },
           })
-        ),
-    [activeFires]
+        ), [activeFires, disableGrowth]
   );
+
+  // Imperative animation loop. recompute every fire's perimeter and push it straight
+  // into the Mapbox source via setData().
+  useEffect(() => {
+    if (disableGrowth || !fireEnvironment || growableFires.length === 0) return undefined;
+
+    const pushFrame = () => {
+      const map = mapRef.current?.getMap();
+      const source = map?.getSource('fire-circle') as GeoJSONSource | undefined;
+      if (!source) return;
+      source.setData(buildFireFeatureCollection(growableFires, fireEnvironment, Date.now()));
+    };
+
+    pushFrame();  // paint immediately rather than waiting for the first tick
+    const id = setInterval(pushFrame, FIRE_GROWTH_TICK_MS);
+    return () => clearInterval(id);
+  }, [disableGrowth, growableFires, fireEnvironment]);
 
   const handleRecenter = useCallback(() => {
     setViewState((v) => ({
@@ -377,14 +422,14 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
           </Marker>
         ))}
 
-        {/* Circles around markers */}
-        {circleFeatures.length > 0 && (
+        {/* disableGrowth for simulation pages */}
+        {disableGrowth && staticCircleFeatures.length > 0 && (
           <Source
             id="fire-circles"
             type="geojson"
             data={{
               type: 'FeatureCollection',
-              features: circleFeatures,
+              features: staticCircleFeatures,
             }}
           >
             <Layer
@@ -399,6 +444,29 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
             <Layer
               id="fire-radius-outline"
               type="line"
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 1,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Live, growing fire perimeters */}
+        {!disableGrowth && growableFires.length > 0 && (
+          <Source id='fire-circles' type='geojson' data={{ type: 'FeatureCollection', features: []}}>
+            <Layer
+              id='fire-radius-fill'
+              type='fill'
+              paint={{
+                'fill-color': '#fcba3e',
+                'fill-opacity': 0.3,
+              }} 
+            />
+
+            <Layer
+              id='fire-radius-outline'
+              type='line'
               paint={{
                 'line-color': '#fcba3e',
                 'line-width': 1,
