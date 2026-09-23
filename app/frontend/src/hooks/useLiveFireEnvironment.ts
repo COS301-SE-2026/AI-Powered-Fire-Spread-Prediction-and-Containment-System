@@ -33,7 +33,7 @@ export function useLiveFireEnvironment(lat: number, lng: number, enabled = true)
 
         const fetchEnv = async () => {
             try {
-                const data = await apiCall(`/api/firefighter/dashboard?lat={roundLat}&lng=${roundedLng}`);
+                const data = await apiCall(`/api/firefighter/dashboard?lat=${roundedLat}&lng=${roundedLng}`);
                 if (!cancelled && data?.environment_variables) {
                     setEnv(toFireEnvironment(data.environment_variables));
                 }
