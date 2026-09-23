@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { FireReportMapResponse, ReportStatus } from '../../types/Report';
-import { StatusBadge } from './reportStatusBadge';
+import { ReportStatusBadge } from './ReportStatusBadge';
 import { FormatDate } from '../../lib/FormatDate';
 import { VerificationNotes } from '../../lib/VerificationNotes';
 
@@ -64,7 +64,7 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
                 <td className="px-4 text-sm text-text-primary">{report.reference_number}</td>
                 <td className="px-4 text-sm text-text-primary">{report.location_text}</td>
                 <td className="px-4 text-sm text-text-primary">
-                  <StatusBadge status={report.status} />
+                  <ReportStatusBadge status={report.status} />
                 </td>
                 <td className="px-4 text-sm text-text-primary">
                   {VerificationNotes(report.verification_notes)}
