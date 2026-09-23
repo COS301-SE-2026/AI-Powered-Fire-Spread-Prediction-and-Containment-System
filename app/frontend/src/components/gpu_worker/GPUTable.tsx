@@ -3,6 +3,7 @@ import { GPUWorker, Status} from '../../types/GPUWorkers';
 import { FormatDate } from '../../lib/FormatDate';
 import { GpuStatusBadge } from './GpuStatusBadge';
 import { RemoveModal } from './Remove';
+import { WorkerActions } from './WorkerActions';
 
 interface GpuWorkersTableProps {
   readonly workers: GPUWorker[];
@@ -11,45 +12,6 @@ interface GpuWorkersTableProps {
   readonly onActivate: (id: string) => void;
   readonly onDeactivate: (id: string) => void;
   readonly onRemove: (id: string, reason: string) => void;
-}
-
-interface WorkerActionsProps {
-  worker: GPUWorker;
-  onActivate: (id: string) => void;
-  onDeactivate: (id: string) => void;
-  onRemove: (worker: GPUWorker) => void;
-}
-
-function WorkerActions({ worker, onActivate, onDeactivate, onRemove }: WorkerActionsProps) {
-  if (worker.status === 'removed'){
-    return <span className='text-xs text-text-muted'>No actions</span>
-  }
-  const removeButton = (
-    <button type='button' onClick={() => onRemove(worker)} className='text-xs font-semibold btn btn-sm btn-outline border-error/60 rounded-xl text-error hover:bg-error/10 hover:text-error transition-colors'>
-      Remove
-    </button>
-  );
-  if (worker.status === 'deactivated'){
-    return (
-      <div className='flex gap-2'>
-        <button type='button' onClick={() => onActivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>
-          Activate
-        </button>
-        {removeButton}
-      </div>
-    );
-  }
-  if (worker.status === 'quarantined' || worker.status === 'offline' || worker.status === 'rejected'){
-    return <div className='flex gap-2'>{removeButton}</div>
-  }
-  return (
-    <div className='flex gap-2'>
-      <button type='button' onClick={() => onDeactivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>
-        Deactivate
-      </button>
-      {removeButton}
-    </div>
-  );
 }
 
 function formatVram(vramMb: number): string {
