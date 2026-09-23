@@ -71,32 +71,32 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
       <table className="table table-pin-rows w-full">
         <thead>
           <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               Label
             </th>
             {isAdmin && (
-              <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+              <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
                 Worker ID
               </th>
             )}
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               GPU hardware
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               VRAM
             </th>
             {isAdmin && (
-              <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+              <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
                 User contact
               </th>
             )}
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               Status
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               Last active
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-12 py-3">
+            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               Actions
             </th>
           </tr>
@@ -114,22 +114,22 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
                 key={worker.id}
                 className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover"
               >
-                <td className="px-12 py-3 text-sm text-text-primary">{worker.label}</td>
+                <td className="px-10 py-3 text-sm text-text-primary">{worker.label}</td>
                 {isAdmin && (
-                  <td className="px-12 py-3 text-sm text-text-primary">{worker.id}</td>
+                  <td className="px-10 py-3 text-sm text-text-primary">{worker.id}</td>
                 )}
-                <td className="px-12 py-3 text-sm text-text-primary">{worker.gpu_name}</td>
-                <td className="px-12 py-3 text-sm text-text-primary">{formatVram(worker.vram_mb)}</td>
+                <td className="px-10 py-3 text-sm text-text-primary">{worker.gpu_name}</td>
+                <td className="px-10 py-3 text-sm text-text-primary">{formatVram(worker.vram_mb)}</td>
                 {isAdmin && (
-                  <td className="px-12 py-3 text-sm text-text-primary">{worker.user_id}</td>
+                  <td className="px-10 py-3 text-sm text-text-primary">{worker.user_id}</td>
                 )}
-                <td className="px-12 py-3 text-sm text-text-primary">
+                <td className="px-10 py-3 text-sm text-text-primary">
                   <GpuStatusBadge worker={worker} />
                 </td>
-                <td className="px-12 py-3 text-sm text-text-primary">
+                <td className="px-10 py-3 text-sm text-text-primary">
                   {worker.last_heartbeat === null ? 'Never' : FormatDate(worker.last_heartbeat)}
                 </td>
-                <td className="px-12 py-3">
+                <td className="px-10 py-3">
                   <WorkerActions worker={worker} onActivate={onActivate} onDeactivate={onDeactivate} onRemove={setPendingRemoval} />
                 </td>
               </tr>
