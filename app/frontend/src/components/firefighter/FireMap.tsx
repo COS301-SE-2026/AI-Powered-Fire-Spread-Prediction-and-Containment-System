@@ -25,6 +25,7 @@ import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDam
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
 import { buildFireFeatureCollection, type GrowableFire } from '@/lib/fireGrowth';
 
 // How often animated fire params are recomputed and pushed to map
@@ -261,6 +262,9 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
 
   // Imperative animation loop. recompute every fire's perimeter and push it straight
   // into the Mapbox source via setData().
+
+  const terrainBiasByFireId = useTerrainBiasMap(growableFires, !disableGrowth);
+
   useEffect(() => {
     if (disableGrowth || !fireEnvironment || growableFires.length === 0) return undefined;
 
@@ -268,13 +272,13 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
       const map = mapRef.current?.getMap();
       const source = map?.getSource('fire-circle') as GeoJSONSource | undefined;
       if (!source) return;
-      source.setData(buildFireFeatureCollection(growableFires, fireEnvironment, Date.now()));
+      source.setData(buildFireFeatureCollection(growableFires, fireEnvironment, Date.now(), terrainBiasByFireId));
     };
 
     pushFrame();  // paint immediately rather than waiting for the first tick
     const id = setInterval(pushFrame, FIRE_GROWTH_TICK_MS);
     return () => clearInterval(id);
-  }, [disableGrowth, growableFires, fireEnvironment]);
+  }, [disableGrowth, growableFires, fireEnvironment, terrainBiasByFireId]);
 
   const handleRecenter = useCallback(() => {
     setViewState((v) => ({
