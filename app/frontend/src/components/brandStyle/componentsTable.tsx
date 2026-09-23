@@ -1,5 +1,5 @@
 import { ComponentsGroup } from './componentsGroup';
-import { StatusBadge } from '../admin/reportStatusBadge';
+import { ReportStatusBadge } from '../admin/ReportStatusBadge';
 
 export function Table() {
   return (
@@ -36,7 +36,7 @@ export function Table() {
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">FR-1042</td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">Moreleta Park</td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">
-                <StatusBadge status="verified" />
+                <ReportStatusBadge status="verified" />
               </td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">12.4 ha</td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">28 Jul | 14:32</td>
@@ -54,7 +54,7 @@ export function Table() {
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">FR-1043</td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">Faerie Glen</td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">
-                <StatusBadge status="pending" />
+                <ReportStatusBadge status="pending" />
               </td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">5.1 ha</td>
               <td className="px-4 text-sm text-text-primary whitespace-nowrap">28 Jul | 09:14</td>
