@@ -20,7 +20,7 @@ export function WorkerActions({ worker, onActivate, onDeactivate, onRemove }: Wo
   if (worker.status === 'deactivated'){
     return (
       <div className='flex gap-2'>
-        <button type='button' onClick={() => onActivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>
+        <button type='button' onClick={() => onActivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors w-21'>
           Activate
         </button>
         {removeButton}
@@ -28,7 +28,14 @@ export function WorkerActions({ worker, onActivate, onDeactivate, onRemove }: Wo
     );
   }
   if (worker.status === 'quarantined' || worker.status === 'offline' || worker.status === 'rejected'){
-    return <div className='flex gap-2'>{removeButton}</div>
+    return (
+        <div className='flex gap-2'>
+            <button type='button' onClick={() => onActivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors invisible pointer-events-none'>
+                Deactivate
+            </button>
+            {removeButton}
+        </div>
+    );
   }
   return (
     <div className='flex gap-2'>
