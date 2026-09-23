@@ -32,11 +32,11 @@ export function useGPUWorkers() {
         updateLocal(id, { status: 'deactivated' as Status, deactivated_at: new Date().toISOString() });
     }
 
-    async function remove(id: string) {
+    async function remove(id: string, reason: string) {
         // TODO: replace with a real mutation call, e.g.
         // await fetch(`/api/admin/gpu-workers/${id}/remove`, { method: 'POST' });
         // refetch();
-        updateLocal(id, { status: 'removed' as Status, removed_at: new Date().toISOString() });
+        updateLocal(id, { status: 'removed' as Status, removed_at: new Date().toISOString(), removal_reason: reason.length > 0 ? reason : null, });
     }
 
   return {

@@ -1,8 +1,8 @@
-import React from 'react';
-import { useRouter } from 'next/router';
+import React, { useState } from 'react';
 import { GPUWorker, Status} from '../../types/GPUWorkers';
 import { FormatDate } from '../../lib/FormatDate';
 import { GpuStatusBadge } from './GpuStatusBadge';
+import { RemoveModal } from './Remove';
 
 interface GpuWorkersTableProps {
   readonly workers: GPUWorker[];
@@ -10,14 +10,14 @@ interface GpuWorkersTableProps {
   readonly variant: 'admin' | 'volunteer';
   readonly onActivate: (id: string) => void;
   readonly onDeactivate: (id: string) => void;
-  readonly onRemove: (id: string) => void;
+  readonly onRemove: (id: string, reason: string) => void;
 }
 
 interface WorkerActionsProps {
   worker: GPUWorker;
   onActivate: (id: string) => void;
   onDeactivate: (id: string) => void;
-  onRemove: (id: string) => void;
+  onRemove: (worker: GPUWorker) => void;
 }
 
 function WorkerActions({ worker, onActivate, onDeactivate, onRemove }: WorkerActionsProps) {
@@ -25,9 +25,8 @@ function WorkerActions({ worker, onActivate, onDeactivate, onRemove }: WorkerAct
     return <span className='text-xs text-text-muted'>No actions</span>
   }
   const removeButton = (
-    <button type='button' onClick={() => onRemove(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-error/60 rounded-xl text-error hover:bg-error/10 hover:text-error transition-colors'>
+    <button type='button' onClick={() => onRemove(worker)} className='text-xs font-semibold btn btn-sm btn-outline border-error/60 rounded-xl text-error hover:bg-error/10 hover:text-error transition-colors'>
       Remove
-
     </button>
   );
   if (worker.status === 'deactivated'){
@@ -58,15 +57,16 @@ function formatVram(vramMb: number): string {
 }
 
 export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactivate, onRemove }: GpuWorkersTableProps) {
+  const [pendingRemoval, setPendingRemoval] = useState<GPUWorker | null>(null);
   const filtered = workers
     .filter((w) => filter === 'All' || w.status === filter)
     .sort((a, b) => new Date(b.activated_at).getTime() - new Date(a.activated_at).getTime());
 
-  const router = useRouter();
   const isAdmin = variant === 'admin';
   const columnCount = isAdmin ? 8 : 6;
 
   return (
+    <>
     <div className="w-full overflow-x-auto rounded-2xl border border-carbon-stroke">
       <table className="table table-pin-rows w-full">
         <thead>
@@ -130,7 +130,7 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
                   {worker.last_heartbeat === null ? 'Never' : FormatDate(worker.last_heartbeat)}
                 </td>
                 <td className="px-16 py-3">
-                  <WorkerActions worker={worker} onActivate={onActivate} onDeactivate={onDeactivate} onRemove={onRemove} />
+                  <WorkerActions worker={worker} onActivate={onActivate} onDeactivate={onDeactivate} onRemove={setPendingRemoval} />
                 </td>
               </tr>
             ))
@@ -138,5 +138,17 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
         </tbody>
       </table>
     </div>
+    {pendingRemoval && (
+        <RemoveModal
+          worker={pendingRemoval}
+          variant={variant}
+          onClose={() => setPendingRemoval(null)}
+          onSubmit={(id, reason) => {
+            onRemove(id, reason);
+            setPendingRemoval(null);
+          }}
+        />
+      )}
+  </>
   );
 }
