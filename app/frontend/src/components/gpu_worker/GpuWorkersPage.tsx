@@ -1,10 +1,10 @@
 import React from 'react';
-import { useGPUWorkers } from '@/hooks/useGPUWorkers';
+import { useGPUWorkers } from '../../hooks/useGPUWorkers';
 import { GpuWorkersTable } from './GPUTable';
 import type { Status } from '../../types/GPUWorkers';
 import { PageHeader } from '../layout/pageHeader';
 
-export default function GPUWorkersPage() {
+export default function GpuWorkersPage() {
     const { workers, loading, error, refetch, activate, deactivate, remove } = useGPUWorkers();
     const filter: 'All' | Status = 'All';
 
