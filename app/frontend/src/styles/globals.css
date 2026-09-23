@@ -111,7 +111,7 @@
   --text-section-head: clamp(1.5rem, 2.5vw, 2rem);
   --text-card-title: clamp(1.2rem, 1.8vw, 1.375rem);
   --text-body: clamp(1rem, 1.4vw, 1.125rem);
-  --text-label: 0.8125rem;
+  --text-label: 0.94rem;
   --text-caption: 0.75rem;
 
   --radius-sm: 2px;
@@ -149,8 +149,16 @@
     font-family: var(--font-body);
     font-size: var(--text-card-title);
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.2;
     color: var(--color-text-primary);
+  }
+
+  h4 {
+    font-family: var(--font-body);
+    font-size: var(--text-lg);
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--color-text-priamry);
   }
 
   p {
