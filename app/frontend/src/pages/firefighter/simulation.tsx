@@ -253,6 +253,7 @@ export default function Simulation() {
                   selectedFireId={selectedFireId}
                   onSelectFire={setSelectedFireId}
                   showKey
+                  disableGrowth
                 />
               </div>
             </div>
