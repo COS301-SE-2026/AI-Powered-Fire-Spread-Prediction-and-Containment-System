@@ -40,6 +40,7 @@ def init_db():
     from app.backend.src.models.role_request import RoleRequest
     from app.backend.src.models.users import User
     from app.backend.src.models.notification import Notification
+    from app.backend.src.models.water_resource import WaterResource
 
     Base.metadata.create_all(bind=engine)
 
