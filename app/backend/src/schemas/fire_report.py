@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.enums.report_priority import ReportPriority
@@ -29,9 +29,7 @@ class FireReportMapResponse(BaseModel):
     submitted_at: datetime
     reporter_name: Optional[str] = None
     verification_notes: Optional[str] = None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FireReportDetailResponse(BaseModel):
@@ -53,5 +51,4 @@ class FireReportDetailResponse(BaseModel):
     system_verified: Optional[bool] = False
     verification_notes: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
