@@ -9,6 +9,7 @@ import uuid
 import boto3
 import asyncio
 import json
+import torch
 import hashlib
 from pathlib import Path
 
@@ -25,9 +26,12 @@ from app.backend.src.models.reported_fires import FireReports
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
 from app.backend.ml.features.real_data_loader import load_real_inference_data
-from app.backend.src.ai.simulation import build_boundary_ignition_mask
+from app.backend.src.ai.simulation import build_boundary_ignition_mask, build_multi_boundary_ignition_mask
 from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
-from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
+from app.backend.ml.models.nowcast_model import (
+    WeatherDeltaModel,
+    WeatherDeltaModelConfig,
+)
 from app.backend.src.models.containment_lines import ContainmentLines
 from collections import defaultdict
 
@@ -42,7 +46,9 @@ TICKS_PER_HOUR = 4
 
 AWS_REGION = os.environ.get("AWS_REGION")
 INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
-ARTIFACTS_S3_BUCKET = os.environ.get("ARTIFACTS_S3_BUCKET", "fire-system-artifacts-827257544258")
+ARTIFACTS_S3_BUCKET = os.environ.get(
+    "ARTIFACTS_S3_BUCKET", "fire-system-artifacts-827257544258"
+)
 ARTIFACTS_ROOT = Path(os.environ.get("ARTIFACTS_ROOT", "/mnt/fire-system-artifacts"))
 RESULTS_DIR = ARTIFACTS_ROOT / "results"
 
@@ -53,6 +59,7 @@ logger = logging.getLogger(__name__)
 
 RESULT_POLL_INTERVAL_S = 1.0
 RESULT_POLL_TIMEOUT_S = 360.0
+
 
 def grid_dimensions_for_extent(
     lat_extent_deg: float,
@@ -126,9 +133,10 @@ def burned_area_radius_m(
 
 MAX_CONCURR_USERS = 10
 
+
 async def wait_for_result(job_id: str) -> dict | None:
     """
-    Polls the shared artifact mount for the result JSON written by worker.py 
+    Polls the shared artifact mount for the result JSON written by worker.py
     """
 
     result_path = RESULTS_DIR / f"{job_id}.json"
@@ -145,9 +153,7 @@ async def wait_for_result(job_id: str) -> dict | None:
 
         try:
             resp = await asyncio.to_thread(
-                s3_client.get_object,
-                Bucket=ARTIFACTS_S3_BUCKET,
-                Key=s3_key
+                s3_client.get_object, Bucket=ARTIFACTS_S3_BUCKET, Key=s3_key
             )
             raw_body = await asyncio.to_thread(resp["Body"].read)
             return json.loads(raw_body.decode("utf-8"))
@@ -161,7 +167,13 @@ async def wait_for_result(job_id: str) -> dict | None:
 
     return None
 
-async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Semaphore, containment_lines: list[str] | None=None) -> Prediction:
+
+async def simulate_single_fire(
+    fire,
+    automatic_steps: int,
+    semaphore: asyncio.Semaphore,
+    containment_lines: list[str] | None = None,
+) -> Prediction:
     """
     ECoordinates caching, dispatches job to SQS, and waits for worker output
     """
@@ -229,20 +241,31 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
 
         raw_result = await wait_for_result(job_id)
         if raw_result is None:
-            raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+            raise HTTPException(
+                status_code=504,
+                detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker",
+            )
 
         raw_history = raw_result.get("history", [])
 
         flattened_history: list[list[int]] = []
         for tick_grid in raw_history:
-            if isinstance(tick_grid, list) and len(tick_grid) > 0 and isinstance(tick_grid[0], list):
-                flattened_history.append([int(cell) for row in tick_grid for cell in row])
+            if (
+                isinstance(tick_grid, list)
+                and len(tick_grid) > 0
+                and isinstance(tick_grid[0], list)
+            ):
+                flattened_history.append(
+                    [int(cell) for row in tick_grid for cell in row]
+                )
             else:
                 flattened_history.append([int(cell) for cell in tick_grid])
 
         last_tick_flat = flattened_history[-1] if flattened_history else []
-        burned_cells = sum(1 for c in last_tick_flat if c in (1,2))
-        radius_m = burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg)
+        burned_cells = sum(1 for c in last_tick_flat if c in (1, 2))
+        radius_m = burned_area_radius_m(
+            burned_cells, H, W, lat_extent_deg, lon_extent_deg
+        )
 
         last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
         truncated = bool(touch_edge(last_grid_2d, burning_val=1, burned_val=2))
@@ -266,6 +289,166 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
         return Prediction(**prediction_payload)
 
 
+async def simulate_fire_cluster(
+    fires: list,
+    n_steps: int,
+    semaphore: asyncio.Semaphore,
+    containment_lines_by_fire: dict[str, list[str]] | None = None,
+) -> ClusterPrediction:  # stubbed, I know it does not exist
+    """
+    Executes the dca for a cluster of ifres using a combined grid. Any merging of
+    fires will be emergent from the dca's own behavior, no special cases
+    """
+    containment_lines_by_fire = containment_lines_by_fire or {}
+    fire_refs = [f.reference_number for f in fires]
+
+    all_lines: list[str] = []
+
+    for ref in fire_refs:
+        all_lines.extend(containment_lines_by_fire.get(ref, []))
+    lines = list(dict.fromkeys(all_lines))
+
+    # union the boxes
+    boxes = [
+        bbox_from_fire(
+            lat=f.lat,
+            lng=f.lng,
+            boundary_radius_m=float(f.boundary_radius) * 1000,
+            n_steps=n_steps,
+        )
+        for f in fires
+    ]
+    min_lon = min(b[0] for b in boxes)
+    min_lat = min(b[1] for b in boxes)
+    max_lon = max(b[2] for b in boxes)
+    max_lat = max(b[3] for b in boxes)
+    lat_extent_deg = max_lat - min_lat
+    lon_extent_deg = max_lon - min_lon
+    center_lat = (min_lat + max_lat) / 2.0
+
+    H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, center_lat)
+
+    cell_size_lat_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
+    cell_size_lon_m = (
+        (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(center_lat))
+    )
+    cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2
+
+    cache_key = build_cluster_cache_key(
+        refs=fire_refs,
+        lat=center_lat,
+        lng=(min_lon + max_lon) / 2.0,
+        n_steps=n_steps,
+        cell_size_m=cell_size_m,
+        containment_lines=tuple(sorted(lines)),
+    )
+
+    cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
+    if cached_result is not None:
+        return ClusterPrediction(**cached_result)
+
+    async with semaphore:
+        cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
+        if cached_result is not None:
+            return ClusterPrediction(**cached_result)
+
+        resolved = await asyncio.to_thread(
+            resolve_tile_paths, min_lon, min_lat, max_lon, max_lat
+        )
+        static_grids, weather_grids = await load_real_inference_data(
+            b04_path=resolved.b04_path,
+            b08_path=resolved.b08_path,
+            b11_path=resolved.b11_path,
+            dem_path=resolved.dem_path,
+            min_lon=min_lon,
+            min_lat=min_lat,
+            max_lon=max_lon,
+            max_lat=max_lat,
+            scl_path=resolved.scl_path,
+            target_shape=(H, W),
+        )
+
+        ignition_mask = build_multi_boundary_ignition_mask(
+            H, W, cell_size_m,
+            fires=[(f.lat, f.lng, float(f.boundary_radius) * 1000) for f in fires],
+            grid_bounds=(min_lon, min_lat, max_lon, max_lat),   
+        )
+        grid_bounds = (min_lon, min_lat, max_lon, max_lat)
+
+        if "aspect_sin" not in static_grids or "aspect_cos" not in static_grids:
+            aspect_deg = static_grids.get("aspect")
+            if aspect_deg is None:
+                aspect_deg = np.zeros((H, W), dtype = np.float32)
+            aspect_rad = np.radians(aspect_deg)
+            static_grids["aspect_sin"] = np.sin(aspect_rad).astype(np.float32)
+            static_grids["aspect_cos"] = np.cos(aspect_rad).astype(np.float32)
+
+        wind_u = weather_grids.get("wind_u", np.zeros((H, W), dtype=np.float32))
+        wind_v = weather_grids.get("wind_v", np.zeros((H, W), dtype=np.float32))
+        temperature = weather_grids.get("temperature", np.full((H, W), 25.0, dtype=np.float32))
+
+        if "rel_humidity" in weather_grids:
+            rel_humidity = weather_grids["rel_humidity"]
+        elif "dryness" in weather_grids:
+            rel_humidity = np.clip(1.0 - weather_grids["dryness"], 0.05, 0.95).astype(np.float32)
+        else:
+            rel_humidity = np.full((H, W), 0.35, dtype=np.float32)
+
+        current_frame = np.stack(
+            [
+                np.asarray(wind_u, dtype=np.float32),
+                np.asarray(wind_v, dtype=np.float32),
+                np.asarray(rel_humidity, dtype=np.float32),
+                np.asarray(temperature, dtype=np.float32),
+            ],
+            axis=0,
+        ).astype(np.float32)
+
+        weather_history = torch.from_numpy(
+            np.repeat(current_frame[np.newaxis, np.newaxis, ...], 3, axis=1)
+        ).float()
+
+        try:
+            history = await asyncio.to_thread(
+                run_convlstm_dca,
+                convlstm_model=convlstm_model,
+                weather_history=weather_history,
+                static_grids=static_grids,
+                cell_size_m=cell_size_m,
+                n_steps=n_steps,
+                ignition_mask=ignition_mask,
+                containment_lines=lines,
+                grid_bounds=grid_bounds,
+                params=DEFAULT_DCA_PARAMS,
+            )
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Cluster simulation failed for fires {fire_refs}: {exc}",
+            ) from exc
+
+        final_grid = history[-1]
+        burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
+        truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
+
+        prediction_payload = {
+            "fire_refs": fire_refs,
+            "lat": center_lat,
+            "lng": (min_lon + max_lon) / 2.0,
+            "history": [g.ravel().tolist() for g in history],
+            "burned_cells": burned_cells,
+            "radius_m": burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
+            "truncated": truncated,
+            "lat_extent_deg": lat_extent_deg,
+            "lon_extent_deg": lon_extent_deg,
+            "grid_h": H,
+            "grid_w": W,
+            "cell_size_m": cell_size_m,
+        }
+
+        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload, 1800)
+
+        return ClusterPrediction(**prediction_payload)
 
 # The endpoint
 @router.post(
@@ -314,7 +497,14 @@ async def run_simulation(
     predictions = await asyncio.gather(
         *(
             simulate_single_fire(
-                fire, automatic_steps, semaphore, list(dict.fromkeys(lines_by_fire.get(fire.id, []) + (req.containment_lines or [])))
+                fire,
+                automatic_steps,
+                semaphore,
+                list(
+                    dict.fromkeys(
+                        lines_by_fire.get(fire.id, []) + (req.containment_lines or [])
+                    )
+                ),
             )
             for fire in verified_fires_raw
         )
@@ -343,7 +533,7 @@ async def run_single_fire_simulation(
     Endpiont for spread on a single spread which spreads for 72 hours
 
     Runs the 72 hour spread which is 288 ticks for a fire selected on the map
-    """ 
+    """
 
     fire = (
         db.query(
@@ -366,15 +556,13 @@ async def run_single_fire_simulation(
         )
 
     persisted = [
-            wkt
-            for (wkt,) in db.query(func.ST_AsText(ContainmentLines.line_geom))
-            .filter(ContainmentLines.fire_report_id == fire.id)
-            .all()
-        ]
-    
+        wkt
+        for (wkt,) in db.query(func.ST_AsText(ContainmentLines.line_geom))
+        .filter(ContainmentLines.fire_report_id == fire.id)
+        .all()
+    ]
+
     lines = list(dict.fromkeys(persisted + (req.containment_lines or [])))
 
     semaphore = asyncio.Semaphore(1)
-    return await simulate_single_fire(
-        fire, req.n_steps, semaphore, lines
-    )
+    return await simulate_single_fire(fire, req.n_steps, semaphore, lines)
