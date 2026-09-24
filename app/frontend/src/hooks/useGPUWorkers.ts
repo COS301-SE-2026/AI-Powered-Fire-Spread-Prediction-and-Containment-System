@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { GPUWorker } from '../types/GPUWorkers';
+import { useDebounce } from './useDebounce';
 
 interface UseGPUWorkersReturn {
     workers: GPUWorker[];
@@ -11,16 +12,23 @@ interface UseGPUWorkersReturn {
     remove: (id: string, reason?: string) => Promise<void>;
 }
 
-export function useGPUWorkers(): UseGPUWorkersReturn {
+export function useGPUWorkers(searchKey: string = ''): UseGPUWorkersReturn {
     const [workers, setWorkers] = useState<GPUWorker[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const debouncedSearch = useDebounce(searchKey, 600);
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
     const fetchWorkers = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
+
+        let url = `${apiBaseUrl}/api/v1/workers`;
+        const key = debouncedSearch.trim();
+        if (key) {
+            url = `${url}?key=${encodeURIComponent(key)}`;
+        }
 
         try {
             const response = await fetch(`${apiBaseUrl}/api/v1/workers`, {
