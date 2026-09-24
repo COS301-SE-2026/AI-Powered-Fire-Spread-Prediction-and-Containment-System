@@ -20,6 +20,7 @@ from app.backend.src.models.water_resource import WaterResource
 
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from app.backend.src.models.users import User
+from app.backend.src.models.workers import WorkerNode
 
 DEFAULT_PASSWORD = os.getenv("SEED_DEFAULT_PASSWORD")
 ADMIN_PASSWORD = os.getenv("SEED_ADMIN_PASSWORD")
@@ -919,6 +920,34 @@ def seed_water_resources(db):
         )
         db.add(resource)
         print(f" ADD water resource -> {data['name']} ({data['resource'].value})")
+
+
+def seed_worker_nodes(db):
+    target_user_id = "usr_09"
+    node_id = "mock-worker-usr-09"
+
+    existing = db.query(WorkerNode).filter(WorkerNode.id == node_id).first()
+    if existing:
+        print(f" SKIP worker node {node_id} (already)")
+        return
+
+    now = datetime.now(timezone.utc)
+    node = WorkerNode(
+        id=node_id,
+        user_id=target_user_id,
+        label="Test Rig 4090",
+        gpu_name="NVIDIA GeForce RTX 4090",
+        vram_mb=24576,
+        driver_version="550.54.14",
+        status="active",
+        consecutive_failures=0,
+        last_heartbeat=now - timedelta(minutes=2),
+        activated_at=now - timedelta(days=1),
+        created_at=now - timedelta(days=1),
+        updated_at=now,
+    )
+    db.add(node)
+    print(f" ADD worker node {node.label} for user {target_user_id}")
     
     
 
@@ -926,6 +955,7 @@ def seed_water_resources(db):
 def wipe_all_data(db):
     print(" Wiping database for a reseed")
 
+    db.query(WorkerNode).delete()
     db.query(WaterResource).delete()
     db.query(ContainmentLines).delete()
     db.query(FireReports).delete()
@@ -954,6 +984,9 @@ def seed(reseed: bool = False):
         
         print("\nSeeding water resources...")
         seed_water_resources(db)
+
+        print("\nSeeding worker nodes...")
+        seed_worker_nodes(db)
 
         db.commit()
         print("\nSeed complete!")
