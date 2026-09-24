@@ -2,9 +2,16 @@ import { useCallback } from 'react';
 import { useFetch } from './useFetch';
 import type { RoleRequestList, RoleAction } from '../types/RoleRequest';
 import { apiCall } from '../lib/api';
+import { useDebounce } from './useDebounce';
 
-export function useRoleRequests() {
-  const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/admin/role-requests');
+export function useRoleRequests(searchKey: string) {
+  const debounceedSearch = useDebounce(searchKey, 600);
+
+  let url = '/api/admin/role_requests';
+  if (debounceedSearch) {
+    url = `/api/admin/role-requests/search?key=${encodeURIComponent(debounceedSearch)}`;
+  }
+  const { data, loading, error, refetch } = useFetch<RoleRequestList>(url);
 
   const updateStatus = useCallback(
     async (requestId: string, action: RoleAction) => {
