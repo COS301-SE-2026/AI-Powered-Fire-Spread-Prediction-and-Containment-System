@@ -169,3 +169,22 @@ def build_cluster_cache_key(
     hash = hashlib.sha256(encoded).hexdigest()[:16]
     ref_summary = "-".join(sorted_refs[:3]) + (f"+{len(sorted_refs)-3}more" if len(sorted_refs)>3 else "")
     return f"sim:cluster:{ref_summary}:{hash}"
+
+def get_cached_cluster_prediction(key: str) -> dict | None:
+    try:
+        data = client.hgetall(key)
+        if not data:
+            return None
+        meta = json.loads(data[b"meta"].decode("utf-8"))
+        compressed_hist = data["history"]
+
+        raw_bytes = zlib.decompress(compressed_hist)
+        history_arr = np.frombuffer(raw_bytes, dtype=np.int64).reshape(
+            meta["n_steps"], meta["grid_h"], meta["grid_w"]
+        )
+
+        meta["history"] = [g.ravel().tolist() for g in history_arr]
+        return meta
+    except Exception:
+        return None
+
