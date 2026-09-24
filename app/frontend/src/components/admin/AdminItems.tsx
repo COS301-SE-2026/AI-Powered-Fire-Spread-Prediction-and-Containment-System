@@ -12,7 +12,7 @@ export function AdminItems() {
       <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvals" />
       <NavLink icon={Flame} label="Reported Fires" href="/admin/reported-fire" />
       <NavLink icon={Droplets} label="Register Resources" href="/admin/RegisterResource" />
-      <NavLink icon={Cpu} label="Volunteer yout GPU" href="/admin/GPUWorkers" />
+      <NavLink icon={Cpu} label="Volunteer GPUs" href="/admin/GPUWorkers" />
     </>
   );
 }
