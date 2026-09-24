@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState , useCallback } from 'react';
 import { useFetch } from './useFetch';
-import { useCallback } from 'react';
 import { apiCall } from '../lib/api';
 import type { GPUWorker, Status } from '../types/GPUWorkers';
 import { mockGpuWorkers } from '../mockData/GPUWorkers';
