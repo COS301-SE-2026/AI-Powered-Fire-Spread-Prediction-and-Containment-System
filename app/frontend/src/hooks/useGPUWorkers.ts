@@ -1,21 +1,33 @@
 import { useState } from 'react';
 import { useFetch } from './useFetch';
+import { useCallback } from 'react';
+import { apiCall } from '../lib/api';
 import type { GPUWorker, Status } from '../types/GPUWorkers';
 import { mockGpuWorkers } from '../mockData/GPUWorkers';
+import { useDebounce } from './useDebounce';
 
-export function useGPUWorkers() {
-    // TODO: uncomment once GET /api/admin/gpu-workers is ready, delete the mock block below
-    // const { data, loading, error, refetch } = useFetch<GPUWorker[]>(
-    //   '/api/admin/gpu-workers'
-    // );
+export function useGPUWorkers(searchKey: string = '') {
+    const debouncedSearch = useDebounce(searchKey, 600);
+    // TODO: uncomment once the endpoints are ready, delete the mock block below
+    // let url = '/api/admin/gpu-workers';
+    // if (debouncedSearch) {
+    //     url = `/api/admin/gpu-workers/search?key=${encodeURIComponent(debouncedSearch)}`;
+    // }
+    // const { data, loading, error, refetch } = useFetch<GPUWorker[]>(url);
 
-    const [data, setData] = useState<GPUWorker[]>(mockGpuWorkers);
+
+    const [mockData, setMockData] = useState<GPUWorker[]>(mockGpuWorkers);
     const loading = false;
     const error = null;
     const refetch = () => {};
 
+    const needle = debouncedSearch.trim().toLowerCase();
+    const data = mockData.filter((w) =>
+        `${w.label} ${w.gpu_name} ${w.id}`.toLowerCase().includes(needle)
+    );
+
     function updateLocal(id: string, patch: Partial<GPUWorker>) {
-        setData((prev) => prev.map((w) => (w.id === id ? { ...w, ...patch } : w)));
+        setMockData((prev) => prev.map((w) => (w.id === id ? { ...w, ...patch } : w)));
     }
 
     async function activate(id: string) {
@@ -33,10 +45,13 @@ export function useGPUWorkers() {
     }
 
     async function remove(id: string, reason: string) {
-        // TODO: replace with a real mutation call, e.g.
-        // await fetch(`/api/admin/gpu-workers/${id}/remove`, { method: 'POST' });
-        // refetch();
-        updateLocal(id, { status: 'removed' as Status, removed_at: new Date().toISOString(), removal_reason: reason.length > 0 ? reason : null, });
+        // await apiCall(`/api/admin/gpu-workers/${id}/remove`, 'PUT', { reason });
+        // await refetch();
+        let removalReason: string | null = null;
+        if (reason.length > 0) {
+            removalReason = reason;
+        }
+        updateLocal(id, {status: 'removed' as Status, removed_at: new Date().toISOString(), removal_reason: removalReason,});
     }
 
   return {
