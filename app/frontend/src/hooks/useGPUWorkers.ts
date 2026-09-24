@@ -16,7 +16,7 @@ export function useGPUWorkers(): UseGPUWorkersReturn {
     const [loading, setLoading] = useState(true); 
     const [error, setError] = useState<string | null>(null);
 
-    const apiBaseUrl = ProcessingInstruction.env.NEXT_PUBLIC_API_URL || '';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
     
     const fetchWorkers = useCallback(async (): Promise<void> => {
         setLoading(true);
@@ -58,18 +58,81 @@ export function useGPUWorkers(): UseGPUWorkersReturn {
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Failed to deactivate workers (status: ${response.statusText})`);
+                    throw new Error(`Failed to activate worker: ${response.statusText}`);
                 }
             
-            const updateNode: GPUWorker = await response.json();
-                setWorkers((prev) => prev.map((worker) => (worker.id === id ? updateNode : worker)));
+                const updateNode: GPUWorker = await response.json();
+                    setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
             } catch (err: unknown) {
-                const message = err instanceof Error ? err.message : 'Error fetching workers';
+                const message = err instanceof Error ? err.message : 'Error activating worker';
                 setError(message);
-                setWorkers([]);
-            } finally {
-                setLoading(false);
             }
-        }
-    )
+        }, 
+        [apiBaseUrl]
+    );
+
+    const deactivate = useCallback(
+        async (id: string): Promise<void> => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/v1/workers/${id}/deactivate`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to deactivate worker: ${response.statusText}`);
+                }
+            
+                const updateNode: GPUWorker = await response.json();
+                setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error deactivating worker';
+                setError(message);
+            }
+        },
+        [apiBaseUrl]
+    );
+
+    const remove = useCallback(
+        async (id: string, reason?: string): Promise<void> => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/v1/workers/${id}/remove`,  {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason: reason || '' }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to remove worker: ${response.statusText}`);
+                }
+
+                const updateNode: GPUWorker = await response.json();
+                setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker))); 
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error removing worker';
+                setError(message);
+            }
+        },
+        [apiBaseUrl]
+    );
+
+    useEffect(() => {
+        fetchWorkers();
+    }, [fetchWorkers]);
+
+    return {
+        workers,
+        loading,
+        error,
+        refetch: fetchWorkers,
+        activate,
+        deactivate,
+        remove,
+    };
 }

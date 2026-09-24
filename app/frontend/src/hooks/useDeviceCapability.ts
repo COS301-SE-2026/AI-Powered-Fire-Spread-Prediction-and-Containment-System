@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 export interface DeviceCapability {
-    isEligoble: boolean;
+    isEligible: boolean;
     gpuName: string;
     osName: string;
     isDesktop: boolean;

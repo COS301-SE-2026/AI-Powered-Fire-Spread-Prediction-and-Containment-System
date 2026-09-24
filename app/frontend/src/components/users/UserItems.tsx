@@ -6,7 +6,7 @@ import { useGPUWorkers } from '../../hooks/useGPUWorkers';
 
 export function UserItems() {
   const { isEligible } = useDeviceCapability();
-  const { workers } = useGPUWorkers
+  const { workers } = useGPUWorkers();
 
   const hasRegisteredMachine = workers && workers.length > 0;
   const shouldShowVolunteerTab = isEligible || hasRegisteredMachine;
