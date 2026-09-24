@@ -72,7 +72,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-          image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+          image: docker.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
           credentials:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -240,7 +240,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-        image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+        image: docker.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
         credentials:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
