@@ -1,6 +1,8 @@
 import os
+import socket
 import sys
 import uuid
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,6 +12,13 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
+TEST_DB_URL = (
+    os.getenv("TEST_DATABASE_URL")
+    or os.getenv("TEST_DB_URL")
+    or"postgresql+psycopg2://postgres:postgres@localhost:5433/test_fire_db"
+)
+os.environ["DATABASE_URL"] = TEST_DB_URL
+
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.notification import Notification
@@ -18,7 +27,7 @@ from unittest.mock import patch
 
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
-
+os.environ["MINIO_ENDPOINT"] = "localhost:9000"
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
 from app.backend.main import app
@@ -28,17 +37,25 @@ from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
+from app.backend.src.models.water_resource import WaterResource
 
 # seed data
 from app.backend.seed import (
     REGIONAL_LOCATIONS as SEED_FIRE_REPORTS,
     SEED_USERS,
     seed_fire_reports,
+    seed_water_resources,
 )
 
-TEST_DB_URL = os.getenv(
-    "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-)
+def minio_reachable() -> bool:
+    host, _, port = os.getenv("MINIO_ENDPOINT", "localhost:9000").partition(":")
+    try:
+        socket.create_connection((host, int(port or 9000)), timeout=1).close()
+        return True
+    except (OSError, ValueError):
+        return False
+    
+MINIO_UP = minio_reachable()
 
 engine = create_engine(TEST_DB_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -59,6 +76,7 @@ def create_tables():
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
+            WaterResource.__table__,
         ],
     )
     yield
@@ -71,6 +89,7 @@ def create_tables():
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
+            WaterResource.__table__,
         ],
     )
 
@@ -233,6 +252,13 @@ def seeded_fire_reports(db):
     seed_users_table(db)
     seed_fire_reports(db)
     return db.query(FireReports).all()
+
+@pytest.fixture
+def seeded_water_resources(db):
+    seed_users_table(db)
+    seed_water_resources(db)
+    db.commit()
+    return db.query(WaterResource).order_by(WaterResource.id).all()
 
 
 @pytest.fixture

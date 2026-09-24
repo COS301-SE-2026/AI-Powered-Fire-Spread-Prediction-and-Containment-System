@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity } from 'lucide-react';
+import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity, Wand2 } from 'lucide-react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
@@ -10,7 +10,8 @@ import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { useRotate } from '../../hooks/useRotate';
 import { RotateHint } from '../../components/shared/RotateHint';
-
+import { useSuggestContainmentLine } from '../../hooks/useSuggestContainmentLine';
+import { SuggestedLineCard } from '../../components/firefighter/suggestedLineCard';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
@@ -28,7 +29,14 @@ export default function Simulation() {
     fetchLines,
     deleteLine
   } = useContainmentLine();
-
+  const {
+    suggestion,
+    loading: suggestingLine,
+    error: suggestError,
+    fetchSuggestion,
+    clearSuggestion,
+  } = useSuggestContainmentLine();
+  const [acceptingSuggestion, setAcceptingSuggestion] = useState(false);
   const {
     status,
     error,
@@ -63,7 +71,7 @@ export default function Simulation() {
         console.warn('Geolocation access failed or denied:', err.message);
       },
       {
-        enableHighAccuracy:true,
+        enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 5000,
       }
@@ -76,7 +84,8 @@ export default function Simulation() {
 
   useEffect(() => {
     clearMap();
-    if (!selectedFireId) { setLines([]); return;}
+    clearSuggestion();
+    if (!selectedFireId) { setLines([]); return; }
     let cancled = false;
 
     fetchLines(selectedFireId).then(rows => {
@@ -89,21 +98,22 @@ export default function Simulation() {
         synced: true,
       })));
     });
-    return () => {cancled = true};
-  }, [selectedFireId, fetchLines, clearMap])
+    return () => { cancled = true };
+  }, [selectedFireId, fetchLines, clearMap, clearSuggestion])
 
   function handleRun() {
-      const steps = selectedFireId ? 288 : 4
-      const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
-      runSimulation(selectedFireId, steps, drafts);
+    const steps = selectedFireId ? 288 : 4
+    const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
+    runSimulation(selectedFireId, steps, drafts);
   }
 
-  function handleStop(){
+  function handleStop() {
     stopRunning();
   }
 
-  function handleClear(){
+  function handleClear() {
     clearMap();
+    clearSuggestion();
     setClearDrawings((prev) => prev + 1);
     setLines(prev => prev.filter(l => l.synced))
   }
@@ -118,7 +128,7 @@ export default function Simulation() {
 
     if (!line.dbId) return;
 
-    try{
+    try {
       await deleteLine(line.dbId)
     } catch {
       setLines(prev => [...prev, line]);
@@ -132,31 +142,58 @@ export default function Simulation() {
     }]);
     setDrawMode(false);
 
-    try{
-      const saved = await submitLine({wkt});
-      if(!saved?.id){
+    try {
+      const saved = await submitLine({ wkt });
+      if (!saved?.id) {
         setLines(prev => prev.filter(l => l.localId !== localId))
         return;
       }
       setLines(prev => prev.map(l =>
-        l.localId === localId ? {...l, dbId: saved.id, fireReportId: saved.fire_report_id, synced: true} : l
+        l.localId === localId ? { ...l, dbId: saved.id, fireReportId: saved.fire_report_id, synced: true } : l
       ));
-    }catch {
+    } catch {
       setLines(prev => prev.filter(l => l.localId !== localId))
+    }
+  }
+  async function handleSuggestLine() {
+    if (!selectedFireId) return;
+    clearSuggestion();
+    await fetchSuggestion(selectedFireId);
+  }
+  async function handleAcceptSuggestion() {
+    if (!suggestion) return;
+    setAcceptingSuggestion(true);
+    try {
+      const saved = await submitLine({ wkt: suggestion.wkt });
+      if (saved?.id) {
+        setLines(prev => [...prev, {
+          localId: crypto.randomUUID(),
+          dbId: saved.id,
+          wkt: suggestion.wkt,
+          fireReportId: saved.fire_report_id,
+          synced: true,
+        }]);
+      }
+      clearSuggestion();
+      handleRun();
+    } catch (err) {
+      console.error('Failed to accept suggested containment line', err);
+    } finally {
+      setAcceptingSuggestion(false);
     }
   }
 
   const canClear = hasResult || lines.length > 0 || currentTick > 0;
 
-    const maxSlider = Math.max(totalTicks-1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-    const totalHours = hasResult ? (maxSlider / 4) : 72;
-    return (
-        <FirefighterSideBar hideLoginRegister>
-            <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
+  const maxSlider = Math.max(totalTicks - 1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
+  const totalHours = hasResult ? (maxSlider / 4) : 72;
+  return (
+    <FirefighterSideBar hideLoginRegister>
+      <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
 
-                {/* Page header and subtitle */}
-                <RotateHint show={showHint} onDismiss={dismiss} />
-                <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
+        {/* Page header and subtitle */}
+        <RotateHint show={showHint} onDismiss={dismiss} />
+        <PageHeader title="Fire Simulation" subtitle="Simulate fire spread and prevention methods" showIcons />
 
         <div className="flex flex-col lg:flex-row gap-4 min-w-0">
           {/* left side of page: map + controls and buttons */}
@@ -204,6 +241,7 @@ export default function Simulation() {
 
               <div className='w-full h-full'>
                 <FireMap
+                  suggestedLine={suggestion?.wkt ?? null}
                   lat={userLocation.lat}
                   lng={userLocation.lng}
                   drawMode={drawMode}
@@ -217,7 +255,7 @@ export default function Simulation() {
                   showKey
                 />
               </div>
-          </div>
+            </div>
 
             {/* simulation vars and buttons */}
             <div className="flex flex-col lg:flex-row gap-3 items-stretch">
@@ -231,20 +269,39 @@ export default function Simulation() {
                   <Pencil size={20} />
                   Draw Containment
                 </button>
-
+                <button
+                  type="button"
+                  onClick={handleSuggestLine}
+                  disabled={!selectedFireId || suggestingLine}
+                  title={!selectedFireId ? 'Select a fire first' : undefined}
+                  className="btn btn-outline w-full flex items-center justify-center gap-2 rounded-xl text-sm font-semibold tracking-wide disabled:opacity-30"
+                >
+                  <Wand2 size={20} />
+                  {suggestingLine ? 'Suggesting...' : 'Suggest Line'}
+                </button>
+                {suggestion && (
+                  <SuggestedLineCard
+                    suggestion={suggestion}
+                    onAccept={handleAcceptSuggestion}
+                    onDismiss={clearSuggestion}
+                    accepting={acceptingSuggestion}
+                  />
+                )}
+                {suggestError && !suggestion && (
+                  <p className="text-xs text-yellow-400">{suggestError}</p>
+                )}
                 {/* Run/Cancel */}
                 <button
                   type="button"
-                  onClick={isLoading? handleStop : handleRun}
+                  onClick={isLoading ? handleStop : handleRun}
                   disabled={hasResult && !isLoading && status !== 'error'}
-                  className={`btn rounded-xl btn-outline w-full flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-30 disable:pointer-events-none ${
-                    isLoading? 'btn-error' : 'btn-accent'}`}
+                  className={`btn rounded-xl btn-outline w-full flex items-center justify-center gap-2 text-sm font-semibold disabled:opacity-30 disable:pointer-events-none ${isLoading ? 'btn-error' : 'btn-accent'}`}
                   title={isLoading ? 'Cancel Simulation Request' : undefined}
                 >
-                  {isLoading? (
-                    <Square size={20}/>
+                  {isLoading ? (
+                    <Square size={20} />
                   ) : (
-                    <CirclePlay size={24}/>
+                    <CirclePlay size={24} />
                   )}
 
                   {isLoading ? 'Cancel Simulation' : 'RUN'}
@@ -257,7 +314,7 @@ export default function Simulation() {
                     disabled={!hasResult || isLoading}
                     className='btn btn-accent rounded-xl btn-outline flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
-                    {isPlaying ? <Pause size={20}/> : <CirclePlay size={20}/>}
+                    {isPlaying ? <Pause size={20} /> : <CirclePlay size={20} />}
                     {isPlaying ? 'Pause' : 'Resume'}
                   </button>
                   <button
@@ -266,7 +323,7 @@ export default function Simulation() {
                     className='btn btn-error rounded-xl btn-outline flex-1 disabled:opacity-30 disabled:pointer-events-none'
                     title='Stop Simulation'
                   >
-                    <Square size={20}/>
+                    <Square size={20} />
                     Stop
                   </button>
                 </div>
@@ -279,7 +336,7 @@ export default function Simulation() {
                     className='btn btn-outline rounded-xl flex-1 text-neautral/60 disabled:opacity-30 disabled:pointer-events-none'
                     title='Re-run Simulation'
                   >
-                    <RotateCcw size={20}/>
+                    <RotateCcw size={20} />
                     Re-run
                   </button>
                   <button
@@ -287,7 +344,7 @@ export default function Simulation() {
                     disabled={!canClear || isLoading}
                     className='btn btn-outline btn-info rounded-xl flex-1 disabled:opacity-30 disabled:pointer-events-none'
                   >
-                    <Trash2 size={20}/>
+                    <Trash2 size={20} />
                     Clear
                   </button>
                 </div>
