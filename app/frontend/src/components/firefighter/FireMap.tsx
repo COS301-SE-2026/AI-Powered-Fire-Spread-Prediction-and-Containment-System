@@ -233,7 +233,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
   const growableFires = useMemo<GrowableFire[]>(
     () => disableGrowth ? []
                         : activeFires
-                          .filter((f) => f.size != null && f.size > 0)
+                          .filter((f) => f.size != null && f.size > 0 && !f.merged_into_id)
                           .map((f) => ({
                             id: f.id,
                             ref: f.ref,
@@ -241,6 +241,8 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
                             lng: f.lng,
                             initialRadiusKm: f.size,
                             ignitedAtMs: f.reported ? new Date(f.reported).getTime() : Date.now(),
+                            fireStatus: f.fire_status,
+                            statusChangedAtMs: f.updated_at ? new Date(f.updated_at).getTime()
                           })),
           [activeFires, disableGrowth]            
   );
@@ -469,7 +471,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
               type="fill"
               paint={{
                 'fill-color': '#fcba3e',
-                'fill-opacity': 0.3,
+                'fill-opacity': ['*', 0.3, ['coalesce', ['get', 'opacity'], 1]],
               }}
             />
 
@@ -479,6 +481,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
               paint={{
                 'line-color': '#fcba3e',
                 'line-width': 1,
+                'line-opacity': ['coalesce', ['get', 'opacity'], 1],
               }}
             />
           </Source>

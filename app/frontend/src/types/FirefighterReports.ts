@@ -1,6 +1,6 @@
 import type { ReportStatus } from './Report';
 
-export type FireStatus = 'active' | 'contained' | 'extinguised'
+export type FireStatus = 'active' | 'contained' | 'extinguished'
 
 export interface FirefighterReportTable {
   id: string;
