@@ -145,4 +145,27 @@ def build_cluster_cache_key(
         cell_size_m: float,
         containment_lines: Optional[List[str]] = None,
         model_version: str = "dca-v1"
-)
+) -> str:
+    """
+    Sibling to build_fire_cache_key, now just on a set of fires
+    same set of fires with same params always gives the same key
+    """
+    raw_lines = containment_lines or []
+    locationally_relevant_lines = filter_containment_lines(lat, lng, raw_lines)
+
+    sorted_refs = sorted(refs)
+
+    payload = {
+        "refs": sorted_refs,
+        "lat": round(lat, 5),
+        "lng": round(lng, 5),
+        "n_steps": n_steps,
+        "cell_size_m": round(cell_size_m, 2),
+        "version": model_version,
+        "containment_lines": locationally_relevant_lines,
+    }
+
+    encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
+    hash = hashlib.sha256(encoded).hexdigest()[:16]
+    ref_summary = "-".join(sorted_refs[:3]) + (f"+{len(sorted_refs)-3}more" if len(sorted_refs)>3 else "")
+    return f"sim:cluster:{ref_summary}:{hash}"
