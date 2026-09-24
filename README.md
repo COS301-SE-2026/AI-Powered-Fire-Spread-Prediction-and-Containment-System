@@ -1,4 +1,4 @@
-# AI-Powered Fire Spread Prediction and Containment System
+<h1 align="center">AI-Powered Fire Spread Prediction and Containment System</h1> 
 
 <img width="2000" height="961" alt="logo-dark" src="https://github.com/user-attachments/assets/eb4ccdab-2208-4ab0-b3be-f790434e729b" />
 
@@ -13,14 +13,12 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 <h2 align="center">Team: Panic! At The Kernel in collaboration with EPI-USE Africa</h2>
 
 <p align="center">
-  <img width="200" alt="EPI-USE Logo" src="https://github.com/user-attachments/assets/a64cc7a0-b267-4556-8766-9d84aa081142" style="vertical-align: middle;" />
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img width="180" alt="Panic! At The Kernel" src="https://github.com/user-attachments/assets/bab70c16-1867-457d-8f90-6fb9a9cdc221" style="vertical-align: middle;" />
+  <img width="650" alt="panic_epi_conbined" src="https://github.com/user-attachments/assets/36cdc2b0-44a5-4307-bf6d-b93029d96b2f" />
 </p>
 <br><br>
 
 [![GitHub Actions](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml/badge.svg)](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml)
 [![Coveralls](https://coveralls.io/repos/github/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/badge.svg?branch=main)](https://coveralls.io/github/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System?branch=main)
-[![Codecov](https://codecov.io/gh/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/branch/main/graph/badge.svg)](https://codecov.io/gh/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System)
 [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=COS301-SE-2026_AI-Powered-Fire-Spread-Prediction-and-Containment-System&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=COS301-SE-2026_AI-Powered-Fire-Spread-Prediction-and-Containment-System)
 [![GitHub issues](https://img.shields.io/github/issues/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System)](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/issues)
 <!-- [![Uptime Robot](https://img.shields.io/uptimerobot/status/m000000000000000000000000?label=Uptime%20Robot)](https://stats.uptimerobot.com/<YOUR_PUBLIC_KEY>) -->
@@ -43,16 +41,6 @@ AI-Powered Fire Spread Prediction and Containment System is a project that aims 
 - [Demo 2 Video](https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing)
   
 ## Demo 3
-- [System Requirements Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
-- [Software Architecture Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications.pdf)
-- [Coding Standards Document](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards.pdf)
-- [Testing Policy](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy.pdf)
-- [User Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_User_Manual.pdf)
-- [Technical Installation Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Technical_Installation_Manual.pdf)
-- [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
-- [Service Contract](docs/Demo_3/service_contract.yaml)
-- [Demo 3 Video]()
-
 - [System Requirements Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
 - [Software Architecture Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications.pdf)
 - [Coding Standards Document](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards.pdf)
