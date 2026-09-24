@@ -5,9 +5,12 @@ from sqlalchemy.orm import Session
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.users import User
 from app.backend.src.services.storage import public_image_url
+from app.backend.src.services.firefighter import fire_merge
 
 
 def get_fire_reports(db: Session):
+    fire_merge.chaeck_and_merge_active_fires(db)
+    
     request = db.query(FireReports).all()
 
     formatted = []
@@ -21,10 +24,14 @@ def get_fire_reports(db: Session):
                 "status": fire.status,
                 "boundary_radius": float(fire.boundary_radius),
                 "submitted_at": fire.submitted_at,
+                "updated_at": fire.updated_at,
                 "reporter": fire.reporter,
                 "verification_notes": fire.verification_notes,
                 "lat": shape.y,
                 "lng": shape.x,
+                "fire_status": fire.fire_status,
+                "containment_percent": float(fire.containment_percent) if fire.containment_percent is not None else None,
+                "merged_into_id": fire.merged_into_id,
             }
         )
 
@@ -57,10 +64,14 @@ def search_report_table(db: Session, key: str):
                 "status": fire.status,
                 "boundary_radius": float(fire.boundary_radius),
                 "submitted_at": fire.submitted_at,
+                "updated_at": fire.updated_at,
                 "reporter": fire.reporter,
                 "verification_notes": fire.verification_notes,
                 "lat": shape.y,
                 "lng": shape.x,
+                "fire_status": fire.fire_status,
+                "containment_percent": float(fire.containment_percent) if fire.containment_percent is not None else None,
+                "merged_into_id": fire.merged_into_id,
             }
         )
 
