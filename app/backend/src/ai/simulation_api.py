@@ -26,8 +26,18 @@ from app.backend.src.models.reported_fires import FireReports
 from .geo import bbox_from_fire, touch_edge
 from .resolve_tiles import resolve_tile_paths
 from app.backend.ml.features.real_data_loader import load_real_inference_data
-from app.backend.src.ai.simulation import build_boundary_ignition_mask, build_multi_boundary_ignition_mask
-from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
+from app.backend.src.ai.simulation import (
+    build_boundary_ignition_mask,
+    build_multi_boundary_ignition_mask,
+)
+from .cache import (
+    build_fire_cache_key,
+    get_cached_prediction,
+    cache_prediction,
+    build_cluster_cache_key,
+    get_cached_cluster_prediction,
+    cache_cluster_prediction,
+)
 from app.backend.ml.models.nowcast_model import (
     WeatherDeltaModel,
     WeatherDeltaModelConfig,
@@ -106,6 +116,19 @@ class Prediction(BaseModel):
     grid_w: int
     cell_size_m: float
 
+class ClusterPrediction(BaseModel):
+    fire_refs: list[str]
+    lat: float
+    lng: float
+    history: list[list[int]]
+    burned_cells: int
+    radius_m: float
+    truncated: bool
+    lat_extent_deg: float
+    lon_extent_deg: float
+    grid_h: int
+    grid_w: int
+    cell_size_m: float
 
 class SimulationResponse(BaseModel):
     # Flattened burn-state grids per tick (list of (H*W) ints in {0=unburned, 1=burning, 2=burned})
@@ -343,12 +366,12 @@ async def simulate_fire_cluster(
         containment_lines=tuple(sorted(lines)),
     )
 
-    cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
+    cached_result = await asyncio.to_thread(get_cached_cluster_prediction, cache_key)
     if cached_result is not None:
         return ClusterPrediction(**cached_result)
 
     async with semaphore:
-        cached_result = await asyncio.to_thread(get_cached_prediction, cache_key)
+        cached_result = await asyncio.to_thread(get_cached_cluster_prediction, cache_key)
         if cached_result is not None:
             return ClusterPrediction(**cached_result)
 
@@ -446,7 +469,7 @@ async def simulate_fire_cluster(
             "cell_size_m": cell_size_m,
         }
 
-        await asyncio.to_thread(cache_prediction, cache_key, prediction_payload, 1800)
+        await asyncio.to_thread(cache_cluster_prediction, cache_key, prediction_payload, 1800)
 
         return ClusterPrediction(**prediction_payload)
 

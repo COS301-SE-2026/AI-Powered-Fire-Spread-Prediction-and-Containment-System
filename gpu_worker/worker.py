@@ -11,7 +11,10 @@ import requests
 import torch
 
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel
-from app.backend.src.ai.simulation import build_boundary_ignition_mask
+from app.backend.src.ai.simulation import (
+    build_boundary_ignition_mask,
+    build_multi_boundary_ignition_mask,
+)
 #from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 
