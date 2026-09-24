@@ -72,7 +72,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-          image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+          image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
           env:
             MINIO_ROOT_USER: admin
             MINIO_ROOT_PASSWORD: miniosupersecretpassword
@@ -237,7 +237,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
       minio:
-        image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+        image: quay.io/minio/minio:RELEASE.2024-11-07T00-52-20Z
         env:
           MINIO_ROOT_USER: admin
           MINIO_ROOT_PASSWORD: miniosupersecretpassword
