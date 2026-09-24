@@ -18,6 +18,8 @@ TEST_DB_URL = (
     or"postgresql+psycopg2://postgres:postgres@localhost:5433/test_fire_db"
 )
 os.environ["DATABASE_URL"] = TEST_DB_URL
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-not-for-production")
+os.environ.setdefault("AWS_REGION", "us-east-1")
 
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
@@ -38,6 +40,9 @@ from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
 from app.backend.src.models.water_resource import WaterResource
+
+#worker model
+from app.backend.src.models.workers import WorkerNode
 
 # seed data
 from app.backend.seed import (
@@ -72,6 +77,7 @@ def create_tables():
         bind=engine,
         tables=[
             User.__table__,
+            WorkerNode.__table__,
             RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
@@ -85,6 +91,7 @@ def create_tables():
         bind=engine,
         tables=[
             User.__table__,
+            WorkerNode.__table__,
             RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
