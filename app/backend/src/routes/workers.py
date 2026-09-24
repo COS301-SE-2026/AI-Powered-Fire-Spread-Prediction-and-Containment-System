@@ -1,6 +1,6 @@
 # for volunteer gpus
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta, tzinfo
 import json
 import logging
 import os
@@ -28,6 +28,7 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 JOB_TIMEOUT_SECONDS = float(os.getenv("SIMULATION_JOB_TIMEOUT", "90.0"))
 
+QUARANTINE_DURATION = timedelta(minutes=15)
 
 async def verify_worker_token(token: str) -> str:
     """Decodes and validates scoped Worker Device JWT.
@@ -106,6 +107,20 @@ async def websocket_worker_endpoint(
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
+    if node.status == "quarantined":
+        now = datetime.now(timezone.utc)
+        until = node.quarantine_until
+        if until and until.tzinfo is None:
+            until = until.replace(tzinfo=timezone.utc)
+
+        if until and until > now:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        node.status = "active"
+        node.quarantine_until = None
+        db.commit()
+
     await websocket.accept()
     active_worker_connections[worker_id] = websocket
 
@@ -128,7 +143,7 @@ async def websocket_worker_endpoint(
                 msg_type = data.get("type")
 
                 if msg_type == "pong" or msg_type == "ping":
-                    node.last_heartbeat = datetime.now(timezone.uts)
+                    node.last_heartbeat = datetime.now(timezone.utc)
                     db.commit()
                     if msg_type == "ping":
                         await websocket.send_text(json.dumps({"type": "pong"}))
@@ -139,7 +154,7 @@ async def websocket_worker_endpoint(
                     job_id = data.get("job_id")
                     log.info("Received simulation result for job %s from worker %s", job_id, worker_id)
                     # to dispatcher
-                    valkey.setex(f"worker:sim:result:{job_id}", 60, json.dumbs(data.get("payload", {})))
+                    valkey.setex(f"worker:sim:result:{job_id}", 60, json.dumps(data.get("payload", {})))
                     # return to idle
                     node.status = "active"
                     db.commit()
@@ -153,6 +168,7 @@ async def websocket_worker_endpoint(
                     log.error("Worker %s failed simulation job %s: %s", worker_id, job_id, data.get("error"))
                     node.consecutive_failures += 1
                     node.status = "quarantined"
+                    node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION
                     db.commit()
                     valkey.srem("worker:pool:busy", worker_id)
                     valkey.srem("worker:pool:idle", worker_id)
@@ -181,13 +197,24 @@ async def websocket_worker_endpoint(
             log.error("Failed to update status for disconnected worker %s: %s", worker_id, cleanup_err)
 
 
-async def dispatch_simulation_task(task_payload: dict, db: Session) -> dict:
+def has_active_volunteer_workers() -> bool:
     valkey = worker_service.valkey_client
-    worker_id = valkey.spop("worker:pool:idle")
+    try:
+        idle_count = valkey.scard("worker:pool:idle")
+        return bool(idle_count > 0 and len(active_worker_connections) > 0)
+    except Exception as err:
+        log.warning("Error checking active workers: %s", err)
+        return len(active_worker_connections) > 0
 
-    if not worker_id:
-        log.warning("No idle volunteer workers available.")
+async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = None) -> dict:
+    valkey = worker_service.valkey_client
+    raw_worker_id = valkey.spop("worker:pool:idle")
+
+    if not raw_worker_id:
+        log.warning("No idle workers availiable")
         return {"dispatched_to": "cloud_fallback", "status": "queued"}
+
+    worker_id = raw_worker_id.decode("utf-8") if isinstance(raw_worker_id, bytes) else str(raw_worker_id)
 
     ws = active_worker_connections.get(worker_id)
     if not ws:
@@ -197,17 +224,25 @@ async def dispatch_simulation_task(task_payload: dict, db: Session) -> dict:
     job_id = task_payload.get("job_id", "sim_job")
     valkey.sadd("worker:pool:busy", worker_id)
 
-    node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
-    if node:
-        node.status = "busy"
-        db.commit()
-
-    message = {
-        "type": "simulation_job",
-        "payload": task_payload,
-    }
+    from app.backend.db import SessionLocal
+    owns_session = False
+    session = db
+    if session is None:
+        session = SessionLocal()
+        owns_session = True
 
     try:
+        node = session.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
+        if node:
+            node.status = "busy"
+            session.commit()
+
+        message = {
+            "type": "simulation_job",
+            "payload": task_payload,
+        }
+
+    
         await ws.send_text(json.dumps(message))
 
         result_key = f"worker:sim:result:{job_id}"
@@ -227,11 +262,12 @@ async def dispatch_simulation_task(task_payload: dict, db: Session) -> dict:
             await asyncio.sleep(poll_interval)
             elapsed += poll_interval
 
-        log.warning("Worker %s exceeded 10s SLA limit on job %s. Quarantining", worker_id, JOB_TIMEOUT_SECONDS, job_id)
+        log.warning("Worker %s exceeded 10s SLA limit on job %s. Quarantining %s", worker_id, JOB_TIMEOUT_SECONDS, job_id)
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
-            db.commit()
+            node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
+            session.commit()
         valkey.srem("worker:pool:busy", worker_id)
 
     except Exception as err:
@@ -239,8 +275,12 @@ async def dispatch_simulation_task(task_payload: dict, db: Session) -> dict:
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
-            db.commit()
+            node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
+            session.commit()
         valkey.srem("worker:pool:busy", worker_id)
+    finally:
+        if owns_session:
+            session.close()
 
     return {"dispatched_to": "cloud_fallback", "status": "queued"}
 

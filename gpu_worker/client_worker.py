@@ -16,6 +16,8 @@ import websockets
 
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
+from app.backend.src.ai.simulation import build_boundary_ignition_mask
+from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,7 +29,7 @@ BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL")
 WEBSOCKET_URL = os.getenv("WEBSOCKET_URL")
 REGISTRATION_KEY = os.getenv("REGISTRATION_KEY")
 WORKER_LABEL = os.getenv("WORKER_LABEL", os.getenv("HOSTNAME", "volunteer-desktop"))
-MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cackend/ml/models/weather_convlstm.pt")
+MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cached/ml/models/weather_convlstm.pt")
 
 MIN_VRAM_MB = 4096
 BENCHMARK_DURATION_SECONDS = 1.0
@@ -62,7 +64,7 @@ def run_pre_flight_check() -> Tuple[bool, str, int]:
 
     log.info("Executing synthetic matrix stress test on CUDA...")
     try:
-        x = torch.randn((4096, 4096), device="cude:0", dtype=torch.float32)
+        x = torch.randn((4096, 4096), device="cuda:0", dtype=torch.float32)
         start_time = time.monotonic()
         iterations = 0
 
@@ -134,36 +136,35 @@ def register_worker(reg_key: str, gpu_name: str, vram_mb: int) -> Optional[Tuple
 
 def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
     job_id = payload.get("job_id", "sim_task")
-    log.info("Executing fire simulation pipeline for job: %s", job_id)
+    log.info("Fetching remote terrain and weather data for job: %s", job_id)
 
-    weather_raw = payload["weather_history"]
-    weather_tensor = torch.as_tensor(weather_raw, dtype=torch.float32)
-    if weather_tensor.ndim == 4:
-        weather_tensor = weather_tensor.unsqueeze(0)
+    # fetch satelite and weather data
+    weather_history = fetch_weather_history(payload)
+    static_grids = fetch_static_grids(payload)
 
-    static_grids = {
-        "elevation": np.array(payload["static_grids"]["elevation"], dtype=np.float32),
-        "slope": np.array(payload["static_grids"]["slope"], dtype=np.float32),
-        "aspect_sin": np.array(payload["static_grids"]["aspect_sin"], dtype=np.float32),
-        "aspect_cos": np.array(payload["static_grids"]["aspect_cos"], dtype=np.float32),
-        "fuel_load": np.array(payload["static_grids"]["fuel_load"], dtype=np.float32),
-        "dryness": np.array(payload["static_grids"]["dryness"], dtype=np.float32),
-    }
+    # build the [1 T 4 H W] tensor for lstm
+    frames = []
+    for frame in weather_history:
+        stacked = np.stack(
+            [
+                frame["wind_u"],
+                frame["wind_v"],
+                frame["temperature"],
+                frame["rel_humidity"],
+            ],
+            axis=0
+        ).astype(np.float32)
+        frames.append(stacked)
+    weather_tensor = torch.from_numpy(np.stack(frames, axis=0)).unsqueeze(0)
 
-    ignition_mask = (
-        np.array(payload["ignition_mask"], dtype=bool)
-        if "ignition_mask" in payload
-        else None
+    ignition_mask = build_boundary_ignition_mask(
+        H=payload["grid_h"],
+        W=payload["grid_w"],
+        cell_size_m=payload["cell_size_m"],
+        boundary_radius_m=payload["boundary_radius_m"]
     )
 
-    cell_size_m = float(payload.get("cell_size_m", 15.0))
-    n_steps = int(payload.get("n_steps", 4))
-    containment_lines = payload.get("containment_lines")
-    grid_bounds = (
-        tuple(payload["grid_bounds"]) if "grid_bounds" in payload else None
-    )
-
-    raw_params = payload.get("params", {})
+    raw_params = payload.get("params", DEFAULT_DCA_PARAMS)
     params = (
         {k: torch.as_tensor(v, dtype=torch.float32) for k, v in raw_params.items()}
         if raw_params
@@ -174,11 +175,11 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         convlstm_model=model,
         weather_history=weather_tensor,
         static_grids=static_grids,
-        cell_size_m=cell_size_m,
-        n_steps=n_steps,
+        cell_size_m=payload["cell_size_m"],
+        n_steps=payload["n_steps"],
         ignition_mask=ignition_mask,
-        containment_lines=containment_lines,
-        grid_bounds=grid_bounds,
+        containment_lines=payload.get("containment_lines"),
+        grid_bounds=payload.get("grid_bounds"),
         params=params,
     )
 
@@ -198,9 +199,10 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
         try:
             async with websockets.connect(
                 WEBSOCKET_URL,
-                extra_headers=headers,
+                additional_headers=headers,
                 ping_interval=15,
                 ping_timeout=5,
+                max_size=None
             ) as websocket:
                 log.info("Persistent WebSocket connection established. Node ready.")
 
@@ -218,9 +220,9 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                         job_id = job_payload.get("job_id", "unknown")
                         try:
                             start_t = time.monotonic()
-                            result = execute_pipeline_task(model, job_payload)
+                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload)
                             duration = time.monotonic() - start_t
-                            log.infp("Job %s completed in %.2fs. Sending results.", job_id, duration)
+                            log.info("Job %s completed in %.2fs. Sending results.", job_id, duration)
 
                             await websocket.send(
                                 json.dumps(
@@ -245,8 +247,9 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                                 )
                             )
 
-        except websockets.exceptions.InvalidStatusCode as err:
-            log.error("Authentication rejected: HTTP %d", err.status_code)
+        except websockets.exceptions.InvalidStatus as err:
+            status_code = getattr(err.response, "status_code", "Unknown")
+            log.error("Authentication rejected: HTTP %s (%s)", status_code, err)
             return
         except (websockets.exceptions.ConnectionClosed, OSError) as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
@@ -274,7 +277,7 @@ def main():
     jwt_token, worker_id = registration_result
     model = load_inference_model()
 
-    asyncio.run(run_worker_loop(jwt_token))
+    asyncio.run(run_worker_loop(model, jwt_token))
 
 if __name__ == "__main__":
     main()

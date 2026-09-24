@@ -26,7 +26,7 @@ services:
       - ./app/backend:/app/app/backend
       - ./app/artifact_store:/app/app/artifact_store
     ports: ["127.0.0.1:8000:8000"]
-    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--ws-max-size", "104857600"]
     depends_on:
       postgres: { condition: service_healthy }
   

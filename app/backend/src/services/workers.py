@@ -41,7 +41,7 @@ def generate_worker_key(user_id: str) -> dict:
         "registration_key": reg_key,
         "expires_in_seconds": REGISTRATION_KEY_TTL,
         "docker_command": (
-            f'docker rin --gpus all -e REGISTRATION_KEY="{reg_key}" '
+            f'docker run --gpus all -e REGISTRATION_KEY="{reg_key}" '
             f'fireaway-worker:latest'
         ),
     }
@@ -52,6 +52,16 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
     validates the hardware capacity,
     registers the node in PostgreSQL,
     and returns a scoped Worker Device JWT."""
+
+    # hardware capacity
+    if register_data.vram_mb < MIN_VRAM_MB:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Worker rejected. Insufficient VRAM. "
+                f"Detected {register_data.vram_mb} MB, min VRAM required is {MIN_VRAM_MB} MB"
+            ),
+        )
 
     valkey_storage_key = f"worker:reg:{register_data.registration_key}"
 
@@ -66,16 +76,6 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired worker registration key",
-        )
-
-    # hardware capacity
-    if register_data.vram_mb < MIN_VRAM_MB:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Worker rejected. Insufficient VRAM. "
-                f"Detected {register_data.vram_mb} MB, min VRAM required is {MIN_VRAM_MB} MB"
-            ),
         )
 
     # new active

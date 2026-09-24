@@ -30,6 +30,8 @@ from .cache import build_fire_cache_key, get_cached_prediction, cache_prediction
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
 from app.backend.src.models.containment_lines import ContainmentLines
 from collections import defaultdict
+from app.backend.src.ai.job_builder import fetch_weather_history, fetch_static_grids, build_volunteer_payload
+from app.backend.src.routes.workers import dispatch_simulation_task, has_active_volunteer_workers
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -206,6 +208,8 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             return Prediction(**cached_result)
 
         job_id = f"{fire.reference_number}-{uuid.uuid4().hex[:8]}"
+
+    
         job = {
             "job_id": job_id,
             "region_id": fire.reference_number,
@@ -221,15 +225,35 @@ async def simulate_single_fire(fire, automatic_steps: int, semaphore: asyncio.Se
             "containment_lines": lines,
         }
 
-        await asyncio.to_thread(
-            sqs.send_message,
-            QueueUrl=INFERENCE_QUEUE_URL,
-            MessageBody=json.dumps(job),
-        )
+        raw_result = None
 
-        raw_result = await wait_for_result(job_id)
+        # Try to see if a volunteer is avaliable
+        if has_active_volunteer_workers():
+            try:
+                logger.info(f"Volunteer worker is online. Dispatching job {job_id}")
+                dispatch_res = await dispatch_simulation_task(job)
+                if dispatch_res and dispatch_res.get("status") == "completed":
+                    raw_result = dispatch_res
+                    logger.info(f"Volunteer completed for the following job: {job_id} successfully") 
+                else:
+                    logger.warning(f"Volunteer failed for the following job: {job_id}. Now falling back onto server workers")
+            except Exception as err:
+                logger.exception(f"Error during volunteer dispatch job {job_id}. Now falling back onto server workers")
+
+        #Cloud fall back
         if raw_result is None:
-            raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+
+            await asyncio.to_thread(
+                sqs.send_message,
+                QueueUrl=INFERENCE_QUEUE_URL,
+                MessageBody=json.dumps(job),
+            )
+
+            raw_result = await wait_for_result(job_id)
+            if raw_result is None:
+                raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+
+        # Format and cache the output
 
         raw_history = raw_result.get("history", [])
 

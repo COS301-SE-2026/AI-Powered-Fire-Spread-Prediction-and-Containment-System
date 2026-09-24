@@ -135,8 +135,8 @@ def build_weather_history_tensor(weather_history: list) -> torch.Tensor:
             [
                 frame["wind_u"],
                 frame["wind_v"],
-                frame["rel_humidity"],
                 frame["temperature"],
+                frame["rel_humidity"],
             ],
             axis=0,
         ).astype(np.float32)
@@ -187,7 +187,7 @@ def fetch_weather_history(job: dict) -> list:
                 "wind_v": np.full((grid_h, grid_w), wind_v, dtype=np.float32),
                 "temperature": np.full((grid_h, grid_w), temperature_c, dtype=np.float32),
                 "rel_humidity": np.full(
-                    (grid_h, grid_w), rel_humidity_pct / 100.0, dtype=np.float32
+                    (grid_h, grid_w), rel_humidity_pct, dtype=np.float32
                 ),
             }
         )
