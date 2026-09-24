@@ -41,10 +41,11 @@ export default function RoleApprovalPage() {
         <RotateHint show={showHint} onDismiss={dismiss} />
         {/* Header + filter */}
         <PageHeader title="Role Approvals" subtitle="Manage user role requests" showIcons />
-
-        <SearchBar value={searchKey} placeholder="Search role requests" onChange={setSearchKey} />
-        <StatusFilter<RoleFilter> options={ROLE_FILTERS} filter={filter} onChange={setFilter} />
-
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-4">
+          <SearchBar value={searchKey} placeholder="Search role requests" onChange={setSearchKey} />
+          <StatusFilter<RoleFilter> options={ROLE_FILTERS} filter={filter} onChange={setFilter} />
+        </div>
+        
         {/* table */}
         <div className='flex-1 min-h-0'>
           {loading ? (

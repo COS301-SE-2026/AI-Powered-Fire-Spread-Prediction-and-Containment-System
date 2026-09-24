@@ -7,7 +7,7 @@ import { useDebounce } from './useDebounce';
 export function useRoleRequests(searchKey: string) {
   const debounceedSearch = useDebounce(searchKey, 600);
 
-  let url = '/api/admin/role_requests';
+  let url = '/api/admin/role-requests';
   if (debounceedSearch) {
     url = `/api/admin/role-requests/search?key=${encodeURIComponent(debounceedSearch)}`;
   }
