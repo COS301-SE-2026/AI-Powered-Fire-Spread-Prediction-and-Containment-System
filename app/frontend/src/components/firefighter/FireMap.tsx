@@ -250,7 +250,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
                             initialRadiusKm: f.size,
                             ignitedAtMs: f.reported ? new Date(f.reported).getTime() : Date.now(),
                             fireStatus: f.fire_status,
-                            statusChangedAtMs: f.updated_at ? new Date(f.updated_at).getTime()
+                            statusChangedAtMs: f.updated_at ? new Date(f.updated_at).getTime() : undefined
                           })),
           [activeFires, disableGrowth]            
   );
