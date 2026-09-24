@@ -4,6 +4,7 @@ from typing import List
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.fire_status import FireStatus
 
 from typing import List, Optional
 
@@ -16,10 +17,14 @@ class FirefighterReportTable(BaseModel):
     status: ReportStatus
     size: float = Field(validation_alias="boundary_radius")
     reported: datetime = Field(validation_alias="submitted_at")
+    updated_at: Optional[datetime] = None
     reporter: str
     verification_notes: Optional[str] = None
     lat: float
     lng: float
+    fire_status: FireStatus = FireStatus.active
+    containment_percent: Optional[float] = None
+    merged_into_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
