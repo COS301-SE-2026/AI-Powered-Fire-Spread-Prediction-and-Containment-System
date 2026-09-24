@@ -138,7 +138,7 @@ ROUTES = [
 def test_get_role_requests_route_returns_service_result(mock_service):
     mock_service.get_role_requests.return_value = {"data": [], "total": 0}
 
-assert routes.get_role_requests(db=MagicMock()) == {"data": [], "total": 0}
+    assert routes.get_role_requests(db=MagicMock()) == {"data": [], "total": 0}
 
 @pytest.mark.parametrize("route, service_fn", ROUTES)
 @patch(PATCH)
