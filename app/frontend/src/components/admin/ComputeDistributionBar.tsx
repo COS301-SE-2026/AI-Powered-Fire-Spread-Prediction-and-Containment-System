@@ -11,7 +11,7 @@ export interface ComputeDistributionData {
 
 
 interface ComputeDistributionProps {
-    initialData?: ComputeDistributionData;
+    initialData: ComputeDistributionData;
     refreshIntervalMs?: number;
 }
 
@@ -55,7 +55,7 @@ export const ComputeDistribution: React.FC<ComputeDistributionProps> = ({
             }
         };
 
-        void fetchDistribution();
+        fetchDistribution().catch(() => {});
         const interval = setInterval(fetchDistribution, refreshIntervalMs);
 
         return () => {
