@@ -20,6 +20,8 @@ export interface DirectionalBias {
     factor: number;
 }
 
+export type FireStatus = 'active' | 'contained' | 'extinguished';
+
 export interface GrowableFire {
     id: string;
     ref: string;
@@ -27,7 +29,12 @@ export interface GrowableFire {
     lng: number;
     initialRadiusKm: number;    // verified radius (km) at report time. Used as fire's starting size, not current size
     ignitedAtMs: number;    // when fire was first verified in epoch ms
+    fireStatus?: FireStatus;
+    statusChangedAtMs?: number;
 }
+
+// how long extinguised fire takes to shrink to nothing and fade out once status changes
+const EXTINGUISH_FADE_MIN = 0.75; // 45s
 
 const PERIMETER_POINTS = 64;
 const BASE_ROS_KM_PER_MIN = 0.0015;
@@ -87,8 +94,34 @@ function terrainFactorAt(bearingDeg: number, bias: DirectionalBias[] | undefined
     return bias[i0].factor * (1 - t) + bias[i1].factor * t;
 }
 
+function effectiveGrowthState(
+    fire: GrowableFire,
+    nowMs: number
+): { elapsedMinForGrowth: number; opacity: number; gone: boolean } {
+    const liveElapsedMin = Math.max(0, (nowMs - fire.ignitedAtMs) / 60000);
+    const status = fire.fireStatus ?? 'active'
+
+    if (status === 'active' || fire.statusChangedAtMs == null) {
+        return { elapsedMinForGrowth: liveElapsedMin, opacity: 1, gone: false };
+    }
+
+    const frozenElapsedMin = Math.max(0, (fire.statusChangedAtMs - fire.ignitedAtMs) / 60000);
+
+    if (status === 'contained') {
+        return { elapsedMinForGrowth: Math.min(liveElapsedMin, frozenElapsedMin), opacity: 1, gone: false} ;
+    }
+
+    const sinceExtinguishedMin = Math.max(0, (nowMs - fire.statusChangedAtMs) / 60000);
+    const fadeProgress = Math.min(1, sinceExtinguishedMin / EXTINGUISH_FADE_MIN);
+    return {
+        elapsedMinForGrowth: Math.min(liveElapsedMin, frozenElapsedMin) * (1 - fadeProgress),
+        opacity: 1 - fadeProgress,
+        gone: fadeProgress >= 1,
+    };
+}
+
 export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs: number, terrainBias?: DirectionalBias[]): Feature<Polygon> {
-    const elapsedMin = Math.max(0, (nowMs - fire.ignitedAtMs) / 60000);
+    const { elapsedMinForGrowth: elapsedMin, opacity } = effectiveGrowthState(fire, nowMs);
     const growth = easeIn(elapsedMin);
     const headROS = headRateOfSpreadKmPerMin(env);
     const headDistKm = fire.initialRadiusKm + headROS * elapsedMin * growth;
@@ -119,7 +152,7 @@ export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs
     }
     coords.push(coords[0]);
 
-    return turfPolygon([coords], { ref: fire.ref, id: fire.id });
+    return turfPolygon([coords], { ref: fire.ref, id: fire.id, opacity });
 }
 
 export function mergeOverlappingFires(polygons: Feature<Polygon>[]): Feature<Polygon | MultiPolygon>[] {
@@ -149,7 +182,9 @@ export function buildFireFeatureCollection(
     nowMs: number,
     terrainBiasByFireId?: Map<string, DirectionalBias[]>
 ): FeatureCollection {
-    const polygons = fires.filter((f) => f.initialRadiusKm > 0).map((f) => buildFirePolygon(f, env, nowMs));
+    const polygons = fires
+        .filter((f) => f.initialRadiusKm > 0 && !effectiveGrowthState(f, nowMs).gone)
+        .map((f) => buildFirePolygon(f, env, nowMs, terrainBiasByFireId?.get(f.id)));
     const merged = mergeOverlappingFires(polygons);
     return featureCollection(merged);
 }
