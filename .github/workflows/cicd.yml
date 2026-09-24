@@ -73,6 +73,9 @@ jobs:
           --health-retries 5
       minio:
           image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+          credentials:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
           env:
             MINIO_ROOT_USER: admin
             MINIO_ROOT_PASSWORD: miniosupersecretpassword
@@ -238,6 +241,9 @@ jobs:
           --health-retries 5
       minio:
         image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           MINIO_ROOT_USER: admin
           MINIO_ROOT_PASSWORD: miniosupersecretpassword
