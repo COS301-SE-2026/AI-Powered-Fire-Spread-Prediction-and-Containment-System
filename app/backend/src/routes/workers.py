@@ -4,22 +4,26 @@ from datetime import datetime, timezone
 import json
 import logging
 import os
-from typing import Annotated, Dict, Optional
+from typing import Annotated, Dict, Optional, List
 
 from fastapi import (APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status)
 from jose import JWTError, jwt
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
 from app.backend.src.models.workers import WorkerNode
-from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse
+from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, ComputeDistrubutionRatio, WorkerNodeResponse, WorkerRemovalRequest
 from app.backend.src.services import workers as worker_service
 
 log = logging.getLogger("workers_route")
 
 router = APIRouter(prefix="/api/v1/workers", tags=["Workers"])
+
+db_session = Annotated[Session, Depends(get_db)]
+current_active_user = Annotated[User, Depends(get_current_user)]
 
 # worker_id -> WebSocket
 active_worker_connections: Dict[str, WebSocket] = {}
@@ -49,6 +53,113 @@ async def verify_worker_token(token: str) -> str:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate worker credentails",
         )
+
+
+@router.get("", response_model=List[WorkerNodeResponse])
+def get_workers(
+    db: db_session,
+    current_user: current_active_user,
+):
+    """List worker nodes. 
+    Returns all nodes for admins or only the user's machines for volunteers."""
+    is_admin = getattr(current_user, "role", "") == "admin"
+    return worker_service.list_workers(
+        db=db,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.post(
+    "/{worker_id}/activate",
+    response_model=WorkerNodeResponse
+)
+def activate_worker(
+    worker_id: str,
+    db: db_session,
+    current_user: current_active_user,
+):
+    """Activates a worker node, moving its status te 'active'."""
+    is_admin = getattr(current_user, "role", "") == "admin"
+    return worker_service.activate_worker_node(
+        db=db,
+        worker_id=worker_id,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.post(
+    "/{worker_id}/deactivate",
+    response_model=WorkerNodeResponse
+)
+def deactivate_worker(
+    worker_id: str,
+    db: db_session,
+    current_user: current_active_user,
+):
+    """Deactivates a worker node, moving its status te 'deactiveted'."""
+    is_admin = getattr(current_user, "role", "") == "admin"
+    return worker_service.deactivate_worker_node(
+        db=db,
+        worker_id=worker_id,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.post(
+    "/{worker_id}/remove",
+    response_model=WorkerNodeResponse
+)
+def remove_worker(
+    worker_id: str,
+    payload: WorkerRemovalRequest,
+    db: db_session,
+    current_user: current_active_user,
+):
+    """Marks a node as 'removed' and stores the removal reason.
+    Requires explanation for why removal."""
+    is_admin = getattr(current_user, "role", "") == "admin"
+    return worker_service.activate_worker_node(
+        db=db,
+        worker_id=worker_id,
+        reason=payload.reason,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.get(
+    "/compute-distribution",
+    response_model=ComputeDistrubutionRatio,
+    status_code=status.HTTP_200_OK,
+)
+def get_compute_distribution(db: Session = Depends(get_db)):
+    operational_statuses = ["active", "busy", "quarantined", "offline"]
+
+    counts = (
+        db.query(WorkerNode.status, func.count(WorkerNode.id))
+        .filter(WorkerNode.status.in_(operational_statuses))
+        .group_by(WorkerNode.status)
+        .all()
+    )
+
+    counts_dict = {status_key: count for status_key, count in counts}
+
+    active_count = counts_dict.get("active", 0)
+    busy_count = counts_dict.get("busy", 0)
+    quarantined_count = counts_dict.get("quarantined", 0)
+    offline_count = counts_dict.get("offline", 0)
+    total_count = active_count + busy_count + quarantined_count + offline_count
+
+    return ComputeDistrubutionRatio(
+        active=active_count,
+        busy=busy_count,
+        quarantined=quarantined_count,
+        offline=offline_count,
+        total=total_count,
+    )
 
 
 @router.post("/keys", status_code=status.HTTP_201_CREATED)

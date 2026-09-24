@@ -1,65 +1,138 @@
-import { useState , useCallback } from 'react';
-import { useFetch } from './useFetch';
-import { apiCall } from '../lib/api';
-import type { GPUWorker, Status } from '../types/GPUWorkers';
-import { mockGpuWorkers } from '../mockData/GPUWorkers';
-import { useDebounce } from './useDebounce';
+import { useState, useEffect, useCallback } from 'react';
+import type { GPUWorker } from '../types/GPUWorkers';
 
-export function useGPUWorkers(searchKey: string = '') {
-    const debouncedSearch = useDebounce(searchKey, 600);
-    // TODO: uncomment once the endpoints are ready, delete the mock block below
-    // let url = '/api/admin/gpu-workers';
-    // if (debouncedSearch) {
-    //     url = `/api/admin/gpu-workers/search?key=${encodeURIComponent(debouncedSearch)}`;
-    // }
-    // const { data, loading, error, refetch } = useFetch<GPUWorker[]>(url);
+interface UseGPUWorkersReturn {
+    workers: GPUWorker[];
+    loading: boolean;
+    error: string | null;
+    refetch: () => Promise<void>;
+    activate: (id: string) => Promise<void>;
+    deactivate: (id: string) => Promise<void>;
+    remove: (id: string, reason?: string) => Promise<void>;
+}
 
+export function useGPUWorkers(): UseGPUWorkersReturn {
+    const [workers, setWorkers] = useState<GPUWorker[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const [mockData, setMockData] = useState<GPUWorker[]>(mockGpuWorkers);
-    const loading = false;
-    const error = null;
-    const refetch = () => {};
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
-    const needle = debouncedSearch.trim().toLowerCase();
-    const data = mockData.filter((w) =>
-        `${w.label} ${w.gpu_name} ${w.id}`.toLowerCase().includes(needle)
+    const fetchWorkers = useCallback(async (): Promise<void> => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const response = await fetch(`${apiBaseUrl}/api/v1/workers`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to load workers (status: ${response.statusText})`);
+            }
+
+            const data = await response.json();
+            setWorkers(Array.isArray(data) ? data : []);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Error fetching workers';
+            setError(message);
+            setWorkers([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [apiBaseUrl]);
+
+    const activate = useCallback(
+        async (id: string): Promise<void> => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/v1/workers/${id}/activate`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to activate worker: ${response.statusText}`);
+                }
+
+                const updateNode: GPUWorker = await response.json();
+                    setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error activating worker';
+                setError(message);
+            }
+        },
+        [apiBaseUrl]
     );
 
-    function updateLocal(id: string, patch: Partial<GPUWorker>) {
-        setMockData((prev) => prev.map((w) => (w.id === id ? { ...w, ...patch } : w)));
-    }
+    const deactivate = useCallback(
+        async (id: string): Promise<void> => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/v1/workers/${id}/deactivate`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-    async function activate(id: string) {
-        // TODO: replace with a real mutation call, e.g.
-        // await fetch(`/api/admin/gpu-workers/${id}/activate`, { method: 'POST' });
-        // refetch();
-        updateLocal(id, { status: 'active' as Status, deactivated_at: null });
-    }
+                if (!response.ok) {
+                    throw new Error(`Failed to deactivate worker: ${response.statusText}`);
+                }
 
-    async function deactivate(id: string) {
-        // TODO: replace with a real mutation call, e.g.
-        // await fetch(`/api/admin/gpu-workers/${id}/deactivate`, { method: 'POST' });
-        // refetch();
-        updateLocal(id, { status: 'deactivated' as Status, deactivated_at: new Date().toISOString() });
-    }
+                const updateNode: GPUWorker = await response.json();
+                setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error deactivating worker';
+                setError(message);
+            }
+        },
+        [apiBaseUrl]
+    );
 
-    async function remove(id: string, reason: string) {
-        // await apiCall(`/api/admin/gpu-workers/${id}/remove`, 'PUT', { reason });
-        // await refetch();
-        let removalReason: string | null = null;
-        if (reason.length > 0) {
-            removalReason = reason;
-        }
-        updateLocal(id, {status: 'removed' as Status, removed_at: new Date().toISOString(), removal_reason: removalReason,});
-    }
+    const remove = useCallback(
+        async (id: string, reason?: string): Promise<void> => {
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/v1/workers/${id}/remove`,  {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason: reason || '' }),
+                });
 
-  return {
-    workers: data ?? [],
-    loading,
-    error,
-    refetch,
-    activate,
-    deactivate,
-    remove,
-  };
+                if (!response.ok) {
+                    throw new Error(`Failed to remove worker: ${response.statusText}`);
+                }
+
+                const updateNode: GPUWorker = await response.json();
+                setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : 'Error removing worker';
+                setError(message);
+            }
+        },
+        [apiBaseUrl]
+    );
+
+    useEffect(() => {
+        fetchWorkers();
+    }, [fetchWorkers]);
+
+    return {
+        workers,
+        loading,
+        error,
+        refetch: fetchWorkers,
+        activate,
+        deactivate,
+        remove,
+    };
 }
