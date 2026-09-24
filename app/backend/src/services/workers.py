@@ -1,11 +1,12 @@
 # for disributed system for volunteer gpus
 import os
 import secrets
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import HTTPException, status
 import redis
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone
 
 from app.backend.src.dependencies.auth import create_access_token
 from app.backend.src.models.workers import WorkerNode
@@ -24,6 +25,104 @@ valkey_client = redis.Redis(
 
 REGISTRATION_KEY_TTL = 86400 # 24 hours
 MIN_VRAM_MB = 4096
+
+
+def list_workers(
+    db: Session,
+    user_id: Optional[str] = None,
+    is_admin: bool = False,
+) -> List[WorkerNode]:
+    """Returns all workers for admins, or scopes the list to user_id for volunteers."""
+    query = db.query(WorkerNode)
+    if not is_admin:
+        query = query.filter(WorkerNode.user_id == user_id)
+    return query.order_by(WorkerNode.activated_at.desc()).all()
+
+
+def activate_worker_node(
+    db: Session,
+    worker_id: str,
+    user_id: str,
+    is_admin: bool = False,
+) -> WorkerNode:
+    node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Worker node not found",
+        )
+
+    if not is_admin and node.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail = "Not authorized to activate this worker node",
+        )
+
+    node.status = "active"
+    node.activated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(node)
+    return node
+
+
+def deactivate_worker_node(
+    db: Session,
+    worker_id: str,
+    user_id: str,
+    is_admin: bool = False,
+) -> WorkerNode:
+    node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Worker node not found",
+        )
+
+    if not is_admin and node.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail = "Not authorized to deactivate this worker node",
+        )
+
+    node.status = "deactived"
+    node.deactivated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(node)
+    return node
+
+
+def remove_worker_node(
+    db: Session,
+    worker_id: str,
+    reason: Optional[str],
+    user_id: str,
+    is_admin: bool = False,
+) -> WorkerNode:
+    node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Worker node not found",
+        )
+
+    if not is_admin and node.user_id != user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail = "Not authorized to remove this worker node",
+        )
+
+    if is_admin and (not reason or len((reason.strip()) == 0)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Reason for removal is required for GPU removal",
+        )
+
+    node.status = "removed"
+    node.removed_at = datetime.now(timezone.utc)
+    node.removal_reason = reason.strip() if reason else None
+    db.commit()
+    db.refresh(node)
+    return node
 
 
 def generate_worker_key(user_id: str) -> dict:

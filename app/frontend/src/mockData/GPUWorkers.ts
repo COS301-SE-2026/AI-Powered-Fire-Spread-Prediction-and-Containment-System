@@ -4,7 +4,7 @@ import type { GPUWorker } from "../types/GPUWorkers";
 export const mockGpuWorkers: GPUWorker[] = [
     {
         id: "1",
-        user_id: "u1",
+        user_id: "usr_09",
         label: "Janri's Desktop",
         gpu_name: "RTX 4090",
         vram_mb: 24576,
