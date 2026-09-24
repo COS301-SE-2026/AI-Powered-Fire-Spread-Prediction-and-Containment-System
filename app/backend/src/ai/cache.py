@@ -136,3 +136,13 @@ def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 3600):
         client.expire(key, ttl_seconds)
     except Exception:
         pass
+
+def build_cluster_cache_key(
+        refs: list[str],
+        lat: float,
+        lng: float,
+        n_steps: int,
+        cell_size_m: float,
+        containment_lines: Optional[List[str]] = None,
+        model_version: str = "dca-v1"
+)
