@@ -7,7 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, contains_eager
 
 from app.backend.src.enums.report_status import ReportStatus, status_level
-from app.backend.src.enums.report_status import FireStatus
+from app.backend.src.enums.fire_status import FireStatus
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.schemas.fire_report import FireReportCreate
 from app.backend.src.services.storage import get_presigned_url, public_image_url

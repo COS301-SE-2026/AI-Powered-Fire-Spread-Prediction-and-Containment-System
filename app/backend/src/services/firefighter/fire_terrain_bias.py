@@ -89,7 +89,7 @@ def dem_vsis3_path(min_lon: float, min_lat: float, max_lon: float, max_lat: floa
     ew = "E" if title_lon >= 0 else "W"
     lat_str = f"{ns}{abs(title_lat):02d}_00"
     lon_str = f"{ew}{abs(title_lon):03d}_00"
-    title_name = f"Coperniscus_DSM_COG_10_{lat_str}_{lon_str}_DEM"
+    title_name = f"Copernicus_DSM_COG_10_{lat_str}_{lon_str}_DEM"
     return f"/vsis3/copernicus-dem-30m/{title_name}/{title_name}.tif"
 
 def bbox_for(lat: float, lng: float, pad_km: float) -> tuple[float, float, float, float]:
@@ -188,7 +188,7 @@ def compute_terrain_bias(lat: float, lng: float) -> list[dict]:
         slope_factor = 1.0 + 1.2 * math.tan(math.radians(min(slope_deg, 60.0))) * alignment
         slope_factor = max(0.3, min(3.0, slope_factor))
         
-        fuel_weight = fuel_weight.get(landcover_class, 0.2)
+        fuel_weight = fuel_weights.get(landcover_class, 0.2)
         landcover_factor = 0.4 + 1.2 * fuel_weight
         
         raw_factors.append(slope_factor * landcover_factor)

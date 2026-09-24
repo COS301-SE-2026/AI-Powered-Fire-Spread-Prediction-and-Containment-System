@@ -19,7 +19,7 @@ export async function fetchTerrainBias(lat: number, lng: number): Promise<Direct
     if (!pending) {
         pending = (async () => {
             try {
-                const data = await apiCall(`/api/firefighter/terrain-bias?lat=${lat}&lng${lng}`);
+                const data = await apiCall(`/api/firefighter/terrain-bias?lat=${lat}&lng=${lng}`);
                 return (data?.bias as DirectionalBias[] | undefined) ?? null;
             } catch (err) {
                 console.error('Unable to fetch terrain bias for fire growth', err);

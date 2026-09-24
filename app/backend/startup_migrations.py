@@ -75,7 +75,7 @@ def run_startup_migrations(engine: Engine) -> None:
         conn.execute(
             text(
                 """
-                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS merged_innto_id VARCHAR
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS merged_into_id VARCHAR
                     REFERENCES fire_reports(id) ON DELETE SET NULL;
                 """
             )
