@@ -24,7 +24,7 @@ def make_request(status):
     return MagicMock(
         status=status,
         user_id="user-1",
-        requested_role="firefighetr",
+        requested_role="firefighter",
         current_role="registered_user",
         reviewed_by=None,
         reviewed_at=None,
@@ -58,19 +58,19 @@ def test_get_role_requests_returns_data_and_total():
 
 
 # unknown request id return none
-@pytest.mark.parametirize("action, bad, good", SERVICE_ACTIONS)
+@pytest.mark.parametrize("action, bad, good", SERVICE_ACTIONS)
 def test_aservice_request_missing_returns_none(action, bad, good):
     assert action("missing", "admin-1", make_db(None)) is None
 
 
-@pytest.mark.parametirize("action, bad, good_status", SERVICE_ACTIONS)
+@pytest.mark.parametrize("action, bad, good_status", SERVICE_ACTIONS)
 def test_service_user_missing_returns_error(action, bad, good_status):
     db = make_db(make_request(good_status), None)
 
     with pytest.raises(ValueError, match="User not found"):
         action("req-1", "admin-1", db)
 
-@pytest.mark.parametirize("action, bad_status, good", SERVICE_ACTIONS)
+@pytest.mark.parametrize("action, bad_status, good", SERVICE_ACTIONS)
 def test_service_wrong_status_returns_error(action, bad_status, good):
 
     with pytest.raises(ValueError):
