@@ -100,6 +100,10 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
           size: f.size,
           submitted_at: f.reported ? new Date(f.reported).toISOString() : new Date().toISOString(),
           reporter_name: f.reporter,
+          updated_at: f.updated_at,
+          fire_status: f.fire_status,
+          containment_percent: f.containment_percent,
+          merged_into_id: f.merged_into_id,
         }));
         await offlineStore.cacheIncidents(mapped);
         return;
@@ -122,6 +126,10 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
               reported: c.submitted_at
                 ? new Date(c.submitted_at).toISOString()
                 : new Date().toISOString(),
+              updated_at: c.updated_at ?? null,
+              fire_status: c.fire_status ?? 'active',
+              containment_percent: c.containment_percent ?? null,
+              merged_into_id: c.merged_into_id ?? null,
               reporter: c.reporter_name || 'Anonymous',
               verification_notes: null,
               lat: c.lat,
