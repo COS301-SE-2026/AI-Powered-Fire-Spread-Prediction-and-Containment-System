@@ -30,7 +30,7 @@ class WorkerNode(Base):
 
     # reliability
     consecutive_failures = Column(Integer, default=0, nullable=False)
-    quarentine_until = Column(DateTime(timezone=True), nullable=True)
+    quarantine_until = Column(DateTime(timezone=True), nullable=True)
     last_heartbeat = Column(DateTime(timezone=True), nullable=True)
 
     # timestamps for state transitions for UI

@@ -1,6 +1,6 @@
 # for volunteer gpus
 import asyncio
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, tzinfo
 import json
 import logging
 import os
@@ -108,7 +108,17 @@ async def websocket_worker_endpoint(
         return
 
     if node.status == "quarantined":
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        now = datetime.now(timezone.utc)
+        until = node.quarantine_until
+        if until and until.tzinfo is None:
+            until = until.replace(tzinfo=timezone.utc)
+
+        if until and until > now:
+            await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+            return
+
+        node.status = "active"
+        node.quarantine_until = None
         db.commit()
 
     await websocket.accept()
@@ -158,7 +168,7 @@ async def websocket_worker_endpoint(
                     log.error("Worker %s failed simulation job %s: %s", worker_id, job_id, data.get("error"))
                     node.consecutive_failures += 1
                     node.status = "quarantined"
-                    node.quarentine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION
+                    node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION
                     db.commit()
                     valkey.srem("worker:pool:busy", worker_id)
                     valkey.srem("worker:pool:idle", worker_id)
@@ -256,7 +266,7 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
-            node.quarentine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
+            node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
             session.commit()
         valkey.srem("worker:pool:busy", worker_id)
 
@@ -265,7 +275,7 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
-            node.quarentine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
+            node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
             session.commit()
         valkey.srem("worker:pool:busy", worker_id)
     finally:
