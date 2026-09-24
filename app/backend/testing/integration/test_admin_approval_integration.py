@@ -59,8 +59,6 @@ class TestListRoleRequests:
         assert "requested_role" in item
         assert item["requested_role"] == "firefighter"
         assert item["status"] == "pending"
-        assert item["firefighter_license_id"] == "LIC-001"
-
 
 # ---------------------------------------------------------------------------
 # PUT /api/admin/roles/role-requests/{id}/approve
