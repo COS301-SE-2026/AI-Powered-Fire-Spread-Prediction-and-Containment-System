@@ -125,7 +125,11 @@ def remove_worker_node(
     return node
 
 
-def generate_worker_key(user_id: str) -> dict:
+def generate_worker_key(
+        user_id: str,
+        label: str = "volunteer-desktop",
+        gpu_name: str = "Unkown GPU",
+) -> dict:
     """Generates single-use setup key and stores in Valkey with 24 h TTL to authenticate user"""
 
     token_suffix = secrets.token_hex(8).upper()
@@ -136,14 +140,21 @@ def generate_worker_key(user_id: str) -> dict:
     # SETEX worker:reg:<key> 86400 <user_id>
     valkey_client.setex(valkey_storage_key, REGISTRATION_KEY_TTL, user_id)
 
+    backend_url = os.getenv("BACKEND_PUBLIC_URL", "http://localhost:8000")
+
     return {
         "registration_key": reg_key,
         "expires_in_seconds": REGISTRATION_KEY_TTL,
         "docker_command": (
-            f'docker rin --gpus all -e REGISTRATION_KEY="{reg_key}" '
+            f'docker run --gpus all --memory="8g" '
+            f'-e REGISTRATION_KEY="{reg_key}" '
+            f'-e WORKER_LABEL="{label}" '
+            f'-e API_BASE_URL="{backend_url}" '
             f'fireaway-worker:latest'
         ),
     }
+
+issue_enrollment_key = generate_worker_key
 
 
 def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> dict:
