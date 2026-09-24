@@ -1,5 +1,7 @@
 import type { ReportStatus } from './Report';
 
+export type FireStatus = 'active' | 'contained' | 'extinguised'
+
 export interface FirefighterReportTable {
   id: string;
   ref: string;
@@ -7,10 +9,14 @@ export interface FirefighterReportTable {
   status: ReportStatus;
   size: number;
   reported: string;
+  updated_at: string | null;
   reporter: string;
   verification_notes: string | null;
   lat: number;
   lng: number;
+  fire_status: FireStatus;
+  containment_percent: number | null;
+  merged_into_id: string | null;
 }
 
 export interface FirefighterReportModal {
