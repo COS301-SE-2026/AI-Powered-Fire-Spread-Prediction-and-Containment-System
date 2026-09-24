@@ -10,6 +10,8 @@ Covers every endpoint in app/routers/admin.py:
 
 import uuid
 
+import pytest
+
 from app.backend.main import app
 from conftest import make_role_request, make_user
 
@@ -19,7 +21,11 @@ from app.backend.src.models.users import User
 def fake_admin():
     return User(id="usr_01", role="admin")
 
-app.dependency_overrides[get_current_admin_user] = fake_admin
+@pytest.fixture(autouse=True)
+def override_admin(client):
+    app.dependency_overrides[get_current_admin_user] = fake_admin
+    yield
+    app.dependency_overrides.pop(get_current_admin_user, None)
 # ---------------------------------------------------------------------------
 # GET /api/admin/roles/role-requests
 # ---------------------------------------------------------------------------
