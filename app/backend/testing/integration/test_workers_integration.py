@@ -1,6 +1,7 @@
 import threading
 from datetime import datetime, timedelta, timezone
 
+import os
 import pytest
 import redis
 from starlette.websockets import WebSocketDisconnect
@@ -15,7 +16,9 @@ WS_path = "/api/v1/workers/connect"
 
 @pytest.fixture
 def test_valkey(monkeypatch):
-    client = redis.Redis(host="localhost", port=6380, db=0, decode_responses=True)
+    host = os.getenv("VALKEY_HOST", "localhost")
+    port = int(os.getenv("VALKEY_PORT", "6380"))
+    client = redis.Redis(host=host, port=port, db=0, decode_responses=True)
     client.flushdb()
     monkeypatch.setattr(worker_service, "valkey_client", client)
     yield client
