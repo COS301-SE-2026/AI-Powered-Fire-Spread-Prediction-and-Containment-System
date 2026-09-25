@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -15,6 +16,9 @@ export default function LandingPage() {
 
   return(
     <div className='relative min-h-screen w-full max-w-full bg-carbon-bg'>
+      <Head>
+        <title>FireAway - AI-Powered Fire Spread Prediction and Containment System</title>
+      </Head>
       
       <div className='global-atmos'>
         <div className='ga-bloom-primary'/>
