@@ -5,6 +5,8 @@ import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
+import { buffer } from '@turf/buffer';
+import bbox from '@turf/bbox';
 import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
@@ -262,8 +264,8 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
       ),
       [combinedWaterFeatures]
   );
-  
-  // min shape growth model needs. `size` is treated as the radius at time fire reported,
+
+    // min shape growth model needs. `size` is treated as the radius at time fire reported,
   // not its current size.
   const growableFires = useMemo<GrowableFire[]>(
     () => disableGrowth ? []
@@ -282,16 +284,66 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
           [activeFires, disableGrowth]            
   );
 
+  const FIRE_PROXIMITY_KM = 5;
+
+  function isNearAnyFire(feature: Feature, fires: GrowableFire[], radiusKm: number): boolean {
+    try {
+      const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+      const padDeg = radiusKm / 111;
+      return fires.some(
+        (fire) =>
+        fire.lng >= minLng - padDeg &&
+        fire.lng <= maxLng + padDeg &&
+        fire.lat >= minLat - padDeg &&
+        fire.lat <= maxLat + padDeg
+      );
+    } catch (err) {
+      console.warn('Skipping water/river feature with unreadable geometry during proximity filtering', err);
+      return false;
+    }
+  }
+
+  const RIVER_BUFFER_KM = 0.015;
+  const riverBufferCacheRef = useRef<{ key: string; result: Feature<Polygon | MultiPolygon>[] } | null>(null);
+
+  const bufferedRiverPolygons = useMemo(() => {
+    if (growableFires.length === 0) return [];
+
+    const nearbyRivers = riverFeatureCollection.features.filter((f) =>
+      isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM)
+    );
+
+    const key = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`;
+    const cached = riverBufferCacheRef.current;
+    if (cached && cached.key === key) return cached.result;
+
+    const result = nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
+      try {
+        const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers' });
+        if (buffered) acc.push(buffered as Feature<Polygon | MultiPolygon>);
+      } catch (err) {
+        console.warn('Skipping malformed river feature while buffering for fire clipping', err);
+      }
+      return acc;
+    }, []);
+    riverBufferCacheRef.current = { key, result };
+    return result;
+  }, [riverFeatureCollection]);
+  
+
   const combinedWaterShape = useMemo(() => {
     if (growableFires.length === 0) return null;
+    const nearbyDams = waterPolygonFeatures.filter((f) => isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM));
+    const blockingFeatures = [...nearbyDams, ...bufferedRiverPolygons];
     if (waterPolygonFeatures.length > 200) {
       console.warn(
         `Unioning ${waterPolygonFeatures.length} water polygons for fire clipping`
       );
     }
-    return unionWaterPolygons(waterPolygonFeatures)
+    return unionWaterPolygons(blockingFeatures)
 
-  }, [waterPolygonFeatures, growableFires]);
+  }, [waterPolygonFeatures, growableFires, growableFires]);
+
   const combinedWaterShapeRef = useRef(combinedWaterShape);
   combinedWaterShapeRef.current = combinedWaterShape;
 

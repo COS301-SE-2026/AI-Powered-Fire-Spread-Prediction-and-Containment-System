@@ -20,6 +20,7 @@
     "@turf/area": "^7.4.0",
     "@turf/boolean-point-in-polygon": "^7.4.0",
     "@turf/centroid": "^7.4.0",
+    "@turf/buffer": "^7.3.5",
     "@turf/circle": "^7.3.5",
     "@turf/flatten": "^7.4.0",
     "@turf/difference": "^7.3.5",

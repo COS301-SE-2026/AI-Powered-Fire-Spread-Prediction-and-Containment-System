@@ -181,7 +181,7 @@ function clipToLand(
     fires: Feature<Polygon | MultiPolygon>[],
     combinedWater: Feature<Polygon |  MultiPolygon> | null | undefined
 ): Feature<Polygon | MultiPolygon>[] {
-    if (combinedWater) return fires;
+    if (!combinedWater) return fires;
 
     return fires.map((fire) => {
         try {
