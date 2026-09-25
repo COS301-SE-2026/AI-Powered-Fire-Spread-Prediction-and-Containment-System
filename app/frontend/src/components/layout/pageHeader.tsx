@@ -4,12 +4,19 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotification';
 import { NotificationSidebar } from '../notification/NotificationSidebar';
+import { UserRole } from '../../types/User';
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
   showIcons: boolean;
+}
+
+const PROFILE_ROUTES: Record<UserRole, string> = {
+  admin: '/admin/Profile',
+  firefighter: '/firefighter/Profile',
+  user: '/user/Profile',
 }
 
 const MAX_UNREAD_COUNT = 9;
@@ -20,7 +27,7 @@ export function PageHeader({
   actions,
   showIcons = true,
 }: Readonly<PageHeaderProps>) {
-  const { isAuth } = useAuth();
+  const { isAuth, role } = useAuth();
   const { unreadCount, notifications, markAsRead, locationEnabled } = useNotifications();
   const router = useRouter();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -29,7 +36,11 @@ export function PageHeader({
   const authLabel = isAuth ? 'Profile' : 'Login / Register';
 
   const handleAuthClick = (): void => {
-    router.push(isAuth ? '/profile' : '/login');
+    if (!isAuth){
+      router.push('/login');
+      return;
+    }
+    router.push(role ? PROFILE_ROUTES[role] : '/profile');
   };
 
   return (
