@@ -1,6 +1,7 @@
 # for disributed system for volunteer gpus
 import os
 import secrets
+import shlex
 from typing import Optional, List
 
 from fastapi import HTTPException, status
@@ -154,15 +155,17 @@ def generate_worker_key(
     valkey_client.setex(valkey_storage_key, REGISTRATION_KEY_TTL, user_id)
 
     backend_url = os.getenv("BACKEND_PUBLIC_URL", "http://localhost:8000")
+    ws_url = backend_url.rstrip("/").replace("http", "ws", 1) + "/api/v1/workers/connect"
 
     return {
         "registration_key": reg_key,
         "expires_in_seconds": REGISTRATION_KEY_TTL,
         "docker_command": (
             f'docker run --gpus all --memory="8g" '
-            f'-e REGISTRATION_KEY="{reg_key}" '
-            f'-e WORKER_LABEL="{label}" '
-            f'-e API_BASE_URL="{backend_url}" '
+            f'-e REGISTRATION_KEY={shlex.quote(reg_key)} '
+            f'-e WORKER_LABEL={shlex.quote(label)} '
+            f'-e BACKEND_BASE_URL={shlex.quote(backend_url)} '
+            f'-e WEBSOCKET_URL={shlex.quote(ws_url)} '
             f'fireaway-worker:latest'
         ),
     }
