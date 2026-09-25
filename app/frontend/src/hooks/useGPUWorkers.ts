@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { GPUWorker } from '../types/GPUWorkers';
+import { useDebounce } from './useDebounce';
 
 interface UseGPUWorkersReturn {
     workers: GPUWorker[];
@@ -11,16 +12,23 @@ interface UseGPUWorkersReturn {
     remove: (id: string, reason?: string) => Promise<void>;
 }
 
-export function useGPUWorkers(): UseGPUWorkersReturn {
+export function useGPUWorkers(searchKey: string = ''): UseGPUWorkersReturn {
     const [workers, setWorkers] = useState<GPUWorker[]>([]);
-    const [loading, setLoading] = useState(true); 
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const debouncedSearch = useDebounce(searchKey, 600);
     const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    
+
     const fetchWorkers = useCallback(async (): Promise<void> => {
         setLoading(true);
         setError(null);
+
+        let url = `${apiBaseUrl}/api/v1/workers`;
+        const key = debouncedSearch.trim();
+        if (key) {
+            url = `${url}?key=${encodeURIComponent(key)}`;
+        }
 
         try {
             const response = await fetch(`${apiBaseUrl}/api/v1/workers`, {
@@ -60,14 +68,14 @@ export function useGPUWorkers(): UseGPUWorkersReturn {
                 if (!response.ok) {
                     throw new Error(`Failed to activate worker: ${response.statusText}`);
                 }
-            
+
                 const updateNode: GPUWorker = await response.json();
                     setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : 'Error activating worker';
                 setError(message);
             }
-        }, 
+        },
         [apiBaseUrl]
     );
 
@@ -85,7 +93,7 @@ export function useGPUWorkers(): UseGPUWorkersReturn {
                 if (!response.ok) {
                     throw new Error(`Failed to deactivate worker: ${response.statusText}`);
                 }
-            
+
                 const updateNode: GPUWorker = await response.json();
                 setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
             } catch (err: unknown) {
@@ -113,7 +121,7 @@ export function useGPUWorkers(): UseGPUWorkersReturn {
                 }
 
                 const updateNode: GPUWorker = await response.json();
-                setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker))); 
+                setWorkers((prev: GPUWorker[]) => prev.map((worker: GPUWorker) => (worker.id === id ? updateNode : worker)));
             } catch (err: unknown) {
                 const message = err instanceof Error ? err.message : 'Error removing worker';
                 setError(message);

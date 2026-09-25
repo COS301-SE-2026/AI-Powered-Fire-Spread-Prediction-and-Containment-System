@@ -1,12 +1,12 @@
 import uuid
 from datetime import datetime, timezone
 
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.backend.src.enums.role_request_status import RequestStatus
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
-
 
 def get_role_requests(db: Session):
     request = db.query(RoleRequest).all()
@@ -79,3 +79,19 @@ def revoke_role_request(request_id: str, admin_id: str, db: Session):
     db.commit()
     db.refresh(request)
     return request
+
+def search_report_table(db: Session, key: str):
+    pattern = f"%{key.strip()}%"
+    request = (
+        db.query(RoleRequest)
+        .outerjoin(User, RoleRequest.user_id == User.id)
+        .filter(
+            or_(
+                User.name.ilike(f"%{key}%"),
+                User.surname.ilike(f"%{key}%"),
+            )
+        )
+        .all()
+    )
+    return {"data": request, "total": len(request)}
+

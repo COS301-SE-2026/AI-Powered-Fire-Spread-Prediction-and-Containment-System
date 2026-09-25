@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import type { ReportStatus } from '../../types/Report';
 import { AdminSideBar } from '../../components/admin/AdminSideBar';
-import { ReportFilterTabs } from '../../components/admin/reportFilter';
+import { StatusFilter } from '../../components/shared/Filter';
 import { FireReportsTable } from '../../components/admin/reportTable';
-import { SearchBar } from '../../components/admin/searchBar';
+import { SearchBar } from '../../components/shared/Searchbar';
 import { useReportedFires } from '../../hooks/useReportedFires';
 import { useRotate } from '../../hooks/useRotate';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { RotateHint } from '../../components/shared/RotateHint';
 
+type ReportFilter = 'All' | ReportStatus;
+const REPORT_FILTERS: readonly ReportFilter[] = ['All', 'pending', 'verified', 'rejected'];
+
 export default function ReportedFiresPage() {
   const { reports, loading, error } = useReportedFires();
-  const [filter, setFilter] = useState<'All' | ReportStatus>('All');
+  const [filter, setFilter] = useState<ReportFilter>('All');
   const [search, setSearch] = useState('');
   const { showHint, dismiss } = useRotate();
 
@@ -34,7 +37,7 @@ export default function ReportedFiresPage() {
             onChange={setSearch}
             placeholder="Search by location, ref, reporter..."
           />
-          <ReportFilterTabs filter={filter} onChange={setFilter} />
+          <StatusFilter<ReportFilter> options={REPORT_FILTERS} filter={filter} onChange={setFilter} />
         </div>
 
         {error && <div>{error}</div>}
