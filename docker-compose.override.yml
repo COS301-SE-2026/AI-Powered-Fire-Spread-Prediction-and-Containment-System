@@ -84,8 +84,11 @@ services:
       [internal]
 
   minio:
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    platform: linux/arm64
     ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
   valkey:
+    platform: linux/arm64
     ports: ["127.0.0.1:6379:6379"]
 
 volumes:
