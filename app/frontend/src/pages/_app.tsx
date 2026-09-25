@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import type { AppProps } from 'next/app';
 import '../styles/globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css'
@@ -8,6 +9,7 @@ import { NotificationToast } from '../components/notification/NotificationToast'
 import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
 import { OfflineBar } from '../components/shared/OfflineBar';
+import GpuNotification from '../components/gpu_worker/GpuNotification';
 
 // function GlobalToast() {
 //   const { activeToast, dismissToast } = useNotifications();
@@ -20,6 +22,8 @@ import { OfflineBar } from '../components/shared/OfflineBar';
 // }
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  const showGpuNotification = router.pathname.startsWith('/admin') || router.pathname.startsWith('/firefighter') || router.pathname.startsWith('/user');
   useEffect(() => {
     // Only register in prod
 
@@ -54,7 +58,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name='apple-mobile-web-app-title' content='Fireaway' />
       </Head>
       <Component {...pageProps} />
-      {/* <GlobalToast /> */}
+      {showGpuNotification && <GpuNotification />}
       <OfflineBar />
     </NotificationsProvider>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, LayoutDashboard, ShieldAlert, Flame, Cpu, PlusCircle, Droplets } from 'lucide-react';
+import { Map, LayoutDashboard, ShieldAlert, Flame, Cpu, PlusCircle, Gpu, Droplets } from 'lucide-react';
 import { NavLink } from '../layout/NavLink';
 
 export function AdminItems() {
@@ -12,7 +12,8 @@ export function AdminItems() {
       <NavLink icon={ShieldAlert} label="Role Approvals" href="/admin/approvals" />
       <NavLink icon={Flame} label="Reported Fires" href="/admin/reported-fire" />
       <NavLink icon={Droplets} label="Register Resources" href="/admin/RegisterResource" />
-      <NavLink icon={Cpu} label="Volunteer GPUs" href="/admin/GPUWorkers" />
+      <NavLink icon={Gpu} label="GPU Workers" href="/admin/GpuWorkers" />
+      <NavLink icon={Cpu} label="Volunteer your GPU" href="/admin/GpuVolunteer" />
     </>
   );
 }
