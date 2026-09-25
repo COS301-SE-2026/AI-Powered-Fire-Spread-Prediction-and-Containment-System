@@ -80,7 +80,7 @@ def test_is_persistently_overlapping_fails_open_on_cache_error(mock_cache):
     assert fire_merge.is_persistently_overlapping("a", "b") is True
     
 # Test merge_pair
-def make_fire(id, ref, submitted_at, fire_status=FireStatus.active):
+def make_merege_fire(id, ref, submitted_at, fire_status=FireStatus.active):
     fire = MagicMock()
     fire.id = id
     fire.reference_number = ref
@@ -93,8 +93,8 @@ def make_fire(id, ref, submitted_at, fire_status=FireStatus.active):
 @patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
 def test_merge_older_fire_becomes_primary(mock_clear, mock_notify):
     now = datetime.now(timezone.utc)
-    older = make_fire("id-older", "FR-1", now - timedelta(hours=1))
-    newer = make_fire("id-newer", "FR-2", now)
+    older = make_merege_fire("id-older", "FR-1", now - timedelta(hours=1))
+    newer = make_merege_fire("id-newer", "FR-2", now)
     db = MagicMock()
     
     fire_merge.merge_pair(db, newer, older)
@@ -107,8 +107,8 @@ def test_merge_older_fire_becomes_primary(mock_clear, mock_notify):
 @patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
 def test_merge_pair_upgrades_primary_to_more_severe_status(mock_clear, mock_notify):
     now = datetime.now(timezone.utc)
-    primary = make_fire("id-a", "FR-1", now - timedelta(hours=1), fire_status=FireStatus.contained)
-    secondary = make_fire("id-b", "FR-2", now, fire_status=FireStatus.active)
+    primary = make_merege_fire("id-a", "FR-1", now - timedelta(hours=1), fire_status=FireStatus.contained)
+    secondary = make_merege_fire("id-b", "FR-2", now, fire_status=FireStatus.active)
     db = MagicMock()
     
     fire_merge.merge_pair(db, primary, secondary)
@@ -118,8 +118,8 @@ def test_merge_pair_upgrades_primary_to_more_severe_status(mock_clear, mock_noti
 @patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
 def test_merge_pair_never_degrades_primary_status(mock_clear, mock_notify):
     now = datetime.now(timezone.utc)
-    primary = make_fire("id-a", "FR-1", now - timedelta(hours=1), fire_status=FireStatus.active)
-    secondary = make_fire("id-b", "FR-2", now, fire_status=FireStatus.contained)
+    primary = make_merege_fire("id-a", "FR-1", now - timedelta(hours=1), fire_status=FireStatus.active)
+    secondary = make_merege_fire("id-b", "FR-2", now, fire_status=FireStatus.contained)
     db = MagicMock()
     
     fire_merge.merge_pair(db, primary, secondary)
@@ -129,8 +129,8 @@ def test_merge_pair_never_degrades_primary_status(mock_clear, mock_notify):
 @patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
 def test_merge_pair_notifies_after_commit_not_before(mock_clear, mock_notify):
     now = datetime.now(timezone.utc)
-    primary = make_fire("id-a", "FR-1", now - timedelta(hours=1))
-    secondary = make_fire("id-b", "FR-2", now)
+    primary = make_merege_fire("id-a", "FR-1", now - timedelta(hours=1))
+    secondary = make_merege_fire("id-b", "FR-2", now)
     db = MagicMock()
     
     call_order = []
@@ -151,9 +151,9 @@ def test_check_and_merge_does_nothing_with_fewer_than_two_fires():
 @patch("app.backend.src.services.firefighter.fire_merge.to_shape")
 def test_check_and_merge_no_merge_when_fires_are_far_apart(mock_to_shape, mock_overlap):
     now = datetime.now(timezone.utc)
-    fire_a = make_fire("id-a", "FR-1", now)
+    fire_a = make_merege_fire("id-a", "FR-1", now)
     fire_a.boundary_radius = Decimal("0.1")
-    fire_b = make_fire("id-b", "FR-2", now)
+    fire_b = make_merege_fire("id-b", "FR-2", now)
     fire_b.boundary_radius = Decimal("0.1")
     
     shape_a, shape_b = MagicMock(y=-25.0, x=28.0), MagicMock(y=-26.0, x=29.0)
@@ -172,9 +172,9 @@ def test_check_and_merge_no_merge_when_fires_are_far_apart(mock_to_shape, mock_o
     @patch("app.backend.src.services.firefighter.fire_merge.to_shape")
     def test_check_and_merges_when_overlapping_and_persistent(mock_to_shape, mock_overlap, mock_merge_pair):
         now = datetime.now(timezone.utc)
-        fire_a = make_fire("id-a", "FR-1", now)
+        fire_a = make_merege_fire("id-a", "FR-1", now)
         fire_a.boundary_radius = Decimal("5.0")
-        fire_b = make_fire("id-b", "FR-2", now)
+        fire_b = make_merege_fire("id-b", "FR-2", now)
         fire_b.boundary_radius = Decimal("5.0")
         
         shape = MagicMock(y=-25.0, x=28.0)
@@ -187,7 +187,7 @@ def test_check_and_merge_no_merge_when_fires_are_far_apart(mock_to_shape, mock_o
         mock_merge_pair.assert_called_once_with(db, fire_a, fire_b)
 
 # Test fire_status_change
-def make_report(status=ReportStatus.verified, fire_status=FireStatus.active):
+def make_status_report(status=ReportStatus.verified, fire_status=FireStatus.active):
     report = MagicMock()
     report.reference_number = "FR-2026-001"
     report.status = status
@@ -206,3 +206,101 @@ def test_raises_if_report_not_found(mock_notify, mock_get_by_id):
         
     db.commit.assert_not_called()
     mock_notify.assert_not_called()
+    
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_raises_if_report_not_verified(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_merege_fire(status=ReportStatus.pending)
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    with pytest.raises(ValueError, match="must be verified"):
+        fire_report.fire_status_change("FR-2026-001", FireStatus.contained, None, db)
+        
+    db.commit.assert_not_called()
+    mock_notify.assert_not_called()
+    assert report.fire_status == FireStatus.active
+    
+@pytest.mark.parametrize(
+    "unverified_status",
+    [ReportStatus.received, ReportStatus.pending, ReportStatus.rejected],
+)
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_rejects_every_non_verified_status(mock_notify, mock_get_by_id, unverified_status):
+    db = MagicMock()
+    report = make_status_report(status=unverified_status)
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    with pytest.raises(ValueError):
+        fire_report.fire_status_change("FR-2026-001", FireStatus.extinguished, None, db)
+        
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_succeeds_when_verified(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_status_report(status=ReportStatus.verified, fire_status=FireStatus.active)
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    result = fire_report.fire_status_change("FR-2026-001", FireStatus.contained, None, db)
+    
+    assert report.fire_status == FireStatus.contained
+    db.commit.assert_called_once()
+    assert result == {"stub": True}
+    
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_updates_containment_percent_when_provided(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_status_report()
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    fire_report.fire_status_change("FR-2026-001", FireStatus.contained, 42.5, db)
+    assert report.containment_percent == 42.5
+
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_leaves_containment_percent_untouched_when_not_provided(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_status_report()
+    report.containment_percent = 10.0
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    fire_report.fire_status_change("FR-2026-001", FireStatus.contained, None, db)
+    
+    assert report.containment_percent == 10.0
+    
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_notifies_when_status_actually_changes(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_status_report(fire_status=FireStatus.active)
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    fire_report.fire_status_change("FR-2026-001", FireStatus.extinguished, None, db)
+    mock_notify.assert_called_once()
+    
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_does_not_notify_when_status_is_unchanged(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_status_report(fire_status=FireStatus.contained)
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    fire_report.fire_status_change("FR-2026-001", FireStatus.contained, None, db)
+    mock_notify.assert_not_called()
+    
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_updated_at_is_bumped(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    report = make_status_report()
+    report.updated_at = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    db.query.return_value.filter.return_value.first.return_value = report
+    
+    before = report.updated_at
+    fire_report.fire_status_change("FR-2026-001", FireStatus.contained, None, db)
+    
+    assert report.updated_at != before
+    assert report.updated_at.tzinfo is not None
+    
