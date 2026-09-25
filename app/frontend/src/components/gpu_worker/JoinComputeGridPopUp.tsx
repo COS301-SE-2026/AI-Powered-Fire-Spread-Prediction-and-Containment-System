@@ -5,13 +5,11 @@ import { useDeviceCapability } from '../../hooks/useDeviceCapability';
 interface JoinComputeGridPopUpProps {
     isOpen: boolean;
     onClose: () => void;
-    onKeyGenerated?: () => void;
 }
 
 export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
     isOpen,
     onClose,
-    onKeyGenerated,
 }) => {
     const { osName, gpuName } = useDeviceCapability();
     const [machineLabel, setMachineLabel] = useState('');
@@ -55,7 +53,7 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                const detail = errorData.detail;
+                const { detail } = errorData;
                 const message = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail[0]?.msg : undefined;
                 throw new Error(message || 'Failed to issue setup key');
             }
@@ -63,10 +61,6 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
             const data = await response.json();
             setDockerCommand(data.docker_command);
             setStep('instructions');
-
-            if (onKeyGenerated) {
-                onKeyGenerated(); 
-            }
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Error generating key');
         } finally {

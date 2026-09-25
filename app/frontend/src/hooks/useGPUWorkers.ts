@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
+import { apiCall } from '@/lib/api';
 import type { GPUWorker } from '../types/GPUWorkers';
 import { useDebounce } from './useDebounce';
-import { apiCall } from '@/lib/api';
 
 interface UseGPUWorkersReturn {
     workers: GPUWorker[];
