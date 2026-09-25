@@ -406,11 +406,12 @@ async def simulate_fire_cluster(
     cell_size_m = (cell_size_lat_m + cell_size_lon_m) / 2
 
     cache_key = build_cluster_cache_key(
-        refs=fire_refs,
+        fires=[(f.reference_number, f.lat, f.lng, float(f.boundary_radius) * 1000) for f in fires],
         lat=center_lat,
-        lng=(min_lon + max_lon) / 2.0,
+        lng=center_lng,
         n_steps=n_steps,
         cell_size_m=cell_size_m,
+        extent_buffer_deg=max(lat_extent_deg, lon_extent_deg) / 2,
         containment_lines=tuple(sorted(lines)),
     )
 
@@ -663,6 +664,10 @@ async def run_cluster_simulation(
     Manual selection of multiple fires, simulates the fires a user chose
     on a shared grid, regardless of whether their boxes overlap
     """
+    refs = list(dict.fromkeys(req.fire_refs))
+    if len(refs) < 2:
+        raise HTTPException(status_code=422, detail="Select at least two distinct fires")
+
     fires = (
         db.query(
             FireReports.id,
@@ -672,18 +677,23 @@ async def run_cluster_simulation(
             FireReports.boundary_radius,
         )
         .filter(
-            FireReports.reference_number.in_(req.fire_refs),
+            FireReports.reference_number.in_(refs),
             FireReports.status == ReportStatus.verified,
         )
         .all()
     )
     found_refs = {f.reference_number for f in fires}
-    missing = set(req.fire_refs) - found_refs
+    missing = set(refs) - found_refs
     if missing:
         raise HTTPException(
             status_code=404,
             detail=f"Fires not found or not verified: {sorted(missing)}",
         )
+    if len(cluster_fires_by_bbox_overlap(fires, req.n_steps)) > 1:
+        raise HTTPException(
+                status_code=422,
+                detail="Selected fires are too far apart to interact in this window, please run them individually",
+            )
     fire_ids = [f.id for f in fires]
     lines_by_fire: dict[str, list[str]] = defaultdict(list)
     if fire_ids:

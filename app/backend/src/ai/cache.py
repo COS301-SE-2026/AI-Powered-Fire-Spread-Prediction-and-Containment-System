@@ -138,11 +138,12 @@ def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 3600):
         pass
 
 def build_cluster_cache_key(
-        refs: list[str],
+        fires: list[tuple[str, float, float, float]], # ref, lat, lng, radius
         lat: float,
         lng: float,
         n_steps: int,
         cell_size_m: float,
+        extent_buffer_deg: float,
         containment_lines: Optional[List[str]] = None,
         model_version: str = "dca-v1"
 ) -> str:
@@ -151,12 +152,12 @@ def build_cluster_cache_key(
     same set of fires with same params always gives the same key
     """
     raw_lines = containment_lines or []
-    locationally_relevant_lines = filter_containment_lines(lat, lng, raw_lines)
-
-    sorted_refs = sorted(refs)
+    locationally_relevant_lines = filter_containment_lines(lat, lng, raw_lines, extent_buffer_deg)
+    sorted_fires = sorted((r, round(la, 5), round(ln, 5), round(rad, 2)) for r, la, ln, rad in fires)
+    sorted_refs = [f[0] for f in sorted_fires]
 
     payload = {
-        "refs": sorted_refs,
+        "fires": sorted_fires,
         "lat": round(lat, 5),
         "lng": round(lng, 5),
         "n_steps": n_steps,
@@ -176,7 +177,7 @@ def get_cached_cluster_prediction(key: str) -> dict | None:
         if not data:
             return None
         meta = json.loads(data[b"meta"].decode("utf-8"))
-        compressed_hist = data["history"]
+        compressed_hist = data[b"history"]
 
         raw_bytes = zlib.decompress(compressed_hist)
         history_arr = np.frombuffer(raw_bytes, dtype=np.int64).reshape(

@@ -1,4 +1,5 @@
 // All API communication and playback state for fire simulation
+import { read } from 'node:fs';
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface Prediction {
@@ -39,6 +40,15 @@ export interface SimulationResult {
 
 export type SimulationStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 
+async function readError(resp: Response, prefix: string): Promise<string> {
+  const text = await resp.text();
+  try{
+    const body = JSON.parse(text);
+    if (typeof body.detail === 'string') return body.detail;
+  } catch{
+    return `${prefix} ${resp.status}: ${text}`;
+  }
+}
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 const PLAYBACK_INTERVAL_MS = 300; // ms between ticks during autoplay
@@ -130,8 +140,7 @@ export function useSimulation() {
           });
 
           if (!resp.ok) {
-            const detail = await resp.text();
-            throw new Error(`Simulation failed ${resp.status}: ${detail}`);
+            throw new Error(await readError(resp, 'Simulation failed'))
           }
 
           const prediction: Prediction = await resp.json();
@@ -145,8 +154,7 @@ export function useSimulation() {
           });
 
           if (!resp.ok) {
-            const detail = await resp.text()
-            throw new Error(`Simulation failed ${resp.status}: ${detail}`)
+            throw new Error(await readError(resp, 'Simulation failed'))
           }
 
           data = await resp.json();
@@ -192,9 +200,8 @@ export function useSimulation() {
         });
 
         if (!resp.ok) {
-          const detail = await resp.text();
-          throw new Error(`Cluster Simulation failed ${resp.status}: ${detail}`)
-
+          throw new Error(await readError(resp, 'Cluster simulation failed'))
+        }
           const clusterPrediction: ClusterPrediction = await resp.json();
           const data: SimulationResult = {
             predictions: [],
@@ -204,8 +211,6 @@ export function useSimulation() {
 
           setResult(data);
           startAutoPlay(data.n_steps_run);
-
-        }
       } catch (err) {
         if (err instanceof Error && err.name === 'AbortError') return;
         const msg = err instanceof Error ? err.message : String(err);
