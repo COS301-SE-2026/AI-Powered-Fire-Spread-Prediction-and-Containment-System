@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from app.backend.src.dependencies.auth import create_access_token
 from app.backend.src.models.workers import WorkerNode
 from app.backend.src.schemas.workers import WorkerRegisterRequest
+from app.backend.src.enums.worker_status import WorkerStatus
 
 VALKEY_HOST = os.getenv("VALKEY_HOST", "localhost")
 VALKEY_PORT = int(os.getenv("VALKEY_PORT", 6379))
@@ -58,10 +59,14 @@ def activate_worker_node(
             detail = "Not authorized to activate this worker node",
         )
 
+    if node.status != WorkerStatus.deactivated:
+        return node # already active
+
     node.status = "active"
     node.activated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(node)
+    valkey_client.sadd("worker:pool:idle", worker_id)
     return node
 
 
@@ -84,10 +89,17 @@ def deactivate_worker_node(
             detail = "Not authorized to deactivate this worker node",
         )
 
-    node.status = "deactived"
+    if node.status == WorkerStatus.removed and not is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This worker was removed by an administrator"
+            )
+
+    node.status = "deactivated"
     node.deactivated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(node)
+    valkey_client.srem("worker:pool:idle", worker_id)
     return node
 
 
@@ -111,7 +123,7 @@ def remove_worker_node(
             detail = "Not authorized to remove this worker node",
         )
 
-    if is_admin and (not reason or len((reason.strip()) == 0)):
+    if is_admin and (not reason or not reason.strip()):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Reason for removal is required for GPU removal",
@@ -122,6 +134,7 @@ def remove_worker_node(
     node.removal_reason = reason.strip() if reason else None
     db.commit()
     db.refresh(node)
+    valkey_client.srem("worker:pool:idle", worker_id)
     return node
 
 
