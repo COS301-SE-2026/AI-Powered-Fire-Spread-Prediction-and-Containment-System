@@ -140,5 +140,49 @@ def test_merge_pair_notifies_after_commit_not_before(mock_clear, mock_notify):
     fire_merge.merge_pair(db, primary, secondary)
     assert call_order.index("commit") < call_order.index("notify")
     
+# Test check_and_merge_active_fires
+def test_check_and_merge_does_nothing_with_fewer_than_two_fires():
+    db = MagicMock()
+    db.query.return_value.filter.return_value.all.return_value = []
+    fire_merge.check_and_merge_active_fires(db)
+    db.commit.assert_not_called()
     
+@patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_value=False)
+@patch("app.backend.src.services.firefighter.fire_merge.to_shape")
+def test_check_and_merge_no_merge_when_fires_are_far_apart(mock_to_shape, mock_overlap):
+    now = datetime.now(timezone.utc)
+    fire_a = make_fire("id-a", "FR-1", now)
+    fire_a.boundary_radius = Decimal("0.1")
+    fire_b = make_fire("id-b", "FR-2", now)
+    fire_b.boundary_radius = Decimal("0.1")
     
+    shape_a, shape_b = MagicMock(y=-25.0, x=28.0), MagicMock(y=-26.0, x=29.0)
+    mock_to_shape.side_effect = [shape_a, shape_b]
+    
+    db = MagicMock()
+    db.query.return_value.filter.return_value.all.return_value = [fire_a, fire_b]
+    
+    fire_merge.check_and_merge_active_fires(db)
+    
+    db.commit.assert_not_called()
+    mock_overlap.assert_not_called()
+    
+    @patch("app.backend.src.services.firefighter.fire_merge.merge_pair")
+    @patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_value=True)
+    @patch("app.backend.src.services.firefighter.fire_merge.to_shape")
+    def test_check_and_merges_when_overlapping_and_persistent(mock_to_shape, mock_overlap, mock_merge_pair):
+        now = datetime.now(timezone.utc)
+        fire_a = make_fire("id-a", "FR-1", now)
+        fire_a.boundary_radius = Decimal("5.0")
+        fire_b = make_fire("id-b", "FR-2", now)
+        fire_b.boundary_radius = Decimal("5.0")
+        
+        shape = MagicMock(y=-25.0, x=28.0)
+        mock_to_shape.side_effect = [shape, shape]
+        
+        db = MagicMock()
+        db.query.return_value.filter.return_value.all.return_value = [fire_a, fire_b]
+        
+        fire_merge.check_and_merge_active_fires(db)
+        mock_merge_pair.assert_called_once_with(db, fire_a, fire_b)
+
