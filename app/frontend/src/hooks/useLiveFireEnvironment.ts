@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiCall } from '../lib/api';
 import type { EnvironmentVariables } from '@/types/FirefighterDashboard';
 import type { FireEnvironment } from '@/lib/fireGrowth';
@@ -8,15 +8,27 @@ import type { FireEnvironment } from '@/lib/fireGrowth';
 
 const REFRESH_MS = 2 * 60 * 1000;
 
+// calm moderate baseline used only until first real fetch succeeds
+const DEFAULT_ENVIRONMENT: FireEnvironment = {
+    windKph: 10,
+    windDirDeg: 0,
+    temperatureC: 20,
+    humidityPct: 50,
+};
+
+const STALE_WARNING_MS = 15 * 60 * 1000;
+
 // round to ~1km so small GPS jitter on a moving device doesn't trigger a refetch
 function roundCoord(n: number): number {
     return Math.round(n * 100) / 100;
 }
 
 export function useLiveFireEnvironment(lat: number, lng: number, enabled = true): FireEnvironment | null {
-    const [env, setEnv] = useState<FireEnvironment | null>(null);
+    const [env, setEnv] = useState<FireEnvironment | null>(enabled ? DEFAULT_ENVIRONMENT : null);
     const roundedLat = Number.isFinite(lat) ? roundCoord(lat) : null;
     const roundedLng = Number.isFinite(lng) ? roundCoord(lng) : null;
+    const lastSuccessAtRef = useRef<number | null>(null);
+    const warnedStaleRef = useRef(false);
 
     useEffect(() => {
         if (!enabled || roundedLat == null || roundedLng == null) return undefined;
@@ -32,6 +44,12 @@ export function useLiveFireEnvironment(lat: number, lng: number, enabled = true)
             
             if (dashboardResult.status === 'rejected') {
                 console.error('Unable to fetch live environment for fire growth', dashboardResult.reason);
+
+                 const sinceSuccessMs = lastSuccessAtRef.current == null ? Infinity : Date.now() - lastSuccessAtRef.current;
+                if (sinceSuccessMs > STALE_WARNING_MS && !warnedStaleRef.current) {
+                    warnedStaleRef.current = true;
+                    console.warn(`Fire growth has been running on stale/default weather for ocer ${Math.round(STALE_WARNING_MS / 60000)} minutes. Live weather fetches keep failing.`);
+                }
                 return;
             }
 
@@ -47,6 +65,8 @@ export function useLiveFireEnvironment(lat: number, lng: number, enabled = true)
                 console.error('Unable to fetch fuel conditions for fire growth', fuelConditionsResult.reason);
             }
 
+            lastSuccessAtRef.current = Date.now();
+            warnedStaleRef.current = false;
             setEnv({
                 windKph: envVars.wind,
                 windDirDeg: envVars.wind_dir,
