@@ -10,7 +10,7 @@ const SEEN_KEY = "fireaway.gpuNotificationSeen";
 
 export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificationProps) {
     // uncomment real logic
-    //const { isEligible, gpuName } = useDeviceCapability();
+    // const { isEligible, gpuName } = useDeviceCapability();
     const [visible, setVisible] = useState(false);
 
     const detected = useDeviceCapability();
