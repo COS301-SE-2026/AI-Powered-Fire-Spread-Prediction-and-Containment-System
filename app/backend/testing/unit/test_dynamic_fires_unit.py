@@ -79,3 +79,66 @@ def test_is_persistently_overlapping_fails_open_on_cache_error(mock_cache):
     mock_cache.get.side_effect = Exception("valkey down")
     assert fire_merge.is_persistently_overlapping("a", "b") is True
     
+# Test merge_pair
+def make_fire(id, ref, submitted_at, fire_status=FireStatus.active):
+    fire = MagicMock()
+    fire.id = id
+    fire.reference_number = ref
+    fire.submitted_at = submitted_at
+    fire.fire_status = fire_status
+    fire.merged_into_id = None
+    return fire
+
+@patch("app.backend.src.services.firefighter.fire_merge.notify_fire_update")
+@patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
+def test_merge_older_fire_becomes_primary(mock_clear, mock_notify):
+    now = datetime.now(timezone.utc)
+    older = make_fire("id-older", "FR-1", now - timedelta(hours=1))
+    newer = make_fire("id-newer", "FR-2", now)
+    db = MagicMock()
+    
+    fire_merge.merge_pair(db, newer, older)
+    
+    assert newer.merged_into_id == "id-older"
+    assert older.merged_into_id is None
+    db.commit.assert_called_once()
+    
+@patch("app.backend.src.services.firefighter.fire_merge.notify_fire_update")
+@patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
+def test_merge_pair_upgrades_primary_to_more_severe_status(mock_clear, mock_notify):
+    now = datetime.now(timezone.utc)
+    primary = make_fire("id-a", "FR-1", now - timedelta(hours=1), fire_status=FireStatus.contained)
+    secondary = make_fire("id-b", "FR-2", now, fire_status=FireStatus.active)
+    db = MagicMock()
+    
+    fire_merge.merge_pair(db, primary, secondary)
+    assert primary.fire_status == FireStatus.active
+    
+@patch("app.backend.src.services.firefighter.fire_merge.notify_fire_update")
+@patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
+def test_merge_pair_never_degrades_primary_status(mock_clear, mock_notify):
+    now = datetime.now(timezone.utc)
+    primary = make_fire("id-a", "FR-1", now - timedelta(hours=1), fire_status=FireStatus.active)
+    secondary = make_fire("id-b", "FR-2", now, fire_status=FireStatus.contained)
+    db = MagicMock()
+    
+    fire_merge.merge_pair(db, primary, secondary)
+    assert primary.fire_status == FireStatus.active
+    
+@patch("app.backend.src.services.firefighter.fire_merge.notify_fire_update")
+@patch("app.backend.src.services.firefighter.fire_merge.clear_candidate")
+def test_merge_pair_notifies_after_commit_not_before(mock_clear, mock_notify):
+    now = datetime.now(timezone.utc)
+    primary = make_fire("id-a", "FR-1", now - timedelta(hours=1))
+    secondary = make_fire("id-b", "FR-2", now)
+    db = MagicMock()
+    
+    call_order = []
+    db.commit.side_effect = lambda: call_order.append("commit")
+    mock_notify.side_effect = lambda *a, **kw: call_order.append("notify")
+    
+    fire_merge.merge_pair(db, primary, secondary)
+    assert call_order.index("commit") < call_order.index("notify")
+    
+    
+    
