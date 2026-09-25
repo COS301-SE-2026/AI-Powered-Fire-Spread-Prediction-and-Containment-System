@@ -9,6 +9,7 @@ interface GpuNotificationProps {
 const SEEN_KEY = "fireaway.gpuNotificationSeen";
 
 export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificationProps) {
+    // uncomment real logic
     //const { isEligible, gpuName } = useDeviceCapability();
     const [visible, setVisible] = useState(false);
 
@@ -17,6 +18,7 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
     // TEMP: preview only, remove when done
     const isEligible = true;
     const gpuName = "NVIDIA GeForce RTX 3060";
+    // ------------------------------------------
 
     function dismiss() {
         setVisible(false);
@@ -28,7 +30,7 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
             return;
         }
 
-        // TEMP: skipped for preview
+        // uncomment actual logic
         // if (localStorage. getItem(SEEN_KEY) === "true") {
         //     return;
         // }
