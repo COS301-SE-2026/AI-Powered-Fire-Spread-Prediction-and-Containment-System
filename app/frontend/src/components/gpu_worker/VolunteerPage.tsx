@@ -11,8 +11,9 @@ export default function VolunteerPage() {
     const [isAddModalGPUOpen, setIsAddGPUOpen] = useState(false);
     const filter: 'All' | Status = 'All';
 
-    const handleKeyGenerated = () => {
-        refetch();
+    const handlCloseModal = () => {
+        setIsAddGPUOpen(false);
+        refetch()
     };
 
     if (loading) {
@@ -47,7 +48,7 @@ export default function VolunteerPage() {
 
             <GpuWorkersTable workers={workers} filter={filter} variant="volunteer" onActivate={activate} onDeactivate={deactivate} onRemove={remove} />
 
-            <JoinComputeGridPopUp isOpen={isAddModalGPUOpen} onClose={() =>  setIsAddGPUOpen(false)} onKeyGenerated={handleKeyGenerated} />
+            <JoinComputeGridPopUp isOpen={isAddModalGPUOpen} onClose={handlCloseModal} />
         </div>
     );
 }

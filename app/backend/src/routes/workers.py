@@ -15,7 +15,7 @@ from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
 from app.backend.src.models.workers import WorkerNode
-from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, ComputeDistrubutionRatio, WorkerNodeResponse, WorkerRemovalRequest
+from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, ComputeDistrubutionRatio, WorkerNodeResponse, WorkerRemovalRequest, WorkerEnrollmentKeyResponse, WorkerEnrollmentKeyRequest
 from app.backend.src.services import workers as worker_service
 from app.backend.src.enums.user_role import UserRole
 
@@ -163,12 +163,13 @@ def get_compute_distribution(db: Session = Depends(get_db)):
     )
 
 
-@router.post("/keys", status_code=status.HTTP_201_CREATED)
+@router.post("/keys", status_code=status.HTTP_201_CREATED, response_model=WorkerEnrollmentKeyResponse)
 def generate_worker_enrollment_key(
-    current_user: Annotated[User, Depends(get_current_user)],
+    body: WorkerEnrollmentKeyRequest,
+    current_user: current_active_user
 ):
     """Generates a single-use setup key for the authenticated user and caches it in Valkey."""
-    return worker_service.generate_worker_key(current_user.id)
+    return worker_service.generate_worker_key(current_user.id, label=body.label, gpu_name=body.gpu_name)
 
 
 @router.post(

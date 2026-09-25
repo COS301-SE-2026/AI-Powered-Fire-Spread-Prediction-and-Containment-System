@@ -4,7 +4,9 @@ from typing import Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 class WorkerEnrollmentKeyRequest(BaseModel):
-    label: str = Field("Home desktop", min_length=1, max_length=100)
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    label: str = Field("Home desktop", min_length=2, max_length=100)
     gpu_name: str = Field("Unknown GPU", max_length=150)
 
 class WorkerEnrollmentKeyResponse(BaseModel):
@@ -14,6 +16,8 @@ class WorkerEnrollmentKeyResponse(BaseModel):
 
 
 class WorkerRegisterRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
     registration_key: str = Field(..., min_length=10)
     label:str = Field("volunteer-desktop", min_length=2, max_length=100)
     gpu_name: str = Field(..., max_length=100)
