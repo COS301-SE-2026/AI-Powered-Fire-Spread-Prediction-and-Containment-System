@@ -124,6 +124,7 @@ class SimulationResponse(BaseModel):
     # Flattened burn-state grids per tick (list of (H*W) ints in {0=unburned, 1=burning, 2=burned})
     # Frontend reshapes to [H, W] using grid_h/_w
     predictions: list[Prediction]
+    cluster_predictions: list[ClusterPrediction] = Field(default_factory=list)
     n_steps_run: int
 
 
@@ -189,6 +190,53 @@ def _bboxes_overlap(a: tuple, b: tuple) -> bool:
         or a_max_lat < b_min_lat
         or b_max_lat < a_min_lat
     )
+def cluster_fires_by_bbox_overlap(fires: list, n_steps: int)-> list[list]:
+    """
+    gourps fires by the union of their bboxes, i.e, if their boxes intersect, 
+    union-find is more conservative, because then we dont group fires together 
+    if they wont merge anyways.
+    """
+    n = len(fires)
+    if n ==0:
+        return []
+
+    boxes = [
+        bbox_from_fire(
+            lat=f.lat,
+            lng=f.lng,
+            boundary_radius_m=float(f.boundary_radius) * 1000,
+            n_steps=n_steps,
+        )
+        for f in fires
+    ]
+    parent = list(range(n))
+
+    def find(i: int)-> int:
+        while parent[i] != i:
+            parent[i]=parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i: int, j: int)-> None:
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
+
+    for i in range(n):
+        for j in range(i+1, n):
+            if _bboxes_overlap(boxes[i], boxes[j]):
+                union(i,j)
+
+    groups: dict[int, list] = defaultdict(list)
+    for i, fire in enumerate(fires):
+        groups[find(i)].append(fire)
+
+    return list(groups.values())
+
+
+
+
+
 
 async def simulate_single_fire(
     fire,
@@ -490,26 +538,58 @@ async def run_simulation(
     automatic_steps = 4
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
-    predictions = await asyncio.gather(
-        *(
-            simulate_single_fire(
-                fire,
-                automatic_steps,
-                semaphore,
-                list(
+    groups = cluster_fires_by_bbox_overlap(verified_fires_raw, automatic_steps)
+
+    single_tasks = []
+    cluster_tasks = []
+
+    for group in groups:
+        if len(group) == 1:
+            fire = group[0]
+            single_tasks.append(
+                simulate_single_fire(
+                    fire,
+                    automatic_steps,
+                    semaphore,
+                    list(
+                        dict.fromkeys(
+                            lines_by_fire.get(fire.id, []) + (req.containment_lines or [])
+                        )
+                    ),
+                )
+            )
+        else:
+            containment_lines_by_fire = {
+                fire.reference_number: list(
                     dict.fromkeys(
                         lines_by_fire.get(fire.id, []) + (req.containment_lines or [])
                     )
-                ),
+                )
+                for fire in group
+            }
+            cluster_tasks.append(
+                simulate_fire_cluster(
+                    group,
+                    automatic_steps,
+                    semaphore,
+                    containment_lines_by_fire,
+                )
             )
-            for fire in verified_fires_raw
-        )
+
+
+    predictions, cluster_predictions = await asyncio.gather(
+        asyncio.gather(*single_tasks),
+        asyncio.gather(*cluster_tasks),
     )
 
-    n_steps_run = max((len(p.history) for p in predictions), default=0)
+    all_history_lens = [len(p.history) for p in predictions] + [
+        len(cp.history) for cp in cluster_predictions
+    ]
+    n_steps_run = max(all_history_lens, default=0)
 
     return SimulationResponse(
         predictions=list(predictions),
+        cluster_predictions=list(cluster_predictions),
         n_steps_run=n_steps_run,
     )
 
@@ -562,3 +642,70 @@ async def run_single_fire_simulation(
 
     semaphore = asyncio.Semaphore(1)
     return await simulate_single_fire(fire, req.n_steps, semaphore, lines)
+
+class ClusterSimRequest(BaseModel):
+    fire_refs: list[str] = Field(..., min_length = 2, description="Reference numbers of fires ot simulate together")
+    n_steps: int = Field(288, ge=1, le=288)
+    containment_lines: list[str] = Field(default_factory=list)
+
+@router.post(
+    "/simulate/fires",
+    response_model=ClusterPrediction,
+    responses={
+        404: {"description": "One or more fires not found or not verified"},
+        500: {"description": "Internal server error"},
+    },
+)
+async def run_cluster_simulation(
+    req: ClusterSimRequest, db: Session = Depends(get_db)
+) -> ClusterPrediction:
+    """
+    Manual selection of multiple fires, simulates the fires a user chose
+    on a shared grid, regardless of whether their boxes overlap
+    """
+    fires = (
+        db.query(
+            FireReports.id,
+            FireReports.reference_number,
+            func.ST_Y(FireReports.location_geom).label("lat"),
+            func.ST_X(FireReports.location_geom).label("lng"),
+            FireReports.boundary_radius,
+        )
+        .filter(
+            FireReports.reference_number.in_(req.fire_refs),
+            FireReports.status == ReportStatus.verified,
+        )
+        .all()
+    )
+    found_refs = {f.reference_number for f in fires}
+    missing = set(req.fire_refs) - found_refs
+    if missing:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Fires not found or not verified: {sorted(missing)}",
+        )
+    fire_ids = [f.id for f in fires]
+    lines_by_fire: dict[str, list[str]] = defaultdict(list)
+    if fire_ids:
+        rows = (
+            db.query(
+                ContainmentLines.fire_report_id,
+                func.ST_AsText(ContainmentLines.line_geom),
+            )
+            .filter(ContainmentLines.fire_report_id.in_(fire_ids))
+            .all()
+        )
+        for fire_report_id, wkt in rows:
+            lines_by_fire[fire_report_id].append(wkt)
+
+    containment_lines_by_fire = {
+        fire.reference_number: list(
+            dict.fromkeys(lines_by_fire.get(fire.id, []) + (req.containment_lines or []))
+        )
+        for fire in fires
+    }
+
+    semaphore = asyncio.Semaphore(1)
+    return await simulate_fire_cluster(
+        fires, req.n_steps, semaphore, containment_lines_by_fire
+    )
