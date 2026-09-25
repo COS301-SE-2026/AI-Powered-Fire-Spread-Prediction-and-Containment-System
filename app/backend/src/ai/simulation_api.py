@@ -9,8 +9,6 @@ import uuid
 import boto3
 import asyncio
 import json
-import torch
-import hashlib
 from pathlib import Path
 
 import numpy as np
@@ -24,12 +22,7 @@ from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
 
 from .geo import bbox_from_fire, touch_edge
-from .resolve_tiles import resolve_tile_paths
-from app.backend.ml.features.real_data_loader import load_real_inference_data
-from app.backend.src.ai.simulation import (
-    build_boundary_ignition_mask,
-    build_multi_boundary_ignition_mask,
-)
+
 from .cache import (
     build_fire_cache_key,
     get_cached_prediction,
@@ -38,10 +31,7 @@ from .cache import (
     get_cached_cluster_prediction,
     cache_cluster_prediction,
 )
-from app.backend.ml.models.nowcast_model import (
-    WeatherDeltaModel,
-    WeatherDeltaModelConfig,
-)
+
 from app.backend.src.models.containment_lines import ContainmentLines
 from collections import defaultdict
 
@@ -190,6 +180,15 @@ async def wait_for_result(job_id: str) -> dict | None:
 
     return None
 
+def _bboxes_overlap(a: tuple, b: tuple) -> bool:
+    a_min_lon, a_min_lat, a_max_lon, a_max_lat = a
+    b_min_lon, b_min_lat, b_max_lon, b_max_lat = b
+    return not (
+        a_max_lon < b_min_lon
+        or b_max_lon < a_min_lon
+        or a_max_lat < b_min_lat
+        or b_max_lat < a_min_lat
+    )
 
 async def simulate_single_fire(
     fire,
@@ -348,6 +347,7 @@ async def simulate_fire_cluster(
     lat_extent_deg = max_lat - min_lat
     lon_extent_deg = max_lon - min_lon
     center_lat = (min_lat + max_lat) / 2.0
+    center_lng = (min_lon + max_lon) / 2.0
 
     H, W = grid_dimensions_for_extent(lat_extent_deg, lon_extent_deg, center_lat)
 
@@ -375,92 +375,66 @@ async def simulate_fire_cluster(
         if cached_result is not None:
             return ClusterPrediction(**cached_result)
 
-        resolved = await asyncio.to_thread(
-            resolve_tile_paths, min_lon, min_lat, max_lon, max_lat
-        )
-        static_grids, weather_grids = await load_real_inference_data(
-            b04_path=resolved.b04_path,
-            b08_path=resolved.b08_path,
-            b11_path=resolved.b11_path,
-            dem_path=resolved.dem_path,
-            min_lon=min_lon,
-            min_lat=min_lat,
-            max_lon=max_lon,
-            max_lat=max_lat,
-            scl_path=resolved.scl_path,
-            target_shape=(H, W),
-        )
+        job_id = f"cluster-{'-'.join(fire_refs[:2])}-{uuid.uuid4().hex[:8]}"
 
-        ignition_mask = build_multi_boundary_ignition_mask(
-            H, W, cell_size_m,
-            fires=[(f.lat, f.lng, float(f.boundary_radius) * 1000) for f in fires],
-            grid_bounds=(min_lon, min_lat, max_lon, max_lat),   
-        )
-        grid_bounds = (min_lon, min_lat, max_lon, max_lat)
-
-        if "aspect_sin" not in static_grids or "aspect_cos" not in static_grids:
-            aspect_deg = static_grids.get("aspect")
-            if aspect_deg is None:
-                aspect_deg = np.zeros((H, W), dtype = np.float32)
-            aspect_rad = np.radians(aspect_deg)
-            static_grids["aspect_sin"] = np.sin(aspect_rad).astype(np.float32)
-            static_grids["aspect_cos"] = np.cos(aspect_rad).astype(np.float32)
-
-        wind_u = weather_grids.get("wind_u", np.zeros((H, W), dtype=np.float32))
-        wind_v = weather_grids.get("wind_v", np.zeros((H, W), dtype=np.float32))
-        temperature = weather_grids.get("temperature", np.full((H, W), 25.0, dtype=np.float32))
-
-        if "rel_humidity" in weather_grids:
-            rel_humidity = weather_grids["rel_humidity"]
-        elif "dryness" in weather_grids:
-            rel_humidity = np.clip(1.0 - weather_grids["dryness"], 0.05, 0.95).astype(np.float32)
-        else:
-            rel_humidity = np.full((H, W), 0.35, dtype=np.float32)
-
-        current_frame = np.stack(
-            [
-                np.asarray(wind_u, dtype=np.float32),
-                np.asarray(wind_v, dtype=np.float32),
-                np.asarray(rel_humidity, dtype=np.float32),
-                np.asarray(temperature, dtype=np.float32),
+        job = {
+            "job_id": job_id,
+            "region_id": job_id,
+            "center_lat": center_lat,
+            "center_lon": center_lng,
+            "fires": [
+                {
+                    "ref": f.reference_number,
+                    "center_lat": f.lat,
+                    "center_lon": f.lng,
+                    "boundary_radius_m": float(f.boundary_radius) * 1000,
+                }
+                for f in fires
             ],
-            axis=0,
-        ).astype(np.float32)
+            "grid_bounds": [min_lon, min_lat, max_lon, max_lat],
+            "duration_hours": n_steps / TICKS_PER_HOUR,
+            "n_steps": n_steps,
+            "cell_size_m": cell_size_m,
+            "grid_h": H,
+            "grid_w": W,
+            "containment_lines": lines,
+        }
 
-        weather_history = torch.from_numpy(
-            np.repeat(current_frame[np.newaxis, np.newaxis, ...], 3, axis=1)
-        ).float()
+        await asyncio.to_thread(
+            sqs.send_message,
+            QueueUrl=INFERENCE_QUEUE_URL,
+            MessageBody=json.dumps(job),
+        )
 
-        try:
-            history = await asyncio.to_thread(
-                run_convlstm_dca,
-                convlstm_model=convlstm_model,
-                weather_history=weather_history,
-                static_grids=static_grids,
-                cell_size_m=cell_size_m,
-                n_steps=n_steps,
-                ignition_mask=ignition_mask,
-                containment_lines=lines,
-                grid_bounds=grid_bounds,
-                params=DEFAULT_DCA_PARAMS,
-            )
-        except Exception as exc:
+        raw_result = await wait_for_result(job_id)
+        if raw_result is None:
             raise HTTPException(
-                status_code=500,
-                detail=f"Cluster simulation failed for fires {fire_refs}: {exc}",
-            ) from exc
+                status_code=504,
+                detail=f"Cluster simulation for fires {fire_refs} timed out while waiting for worker",
+            )
 
-        final_grid = history[-1]
-        burned_cells = int(((final_grid == 1) | (final_grid == 2)).sum())
-        truncated = touch_edge(final_grid, burning_val=1, burned_val=2)
+        raw_history = raw_result.get("history", [])
+        flattened_history: list[list[int]] = []
+        for tick_grid in raw_history:
+            if isinstance(tick_grid, list) and len(tick_grid) > 0 and isinstance(tick_grid[0], list):
+                flattened_history.append([int(cell) for row in tick_grid for cell in row])
+            else:
+                flattened_history.append([int(cell) for cell in tick_grid])
+
+        last_tick_flat = flattened_history[-1] if flattened_history else []
+        burned_cells = sum(1 for c in last_tick_flat if c in (1, 2))
+        radius_m = burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg)
+
+        last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
+        truncated = bool(touch_edge(last_grid_2d, burning_val=1, burned_val=2))
 
         prediction_payload = {
             "fire_refs": fire_refs,
             "lat": center_lat,
-            "lng": (min_lon + max_lon) / 2.0,
-            "history": [g.ravel().tolist() for g in history],
+            "lng": center_lng,
+            "history": flattened_history,
             "burned_cells": burned_cells,
-            "radius_m": burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg),
+            "radius_m": radius_m,
             "truncated": truncated,
             "lat_extent_deg": lat_extent_deg,
             "lon_extent_deg": lon_extent_deg,
@@ -470,7 +444,6 @@ async def simulate_fire_cluster(
         }
 
         await asyncio.to_thread(cache_cluster_prediction, cache_key, prediction_payload, 1800)
-
         return ClusterPrediction(**prediction_payload)
 
 # The endpoint
