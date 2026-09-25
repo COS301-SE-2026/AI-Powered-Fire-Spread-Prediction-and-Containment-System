@@ -56,7 +56,7 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
                 const detail = errorData.detail;
-                const message = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail[0].msg : undefined;
+                const message = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail[0]?.msg : undefined;
                 throw new Error(message || 'Failed to issue setup key');
             }
 

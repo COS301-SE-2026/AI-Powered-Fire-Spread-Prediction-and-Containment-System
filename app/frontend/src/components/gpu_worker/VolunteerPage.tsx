@@ -7,7 +7,7 @@ import type { Status } from '../../types/GPUWorkers';
 import { PageHeader } from '../layout/pageHeader';
 
 export default function VolunteerPage() {
-    const { workers, loading, error, refetch, activate, deactivate, remove } = useGPUWorkers();
+    const { workers, loading, error, actionError,refetch, activate, deactivate, remove } = useGPUWorkers();
     const [isAddModalGPUOpen, setIsAddGPUOpen] = useState(false);
     const filter: 'All' | Status = 'All';
 
@@ -16,7 +16,7 @@ export default function VolunteerPage() {
         refetch()
     };
 
-    if (loading) {
+    if (loading && workers.length === 0) {
         return (
             <div className='p-6 font-body'>
                 <PageHeader title="Your machines" subtitle="Lend your NVIDIA GPU to the compute grid while it is idle. Machines you add appear here." showIcons />
@@ -45,6 +45,12 @@ export default function VolunteerPage() {
                     Add a machine
                 </button>
             </div>
+
+            {actionError && (
+                <p role='alert' className='rounded-sm bg-danger/10 border border-danger/40 p-2.5 text-xs text-flare'>
+                    {actionError}
+                </p>
+            )}
 
             <GpuWorkersTable workers={workers} filter={filter} variant="volunteer" onActivate={activate} onDeactivate={deactivate} onRemove={remove} />
 
