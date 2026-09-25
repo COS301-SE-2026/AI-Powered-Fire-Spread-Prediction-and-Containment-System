@@ -16,8 +16,24 @@ export interface Prediction {
   cell_size_m: number;
 }
 
+export interface ClusterPrediction {
+  fire_refs: string[];
+  lat: number;
+  lng: number;
+  history: number[][];
+  burned_cells: number;
+  radius_m: number;
+  truncated: boolean;
+  lat_extent_deg: number;
+  lon_extent_deg: number;
+  grid_h: number;
+  grid_w: number;
+  cell_size_m: number;
+}
+
 export interface SimulationResult {
   predictions: Prediction[];
+  cluster_predictions: ClusterPrediction[];
   n_steps_run: number;
 }
 
@@ -52,8 +68,8 @@ export function useSimulation() {
 
   const startAutoPlay = useCallback((totalTicks: number) => {
     stopAutoPlay();
-    
-    if(totalTicks <= 1){
+
+    if (totalTicks <= 1) {
       setCurrentTick(0);
       setStatus('paused');
       return;
@@ -62,17 +78,17 @@ export function useSimulation() {
     setStatus('playing');
 
     playTimeRef.current = setInterval(() => {
-        const nextTick = currentTickRef.current + 1;
+      const nextTick = currentTickRef.current + 1;
 
-        if (nextTick >= totalTicks - 1){
-          currentTickRef.current = totalTicks - 1;
-          setCurrentTick(totalTicks - 1);
-          stopAutoPlay();
-          setStatus('paused');
-        }else{
-          currentTickRef.current = nextTick;
-          setCurrentTick(nextTick);
-        };
+      if (nextTick >= totalTicks - 1) {
+        currentTickRef.current = totalTicks - 1;
+        setCurrentTick(totalTicks - 1);
+        stopAutoPlay();
+        setStatus('paused');
+      } else {
+        currentTickRef.current = nextTick;
+        setCurrentTick(nextTick);
+      };
     }, PLAYBACK_INTERVAL_MS);
   },
     [stopAutoPlay]
@@ -119,7 +135,7 @@ export function useSimulation() {
           }
 
           const prediction: Prediction = await resp.json();
-          data = { predictions: [prediction], n_steps_run: prediction.history.length }
+          data = { predictions: [prediction], cluster_predictions: [], n_steps_run: prediction.history.length }
         } else {
           const resp = await fetch(`${API_BASE}/api/simulate`, {
             method: 'POST',
@@ -147,7 +163,58 @@ export function useSimulation() {
     },
     [startAutoPlay, stopAutoPlay]
   );
+  const runClusterSimulation = useCallback(
+    async (fireRefs: string[], nSteps = 288, containmentLines: string[] = []) => {
+      if (fireRefs.length < 2) {
+        setError('Select at least two fires to run a combined simulation');
+        setStatus('error');
+        return;
+      }
+      const controller = new AbortController();
+      abortRef.current = controller;
 
+      setStatus('loading');
+      setError(null);
+      setCurrentTick(0);
+      stopAutoPlay();
+
+      try {
+        const req = {
+          fire_refs: fireRefs,
+          n_steps: nSteps,
+          containment_lines: containmentLines,
+        };
+        const resp = await fetch(`${API_BASE}/api/simulate/fires`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(req),
+          signal: controller.signal,
+        });
+
+        if (!resp.ok) {
+          const detail = await resp.text();
+          throw new Error(`Cluster Simulation failed ${resp.status}: ${detail}`)
+
+          const clusterPrediction: ClusterPrediction = await resp.json();
+          const data: SimulationResult = {
+            predictions: [],
+            cluster_predictions: [clusterPrediction],
+            n_steps_run: clusterPrediction.history.length,
+          };
+
+          setResult(data);
+          startAutoPlay(data.n_steps_run);
+
+        }
+      } catch (err) {
+        if (err instanceof Error && err.name === 'AbortError') return;
+        const msg = err instanceof Error ? err.message : String(err);
+        setError(msg);
+        setStatus('error');
+      }
+    },
+    [startAutoPlay, stopAutoPlay]
+  );
   const stopRunning = useCallback(() => {
     stopAutoPlay();
     if (abortRef.current) {
@@ -201,8 +268,10 @@ export function useSimulation() {
     status,
     error,
     runSimulation,
+    runClusterSimulation,
     resetSimulation,
     predictions: result?.predictions ?? [],
+    clusterPredictions: result?.cluster_predictions ?? [],
     currentTick,
     seekToTick,
     play,
