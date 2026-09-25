@@ -4,6 +4,7 @@
 import destination from '@turf/destination';
 import { polygon as turfPolygon, featureCollection } from '@turf/helpers';
 import union from '@turf/union';
+import difference from '@turf/difference';
 import booleanIntersects from '@turf/boolean-intersects';
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 
@@ -170,9 +171,36 @@ export function mergeOverlappingFires(polygons: Feature<Polygon>[]): Feature<Pol
     return groups.map((group) => {
         if (group.length === 1) return group[0];
         return group.reduce<Feature<Polygon | MultiPolygon>>((merged, next) => {
-            const result = union(featureCollection([merged, next]));
+            const result = union(featureCollection<Polygon | MultiPolygon>([merged, next]));
             return (result ?? merged) as Feature<Polygon | MultiPolygon>;
         }, group[0]);
+    });
+}
+
+function clipToLand(
+    fires: Feature<Polygon | MultiPolygon>[],
+    water: Feature<Polygon |  MultiPolygon>[],
+): Feature<Polygon | MultiPolygon>[] {
+    if (!water || water.length === 0) return fires;
+
+    let combinedWater: Feature<Polygon | MultiPolygon> | null = water[0] ?? null;
+    for (let i = 1; i < water.length; i++) {
+        if (!combinedWater) break;
+        try {
+            combinedWater = union(featureCollection<Polygon | MultiPolygon>([combinedWater, water[i]])) ?? combinedWater;
+        } catch (err) {
+            console.warn('Skipping malformed water feature while unioning water bodies for fire clipping', err);
+        }
+    }
+    if (!combinedWater) return fires;
+
+    return fires.map((fire) => {
+        try {
+            const clipped = difference(featureCollection<Polygon | MultiPolygon>([fire, combinedWater as Feature<Polygon | MultiPolygon>]));
+            return clipped ?? fire;
+        } catch {
+            return fire;
+        }
     });
 }
 
@@ -180,11 +208,13 @@ export function buildFireFeatureCollection(
     fires: GrowableFire[],
     env: FireEnvironment,
     nowMs: number,
-    terrainBiasByFireId?: Map<string, DirectionalBias[]>
+    terrainBiasByFireId?: Map<string, DirectionalBias[]>,
+    waterFeatures?: Feature<Polygon | MultiPolygon>[]
 ): FeatureCollection {
     const polygons = fires
         .filter((f) => f.initialRadiusKm > 0 && !effectiveGrowthState(f, nowMs).gone)
         .map((f) => buildFirePolygon(f, env, nowMs, terrainBiasByFireId?.get(f.id)));
     const merged = mergeOverlappingFires(polygons);
-    return featureCollection(merged);
+    const clipped = clipToLand(merged, waterFeatures);
+    return featureCollection(clipped);
 }

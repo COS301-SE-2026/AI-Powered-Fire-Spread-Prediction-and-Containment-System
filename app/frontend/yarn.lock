@@ -1016,6 +1016,17 @@
     "@types/geojson" "^7946.0.10"
     tslib "^2.8.1"
 
+"@turf/difference@^7.3.5":
+  version "7.4.0"
+  resolved "https://registry.yarnpkg.com/@turf/difference/-/difference-7.4.0.tgz#3ff3aaba60a68b41fa42e8cc790fbb1b4f86d7e5"
+  integrity sha512-4zV7Xi3CwUdyNsDzrPty08PiUeYYVBdbCnNVlSf8sk5Z7SL7seA42RabRG8ByTzcrbLATeDU4oTEthVhOGPlyw==
+  dependencies:
+    "@turf/helpers" "7.4.0"
+    "@turf/meta" "7.4.0"
+    "@types/geojson" "^7946.0.10"
+    polyclip-ts "^0.16.8"
+    tslib "^2.8.1"
+
 "@turf/flatten@^7.4.0":
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/@turf/flatten/-/flatten-7.4.0.tgz#bae4209dea22ce50e836c3f3e9925a371c4da230"

@@ -1,11 +1,11 @@
 'use client';
 
-import { LocateFixed } from 'lucide-react'
+import { Feather, LocateFixed } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
-import type { Feature, LineString } from 'geojson';
+import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
@@ -27,6 +27,7 @@ import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
 import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
 import { buildFireFeatureCollection, type GrowableFire } from '@/lib/fireGrowth';
+import { polygon } from '@turf/helpers'
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
@@ -236,6 +237,18 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
   // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
   const fireEnvironment = useLiveFireEnvironment(lat, lng, !disableGrowth);
 
+  // polygonal water bodies (dams/lakes) used to clip fire growth so it stops at a shoreline instead of drawing over it
+  const waterPolygonFeatures = useMemo(
+    () =>
+      combinedWaterFeatures.features.filter(
+        (f): f is Feature<Polygon | MultiPolygon> =>
+          f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
+      ),
+      [combinedWaterFeatures]
+  );
+  const waterPolygonFeaturesRef = useRef(waterPolygonFeatures);
+  waterPolygonFeaturesRef.current = waterPolygonFeatures;
+
   // min shape growth model needs. `size` is treated as the radius at time fire reported,
   // not its current size.
   const growableFires = useMemo<GrowableFire[]>(
@@ -280,9 +293,16 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
 
     const pushFrame = () => {
       const map = mapRef.current?.getMap();
-      const source = map?.getSource('fire-circle') as GeoJSONSource | undefined;
+      const source = map?.getSource('fire-circles') as GeoJSONSource | undefined;
       if (!source) return;
-      source.setData(buildFireFeatureCollection(growableFires, fireEnvironment, Date.now(), terrainBiasByFireId));
+      source.setData(
+        buildFireFeatureCollection(
+          growableFires,
+          fireEnvironment,
+          Date.now(),
+          terrainBiasByFireId,
+        waterPolygonFeaturesRef.current
+      ));
     };
 
     pushFrame();  // paint immediately rather than waiting for the first tick

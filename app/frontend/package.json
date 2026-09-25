@@ -22,6 +22,7 @@
     "@turf/centroid": "^7.4.0",
     "@turf/circle": "^7.3.5",
     "@turf/flatten": "^7.4.0",
+    "@turf/difference": "^7.3.5",
     "@turf/helpers": "^7.4.0",
     "@turf/union": "^7.4.0",
     "@turf/boolean-intersects": "^7.3.5",
