@@ -186,3 +186,23 @@ def test_check_and_merge_no_merge_when_fires_are_far_apart(mock_to_shape, mock_o
         fire_merge.check_and_merge_active_fires(db)
         mock_merge_pair.assert_called_once_with(db, fire_a, fire_b)
 
+# Test fire_status_change
+def make_report(status=ReportStatus.verified, fire_status=FireStatus.active):
+    report = MagicMock()
+    report.reference_number = "FR-2026-001"
+    report.status = status
+    report.fire_status = fire_status
+    report.containment_percent = None
+    return report
+
+@patch("app.backend.src.services.users.fire_report.get_fire_report_by_id", return_value={"stub": True})
+@patch("app.backend.src.services.users.fire_report.notify_fire_update")
+def test_raises_if_report_not_found(mock_notify, mock_get_by_id):
+    db = MagicMock()
+    db.query.return_value.filter.return_value.first.return_value = None
+    
+    with pytest.raises(ValueError, match="does not exist"):
+        fire_report.fire_status_change("FRDOES-NOT-EXIST", FireStatus.contained, None, db)
+        
+    db.commit.assert_not_called()
+    mock_notify.assert_not_called()
