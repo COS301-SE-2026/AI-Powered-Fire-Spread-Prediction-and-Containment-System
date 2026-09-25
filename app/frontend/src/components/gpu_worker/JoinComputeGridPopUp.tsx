@@ -49,13 +49,15 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
                 },
                 body: JSON.stringify({
                     label: machineLabel.trim() || 'Home desktop',
-                    gpu_name: gpuName,
+                    gpu_name: gpuName || 'Unknown GPU',
                 }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || 'Failed to issue setup key');
+                const detail = errorData.detail;
+                const message = typeof detail === 'string' ? detail : Array.isArray(detail) ? detail[0].msg : undefined;
+                throw new Error(message || 'Failed to issue setup key');
             }
 
             const data = await response.json();
@@ -72,11 +74,15 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
         }
     };
 
-    const handleCopy = (text: string) => {
-        if (!dockerCommand) return;
-        navigator.clipboard.writeText(dockerCommand);
-        setCopiedCommand(true);
-        setTimeout(() => setCopiedCommand(false), 2000);
+    const handleCopy = async () => {
+        if(!dockerCommand) return;
+        try{
+            await navigator.clipboard.writeText(dockerCommand);
+            setCopiedCommand(true);
+            setTimeout(() => setCopiedCommand(false), 2000);
+        }catch{
+            setError('Could not automatically copy the command, please copy it manually.');
+        }
     };
 
     return (
@@ -127,13 +133,13 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
                             <label className='block text-sm font-semibold text-text-primary mb-1.5'>
                                 Machine label
                             </label>
-                            <input type="text" placeholder='e.g. Home desktop' value={machineLabel} onChange={(e) => setMachineLabel(e.target.value)}
+                            <input type="text" placeholder='e.g. Home desktop' value={machineLabel} maxLength={100} onChange={(e) => setMachineLabel(e.target.value)}
                                 className='w-full rounded-sm border border-carbon-stroke bg-carbon-input px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-disabled focus:border-ignite focus:outline-none transition-colors'
                             />
                         </div>
 
                         <div className='flex items-center justify-end gap-3 pt-4 border-t border-carbon-stroke'>
-                            <button type="button" onClick={handleClose}
+                            <button type="button" onClick={handleGetSetupKey} disabled={loading}
                                 className='min-h-[44px] px-4 py-2 rounded-sm bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-white transition-colors disabled:opacity-50 cursor-pointer'
                             >
                                 {loading ? 'Generating...' : 'Get setup key'}
@@ -155,8 +161,8 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
                                 <pre className='font-mono text-xs text-text-primary whitespace-pre-wrap break-all pr-16 select-all'>
                                     {dockerCommand}
                                 </pre>
-                                <button type="button" onClick={() => handleCopy(dockerCommand)}
-                                    className='absolute right-3 top-3 rounded-box border border-carbon-stroke bg-[#1a2030] hover:bg-smoke-hover px-3 py-1 text-xs font-medium texxt-text-primary transition-colors cursor-pointer shrink-0'
+                                <button type="button" onClick={handleCopy}
+                                    className='absolute right-3 top-3 rounded-box border border-carbon-stroke bg-[#1a2030] hover:bg-smoke-hover px-3 py-1 text-xs font-medium text-text-primary transition-colors cursor-pointer shrink-0'
                                 >
                                     {copiedCommand ? (
                                         <span className='flex items-center gap-1 text-humidity'>
