@@ -26,7 +26,7 @@ import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
 import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
-import { buildFireFeatureCollection, type GrowableFire } from '@/lib/fireGrowth';
+import { buildFireFeatureCollection, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
 import { polygon } from '@turf/helpers'
 
 // How often animated fire params are recomputed and pushed to map
@@ -80,7 +80,23 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
   const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
 
-  const combinedWaterFeatures = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
+  const waterMergeCacheRef = useRef<{
+    waterKey: string;
+    osmKey: string;
+    result: ReturnType<typeof mergeWaterFeatureCollections>;
+  } | null>(null);
+
+  const combinedWaterFeatures = useMemo(() => {
+    const waterKey = String(waterFeatureCollection.features.length);
+    const osmKey = String(osmWaterFeatureCollection.features.length);
+    const cached = waterMergeCacheRef.current;
+    if (cached && cached.waterKey === waterKey && cached.osmKey === osmKey) {
+      return cached.result;
+    }
+    const result = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
+    waterMergeCacheRef.current = { waterKey, osmKey, result };
+    return result;
+  }, [waterFeatureCollection, osmWaterFeatureCollection]);
 
   useEffect(() => {
     async function syncFires() {
@@ -246,9 +262,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
       ),
       [combinedWaterFeatures]
   );
-  const waterPolygonFeaturesRef = useRef(waterPolygonFeatures);
-  waterPolygonFeaturesRef.current = waterPolygonFeatures;
-
+  
   // min shape growth model needs. `size` is treated as the radius at time fire reported,
   // not its current size.
   const growableFires = useMemo<GrowableFire[]>(
@@ -267,6 +281,20 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
                           })),
           [activeFires, disableGrowth]            
   );
+
+  const combinedWaterShape = useMemo(() => {
+    if (growableFires.length === 0) return null;
+    if (waterPolygonFeatures.length > 200) {
+      console.warn(
+        `Unioning ${waterPolygonFeatures.length} water polygons for fire clipping`
+      );
+    }
+    return unionWaterPolygons(waterPolygonFeatures)
+
+  }, [waterPolygonFeatures, growableFires]);
+  const combinedWaterShapeRef = useRef(combinedWaterShape);
+  combinedWaterShapeRef.current = combinedWaterShape;
+
 
   // disableGrowth path (simulation pages)
   const staticCircleFeatures = useMemo(
@@ -301,7 +329,7 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
           fireEnvironment,
           Date.now(),
           terrainBiasByFireId,
-        waterPolygonFeaturesRef.current
+          combinedWaterShapeRef.current
       ));
     };
 

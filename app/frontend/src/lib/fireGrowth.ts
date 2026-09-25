@@ -179,24 +179,13 @@ export function mergeOverlappingFires(polygons: Feature<Polygon>[]): Feature<Pol
 
 function clipToLand(
     fires: Feature<Polygon | MultiPolygon>[],
-    water: Feature<Polygon |  MultiPolygon>[],
+    combinedWater: Feature<Polygon |  MultiPolygon> | null | undefined
 ): Feature<Polygon | MultiPolygon>[] {
-    if (!water || water.length === 0) return fires;
-
-    let combinedWater: Feature<Polygon | MultiPolygon> | null = water[0] ?? null;
-    for (let i = 1; i < water.length; i++) {
-        if (!combinedWater) break;
-        try {
-            combinedWater = union(featureCollection<Polygon | MultiPolygon>([combinedWater, water[i]])) ?? combinedWater;
-        } catch (err) {
-            console.warn('Skipping malformed water feature while unioning water bodies for fire clipping', err);
-        }
-    }
-    if (!combinedWater) return fires;
+    if (combinedWater) return fires;
 
     return fires.map((fire) => {
         try {
-            const clipped = difference(featureCollection<Polygon | MultiPolygon>([fire, combinedWater as Feature<Polygon | MultiPolygon>]));
+            const clipped = difference(featureCollection<Polygon | MultiPolygon>([fire, combinedWater]));
             return clipped ?? fire;
         } catch {
             return fire;
@@ -204,17 +193,34 @@ function clipToLand(
     });
 }
 
+export function unionWaterPolygons(
+    water: Feature<Polygon | MultiPolygon>[] | undefined
+): Feature<Polygon | MultiPolygon> | null {
+    if (!water || water.length === 0) return null;
+
+    let combined: Feature<Polygon | MultiPolygon> | null = water[0] ?? null;
+    for (let i = 1; i < water.length; i++) {
+        if (!combined) break;
+        try {
+            combined = union(featureCollection<Polygon | MultiPolygon>([combined, water[i]])) ?? combined;
+        } catch (err) {
+            console.warn('Skipping malformed water feature while unioning water bodies for fire clipping', err);
+        }
+    }
+    return combined;
+}
+
 export function buildFireFeatureCollection(
     fires: GrowableFire[],
     env: FireEnvironment,
     nowMs: number,
     terrainBiasByFireId?: Map<string, DirectionalBias[]>,
-    waterFeatures?: Feature<Polygon | MultiPolygon>[]
+    combinedWater?: Feature<Polygon | MultiPolygon> | null
 ): FeatureCollection {
     const polygons = fires
         .filter((f) => f.initialRadiusKm > 0 && !effectiveGrowthState(f, nowMs).gone)
         .map((f) => buildFirePolygon(f, env, nowMs, terrainBiasByFireId?.get(f.id)));
     const merged = mergeOverlappingFires(polygons);
-    const clipped = clipToLand(merged, waterFeatures);
+    const clipped = clipToLand(merged, combinedWater);
     return featureCollection(clipped);
 }
