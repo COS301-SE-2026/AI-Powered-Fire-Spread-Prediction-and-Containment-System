@@ -50,5 +50,32 @@ def test_pair_key_is_order_independent():
 def test_pair_key_differs_for_different_pairs():
     assert fire_merge.pair_key("a", "b") != fire_merge.pair_key("a", "c")
     
+# Test debounce (is_persistently_overlapping)
+@patch("app.backend.src.services.firefighter.fire_merge.cache_client", None)
+def test_is_persistently_overlapping_merges_immediately_when_cached_unavailable():
+    assert fire_merge.is_persistently_overlapping("a", "b") is True
+
+@patch("app.backend.src.services.firefighter.fire_merge.cache_client")
+def test_is_persistently_overlapping_first_sighting_returns_false(mock_cache):
+    mock_cache.get.return_value = None
+    result = fire_merge.is_persistently_overlapping("a", "b")
+    assert result is False
+    mock_cache.set.assert_called_once()
     
+@patch("app.backend.src.services.firefighter.fire_merge.cache_client")
+def test_is_persistently_overlappung_true_once_debounce_elapsed(mock_cache):
+    first_seen = datetime.now(timezone.utc).timestamp() - (fire_merge.DEBOUNCE_SECONDS + 10)
+    mock_cache.get.return_value = str(first_seen)
+    assert fire_merge.is_persistently_overlapping("a", "b") is True
+    
+@patch("app.backend.src.services.firefighter.fire_merge.cache_client")
+def test_is_persistently_overlapping_false_before_debounce_elapsed(mock_cache):
+    first_seen = datetime.now(timezone.utc).timestamp() - 5
+    mock_cache.get.return_value = str(first_seen)
+    assert fire_merge.is_persistently_overlapping("a", "b") is False
+    
+@patch("app.backend.src.services.firefighter.fire_merge.cache_client")
+def test_is_persistently_overlapping_fails_open_on_cache_error(mock_cache):
+    mock_cache.get.side_effect = Exception("valkey down")
+    assert fire_merge.is_persistently_overlapping("a", "b") is True
     
