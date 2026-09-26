@@ -87,7 +87,7 @@ def merge_pair(db: Session, fire_a: FireReports, fire_b: FireReports) -> None:
     clear_candidate(fire_a.id, fire_b.id)
     notify_merge(db, primary, secondary)
     
-def chaeck_and_merge_active_fires(db: Session) -> None:
+def check_and_merge_active_fires(db: Session) -> None:
     """
     Call this before reading active-fires list. Cheap no-op when there's nothing 
     overlapping. Only touched db when actual merge happens

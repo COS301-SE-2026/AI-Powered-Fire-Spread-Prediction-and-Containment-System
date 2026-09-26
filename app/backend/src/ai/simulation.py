@@ -54,6 +54,32 @@ def build_boundary_ignition_mask(
 
     return dist_cells <= radius_cells
 
+def build_multi_boundary_ignition_mask(
+    H: int,
+    W: int,
+    cell_size_m : float,
+    fires: list[tuple[float, float, float]], # (lat, lng, boundary_radius_m)
+    grid_bounds: tuple[float, float, float, float],
+) -> np.ndarray:
+    """
+    Marks every cell inside boundary radius as ignited
+    unlike the func above, it does not make the fire sit in center of grid, 
+    each fire's lat, lng is projected onto the combined grid.
+    """
+    min_lon, min_lat, max_lon, max_lat = grid_bounds
+    mask = np.zeros((H, W), dtype=bool)
+    yy, xx = np.mgrid[0:H, 0:W]
+
+    for lat, lng, boundary_radius_m in fires:
+        cy = (max_lat - lat)/ (max_lat - min_lat) * H
+        cx = (lng - min_lon)/ (max_lon - min_lon) * W
+
+        radius_cells = boundary_radius_m / cell_size_m
+        dist_cells = np.sqrt((yy - cy) ** 2 + (xx - cx) ** 2)
+
+        mask |= dist_cells <= radius_cells
+
+    return mask
 
 def compute_wind_components(
     wind_u: np.ndarray | torch.Tensor, wind_v: np.ndarray | torch.Tensor

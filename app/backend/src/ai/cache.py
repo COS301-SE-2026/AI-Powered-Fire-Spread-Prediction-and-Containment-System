@@ -136,3 +136,87 @@ def cache_prediction(key: str, prediction_data: dict, ttl_seconds: int = 3600):
         client.expire(key, ttl_seconds)
     except Exception:
         pass
+
+def build_cluster_cache_key(
+        fires: list[tuple[str, float, float, float]], # ref, lat, lng, radius
+        lat: float,
+        lng: float,
+        n_steps: int,
+        cell_size_m: float,
+        extent_buffer_deg: float,
+        containment_lines: Optional[List[str]] = None,
+        model_version: str = "dca-v1"
+) -> str:
+    """
+    Sibling to build_fire_cache_key, now just on a set of fires
+    same set of fires with same params always gives the same key
+    """
+    raw_lines = containment_lines or []
+    locationally_relevant_lines = filter_containment_lines(lat, lng, raw_lines, extent_buffer_deg)
+    sorted_fires = sorted((r, round(la, 5), round(ln, 5), round(rad, 2)) for r, la, ln, rad in fires)
+    sorted_refs = [f[0] for f in sorted_fires]
+
+    payload = {
+        "fires": sorted_fires,
+        "lat": round(lat, 5),
+        "lng": round(lng, 5),
+        "n_steps": n_steps,
+        "cell_size_m": round(cell_size_m, 2),
+        "version": model_version,
+        "containment_lines": locationally_relevant_lines,
+    }
+
+    encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
+    hash = hashlib.sha256(encoded).hexdigest()[:16]
+    ref_summary = "-".join(sorted_refs[:3]) + (f"+{len(sorted_refs)-3}more" if len(sorted_refs)>3 else "")
+    return f"sim:cluster:{ref_summary}:{hash}"
+
+def get_cached_cluster_prediction(key: str) -> dict | None:
+    try:
+        data = client.hgetall(key)
+        if not data:
+            return None
+        meta = json.loads(data[b"meta"].decode("utf-8"))
+        compressed_hist = data[b"history"]
+
+        raw_bytes = zlib.decompress(compressed_hist)
+        history_arr = np.frombuffer(raw_bytes, dtype=np.int64).reshape(
+            meta["n_steps"], meta["grid_h"], meta["grid_w"]
+        )
+
+        meta["history"] = [g.ravel().tolist() for g in history_arr]
+        return meta
+    except Exception:
+        return None
+
+def cache_cluster_prediction(key: str, prediction_data: dict, ttl_seconds: int = 3600):
+    """Sibling to cache_prediction, for ClusterPrediction payloads."""
+    try:
+        history_arr = np.array(prediction_data["history"], dtype=np.int64).reshape(
+            len(prediction_data["history"]),
+            prediction_data["grid_h"],
+            prediction_data["grid_w"],
+        )
+
+        compressed_hist = zlib.compress(history_arr.tobytes(), level=6)
+
+        meta = {
+            "fire_refs": prediction_data["fire_refs"],
+            "lat": prediction_data["lat"],
+            "lng": prediction_data["lng"],
+            "burned_cells": prediction_data["burned_cells"],
+            "radius_m": prediction_data["radius_m"],
+            "truncated": prediction_data["truncated"],
+            "lat_extent_deg": prediction_data["lat_extent_deg"],
+            "lon_extent_deg": prediction_data["lon_extent_deg"],
+            "grid_h": prediction_data["grid_h"],
+            "grid_w": prediction_data["grid_w"],
+            "cell_size_m": prediction_data["cell_size_m"],
+            "n_steps": len(prediction_data["history"]),
+        }
+
+        client.hset(key, mapping={"meta": json.dumps(meta), "history": compressed_hist})
+        client.expire(key, ttl_seconds)
+    except Exception:
+        pass
+
