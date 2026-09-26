@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user_optional
+from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
 from app.backend.src.schemas.fire_report import (
     FireReportCreate,
@@ -13,6 +14,7 @@ from app.backend.src.schemas.fire_report import (
 )
 from app.backend.src.services.users import fire_report
 from app.backend.src.services.verification.verification_runner import run_verification
+
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -44,3 +46,10 @@ def create_fire_report(
     # let the autoverification of report run in the background
     background_tasks.add_task(run_verification, created["id"])
     return created
+
+@router.get("/me/reported-fires", response_model=List[FireReportMapResponse])
+def get_my_reported_fires(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return fire_report.get_fire_reports(db, current_user.id)
