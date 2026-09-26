@@ -16,12 +16,14 @@ import { SuggestedLineCard } from '../../components/firefighter/suggestedLineCar
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
+  const [selectedFireIds, setSelectedFireIds] = useState<Set<string>>(new Set());
   const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation, setUserLocation] = useState(defaultLocation);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [lines, setLines] = useState<LocalLine[]>([])
   const { showHint, dismiss } = useRotate();
+  const [lastClusterRefs, setLastClusterRefs] = useState<string[] | null>(null);
   const {
     submitLine,
     loading: savingLine,
@@ -41,7 +43,9 @@ export default function Simulation() {
     status,
     error,
     runSimulation,
+    runClusterSimulation,
     predictions,
+    clusterPredictions,
     currentTick,
     seekToTick,
     play,
@@ -102,9 +106,33 @@ export default function Simulation() {
   }, [selectedFireId, fetchLines, clearMap, clearSuggestion])
 
   function handleRun() {
+    setLastClusterRefs(null);
     const steps = selectedFireId ? 288 : 4
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     runSimulation(selectedFireId, steps, drafts);
+  }
+  function handleToggleFireSelect(ref: string) {
+    setSelectedFireIds(prev => {
+      const next = new Set(prev);
+      if (next.has(ref)) next.delete(ref);
+      else next.add(ref);
+      return next;
+    });
+  }
+
+  function handleRunCluster() {
+    const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
+    const refs = Array.from(selectedFireIds);
+    setLastClusterRefs(refs);
+    runClusterSimulation(refs, 288, drafts);
+  }
+  function handleRerun() {
+    if(lastClusterRefs){
+      const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
+      runClusterSimulation(lastClusterRefs, 288, drafts)
+    }else{
+      handleRun();
+    }
   }
 
   function handleStop() {
@@ -115,7 +143,8 @@ export default function Simulation() {
     clearMap();
     clearSuggestion();
     setClearDrawings((prev) => prev + 1);
-    setLines(prev => prev.filter(l => l.synced))
+    setLines(prev => prev.filter(l => l.synced));
+    setSelectedFireIds(new Set());
   }
 
   function handleReset() {
@@ -183,7 +212,7 @@ export default function Simulation() {
     }
   }
 
-  const canClear = hasResult || lines.length > 0 || currentTick > 0;
+  const canClear = hasResult || lines.length > 0 || currentTick > 0 || status === 'error';
 
   const maxSlider = Math.max(totalTicks - 1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
   const totalHours = hasResult ? (maxSlider / 4) : 72;
@@ -231,10 +260,16 @@ export default function Simulation() {
                     {error ?? 'Simulation failed. Check the backend is running'}
                   </p>
                   <button
-                    onClick={handleRun}
+                    onClick={handleRerun}
                     className="btn btn-sm btn-outline text-neutral/70 mt-2"
                   >
                     Retry
+                  </button>
+                  <button
+                    onClick={clearMap}
+                    className="btn btn-sm btn-outline text-neutral/70 mt-2"
+                  >
+                    Dismiss
                   </button>
                 </div>
               )}
@@ -249,12 +284,37 @@ export default function Simulation() {
                   lines={lines}
                   clearDrawings={clearDrawings}
                   predictions={predictions}
+                  clusterPredictions={clusterPredictions}
                   currentTick={currentTick}
                   selectedFireId={selectedFireId}
                   onSelectFire={setSelectedFireId}
+                  selectedFireIds={selectedFireIds}
+                  onToggleFireSelect={handleToggleFireSelect}
                   showKey
                 />
               </div>
+              {selectedFireIds.size >= 2 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-carbon-bg/90 backdrop-blur-md border border-purple-400/40 rounded-xl px-3 py-2 shadow-lg">
+                  <span className="text-xs text-purple-300 font-mono">
+                    {selectedFireIds.size} fires selected
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRunCluster}
+                    disabled={isLoading}
+                    className="btn btn-xs btn-outline border-purple-400 text-purple-300 disabled:opacity-30"
+                  >
+                    Run Together
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedFireIds(new Set())}
+                    className="btn btn-ghost btn-xs"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* simulation vars and buttons */}
@@ -331,7 +391,7 @@ export default function Simulation() {
                 {/* Rerun and clear buttons */}
                 <div className='flex gap-2'>
                   <button
-                    onClick={handleRun}
+                    onClick={handleRerun}
                     disabled={!hasResult || isLoading}
                     className='btn btn-outline rounded-xl flex-1 text-neautral/60 disabled:opacity-30 disabled:pointer-events-none'
                     title='Re-run Simulation'

@@ -11,7 +11,10 @@ import requests
 import torch
 
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel
-from app.backend.src.ai.simulation import build_boundary_ignition_mask
+from app.backend.src.ai.simulation import (
+    build_boundary_ignition_mask,
+    build_multi_boundary_ignition_mask,
+)
 #from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 
@@ -260,13 +263,26 @@ def run_inference(job: dict) -> dict:
     weather_history_tensor = build_weather_history_tensor(weather_history)
     
     static_grids = fetch_static_grids(job)
-    
-    ignition_mask = build_boundary_ignition_mask(
-        H=job["grid_h"],
-        W=job["grid_w"],
-        cell_size_m=job["cell_size_m"],
-        boundary_radius_m=job["boundary_radius_m"]
-    )
+
+    fires = job.get("fires")
+    if fires:
+        ignition_mask = build_multi_boundary_ignition_mask(
+            H=job["grid_h"],
+            W=job["grid_w"],
+            cell_size_m=job["cell_size_m"],
+            fires=[
+                (f["center_lat"], f["center_lon"], f["boundary_radius_m"])
+                for f in fires
+            ],
+            grid_bounds=tuple(job["grid_bounds"]),
+        )
+    else:
+        ignition_mask = build_boundary_ignition_mask(
+            H=job["grid_h"],
+            W=job["grid_w"],
+            cell_size_m=job["cell_size_m"],
+            boundary_radius_m=job["boundary_radius_m"]
+        )
     
     n_steps = int(job.get("n_steps", min(job.get("duration_hours", 4) * TICKS_PER_HOUR, MAX_STEPS)))
     
