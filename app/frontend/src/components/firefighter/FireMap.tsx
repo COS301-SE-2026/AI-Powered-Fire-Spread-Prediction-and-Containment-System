@@ -18,6 +18,7 @@ import { LocalLine } from '@/types/ContainmentLines';
 import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
 import { buildFireFeatureCollection, FireEnvironment, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
 import { polygon } from '@turf/helpers'
+import { estimateMaxReachKm } from '@/lib/fireGrowth';
 import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -30,7 +31,6 @@ import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDam
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
-import { estimateMaxReachKm } from '@/lib/fireGrowth';
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
