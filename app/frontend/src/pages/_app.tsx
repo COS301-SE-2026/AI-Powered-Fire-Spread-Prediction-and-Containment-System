@@ -49,6 +49,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <NotificationsProvider>
       <Head>
+        <title>FireAway - AI-Powered Fire Spread Prediction and Containment System</title>
         <link rel='manifest' href='/manifest.json' />
         <meta name='theme-color' content='#ff4904' />
         <meta name='apple-mobile-web-app-title' content='Fireaway' />

@@ -41,7 +41,7 @@ export function Availability({ value, error = '', onChange }: AvailibilityProps)
     return (
         <div className="w-full">
             <div className="flex items-center justify-between">
-                <h4 className='p-1 mb-2'>Availability</h4>
+                <p className='p-1 mb-2'>Availability</p>
                 <label className="label cursor-pointer">
                     <span className="text-text-muted label-text text-xs">Infinity</span>
                     <input type="checkbox" className="toggle toggle-primary toggle-sm rounded-full before:rounded-full" checked={isIndefinite} onChange={handleIndefiniteToggle} />
@@ -49,12 +49,12 @@ export function Availability({ value, error = '', onChange }: AvailibilityProps)
             </div>
             <div className="flex flex-col sm:flex-row gap-2">
                 <div className='flex-1'>
-                    <span className='label-text text-xs text-text-muted mb-1 block'>From</span>
-                    <input type="date" value={availableFrom} onChange={handleFromChange} className='input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite focus:border-none h-11' />
+                    <label htmlFor='available-from' className='label-text text-xs text-text-muted mb-1 block'>From</label>
+                    <input id="available-from" type="date" value={availableFrom} onChange={handleFromChange} className='input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite focus:border-none h-11' />
                 </div>
                 <div className='flex-1'>
-                    <span className='label-text text-xs text-text-muted mb-1 block'>Until (optional)</span>
-                    <input type='date' value={value.availableUntil} onChange={handleUntilChange} min={availableFrom || undefined} className="input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite focus:border-none h-11" />
+                    <label htmlFor='available-until' className='label-text text-xs text-text-muted mb-1 block'>Until (optional)</label>
+                    <input id="available-until" type='date' value={value.availableUntil} onChange={handleUntilChange} min={availableFrom || undefined} className="input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-ignite focus:border-none h-11" />
                 </div>
             </div>
             {error && <Alert variant="error" message={error} id="resource-availability-error" />}

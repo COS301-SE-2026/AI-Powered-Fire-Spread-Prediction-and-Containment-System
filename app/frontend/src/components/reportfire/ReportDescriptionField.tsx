@@ -18,7 +18,7 @@ export function DescriptionField({ value, error = '', onChange }: DescriptionPro
         <label htmlFor={id} className="text-lg font-semibold text-white block">
           Description
         </label>
-        <span className="text-xs text-white/40">optional</span>
+        <span className="text-xs text-white/50">optional</span>
       </div>
       <textarea
         id={id}

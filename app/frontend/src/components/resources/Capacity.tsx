@@ -35,13 +35,13 @@ export function Capacity({ value, unit, min, max, step=1, label='Capacity', help
     return (
         <div className='w-full'>
             <div className='flex items-baseline justify-between mb-2'>
-                <h4>{label}</h4>
+                <p>{label}</p>
                 <label className='flex items-center gap-2'>
                     <input type='number' inputMode='numeric' min={min} max={max} step={step} value={draft ?? value} onChange={(e) => setDraft(e.target.value)} onBlur={commitDraft} onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }} aria-label={`${label} in ${unit}`} className='input input-bordered bg-surface-input border-carbon-stroke input-xs w-24 text-left text-primary font-semibold focus:outline-primary text-lg'/>
                         <span className='text-primary font-bold text-lg'>{unit}</span>
                 </label>
             </div>
-            <input type='range' min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className='range range-primary range-xs w-full' />
+            <input type='range' min={min} max={max} aria-label="Capacity slider" step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className='range range-primary range-xs w-full' />
 
             <div className="flex w-full justify-between px-1 mt-1">
                 {ticks.map((tick) => (

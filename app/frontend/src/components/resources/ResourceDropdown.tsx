@@ -31,11 +31,11 @@ export function ResourceDropdown({ value, other, otherCapacity, onChange, onChan
             {value === 'other' && (
                 <div className='grid grid-cols-2 gap-3 w-full mb-1 mt-2'>
                     <div className='w-full'>
-                        <h4 className='p-1'>Other Resource</h4>
+                        <p className='p-1'>Other Resource</p>
                         <input type="text" placeholder='e.g. Diesel generator' className='input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-primary' value={other} onChange={(e) => onChangeOther(e.target.value)} />
                     </div>
                     <div className='w-full'>
-                        <h4 className='p-1'>Other Capacity Unit</h4>
+                        <p className='p-1'>Other Capacity Unit</p>
                         <input type="text" placeholder='e.g. liters, boxes, units' className='input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-primary' value={otherCapacity} onChange={(e) => onChangeOtherCapacity(e.target.value)} />
                     </div>
                 </div>

@@ -431,6 +431,7 @@ export default function Simulation() {
                         min={0}
                         max={maxSlider}
                         step={1}
+                        aria-label="Simulation timeline slider"
                         className="range range-xs w-full disabled:opacity-30"
                         value={currentTick}
                         disabled={!hasResult}
@@ -449,10 +450,11 @@ export default function Simulation() {
 
                   {/* Select a fire to run simulation on */}
                   <div className="border-t border-carbon-stroke/40 pt-3">
-                    <p className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
+                    <label htmlFor='target-fire-select' className="text-xs uppercase tracking-wide text-text-muted/60 font-semibold mb-2">
                       Target Fire
-                    </p>
+                    </label>
                     <select
+                      id="target-fire-select"
                       className="select select-sm select-bordered rounded-lg bg-carbon-bg text-text-primary w-full"
                       value={selectedFireId ?? ''}
                       onChange={(e) => setSelectedFireId(e.target.value || null)}
