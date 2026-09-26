@@ -121,9 +121,9 @@ export default function MapView() {
             <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
           </div>
 
-          <h4 className="tracking-widest text-text-muted uppercase shrink-0">
+          <p className="tracking-widest text-text-muted uppercase shrink-0">
             Available Resources
-          </h4>
+          </p>
           <div className="max-h-64 xl:max-h-none xl:flex-1 xl:min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
             <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
           </div>
