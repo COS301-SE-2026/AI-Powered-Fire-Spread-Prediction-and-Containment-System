@@ -24,12 +24,9 @@ export function SidePanelRight({
 
   return (
     <div className={`${colSpanClass} flex flex-col gap-2`}>
-      <h1 className='sr-only'></h1>
-      <h2 className='sr-only'></h2>
-      <h3 className='sr-only'></h3>
-      <h4 className="text-text-muted text-bold uppercase shrink-0">
+      <p className="text-text-muted text-bold uppercase shrink-0">
         {title}
-      </h4>
+      </p>
       <div
         className="rounded-2xl bg-surface-sidebar/40 backdrop-blur-md border border-surface-card overflow-y-auto"
         style={{ maxHeight }}
