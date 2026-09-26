@@ -105,3 +105,5 @@ override.tf.json
 terraform.rc
 
 *.tfplan
+
+worker.env
