@@ -109,23 +109,13 @@ export function FireMap({ lat,
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
   const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
 
-  const waterMergeCacheRef = useRef<{
-    waterKey: string;
-    osmKey: string;
-    result: ReturnType<typeof mergeWaterFeatureCollections>;
-  } | null>(null);
 
-  const combinedWaterFeatures = useMemo(() => {
-    const waterKey = String(waterFeatureCollection.features.length);
-    const osmKey = String(osmWaterFeatureCollection.features.length);
-    const cached = waterMergeCacheRef.current;
-    if (cached && cached.waterKey === waterKey && cached.osmKey === osmKey) {
-      return cached.result;
-    }
-    const result = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
-    waterMergeCacheRef.current = { waterKey, osmKey, result };
-    return result;
-  }, [waterFeatureCollection, osmWaterFeatureCollection]);
+  const waterKey = String(waterFeatureCollection.features.length);
+
+  const combinedWaterFeatures = useMemo(() => 
+    mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection),
+    [waterKey]
+  );
 
   useEffect(() => {
     async function syncFires() {
@@ -331,31 +321,27 @@ export function FireMap({ lat,
   }
 
   const RIVER_BUFFER_KM = 0.015;
-  const riverBufferCacheRef = useRef<{ key: string; result: Feature<Polygon | MultiPolygon>[] } | null>(null);
+
+  const nearbyRivers = useMemo(
+    () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM)),
+    [riverFeatureCollection, growableFires]
+  );
+  const riverBufferKey = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`
+  
 
   const bufferedRiverPolygons = useMemo(() => {
     if (growableFires.length === 0) return [];
-
-    const nearbyRivers = riverFeatureCollection.features.filter((f) =>
-      isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM)
-    );
-
-    const key = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`;
-    const cached = riverBufferCacheRef.current;
-    if (cached && cached.key === key) return cached.result;
-
-    const result = nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
+    
+    return nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
       try {
-        const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers' });
+        const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers'});
         if (buffered) acc.push(buffered as Feature<Polygon | MultiPolygon>);
       } catch (err) {
         console.warn('Skipping malformed river feature while buffering for fire clipping', err);
       }
       return acc;
     }, []);
-    riverBufferCacheRef.current = { key, result };
-    return result;
-  }, [riverFeatureCollection, growableFires]);
+  }, [riverBufferKey]);
   
 
   const combinedWaterShape = useMemo(() => {
@@ -372,7 +358,9 @@ export function FireMap({ lat,
   }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons]);
 
   const combinedWaterShapeRef = useRef(combinedWaterShape);
-  combinedWaterShapeRef.current = combinedWaterShape;
+  useEffect(() => {
+      combinedWaterShapeRef.current = combinedWaterShape;
+  }, [combinedWaterShape]);
 
 
   // disableGrowth path (simulation pages)
