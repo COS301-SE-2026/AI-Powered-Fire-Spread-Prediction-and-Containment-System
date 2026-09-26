@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from './Card';
 import { useFireStatus } from '@/hooks/useFireStatus';
 import type { FireReportDetailResponse, FireStatus, ReportStatus } from '@/types/Report';
+import { Card } from './Card';
 
 interface FireStatusActionProps {
     readonly reportRef: string;

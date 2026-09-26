@@ -44,7 +44,7 @@ const EASE_IN_MINS = 8;
 function hashedSeed(id: string): number {
     let h = 0;
     for (let i = 0; i < id.length; i++) {
-        h = (h * 31 + id.charCodeAt(i)) | 0;
+        h = (h * 31 + id.charCodeAt(i));
     }
     return ((h % 1000) / 1000) * Math.PI * 2;
 }
@@ -139,7 +139,7 @@ export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs
 
         const downwindness = Math.cos(bearingRad - downwindRad);
         const t = (downwindness + 1) / 2;
-        const windShapedRadiusKm = backDistKm + (headDistKm - backDistKm) * Math.pow(t, 1 / Math.max(1, lbr * 0.5));
+        const windShapedRadiusKm = backDistKm + (headDistKm - backDistKm) * t**(1 / Math.max(1, lbr * 0.5));
         const baseRadiusKm = windShapedRadiusKm * terrainFactorAt(bearingDeg, terrainBias);
 
         const noise =

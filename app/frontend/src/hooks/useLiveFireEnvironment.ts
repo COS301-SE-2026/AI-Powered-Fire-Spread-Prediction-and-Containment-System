@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { apiCall } from '../lib/api';
 import type { EnvironmentVariables } from '@/types/FirefighterDashboard';
 import type { FireEnvironment } from '@/lib/fireGrowth';
+import { apiCall } from '../lib/api';
 
 // Weather doesn't need to be refetched as often as the simulation ticks.
 // Every couple mins if fine and keeps from hammering Open-Meteo call in firefighter dashboard

@@ -15,6 +15,9 @@ import { useGuestNotifications } from '@/hooks/useGuestNotifications';
 import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
 import { LocalLine } from '@/types/ContainmentLines';
+import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
+import { buildFireFeatureCollection, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
+import { polygon } from '@turf/helpers'
 import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -27,9 +30,6 @@ import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDam
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
-import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
-import { buildFireFeatureCollection, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
-import { polygon } from '@turf/helpers'
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
@@ -313,11 +313,11 @@ export function FireMap({ lat,
 
   const FIRE_PROXIMITY_KM = 5;
 
-  function isNearAnyFire(feature: Feature, fires: GrowableFire[], radiusKm: number): boolean {
+  function isNearAnyFire(feature: Feature, candidateFires: GrowableFire[], radiusKm: number): boolean {
     try {
       const [minLng, minLat, maxLng, maxLat] = bbox(feature);
       const padDeg = radiusKm / 111;
-      return fires.some(
+      return candidateFires.some(
         (fire) =>
         fire.lng >= minLng - padDeg &&
         fire.lng <= maxLng + padDeg &&
@@ -369,7 +369,7 @@ export function FireMap({ lat,
     }
     return unionWaterPolygons(blockingFeatures)
 
-  }, [waterPolygonFeatures, growableFires, growableFires]);
+  }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons]);
 
   const combinedWaterShapeRef = useRef(combinedWaterShape);
   combinedWaterShapeRef.current = combinedWaterShape;
