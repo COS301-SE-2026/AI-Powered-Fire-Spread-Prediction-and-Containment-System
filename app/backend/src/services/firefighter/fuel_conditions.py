@@ -1,5 +1,13 @@
+import json
 import math
 import requests
+
+from app.backend.src.services.cache import cache_client
+
+FUEL_CONDITIONS_CACHE_TTL_SECONDS = 5 *60
+
+def fuel_conditions_cache_key(lat: float, lng: float) -> str:
+    return f"weather:fuel-conditions:{round(lat, 2)}:{round(lng, 2)}"
 
 MM_TO_KBDI = 3.937
 LITTER_INTERCEPT_MM = 5.08
@@ -119,6 +127,15 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
     """
     Open-meteo call for the current conditions, 31 days of history of dryness and 2 day ahead wind forecast
     """
+    cache_key = fuel_conditions_cache_key(lat, lng)
+    
+    if cache_client is not None:
+        try:
+            cached = cache_client.get(cache_key)
+            if cached:
+                return json.loads(cached)
+        except Exception:
+            pass
 
     params = {
         "latitude": lat,
@@ -186,7 +203,7 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
 
     last_rain = next((p for p in reversed(precipitation_30) if p >= 1.0), 0.0)
 
-    return {
+    result = {
         "temperature": current["temperature_2m"],
         "humidity": current["relative_humidity_2m"],
         "wind_speed": current["wind_speed_10m"],
@@ -208,3 +225,11 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
         "observed_at": current["time"],
         "source": "open-meteo"
     }
+    
+    if cache_client is not None:
+        try:
+            cache_client.set(cache_key, json.dumps(result), ex=FUEL_CONDITIONS_CACHE_TTL_SECONDS)
+        except Exception:
+            pass
+        
+    return result

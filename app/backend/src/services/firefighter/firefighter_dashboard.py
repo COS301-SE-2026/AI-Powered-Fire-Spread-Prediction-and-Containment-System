@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 import requests
@@ -9,6 +10,12 @@ from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
 from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.services.cache import cache_client
+
+WEATHER_CACHE_TTL_SECONDS = 3 * 60
+
+def weather_cache_key(lat: float, lng: float) -> str:
+    return f"weather:current:{round(lat, 2)}:{round(lng, 2)}"
 
 
 def calculate_time_ago(
@@ -79,7 +86,18 @@ def calculate_fire_danger(
 
 def get_current_environment_vars(
     lat: float, lng: float
-):  # pings the open-meteo api every time this func is called will look at making it real-time later in project
+):  
+    cache_key = weather_cache_key(lat, lng)
+    
+    if cache_client is not None:
+        try:
+            cached = cache_client.get(cache_key)
+            if cached:
+                return json.loads(cached)
+        except Exception:
+            pass
+        
+    # pings the open-meteo api every time this func is called will look at making it real-time later in project
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
         "latitude": lat,
@@ -100,7 +118,7 @@ def get_current_environment_vars(
     except (requests.RequestException, KeyError) as e:
         raise ValueError(f"Failed to fetch environment data: {e}")
 
-    return {
+    result = {
         "temperature": data["apparent_temperature"],
         "humidity": data["relative_humidity_2m"],
         "wind": data["wind_speed_10m"],
@@ -111,3 +129,11 @@ def get_current_environment_vars(
             data["wind_speed_10m"],
         ),
     }
+    
+    if cache_client is not None:
+        try:
+            cache_client.set(cache_client, json.dumps(result), ex=WEATHER_CACHE_TTL_SECONDS)
+        except Exception:
+            pass
+    
+    return result

@@ -1,10 +1,13 @@
 'use client';
 
-import { LocateFixed } from 'lucide-react'
+import { Feather, LocateFixed } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
-import type { Feature, LineString } from 'geojson';
+import { buffer } from '@turf/buffer';
+import bbox from '@turf/bbox';
+import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
@@ -12,6 +15,9 @@ import { useGuestNotifications } from '@/hooks/useGuestNotifications';
 import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
 import { LocalLine } from '@/types/ContainmentLines';
+import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
+import { buildFireFeatureCollection, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
+import { polygon } from '@turf/helpers'
 import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
@@ -23,6 +29,10 @@ import { useWaterBodies } from '../../hooks/useWaterBodies';
 import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDamsFromOSM';
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
+import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+
+// How often animated fire params are recomputed and pushed to map
+const FIRE_GROWTH_TICK_MS = 2000;
 
 interface MapProps {
   lat: number;
@@ -50,6 +60,7 @@ interface MapProps {
   selectedFireIds?: Set<string>;
   onToggleFireSelect?: (ref: string) => void;
   clusterPredictions?: ClusterPrediction[];
+  disableGrowth?: boolean;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -73,7 +84,7 @@ export function FireMap({ lat,
   lines = [],
   onLineRemoved = undefined,
   suggestedLine = null,
-  showWater = true,
+  disableGrowth = false, showWater = true,
   resources = [],
   showResources = true,
   selectedResourceId = null,
@@ -98,7 +109,13 @@ export function FireMap({ lat,
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
   const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
 
-  const combinedWaterFeatures = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
+
+  const waterKey = String(waterFeatureCollection.features.length);
+
+  const combinedWaterFeatures = useMemo(() => 
+    mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection),
+    [waterKey]
+  );
 
   useEffect(() => {
     async function syncFires() {
@@ -119,6 +136,10 @@ export function FireMap({ lat,
           size: f.size,
           submitted_at: f.reported ? new Date(f.reported).toISOString() : new Date().toISOString(),
           reporter_name: f.reporter,
+          updated_at: f.updated_at,
+          fire_status: f.fire_status,
+          containment_percent: f.containment_percent,
+          merged_into_id: f.merged_into_id,
         }));
         await offlineStore.cacheIncidents(mapped);
         return;
@@ -141,6 +162,10 @@ export function FireMap({ lat,
               reported: c.submitted_at
                 ? new Date(c.submitted_at).toISOString()
                 : new Date().toISOString(),
+              updated_at: c.updated_at ?? null,
+              fire_status: c.fire_status ?? 'active',
+              containment_percent: c.containment_percent ?? null,
+              merged_into_id: c.merged_into_id ?? null,
               reporter: c.reporter_name || 'Anonymous',
               verification_notes: null,
               lat: c.lat,
@@ -244,9 +269,105 @@ export function FireMap({ lat,
     }
   }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
 
-  const circleFeatures = useMemo(
+  // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
+  const fireEnvironment = useLiveFireEnvironment(lat, lng, !disableGrowth);
+
+  // polygonal water bodies (dams/lakes) used to clip fire growth so it stops at a shoreline instead of drawing over it
+  const waterPolygonFeatures = useMemo(
     () =>
-      activeFires
+      combinedWaterFeatures.features.filter(
+        (f): f is Feature<Polygon | MultiPolygon> =>
+          f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
+      ),
+      [combinedWaterFeatures]
+  );
+
+    // min shape growth model needs. `size` is treated as the radius at time fire reported,
+  // not its current size.
+  const growableFires = useMemo<GrowableFire[]>(
+    () => disableGrowth ? []
+                        : activeFires
+                          .filter((f) => f.size != null && f.size > 0 && !f.merged_into_id)
+                          .map((f) => ({
+                            id: f.id,
+                            ref: f.ref,
+                            lat: f.lat,
+                            lng: f.lng,
+                            initialRadiusKm: f.size,
+                            ignitedAtMs: f.reported ? new Date(f.reported).getTime() : Date.now(),
+                            fireStatus: f.fire_status,
+                            statusChangedAtMs: f.updated_at ? new Date(f.updated_at).getTime() : undefined
+                          })),
+          [activeFires, disableGrowth]            
+  );
+
+  const FIRE_PROXIMITY_KM = 5;
+
+  function isNearAnyFire(feature: Feature, candidateFires: GrowableFire[], radiusKm: number): boolean {
+    try {
+      const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+      const padDeg = radiusKm / 111;
+      return candidateFires.some(
+        (fire) =>
+        fire.lng >= minLng - padDeg &&
+        fire.lng <= maxLng + padDeg &&
+        fire.lat >= minLat - padDeg &&
+        fire.lat <= maxLat + padDeg
+      );
+    } catch (err) {
+      console.warn('Skipping water/river feature with unreadable geometry during proximity filtering', err);
+      return false;
+    }
+  }
+
+  const RIVER_BUFFER_KM = 0.015;
+
+  const nearbyRivers = useMemo(
+    () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM)),
+    [riverFeatureCollection, growableFires]
+  );
+  const riverBufferKey = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`
+  
+
+  const bufferedRiverPolygons = useMemo(() => {
+    if (growableFires.length === 0) return [];
+    
+    return nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
+      try {
+        const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers'});
+        if (buffered) acc.push(buffered as Feature<Polygon | MultiPolygon>);
+      } catch (err) {
+        console.warn('Skipping malformed river feature while buffering for fire clipping', err);
+      }
+      return acc;
+    }, []);
+  }, [riverBufferKey]);
+  
+
+  const combinedWaterShape = useMemo(() => {
+    if (growableFires.length === 0) return null;
+    const nearbyDams = waterPolygonFeatures.filter((f) => isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM));
+    const blockingFeatures = [...nearbyDams, ...bufferedRiverPolygons];
+    if (waterPolygonFeatures.length > 200) {
+      console.warn(
+        `Unioning ${blockingFeatures.length} water polygons for fire clipping`
+      );
+    }
+    return unionWaterPolygons(blockingFeatures)
+
+  }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons]);
+
+  const combinedWaterShapeRef = useRef(combinedWaterShape);
+  useEffect(() => {
+      combinedWaterShapeRef.current = combinedWaterShape;
+  }, [combinedWaterShape]);
+
+
+  // disableGrowth path (simulation pages)
+  const staticCircleFeatures = useMemo(
+    () => !disableGrowth
+      ? []
+      : activeFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -254,9 +375,35 @@ export function FireMap({ lat,
             units: 'kilometers',
             properties: { ref: f.ref },
           })
-        ),
-    [activeFires]
+        ), [activeFires, disableGrowth]
   );
+
+  // Imperative animation loop. recompute every fire's perimeter and push it straight
+  // into the Mapbox source via setData().
+
+  const terrainBiasByFireId = useTerrainBiasMap(growableFires, !disableGrowth);
+
+  useEffect(() => {
+    if (disableGrowth || !fireEnvironment || growableFires.length === 0) return undefined;
+
+    const pushFrame = () => {
+      const map = mapRef.current?.getMap();
+      const source = map?.getSource('fire-circles') as GeoJSONSource | undefined;
+      if (!source) return;
+      source.setData(
+        buildFireFeatureCollection(
+          growableFires,
+          fireEnvironment,
+          Date.now(),
+          terrainBiasByFireId,
+          combinedWaterShapeRef.current
+      ));
+    };
+
+    pushFrame();  // paint immediately rather than waiting for the first tick
+    const id = setInterval(pushFrame, FIRE_GROWTH_TICK_MS);
+    return () => clearInterval(id);
+  }, [disableGrowth, growableFires, fireEnvironment, terrainBiasByFireId]);
 
   const handleRecenter = useCallback(() => {
     setViewState((v) => ({
@@ -451,14 +598,14 @@ export function FireMap({ lat,
         {showResources && (
           <ResourceMarkers resources={resources} selectedResourceId={selectedResourceId} onSelectResource={onSelectResource} />)}
 
-        {/* Circles around markers */}
-        {circleFeatures.length > 0 && (
+        {/* disableGrowth for simulation pages */}
+        {disableGrowth && staticCircleFeatures.length > 0 && (
           <Source
             id="fire-circles"
             type="geojson"
             data={{
               type: 'FeatureCollection',
-              features: circleFeatures,
+              features: staticCircleFeatures,
             }}
           >
             <Layer
@@ -466,13 +613,37 @@ export function FireMap({ lat,
               type="fill"
               paint={{
                 'fill-color': '#fcba3e',
-                'fill-opacity': 0.3,
+                'fill-opacity': ['*', 0.3, ['coalesce', ['get', 'opacity'], 1]],
               }}
             />
 
             <Layer
               id="fire-radius-outline"
               type="line"
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 1,
+                'line-opacity': ['coalesce', ['get', 'opacity'], 1],
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Live, growing fire perimeters */}
+        {!disableGrowth && growableFires.length > 0 && (
+          <Source id='fire-circles' type='geojson' data={{ type: 'FeatureCollection', features: []}}>
+            <Layer
+              id='fire-radius-fill'
+              type='fill'
+              paint={{
+                'fill-color': '#fcba3e',
+                'fill-opacity': 0.3,
+              }} 
+            />
+
+            <Layer
+              id='fire-radius-outline'
+              type='line'
               paint={{
                 'line-color': '#fcba3e',
                 'line-width': 1,

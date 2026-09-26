@@ -200,6 +200,9 @@ def test_post_shape(client):
         "priority",
         "verification_notes",
         "system_verified",
+        "containment_percent",
+        "fire_status",
+        "merged_into_id",
     }
 
     assert (

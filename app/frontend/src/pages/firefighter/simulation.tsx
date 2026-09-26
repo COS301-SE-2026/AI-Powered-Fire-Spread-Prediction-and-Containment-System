@@ -291,6 +291,7 @@ export default function Simulation() {
                   selectedFireIds={selectedFireIds}
                   onToggleFireSelect={handleToggleFireSelect}
                   showKey
+                  disableGrowth
                 />
               </div>
               {selectedFireIds.size >= 2 && (

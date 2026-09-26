@@ -36,6 +36,7 @@ export default function GuestPublicDashboard() {
                 drawMode={false}
                 onDrawComplete={() => {}}
                 clearDrawings={0}
+                disableGrowth
               />
             </div>
           </div>

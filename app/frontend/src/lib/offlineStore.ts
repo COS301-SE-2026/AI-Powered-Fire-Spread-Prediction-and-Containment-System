@@ -14,6 +14,10 @@ export interface FireReportMapResponse {
   size: number;
   submitted_at: string;
   reporter_name?: string | null;
+  updated_at?: string | null;
+  fire_status?: 'active' | 'contained' | 'extinguished';
+  containment_percent?: number | null;
+  merged_into_id?: string | null;
 }
 
 export interface CreateContainmentLine {
