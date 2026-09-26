@@ -16,7 +16,7 @@ interface PageHeaderProps {
 const PROFILE_ROUTES: Record<UserRole, string> = {
   admin: '/admin/Profile',
   firefighter: '/firefighter/Profile',
-  user: '/user/Profile',
+  user: '/users/Profile',
 }
 
 const MAX_UNREAD_COUNT = 9;
