@@ -9,7 +9,7 @@ from app.backend.src.services.firefighter import fire_merge
 
 
 def get_fire_reports(db: Session):
-    fire_merge.chaeck_and_merge_active_fires(db)
+    fire_merge.check_and_merge_active_fires(db)
     
     request = db.query(FireReports).all()
 

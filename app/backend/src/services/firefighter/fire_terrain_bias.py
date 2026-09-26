@@ -32,7 +32,7 @@ def redis_key(lat: float, lng: float) -> str:
     key_lat, key_lng = cache_key(lat, lng)
     return f"terrain:bias_grids:{key_lat}:{key_lng}"
 
-def pack_grid(arr: np.array, dtype, type: type) -> str:
+def pack_grid(arr: np.array, dtype: type) -> str:
     compressed = zlib.compress(arr.astype(dtype).tobytes(), level=6)
     return base64.b64encode(compressed).decode("ascii")
 

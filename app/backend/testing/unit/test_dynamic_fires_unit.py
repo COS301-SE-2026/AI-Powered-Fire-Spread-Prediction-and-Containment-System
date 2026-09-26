@@ -211,7 +211,7 @@ def test_raises_if_report_not_found(mock_notify, mock_get_by_id):
 @patch("app.backend.src.services.users.fire_report.notify_fire_update")
 def test_raises_if_report_not_verified(mock_notify, mock_get_by_id):
     db = MagicMock()
-    report = make_merege_fire(status=ReportStatus.pending)
+    report = make_status_report(status=ReportStatus.pending)
     db.query.return_value.filter.return_value.first.return_value = report
     
     with pytest.raises(ValueError, match="must be verified"):
@@ -303,4 +303,71 @@ def test_updated_at_is_bumped(mock_notify, mock_get_by_id):
     
     assert report.updated_at != before
     assert report.updated_at.tzinfo is not None
+    
+# Test fire_terrain_bias
+def test_bbox_for_is_centered_on_the_point():
+    lat, lng = -25.75, 28.23
+    min_lon, min_lat, max_lon, max_lat = ftb.bbox_for(lat, lng, pad_km=1.5)
+    
+    assert min_lon < lng < max_lon
+    assert min_lat < lat < max_lat
+    assert (lng - min_lon) == pytest.approx(max_lon - lng, rel=1e-6)
+    assert (lat - min_lat) == pytest.approx(max_lat - lat, rel=1e-6)
+    
+def test_bbox_for_larger_pad_gives_larger_box():
+    small = ftb.bbox_for(-25.75, 28.23, pad_km=1.0)
+    large = ftb.bbox_for(-25.75, 28.23, pad_km=5.0)
+    small_width = small[2] - small[0]
+    large_width = large[2] - large[0]
+    assert large_width > small_width
+    
+def  test_dem_vsis3_path_encodes_hemisphere_correctly():
+    path = ftb.dem_vsis3_path(min_lon=28.0, min_lat=-26.0, max_lon=28.1, max_lat=-25.9)
+    assert "S26_00" in path
+    assert "E028_00" in path
+    assert path.startswith("/vsis3/copernicus-dem-30m/")
+    assert path.endswith(".tif")
+    
+def test_dem_vsis3_path_encodes_northern_western_hemishphere():
+    path = ftb.dem_vsis3_path(min_lon=-0.5, min_lat=0.5, max_lon=-0.4, max_lat=0.6)
+    assert "N00_00" in path
+    assert "W001_00" in path
+    
+def test_cache_key_rounds_to_1km_buckets():
+    assert ftb.cache_key(-25.7479, 28.2293) == ftb.cache_key(-25.7481, 28.2291)
+    assert ftb.cache_key(-25.75, 28.23) != ftb.cache_key(-25.90, 28.23)
+    
+def test_sample_call_center_of_bounds_is_center_of_grid():
+    bounds = (28.0, -26.0, 29.0, -25.0)
+    row, col = ftb.sample_cell(bounds, sample_lon=28.5, sample_lat=-25.5)
+    H, W = ftb.GRID_SHAPE
+    assert row == pytest.approx(H // 2, abs=1)
+    assert col == pytest.approx(W // 2, abs=1)
+    
+def test_sample_cell_clamps_outside_bounds():
+    bounds = (28.0, -26.0, 29.0, -25.0)
+    row, col = ftb.sample_cell(bounds, sample_lon=999.0, sample_lat=999.0)
+    H, W = ftb.GRID_SHAPE
+    assert 0 <= row < H
+    assert 0 <= col < W
+    
+def test_destination_north_increases_latitude():
+    lat, lng = -25.75, 28.23
+    new_lat, new_lng = ftb.destination(lat, lng, distance_km=1.0, bearing_deg=0.0)
+    assert new_lat > lat
+    assert new_lng == pytest.approx(lng, abs=1e-6)
+    
+def test_destination_east_increases_longitude():
+    lat, lng = -25.75, 28.23
+    new_lat, new_lng = ftb.destination(lat, lng, distance_km=1.0, bearing_deg=90.0)
+    assert new_lng > lng
+    assert new_lat == pytest.approx(lat, abs=1e-6)
+    
+def test_pack_unpack_grid_roundtrips():
+    arr = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float32)
+    packed = ftb.pack_grid(arr, np.float32)
+    assert isinstance(packed, str)
+    unpacked = ftb.unpack_grid(packed, np.float32, arr.shape)
+    np.testing.assert_array_equal(unpacked, arr)
+    
     
