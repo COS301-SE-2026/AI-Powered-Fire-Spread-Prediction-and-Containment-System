@@ -111,9 +111,9 @@ export default function MapView() {
 
         {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
         <div className="xl:col-span-4 flex flex-col gap-3 xl:h-150">
-          <h4 className="tracking-widest text-text-muted uppercase shrink-0">
+          <p className="tracking-widest text-text-muted uppercase shrink-0">
             Nearby Reports
-          </h4>
+          </p>
 
           {/* Enforces strict scrolling constraints tailored to Ryan's height layout tree */}
           <div
@@ -121,9 +121,9 @@ export default function MapView() {
             <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
           </div>
 
-          <h4 className="tracking-widest text-text-muted uppercase shrink-0">
+          <p className="tracking-widest text-text-muted uppercase shrink-0">
             Available Resources
-          </h4>
+          </p>
           <div className="max-h-64 xl:max-h-none xl:flex-1 xl:min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
             <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
           </div>

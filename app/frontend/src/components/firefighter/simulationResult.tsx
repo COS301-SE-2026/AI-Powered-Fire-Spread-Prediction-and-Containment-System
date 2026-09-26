@@ -84,9 +84,9 @@ export function SimulationResults({
     <div className="w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto">
       {/* Simulation header */}
       <div>
-        <h3 className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+        <h1 className="text-xs uppercase tracking-widest text-text-muted font-semibold">
           Simulation - time area
-        </h3>
+        </h1>
         <p className="text-xs text-text-disabled">
           {status === 'idle' && 'Not yet run'}
           {status === 'loading' && 'Running simulation...'}

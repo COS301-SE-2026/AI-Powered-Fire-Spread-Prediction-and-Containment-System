@@ -20,6 +20,7 @@ export function SideBar({
 }>) {
   const router = useRouter();
   const section = router.pathname.split('/')[1];
+
   return (
     <div className="drawer lg:drawer-open h-screen">
       <input id="mobile-nav-drawer" type="checkbox" className="drawer-toggle" />
@@ -38,7 +39,7 @@ export function SideBar({
             alt="FireAway"
             className="h-8 w-auto object-contain"
           />
-          <label htmlFor='mobile-nav-drawer' className='btn btn-ghost btn-circle'>
+          <label htmlFor='mobile-nav-drawer' className='btn btn-ghost btn-circle' aria-label="Open navigation menu">
             <Menu className='size-6 text-text-primary' />
           </label>
         </div>

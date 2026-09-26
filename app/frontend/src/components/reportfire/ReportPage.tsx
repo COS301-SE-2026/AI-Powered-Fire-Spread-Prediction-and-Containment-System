@@ -146,7 +146,7 @@ export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) 
           </div>
 
           <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 overflow-y-auto">
-            <h4 className="mb-2">Report status</h4>
+            <p className="mb-2">Report status</p>
             {error && <Alert variant="error" message={error} />}
 
             {reports.length == 0 ? (
