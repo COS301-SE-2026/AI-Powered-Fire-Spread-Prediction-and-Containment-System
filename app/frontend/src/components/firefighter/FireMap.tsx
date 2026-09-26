@@ -355,7 +355,7 @@ export function FireMap({ lat,
     }, []);
     riverBufferCacheRef.current = { key, result };
     return result;
-  }, [riverFeatureCollection]);
+  }, [riverFeatureCollection, growableFires]);
   
 
   const combinedWaterShape = useMemo(() => {
@@ -364,7 +364,7 @@ export function FireMap({ lat,
     const blockingFeatures = [...nearbyDams, ...bufferedRiverPolygons];
     if (waterPolygonFeatures.length > 200) {
       console.warn(
-        `Unioning ${waterPolygonFeatures.length} water polygons for fire clipping`
+        `Unioning ${blockingFeatures.length} water polygons for fire clipping`
       );
     }
     return unionWaterPolygons(blockingFeatures)
