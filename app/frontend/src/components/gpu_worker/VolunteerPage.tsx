@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
+import Head from 'next/head';
 import { JoinComputeGridPopUp } from './JoinComputeGridPopUp';
 import { useGPUWorkers } from '../../hooks/useGPUWorkers';
 import { GpuWorkersTable } from './GPUTable';
@@ -34,27 +35,34 @@ export default function VolunteerPage() {
     }
 
     return (
-        <div className='p-6 font-body space-y-6'>
-            <PageHeader title="Your machines" subtitle="Lend your NVIDIA GPU to the compute grid while it is idle. Machines you add appear here." showIcons />
+        <>
+            <Head>
+                <title>GPU Volunteeers</title>
+            </Head>
+            <main>
+                <div className='p-6 font-body space-y-6'>
+                    <PageHeader title="Your machines" subtitle="Lend your NVIDIA GPU to the compute grid while it is idle. Machines you add appear here." showIcons />
 
-            <div className='flex justify-end mb-6'>
-                <button type="button" onClick={() => setIsAddGPUOpen(true)}
-                    className='min-h-[44px] px-4 py-2 rounded-box bg-ignite hover:bg-flare active:bg-ember text-sm font-bold font-display uppercase tracking-wide text-white flex items-center gap-2 transition-colors cursor-pointer shrink-0 shadow-md'
-                >
-                    <Plus className='size-4' />
-                    Add a machine
-                </button>
-            </div>
+                    <div className='flex justify-end mb-6'>
+                        <button type="button" onClick={() => setIsAddGPUOpen(true)}
+                            className='min-h-[44px] px-4 py-2 rounded-box btn btn-primary text-lg hover:bg-flare active:bg-ember text-sm font-bold font-display uppercase tracking-wide text-white flex items-center gap-2 transition-colors cursor-pointer shrink-0 shadow-md'
+                        >
+                            <Plus className='size-4' />
+                            Add a machine
+                        </button>
+                    </div>
 
-            {actionError && (
-                <p role='alert' className='rounded-sm bg-danger/10 border border-danger/40 p-2.5 text-xs text-flare'>
-                    {actionError}
-                </p>
-            )}
+                    {actionError && (
+                        <p role='alert' className='rounded-sm bg-danger/10 border border-danger/40 p-2.5 text-xs text-flare'>
+                            {actionError}
+                        </p>
+                    )}
 
-            <GpuWorkersTable workers={workers} filter={filter} variant="volunteer" onActivate={activate} onDeactivate={deactivate} onRemove={remove} />
+                    <GpuWorkersTable workers={workers} filter={filter} variant="volunteer" onActivate={activate} onDeactivate={deactivate} onRemove={remove} />
 
-            <JoinComputeGridPopUp isOpen={isAddModalGPUOpen} onClose={handlCloseModal} />
-        </div>
+                    <JoinComputeGridPopUp isOpen={isAddModalGPUOpen} onClose={handlCloseModal} />
+                </div>
+            </main>
+        </>
     );
 }

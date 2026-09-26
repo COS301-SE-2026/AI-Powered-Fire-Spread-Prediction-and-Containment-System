@@ -53,7 +53,7 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
     }
     return (
         <div className='toast toast-start toast-top z-100'>
-            <div role="status" className='alert border relative border-ignite bg-ignite text-text-primary'>
+            <div role="status" className='alert border relative border-ignite btn btn-primary text-text-primary'>
                 <div>
                     <button type='button' className='btn btn-ghost btn-xs btn-circle absolute top-1 left-1' aria-label='Dismis notification' onClick={dismiss}>
                         <X className='size-4' aria-hidden='true' />
