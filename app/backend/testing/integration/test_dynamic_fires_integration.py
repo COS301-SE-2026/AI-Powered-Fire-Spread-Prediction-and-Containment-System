@@ -89,3 +89,93 @@ def test_overlapping_fires_merge_once_debounce_is_satisfied(mock_debounce, clien
     db.refresh(newer)
     assert newer.merged_into_id == older.id
     assert older.merged_into_id is None
+    
+# Test PATCH /api/admin/reported-fires/{ref}/fire-status
+def test_fire_status_change_requires_verified_report(client, db):
+    as_role(db, "firefighter")
+    fire = make_report(db, status=ReportStatus.pending)
+    
+    response = client.patch(
+        f"/api/admin/reported-fires/{fire.reference_number}/fire-status",
+        params={"fire_status": "contained"},
+    )
+    
+    assert response.status_code == 400
+    assert "verified" in response.json()["detail"]
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+def test_fire_status_change_succeeds_for_verified_report(client, db):
+    as_role(db, "firefighter")
+    fire = make_report(db, status=ReportStatus.verified)
+    
+    response = client.patch(
+        f"/api/admin/reported-fires/{fire.reference_number}/fire-status",
+        params={"fire_status": "contained"},
+    )
+    
+    assert response.status_code == 200, response.text
+    assert response.json()["fire_status"] == "contained"
+    
+    db.refresh(fire)
+    assert fire.fire_status == "contained"
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+def test_fire_status_change_with_containment_percent(client, db):
+    as_role(db, "admin")
+    fire = make_report(db, status=ReportStatus.verified)
+    
+    response = client.patch(
+        f"/api/admin/reported-fires/{fire.reference_number}/fire-status",
+        params={"fire_status": "contained", "containment_percent": 55.0},
+    )
+    
+    assert response.status_code == 200, response.text
+    assert response.json()["containment_percent"] == 55.0
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+def test_fire_status_change_rejects_unknown_reference(client, db):
+    as_role(db, "admin")
+    
+    response = client.patch(
+        "/api/admin/reported-fires/FR-DOES-NOT-EXIST/fire-status",
+        params={"fire_status": "extinguished"},
+    )
+    
+    assert response.status_code == 400
+    assert "does not exist" in response.json()["detail"]
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+def test_fire_status_change_denies_users_without_the_right_role(client, db):
+    as_role(db, "user")
+    fire = make_report(db, status=ReportStatus.verified)
+    
+    response = client.patch(
+        f"/api/admin/reported-fires/{fire.reference_number}/fire-status",
+        params={"fire_status": "contained"},
+    )
+    
+    assert response.status_code == 403
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+def test_fire_status_change_reflected_in_reported_fires_afterward(client, db):
+    as_role(db, "firefighter")
+    fire = make_report(db, status=ReportStatus.verified)
+    
+    change_response = client.patch(
+        f"/api/admin/reported-fires/{fire.reference_number}/fire-status",
+        params={"fire_status": "extinguished"},
+    )
+    assert change_response.status_code == 200, change_response.text
+    
+    app.dependency_overrides.pop(get_current_user, None)
+    
+    list_response = client.get("/api/firefighter/reported-fires")
+    data = list_response.json()["data"]
+    updated_entry = next(f for f in data if f["id"] == fire.id)
+    assert updated_entry["fire_status"] == "extinguished"
+    
