@@ -136,6 +136,12 @@ export default function FirefighterDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-2 shrink-0">
               <div className="flex flex-col">
+                <h1 className='sr-only'>
+                  Firefighter Dashboard
+                </h1>
+                <h2 className='sr-only'>
+                  Dashboard
+                </h2>
                 <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
                   Environment Variables
                 </h3>
@@ -152,16 +158,16 @@ export default function FirefighterDashboard() {
 
           {/* Right Column */}
           <div className="xl:col-span-4 flex flex-col gap-3 xl:h-0 xl:min-h-full">
-              <h4 className=" text-text-muted uppercase shrink-0">
+              <p className=" text-text-muted uppercase shrink-0">
                 Nearby Reports
-              </h4>
+              </p>
               <div className="shrink-0 max-h-64 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
                 <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
               </div>
 
-              <h4 className=" text-text-muted uppercase shrink-0">
+              <p className=" text-text-muted uppercase shrink-0">
                 Available Resources
-              </h4>
+              </p>
               <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
                 <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
               </div>

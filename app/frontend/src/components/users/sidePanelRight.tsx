@@ -8,10 +8,10 @@ const COL_SPAN_CLASSES: Record<number, string> = {
 };
 
 interface SidePanelRightProps {
-  title: string; // Required
-  children: React.ReactNode; // Required
-  maxHeight?: string; // Optional: max heigh for scroll panel body
-  colSpan?: number; // Optional: Grid col span set at xl breakpoint. Defaults to 4 (pairs with an 8-col mapPanel)
+  title: string;
+  children: React.ReactNode;
+  maxHeight?: string;
+  colSpan?: number;
 }
 
 export function SidePanelRight({
@@ -24,6 +24,9 @@ export function SidePanelRight({
 
   return (
     <div className={`${colSpanClass} flex flex-col gap-2`}>
+      <h1 className='sr-only'></h1>
+      <h2 className='sr-only'></h2>
+      <h3 className='sr-only'></h3>
       <h4 className="text-text-muted text-bold uppercase shrink-0">
         {title}
       </h4>

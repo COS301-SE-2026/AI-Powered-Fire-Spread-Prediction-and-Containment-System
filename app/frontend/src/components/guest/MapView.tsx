@@ -111,9 +111,9 @@ export default function MapView() {
 
         {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
         <div className="xl:col-span-4 flex flex-col gap-3 xl:h-150">
-          <h4 className="tracking-widest text-text-muted uppercase shrink-0">
+          <p className="tracking-widest text-text-muted uppercase shrink-0">
             Nearby Reports
-          </h4>
+          </p>
 
           {/* Enforces strict scrolling constraints tailored to Ryan's height layout tree */}
           <div
