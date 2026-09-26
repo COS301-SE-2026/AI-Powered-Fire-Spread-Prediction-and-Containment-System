@@ -44,7 +44,7 @@ export function LandingNavbar() {
     <div className='navbar bg-base-100 shadow-sm bg-carbon-side/80 backdrop-blur-md rounded-xl border border-carbon-stroke'>
       <div className='navbar-start'>
         <div className='dropdown'>
-          <div tabIndex={0} role='button' className='btn btn-ghost lg:hidden'>
+          <button type="button" aria-label="Open navigation menu" className='btn btn-ghost lg:hidden'>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               className='h-5 w-5'
@@ -60,7 +60,7 @@ export function LandingNavbar() {
                 d='M4 6h16M4 12h8m-8 6h16'
               />{' '}
             </svg>
-          </div>
+          </button>
 
           <ul
             tabIndex={-1}

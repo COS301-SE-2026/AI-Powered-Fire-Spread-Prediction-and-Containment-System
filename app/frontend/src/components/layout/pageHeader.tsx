@@ -38,7 +38,7 @@ export function PageHeader({
         <div className='flex items-start justify-between gap-1'>
           <div className='min-w-0'>
             <h1 className=" text-text-primary uppercase">{title}</h1>
-            {subtitle && <h4 className="text-text-muted mt-0.5 ">{subtitle}</h4>}
+            {subtitle && <p className="text-text-muted mt-0.5 ">{subtitle}</p>}
           </div>
           {showIcons && isAuth && (
             <div className="flex items-center gap-1">

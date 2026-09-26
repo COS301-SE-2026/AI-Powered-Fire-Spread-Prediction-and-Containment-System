@@ -3,6 +3,14 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect, Route } from '@playwright/test';
 
+const PUBLIC_ROUTES = [
+    { name: 'Landing Page', path: '/' },
+    { name: 'Public Guest Map', path: '/guest/map' },
+    { name: 'Help Menu', path: '/help_menu/help_menu' },
+    { name: 'Volunteer Worker', path: '/volunteer' },
+    { name: 'Login Page', path: '/login' },
+];
+
 test.describe('Accessibility and WCAG 2.1 AA Verification', () => {
     const MOCK_FIRE_INCIDENTS = [
         {
