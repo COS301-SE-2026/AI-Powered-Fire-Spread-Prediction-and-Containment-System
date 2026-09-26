@@ -1,16 +1,24 @@
 import { useState } from 'react';
 import type { ReportStatus } from '../../types/Report';
+import type { Status } from '../../types/Resource';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { useMyReportedFires } from '../../hooks/useMyReportedFires';
-import { MyFireReportsTable } from '../../components/profile/FireReportsTable';
+import { useMyResources, useMyResource } from '../../hooks/useMyResource';
+import { useUpdateResourceStatus } from '../../hooks/useUpdateResourceStatus';
+import { MyFireReportsTable } from './FireReportsTable';
+import { MyResourcesTable } from './ResourcesTable';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { SearchBar } from '../../components/admin/searchBar';
 
 export default function ProfilePage(){
     const { user, isLoading} = useUserInfo();
     const { reports, loading: reportsLoading, error: reportsError } = useMyReportedFires();
+    const { resources, loading: resourcesLoading, error: resourcesError, refetch } = useMyResources();
     const [filter, setFilter] = useState<'All' | ReportStatus>('All');
     const [search, setSearch] = useState('');
+    const [resourceFilter, setResourceFilter] = useState<'All' | Status>('All');
+    const [resourceSearch, setResourceSearch] = useState('');
+    const { updateStatus } = useUpdateResourceStatus();
 
     let name = "";
     let initial = "";
@@ -30,6 +38,17 @@ export default function ProfilePage(){
             report.location_text.toLowerCase().includes(search.toLowerCase()) ||
             report.id.toLowerCase().includes(search.toLowerCase())
     );
+
+     const filteredResources = resources.filter(
+        (resource) =>
+            resource.location.toLowerCase().includes(search.toLowerCase()) ||
+            resource.id.toLowerCase().includes(search.toLowerCase())
+    );
+
+    async function handleStatusChange(id: string, status: Status) {
+        await updateStatus(id, status); 
+        refetch();
+    }
 
     return (
         <div className='p-6'>
@@ -61,6 +80,29 @@ export default function ProfilePage(){
                     </div>
                     ) : (
                         <MyFireReportsTable reports={filteredReports} filter={filter} />
+                    )}
+                </div>
+            ) : null}
+
+            {user ? (
+                <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>
+                    <h2 className='uppercase mb-3'>
+                        My Resources
+                    </h2>
+
+                    <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3'>
+                        {/* <SearchBar value={search} onChange={setSearch} placeholder='Search...' />
+                        <ReportFilterTabs filter={filter} onChange={setFilter} /> */}
+                    </div>
+        
+                    {resourcesError && <div>{resourcesError}</div>}
+ 
+                    {resourcesLoading ? (
+                    <div className="flex justify-center items-center min-h-[20vh]">
+                        <span className="loading loading-spinner loading-lg text-primary" />
+                    </div>
+                    ) : (
+                        <MyResourcesTable resources={filteredResources} filter={resourceFilter} onStatusChange={handleStatusChange} />
                     )}
                 </div>
             ) : null}
