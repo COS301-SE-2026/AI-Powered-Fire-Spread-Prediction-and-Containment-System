@@ -3,7 +3,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 export async function apiCall(endpoint: string, method: string = 'GET', body: unknown = null) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint: `/${endpoint}`;
 
-  const base = API_URL.endsWith('/api') && cleanEndpoint.startsWith('/api/') ? API_URL.slice(0,-4) : API_URL;
+  let base = API_URL.replace(/\/+$/, '');
+  if (base.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    base = base.slice(0,-4);
+  }
 
   const url = `${base}${cleanEndpoint}`
 
