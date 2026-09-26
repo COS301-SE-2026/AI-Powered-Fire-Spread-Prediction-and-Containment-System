@@ -135,10 +135,11 @@ export function useWaterBodies(
         // Rivers
         let waterwayFeatures: Array<Feature<Geometry>> = [];
         try {
-            waterwayFeatures = map.querySourceFeatures(sourceId, {
+                waterwayFeatures = map.querySourceFeatures(sourceId, {
                 sourceLayer: 'waterway',
                 filter: ['in', ['get', 'class'], ['literal', riverClasses]],
             }) as Array<Feature<Geometry>>;
+            
         } catch {
             waterwayFeatures = [];
         }

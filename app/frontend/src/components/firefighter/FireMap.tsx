@@ -16,7 +16,7 @@ import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
 import { LocalLine } from '@/types/ContainmentLines';
 import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
-import { buildFireFeatureCollection, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
+import { buildFireFeatureCollection, FireEnvironment, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
 import { polygon } from '@turf/helpers'
 import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
@@ -30,6 +30,7 @@ import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDam
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+import { estimateMaxReachKm } from '@/lib/fireGrowth';
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
@@ -107,7 +108,7 @@ export function FireMap({ lat,
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
   const checkGuestNotifications = useGuestNotifications(showToast);
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
-  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
+  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000 });
 
 
   const waterKey = String(waterFeatureCollection.features.length);
@@ -303,17 +304,20 @@ export function FireMap({ lat,
 
   const FIRE_PROXIMITY_KM = 5;
 
-  function isNearAnyFire(feature: Feature, candidateFires: GrowableFire[], radiusKm: number): boolean {
+  function isNearAnyFire(feature: Feature, candidateFires: GrowableFire[], env: FireEnvironment | null, nowMs: number): boolean {
+    if (!env) return false;
     try {
       const [minLng, minLat, maxLng, maxLat] = bbox(feature);
-      const padDeg = radiusKm / 111;
-      return candidateFires.some(
-        (fire) =>
-        fire.lng >= minLng - padDeg &&
-        fire.lng <= maxLng + padDeg &&
-        fire.lat >= minLat - padDeg &&
-        fire.lat <= maxLat + padDeg
-      );
+      return candidateFires.some((fire) => {
+        const padDeg = estimateMaxReachKm(fire, env, nowMs) / 111;
+        return (
+          fire.lng >= minLng - padDeg &&
+          fire.lng <= maxLng + padDeg &&
+          fire.lat >= minLat - padDeg &&
+          fire.lat <= maxLat + padDeg
+        );
+      });
+      
     } catch (err) {
       console.warn('Skipping water/river feature with unreadable geometry during proximity filtering', err);
       return false;
@@ -321,17 +325,18 @@ export function FireMap({ lat,
   }
 
   const RIVER_BUFFER_KM = 0.015;
+  const nowMs = Date.now();
 
   const nearbyRivers = useMemo(
-    () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM)),
-    [riverFeatureCollection, growableFires]
+    () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs)),
+    [riverFeatureCollection, growableFires, fireEnvironment]
   );
   const riverBufferKey = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`
   
 
   const bufferedRiverPolygons = useMemo(() => {
     if (growableFires.length === 0) return [];
-    
+
     return nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
       try {
         const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers'});
@@ -346,7 +351,7 @@ export function FireMap({ lat,
 
   const combinedWaterShape = useMemo(() => {
     if (growableFires.length === 0) return null;
-    const nearbyDams = waterPolygonFeatures.filter((f) => isNearAnyFire(f, growableFires, FIRE_PROXIMITY_KM));
+    const nearbyDams = waterPolygonFeatures.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs));
     const blockingFeatures = [...nearbyDams, ...bufferedRiverPolygons];
     if (waterPolygonFeatures.length > 200) {
       console.warn(
@@ -355,7 +360,7 @@ export function FireMap({ lat,
     }
     return unionWaterPolygons(blockingFeatures)
 
-  }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons]);
+  }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons, fireEnvironment]);
 
   const combinedWaterShapeRef = useRef(combinedWaterShape);
   useEffect(() => {

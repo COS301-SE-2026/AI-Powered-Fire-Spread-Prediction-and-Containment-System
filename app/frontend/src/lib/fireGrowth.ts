@@ -5,8 +5,12 @@ import destination from '@turf/destination';
 import { polygon as turfPolygon, featureCollection } from '@turf/helpers';
 import union from '@turf/union';
 import difference from '@turf/difference';
+import flatten from '@turf/flatten';
+import centroid from '@turf/centroid';
+import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import booleanIntersects from '@turf/boolean-intersects';
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
+import area from '@turf/area'
 
 export interface FireEnvironment {
     windKph: number;
@@ -40,6 +44,7 @@ const EXTINGUISH_FADE_MIN = 0.75; // 45s
 const PERIMETER_POINTS = 64;
 const BASE_ROS_KM_PER_MIN = 0.0015;
 const EASE_IN_MINS = 8;
+const MAX_RADIUS_KM = 8;
 
 function hashedSeed(id: string): number {
     let h = 0;
@@ -121,6 +126,8 @@ function effectiveGrowthState(
     };
 }
 
+
+
 export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs: number, terrainBias?: DirectionalBias[]): Feature<Polygon> {
     const { elapsedMinForGrowth: elapsedMin, opacity } = effectiveGrowthState(fire, nowMs);
     const growth = easeIn(elapsedMin);
@@ -186,8 +193,25 @@ function clipToLand(
     return fires.map((fire) => {
         try {
             const clipped = difference(featureCollection<Polygon | MultiPolygon>([fire, combinedWater]));
-            return clipped ?? fire;
-        } catch {
+            if (!clipped) return fire;
+
+            const parts = flatten(clipped);
+            if (parts.features.length <= 1) return clipped;
+
+            const originPoint = centroid(fire);
+            const connected = parts.features.filter((part) => 
+            booleanPointInPolygon(originPoint, part));
+
+            if (connected.length === 0) {
+                return parts.features.reduce((largest, part) =>
+                    area(part) > area(largest) ? part : largest
+                );
+            }
+            
+            return connected.length === 1
+                ? connected[0]
+                : (union(featureCollection(connected)) ?? connected[0]);
+        } catch (err) {
             return fire;
         }
     });
@@ -223,4 +247,15 @@ export function buildFireFeatureCollection(
     const merged = mergeOverlappingFires(polygons);
     const clipped = clipToLand(merged, combinedWater);
     return featureCollection(clipped);
+}
+
+export function estimateMaxReachKm(fire: GrowableFire, env: FireEnvironment, nowMs: number): number {
+    const { elapsedMinForGrowth: elapsedMin } = effectiveGrowthState(fire, nowMs);
+    const growth = easeIn(elapsedMin);
+    const headROS = headRateOfSpreadKmPerMin(env);
+    const headDistKm = Math.min(
+        MAX_RADIUS_KM,
+        fire.initialRadiusKm + headROS * elapsedMin * growth
+    );
+    return headDistKm * 1.3 + 1;
 }
