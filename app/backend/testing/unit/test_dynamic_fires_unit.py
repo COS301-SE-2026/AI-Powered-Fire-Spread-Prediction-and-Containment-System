@@ -370,4 +370,47 @@ def test_pack_unpack_grid_roundtrips():
     unpacked = ftb.unpack_grid(packed, np.float32, arr.shape)
     np.testing.assert_array_equal(unpacked, arr)
     
+# Test compute_terrain_bias
+def flat_grids(slope_deg=0.0, aspect_deg=0.0, landcover_class=10):
+    """A terrain grid with no slope and one uniform land-cover class"""
+    H, W = ftb.GRID_SHAPE
+    return{
+        "bounds": ftb.bbox_for(-25.75, 28.23, ftb.BBOX_PAD_KM),
+        "slope": np.full((H, W), slope_deg, dtype=np.float32),
+        "aspect": np.full((H, W), aspect_deg, dtype=np.float32),
+        "landcover": np.full((H, W), landcover_class, dtype=np.int16),
+    }
     
+@patch("app.backend.src.services.firefighter.fire_terrain_bias.load_fuel_base_weights")
+@patch("app.backend.src.services.firefighter.fire_terrain_bias.fetch_terrain_grids")
+def test_compute_terrain_bias_returns_n_bearings_entries(mock_grids, mock_weights):
+    mock_grids.return_value = flat_grids()
+    mock_weights.return_value = {10: 0.9}
+    result = ftb.compute_terrain_bias(-25.75, 28.23)
+    
+    assert len(result) == ftb.N_BEARINGS
+    for entry in result:
+        assert "bearing_deg" in entry
+        assert "factor" in entry
+        
+@patch("app.backend.src.services.firefighter.fire_terrain_bias.load_fuel_base_weights")
+@patch("app.backend.src.services.firefighter.fire_terrain_bias.fetch_terrain_grids")
+def test_compute_terrain_bias_boosts_uphill_over_downhill(mock_grids, mock_weights):
+    mock_grids.return_value = flat_grids(slope_deg=25.0, aspect_deg=0.0)
+    mock_weights.return_value = {10: 0.9}
+    
+    result = ftb.compute_terrain_bias(-25.75, 28.23)
+    by_bearing = {round(e["bearing_deg"]): e["factor"] for e in result}
+    
+    uphill_bearing = 180
+    downhill_bearing = 0
+    assert by_bearing[uphill_bearing] > by_bearing[downhill_bearing]
+    
+@patch("app.backend.src.services.firefighter.fire_terrain_bias.load_fuel_base_weights")
+@patch("app.backend.src.services.firefighter.fire_terrain_bias.fetch_terrain_grids")
+def test_compute_terrain_bias_unknown_landcover_falls_back_to_default_weight(mock_grids, mock_weights):
+    mock_grids.return_value = flat_grids(landcover_class=9999)
+    mock_weights.return_value = {10: 0.9}
+    
+    result = ftb.compute_terrain_bias(-25.75, 28.23)
+    assert len(result) == ftb.N_BEARINGS
