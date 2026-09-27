@@ -17,9 +17,8 @@ export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const [selectedFireIds, setSelectedFireIds] = useState<Set<string>>(new Set());
-  const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
-  const [userLocation, setUserLocation] = useState(defaultLocation);
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [lines, setLines] = useState<LocalLine[]>([])
   const { showHint, dismiss } = useRotate();
@@ -277,8 +276,8 @@ export default function Simulation() {
               <div className='w-full h-full'>
                 <FireMap
                   suggestedLine={suggestion?.wkt ?? null}
-                  lat={userLocation.lat}
-                  lng={userLocation.lng}
+                  lat={userLocation?.lat ?? null}
+                  lng={userLocation?.lng ?? null}
                   drawMode={drawMode}
                   onDrawComplete={handleDrawComplete}
                   lines={lines}
