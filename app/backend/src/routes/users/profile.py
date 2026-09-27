@@ -11,11 +11,22 @@ from app.backend.src.schemas.user import UserResponse
 from app.backend.src.schemas.fire_report import FireReportDetailResponse
 from app.backend.src.services.users import fire_report
 
+from app.backend.src.schemas.user import UserResponse, UserUpdate
+from app.backend.src.services.users import profile as profile_service
+
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
 @router.get("/me", response_model=UserResponse)
 def get_my_profile(current_user: Annotated[User, Depends(get_current_user)]):
     return current_user
+
+@router.patch("/me", response_model=UserResponse)
+def update_my_profile(
+    payload:UserUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)]
+):
+    return profile_service.update_profile(payload, db, current_user)
 
 @router.get("/me/reported-fires/{report_ref}", response_model=FireReportDetailResponse)
 def get_my_reported_fires(
@@ -30,4 +41,12 @@ def get_my_reported_fires(
     if report["user_id"] != current_user.id:
         raise HTTPException(status_code=404, detail="Report not found")
     return report
+
+@router.patch("/me", response_model=UserResponse)
+def update_my_profile(
+    payload:UserUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user:Annotated[User, Depends(get_current_user)],
+):
+    return profile_service.update_profile(payload, db, current_user)
 
