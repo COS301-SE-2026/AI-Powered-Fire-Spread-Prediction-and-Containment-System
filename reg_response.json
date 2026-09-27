@@ -1,1 +1,1 @@
-{"registration_key":"REG-A3D8D05664AB4B01","expires_in_seconds":86400,"docker_command":"docker run --gpus all -e REGISTRATION_KEY=\"REG-A3D8D05664AB4B01\" fireaway-worker:latest"}
+{"registration_key":"REG-8559974CB4940711","expires_in_seconds":86400,"docker_command":"docker run --gpus all -e REGISTRATION_KEY=\"REG-8559974CB4940711\" fireaway-worker:latest"}
