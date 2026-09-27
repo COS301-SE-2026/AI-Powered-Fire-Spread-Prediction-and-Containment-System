@@ -1,10 +1,11 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.enums.report_priority import ReportPriority
+from app.backend.src.enums.fire_status import FireStatus
 
 
 class FireReportCreate(BaseModel):
@@ -29,9 +30,7 @@ class FireReportMapResponse(BaseModel):
     submitted_at: datetime
     reporter_name: Optional[str] = None
     verification_notes: Optional[str] = None
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FireReportDetailResponse(BaseModel):
@@ -52,6 +51,10 @@ class FireReportDetailResponse(BaseModel):
     priority: Optional[ReportPriority] = None
     system_verified: Optional[bool] = False
     verification_notes: Optional[str] = None
+    
+    # fire-behaviour status
+    fire_status: FireStatus = FireStatus.active
+    containment_percent: Optional[float] = None
+    merged_into_id: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

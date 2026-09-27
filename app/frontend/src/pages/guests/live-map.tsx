@@ -91,9 +91,9 @@ export default function GuestPublicDashboard() {
 
           {/* Right column – Nearby Reports */}
           <div className="xl:col-span-4 flex flex-col gap-3 h-full">
-            <h4 className=" text-text-muted uppercase">
+            <p className=" text-text-muted uppercase">
               Nearby Reports
-            </h4>
+            </p>
             <div
               className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
               <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>

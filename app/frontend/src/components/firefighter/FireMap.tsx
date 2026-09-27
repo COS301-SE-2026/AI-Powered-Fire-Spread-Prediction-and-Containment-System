@@ -1,18 +1,25 @@
 'use client';
 
-import { LocateFixed } from 'lucide-react'
+import { Feather, LocateFixed } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
-import type { Feature, LineString } from 'geojson';
-import { Map, Marker, Popup, Layer, Source, NavigationControl} from 'react-map-gl/mapbox';
+import { buffer } from '@turf/buffer';
+import bbox from '@turf/bbox';
+import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
+import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
 import { useGuestNotifications } from '@/hooks/useGuestNotifications';
 import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
 import { LocalLine } from '@/types/ContainmentLines';
-import { Prediction } from '../../hooks/useSimulation';
+import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
+import { buildFireFeatureCollection, FireEnvironment, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
+import { polygon } from '@turf/helpers'
+import { estimateMaxReachKm } from '@/lib/fireGrowth';
+import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
@@ -23,37 +30,70 @@ import { useWaterBodies } from '../../hooks/useWaterBodies';
 import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDamsFromOSM';
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
+import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
 
-interface MapProps{
-    lat: number;
-    lng: number;
-    drawMode: boolean;
-    lines?: LocalLine[];
-    onDrawComplete: (wkt: string) => void;
-    onLineRemoved?: (localId: string) => void;
-    clearDrawings: number;
-    burnGrid?: number[] | null;
-    recenter?: number;
-    predictions?: Prediction[];
-    currentTick?: number;
-    selectedFireLocation?: string | null;
-    selectedFireId?: string | null;
-    onSelectFire?: (ref: string) => void;
-    onDeselect?: () => void;
-    showKey?: boolean;
-    showWater?: boolean;
-    resources?: NearbyResource[];
-    showResources?: boolean;
-    selectedResourceId?: string | null;
-    onSelectResource?: (r: NearbyResource) => void;
+// How often animated fire params are recomputed and pushed to map
+const FIRE_GROWTH_TICK_MS = 2000;
+
+interface MapProps {
+  lat: number;
+  lng: number;
+  drawMode: boolean;
+  lines?: LocalLine[];
+  onDrawComplete: (wkt: string) => void;
+  onLineRemoved?: (localId: string) => void;
+  clearDrawings: number;
+  burnGrid?: number[] | null;
+  recenter?: number;
+  predictions?: Prediction[];
+  currentTick?: number;
+  selectedFireLocation?: string | null;
+  selectedFireId?: string | null;
+  onSelectFire?: (ref: string) => void;
+  onDeselect?: () => void;
+  showKey?: boolean;
+  showWater?: boolean;
+  resources?: NearbyResource[];
+  showResources?: boolean;
+  selectedResourceId?: string | null;
+  onSelectResource?: (r: NearbyResource) => void;
+  suggestedLine?: string | null;
+  selectedFireIds?: Set<string>;
+  onToggleFireSelect?: (ref: string) => void;
+  clusterPredictions?: ClusterPrediction[];
+  disableGrowth?: boolean;
 }
 
-function wktCoords(wkt: string): number[][]{
-  const inner = wkt.replace(/^LINESTRING\s*\(/i,'').replace(/\)$/,'');
+function wktCoords(wkt: string): number[][] {
+  const inner = wkt.replace(/^LINESTRING\s*\(/i, '').replace(/\)$/, '');
   return inner.split(',').map(p => p.trim().split(/\s+/).map(Number));
 }
 
-export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick=0, onDeselect = undefined, selectedFireId = null,selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined, showWater = true, resources=[], showResources = true, selectedResourceId = null, onSelectResource = undefined}: MapProps) {
+export function FireMap({ lat,
+  lng,
+  drawMode,
+  onDrawComplete,
+  clearDrawings,
+  predictions = [],
+  currentTick = 0,
+  onDeselect = undefined,
+  selectedFireId = null,
+  selectedFireLocation = null,
+  recenter = 0,
+  onSelectFire = undefined,
+  showKey = false,
+  lines = [],
+  onLineRemoved = undefined,
+  suggestedLine = null,
+  disableGrowth = false, showWater = true,
+  resources = [],
+  showResources = true,
+  selectedResourceId = null,
+  onSelectResource = undefined,
+  selectedFireIds = new Set(),
+  onToggleFireSelect = undefined,
+  clusterPredictions = [],
+}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -68,9 +108,15 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
   const checkGuestNotifications = useGuestNotifications(showToast);
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
-  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
+  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000 });
 
-  const combinedWaterFeatures = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
+
+  const waterKey = String(waterFeatureCollection.features.length);
+
+  const combinedWaterFeatures = useMemo(() => 
+    mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection),
+    [waterKey]
+  );
 
   useEffect(() => {
     async function syncFires() {
@@ -91,6 +137,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
           size: f.size,
           submitted_at: f.reported ? new Date(f.reported).toISOString() : new Date().toISOString(),
           reporter_name: f.reporter,
+          updated_at: f.updated_at,
+          fire_status: f.fire_status,
+          containment_percent: f.containment_percent,
+          merged_into_id: f.merged_into_id,
         }));
         await offlineStore.cacheIncidents(mapped);
         return;
@@ -113,6 +163,10 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
               reported: c.submitted_at
                 ? new Date(c.submitted_at).toISOString()
                 : new Date().toISOString(),
+              updated_at: c.updated_at ?? null,
+              fire_status: c.fire_status ?? 'active',
+              containment_percent: c.containment_percent ?? null,
+              merged_into_id: c.merged_into_id ?? null,
               reporter: c.reporter_name || 'Anonymous',
               verification_notes: null,
               lat: c.lat,
@@ -170,7 +224,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   // Reset the containment lines on clear
   const initialMount = useRef(true);
   useEffect(() => {
-    if (initialMount.current){
+    if (initialMount.current) {
       initialMount.current = false;
       return;
     }
@@ -183,7 +237,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     features: lines.map((l) => ({
       type: 'Feature' as const,
       id: l.localId,
-      properties: {synced: l.synced},
+      properties: { synced: l.synced },
       geometry: {
         type: 'LineString' as const,
         coordinates: wktCoords(l.wkt),
@@ -191,6 +245,18 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     })),
   }), [lines]);
 
+  // suggested line memo
+  const suggestedLineFeature = useMemo(() => {
+    if (!suggestedLine) return null;
+    return {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: wktCoords(suggestedLine),
+      },
+    };
+  }, [suggestedLine]);
 
   useEffect(() => {
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
@@ -204,9 +270,109 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
     }
   }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
 
-  const circleFeatures = useMemo(
+  // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
+  const fireEnvironment = useLiveFireEnvironment(lat, lng, !disableGrowth);
+
+  // polygonal water bodies (dams/lakes) used to clip fire growth so it stops at a shoreline instead of drawing over it
+  const waterPolygonFeatures = useMemo(
     () =>
-      activeFires
+      combinedWaterFeatures.features.filter(
+        (f): f is Feature<Polygon | MultiPolygon> =>
+          f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
+      ),
+      [combinedWaterFeatures]
+  );
+
+    // min shape growth model needs. `size` is treated as the radius at time fire reported,
+  // not its current size.
+  const growableFires = useMemo<GrowableFire[]>(
+    () => disableGrowth ? []
+                        : activeFires
+                          .filter((f) => f.size != null && f.size > 0 && !f.merged_into_id)
+                          .map((f) => ({
+                            id: f.id,
+                            ref: f.ref,
+                            lat: f.lat,
+                            lng: f.lng,
+                            initialRadiusKm: f.size,
+                            ignitedAtMs: f.reported ? new Date(f.reported).getTime() : Date.now(),
+                            fireStatus: f.fire_status,
+                            statusChangedAtMs: f.updated_at ? new Date(f.updated_at).getTime() : undefined
+                          })),
+          [activeFires, disableGrowth]            
+  );
+
+  const FIRE_PROXIMITY_KM = 5;
+
+  function isNearAnyFire(feature: Feature, candidateFires: GrowableFire[], env: FireEnvironment | null, nowMs: number): boolean {
+    if (!env) return false;
+    try {
+      const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+      return candidateFires.some((fire) => {
+        const padDeg = estimateMaxReachKm(fire, env, nowMs) / 111;
+        return (
+          fire.lng >= minLng - padDeg &&
+          fire.lng <= maxLng + padDeg &&
+          fire.lat >= minLat - padDeg &&
+          fire.lat <= maxLat + padDeg
+        );
+      });
+      
+    } catch (err) {
+      console.warn('Skipping water/river feature with unreadable geometry during proximity filtering', err);
+      return false;
+    }
+  }
+
+  const RIVER_BUFFER_KM = 0.015;
+  const nowMs = Date.now();
+
+  const nearbyRivers = useMemo(
+    () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs)),
+    [riverFeatureCollection, growableFires, fireEnvironment]
+  );
+  const riverBufferKey = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`
+  
+
+  const bufferedRiverPolygons = useMemo(() => {
+    if (growableFires.length === 0) return [];
+
+    return nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
+      try {
+        const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers'});
+        if (buffered) acc.push(buffered as Feature<Polygon | MultiPolygon>);
+      } catch (err) {
+        console.warn('Skipping malformed river feature while buffering for fire clipping', err);
+      }
+      return acc;
+    }, []);
+  }, [riverBufferKey]);
+  
+
+  const combinedWaterShape = useMemo(() => {
+    if (growableFires.length === 0) return null;
+    const nearbyDams = waterPolygonFeatures.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs));
+    const blockingFeatures = [...nearbyDams, ...bufferedRiverPolygons];
+    if (waterPolygonFeatures.length > 200) {
+      console.warn(
+        `Unioning ${blockingFeatures.length} water polygons for fire clipping`
+      );
+    }
+    return unionWaterPolygons(blockingFeatures)
+
+  }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons, fireEnvironment]);
+
+  const combinedWaterShapeRef = useRef(combinedWaterShape);
+  useEffect(() => {
+      combinedWaterShapeRef.current = combinedWaterShape;
+  }, [combinedWaterShape]);
+
+
+  // disableGrowth path (simulation pages)
+  const staticCircleFeatures = useMemo(
+    () => !disableGrowth
+      ? []
+      : activeFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -214,9 +380,35 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
             units: 'kilometers',
             properties: { ref: f.ref },
           })
-        ),
-    [activeFires]
+        ), [activeFires, disableGrowth]
   );
+
+  // Imperative animation loop. recompute every fire's perimeter and push it straight
+  // into the Mapbox source via setData().
+
+  const terrainBiasByFireId = useTerrainBiasMap(growableFires, !disableGrowth);
+
+  useEffect(() => {
+    if (disableGrowth || !fireEnvironment || growableFires.length === 0) return undefined;
+
+    const pushFrame = () => {
+      const map = mapRef.current?.getMap();
+      const source = map?.getSource('fire-circles') as GeoJSONSource | undefined;
+      if (!source) return;
+      source.setData(
+        buildFireFeatureCollection(
+          growableFires,
+          fireEnvironment,
+          Date.now(),
+          terrainBiasByFireId,
+          combinedWaterShapeRef.current
+      ));
+    };
+
+    pushFrame();  // paint immediately rather than waiting for the first tick
+    const id = setInterval(pushFrame, FIRE_GROWTH_TICK_MS);
+    return () => clearInterval(id);
+  }, [disableGrowth, growableFires, fireEnvironment, terrainBiasByFireId]);
 
   const handleRecenter = useCallback(() => {
     setViewState((v) => ({
@@ -240,7 +432,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
   useEffect(() => {
-    if (!selectedFireId && !selectedFireLocation){
+    if (!selectedFireId && !selectedFireLocation) {
       setSelectedFire(null);
       return;
     }
@@ -249,7 +441,7 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
   useEffect(() => {
-    if(!mapRef.current)
+    if (!mapRef.current)
       return undefined;
     const map = mapRef.current.getMap();
     const container = map.getContainer();
@@ -263,343 +455,407 @@ export function FireMap({lat, lng, drawMode, onDrawComplete, clearDrawings, pred
 
   const EXTENT_DEG = 0.05;
 
-    const girdFeautures = useMemo(() => {
-        if(!predictions?.length) return [];
+  const girdFeautures = useMemo(() => {
+    const allGrids = [
+      ...predictions.map(p => ({
+        ref: p.ref, lat: p.lat, lng: p.lng,
+        lat_extent_deg: p.lat_extent_deg, lon_extent_deg: p.lon_extent_deg,
+        grid_h: p.grid_h, grid_w: p.grid_w, history: p.history,
+      })),
+      ...clusterPredictions.map(cp => ({
+        ref: cp.fire_refs.join('+'), lat: cp.lat, lng: cp.lng,
+        lat_extent_deg: cp.lat_extent_deg, lon_extent_deg: cp.lon_extent_deg,
+        grid_h: cp.grid_h, grid_w: cp.grid_w, history: cp.history,
+      })),
+    ];
 
-        const features = [];
+    if (!allGrids.length) return [];
 
-        for (const p of predictions){
-            const grid = p.history[currentTick]
-            if(!grid || !p.grid_h || !p.grid_w) continue;
+    const features = [];
+    for (const p of allGrids) {
+      const grid = p.history[currentTick];
+      if (!grid || !p.grid_h || !p.grid_w) continue;
 
-            const cellLonSize = p.lon_extent_deg / p.grid_w;
-            const cellLatSize = p.lat_extent_deg / p.grid_h;
-            const minLon = p.lng - p.lon_extent_deg / 2;
-            const maxLat = p.lat + p.lat_extent_deg / 2;
+      const cellLonSize = p.lon_extent_deg / p.grid_w;
+      const cellLatSize = p.lat_extent_deg / p.grid_h;
+      const minLon = p.lng - p.lon_extent_deg / 2;
+      const maxLat = p.lat + p.lat_extent_deg / 2;
 
-            for(let row = 0; row < p.grid_h; row++){
-                for(let col = 0; col < p.grid_w; col++){
-                    const state = grid[row * p.grid_w+ col];
-                    if(state === 0) continue;
+      for (let row = 0; row < p.grid_h; row++) {
+        for (let col = 0; col < p.grid_w; col++) {
+          const state = grid[row * p.grid_w + col];
+          if (state === 0) continue;
 
           const cellMinLon = minLon + col * cellLonSize;
           const cellMaxLat = maxLat - row * cellLatSize;
 
-                    features.push({
-                        type: 'Feature',
-                        properties: { ref: p.ref, state},
-                        geometry: {
-                            type: 'Polygon',
-                            coordinates: [[
-                                [cellMinLon, cellMaxLat - cellLatSize],
-                                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
-                                [cellMinLon + cellLonSize, cellMaxLat],
-                                [cellMinLon, cellMaxLat],
-                                [cellMinLon, cellMaxLat - cellLatSize],
-                            ]],
-                        }
-                    });
-                }
+          features.push({
+            type: 'Feature',
+            properties: { ref: p.ref, state },
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[
+                [cellMinLon, cellMaxLat - cellLatSize],
+                [cellMinLon + cellLonSize, cellMaxLat - cellLatSize],
+                [cellMinLon + cellLonSize, cellMaxLat],
+                [cellMinLon, cellMaxLat],
+                [cellMinLon, cellMaxLat - cellLatSize],
+              ]],
             }
+          });
         }
-        return features;
-    }, [predictions, currentTick])
+      }
+    }
+    return features;
+  }, [predictions, clusterPredictions, currentTick]);
+  useEffect(() => {
+    if (recenter === 0) return;
+    setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
+  }, [recenter]);
 
-    useEffect(() => {
-      if (recenter === 0) return;
-      setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
-    }, [recenter]);
-
-    useEffect(() => {
-      if(!selectedResourceId) return;
-      const res = resources.find((r) => r.id === selectedResourceId);
-      if (!res) return;
-      setViewState((v) => ({
-        ...v,
-        longitude: res.externalPin.lng,
-        latitude: res.externalPin.lat,
-        zoom: Math.max(v.zoom, 13),
-      }));
-    }, [selectedResourceId, resources]);
+  useEffect(() => {
+    if (!selectedResourceId) return;
+    const res = resources.find((r) => r.id === selectedResourceId);
+    if (!res) return;
+    setViewState((v) => ({
+      ...v,
+      longitude: res.externalPin.lng,
+      latitude: res.externalPin.lat,
+      zoom: Math.max(v.zoom, 13),
+    }));
+  }, [selectedResourceId, resources]);
 
   return (
     <div className='relative w-full h-full'>
       {/* key for map legend */}
       {showKey && (
-      <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
-        <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-flare inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Burning cell</span>
+        <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
+          <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
+          <div className='flex items-center justify-between text-xs'>
+            <div className='flex items-center gap-2'>
+              <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-flare inline-block shadow-sm animate-pulse' />
+              <span className='text-text-primary'>Burning cell</span>
+            </div>
+          </div>
+          <div className='flex items-center justify-between text-xs'>
+            <div className='flex items-center gap-2'>
+              <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-[#46201d] inline-block shadow-sm animate-pulse' />
+              <span className='text-text-primary'>Burned cell</span>
+            </div>
+          </div>
+          <div className='flex items-center justify-between text-xs'>
+            <div className='flex items-center gap-2'>
+              <span className='w-3.5 h-3.5 shrink-0 rounded-full bg-accent inline-block shadow-sm animate-pulse' />
+              <span className='text-text-primary'>Reported Radius</span>
+            </div>
           </div>
         </div>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-sm bg-[#46201d] inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Burned cell</span>
-          </div>
-        </div>
-        <div className='flex items-center justify-between text-xs'>
-          <div className='flex items-center gap-2'>
-            <span className='w-3.5 h-3.5 shrink-0 rounded-full bg-accent inline-block shadow-sm animate-pulse'/>
-            <span className='text-text-primary'>Reported Radius</span>
-          </div>
-        </div>
-      </div>
-    )}
-
-    <Map
-      ref={mapRef}
-      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-      {...viewState}
-      onMove={
-        (evt) => {setViewState(evt.viewState);}
-      }
-      onClick={() => {
-        setShowUserLocationTooltip(false);
-      }}
-      style={{ width: '100%', height: '100%' }}
-      mapStyle="mapbox://styles/mapbox/navigation-night-v1"
-    >
-      <NavigationControl position='top-right' showCompass={false}/>
-
-      {activeFires.map((fire) => (
-        <Marker
-          key={fire.id}
-          longitude={fire.lng}
-          latitude={fire.lat}
-          anchor="center"
-          onClick={(e) => {
-            e.originalEvent.stopPropagation();
-            onSelectFire?.(fire.ref)
-          }}
-        >
-          <div className="relative flex items-center justify-center size-6">
-            {/* The radar ping animation effect */}
-            <span
-              className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
-            />
-            {/* The solid core so the marker remains visible */}
-            <span
-              className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
-            />
-          </div>
-        </Marker>
-      ))}
-
-      {/* Show resources */}
-      {showResources && (
-        <ResourceMarkers resources={resources} selectedResourceId={selectedResourceId} onSelectResource={onSelectResource} />      )}
-
-      {/* Circles around markers */}
-      {circleFeatures.length > 0 && (
-        <Source
-          id="fire-circles"
-          type="geojson"
-          data={{
-            type: 'FeatureCollection',
-            features: circleFeatures,
-          }}
-        >
-          <Layer
-            id="fire-radius-fill"
-            type="fill"
-            paint={{
-              'fill-color': '#fcba3e',
-              'fill-opacity': 0.3,
-            }}
-          />
-
-          <Layer
-            id="fire-radius-outline"
-            type="line"
-            paint={{
-              'line-color': '#fcba3e',
-              'line-width': 1,
-            }}
-          />
-        </Source>
       )}
 
-      {girdFeautures.length > 0 && (
-        <Source
-          id="burn-grid"
-          type="geojson"
-          data={{ type: 'FeatureCollection', features: girdFeautures }}
-        >
-          <Layer
-            id="burn-grid-fill"
-            type="fill"
-            paint={{
-              'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
-              'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
-              'fill-antialias': false,
-            }}
-          />
+      <Map
+        ref={mapRef}
+        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+        {...viewState}
+        onMove={
+          (evt) => { setViewState(evt.viewState); }
+        }
+        onClick={() => {
+          setShowUserLocationTooltip(false);
+        }}
+        style={{ width: '100%', height: '100%' }}
+        mapStyle="mapbox://styles/mapbox/navigation-night-v1"
+      >
+        <NavigationControl position='top-right' showCompass={false} />
 
-          <Layer
-            id="simulation-outline"
-            type="line"
-            paint={{
-              'line-color': '#000000',
-              'line-opacity': 0.15,
-              'line-width': 0.5,
-            }}
-          />
-        </Source>
-      )}
-
-      {/* Water bodies - dams, lakes, resevoir */}
-      {showWater && combinedWaterFeatures.features.length > 0 && (
-        <Source id="large-water-bodies" type="geojson" data={combinedWaterFeatures}>
-          <Layer id="water-highlight-fill" type="fill"
-            paint={{ 'fill-color': '#38bdf8', 'fill-opacity': 0.35 }} />
-          <Layer id="water-highlight-outline" type="line"
-            paint={{ 'line-color': '#38bdf8', 'line-width': 2.5, 'line-opacity': 0.9}} />
-        </Source>
-      )}
-
-      {/* Rivers */}
-      {showWater && riverFeatureCollection.features.length > 0 && (
-        <Source id="rivers-highlight" type="geojson" data={riverFeatureCollection}>
-          <Layer id="river-highlight-glow" type="line"
-            paint={{ 'line-color': '#38bdf8', 'line-width': 6, 'line-opacity': 0.4, 'line-blur': 2 }} />
-          <Layer id="river-highlight-line" type="line"
-            paint={{ 'line-color': '#7dd3fc', 'line-width': 2 }} />
-        </Source>
-      )}
-
-      {/* Containment Lines */}
-      {lines.length > 0 && (
-        <Source
-          id='containment-lines'
-          type='geojson'
-          data={containmentFeatures}
-        >
-          <Layer
-            id='containment-line-glow'
-            type='line'
-            paint={{
-              'line-color': ['case', ['get', 'synced'], '#38bdf8', '#fcba3e'],
-              'line-width': 6,
-              'line-opacity': 0.7,
-            }}
-          />
-
-          <Layer
-            id='containment-line-synced'
-            type='line'
-            filter={['==', ['get', 'synced'], true]}
-            paint={{
-              'line-color': '#0284c7',
-              'line-width': 6,
-              'line-dasharray': [2,1]
-            }}
-          />
-
-          <Layer
-            id='containment-line-draft'
-            type='line'
-            filter={['==', ['get', 'synced'], false]}
-            paint={{
-              'line-color': '#fcba3e',
-              'line-width': 6,
-              'line-dasharray': [1,2]
-            }}
-          />
-
-        </Source>
-      )}
-
-      {selectedFire && (
-        <Popup
-          longitude={selectedFire.lng}
-          latitude={selectedFire.lat}
-          onClose={() => {
-            setSelectedFire(null);
-            onDeselect?.();
-          }}
-          className="carbon-popup"
-        >
-          <div className="p-1">
-            <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
-              {selectedFire.location}
-            </h3>
-            <p className="text-xs text-text-muted mt-1">
-              Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
-            </p>
-            <p className="text-xs text-text-muted mt-1">
-              Status: <span className="text-neutral-content">{selectedFire.status}</span>
-            </p>
-            <p className="text-xs text-text-muted">
-              Submitted:{' '}
-              <span className="text-neutral-content">
-                {new Date(selectedFire.reported).toLocaleString()}
-              </span>
-            </p>
-            {selectedFire.size && (
-              <p className="text-xs text-text-muted">
-                Radius: <span className="text-neutral-content">{selectedFire.size} km</span>
-              </p>
-            )}
-          </div>
-        </Popup>
-      )}
-      {lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng) && (
-        <Marker
-          longitude={lng}
-          latitude={lat}
-          anchor="center"
-          onClick={(e) => {
-            e.originalEvent.stopPropagation();
-            setShowUserLocationTooltip((prev) => !prev);
-          }}
-        >
-          <div
-            role="button"
-            tabIndex={0}
-            aria-label="Your location marker"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                setShowUserLocationTooltip((prev) => !prev);
+        {activeFires.map((fire) => (
+          <Marker
+            key={fire.id}
+            longitude={fire.lng}
+            latitude={fire.lat}
+            anchor="center"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation();
+              const isMultiSelect = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
+              if (isMultiSelect && onToggleFireSelect) {
+                onToggleFireSelect(fire.ref);
+              } else {
+                onSelectFire?.(fire.ref);
               }
             }}
-            className='relative flex items-center justify-center w-11 h-11 cursor-pointer focus:outline-none'
           >
-            {/* Click to show badge */}
-            {showUserLocationTooltip && (
-              <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
+            <div className="relative flex items-center justify-center size-6">
+              <span
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedFireIds.has(fire.ref) ? 'bg-purple-400' : 'bg-accent'
+                  } ${fire.ref === selectedFireId || selectedFireIds.has(fire.ref) ? '' : 'hidden'}`}
+              />
+              <span
+                className={`relative inline-flex rounded-full size-3 shadow-lg shadow-black ${selectedFireIds.has(fire.ref)
+                  ? 'bg-purple-500 ring-2 ring-purple-200'
+                  : fire.ref === selectedFireId
+                    ? 'bg-flare ring-2 ring-white'
+                    : 'bg-accent'
+                  }`}
+              />
+            </div>
+          </Marker>
+        ))}
+        {/* Show resources */}
+        {showResources && (
+          <ResourceMarkers resources={resources} selectedResourceId={selectedResourceId} onSelectResource={onSelectResource} />)}
+
+        {/* disableGrowth for simulation pages */}
+        {disableGrowth && staticCircleFeatures.length > 0 && (
+          <Source
+            id="fire-circles"
+            type="geojson"
+            data={{
+              type: 'FeatureCollection',
+              features: staticCircleFeatures,
+            }}
+          >
+            <Layer
+              id="fire-radius-fill"
+              type="fill"
+              paint={{
+                'fill-color': '#fcba3e',
+                'fill-opacity': ['*', 0.3, ['coalesce', ['get', 'opacity'], 1]],
+              }}
+            />
+
+            <Layer
+              id="fire-radius-outline"
+              type="line"
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 1,
+                'line-opacity': ['coalesce', ['get', 'opacity'], 1],
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Live, growing fire perimeters */}
+        {!disableGrowth && growableFires.length > 0 && (
+          <Source id='fire-circles' type='geojson' data={{ type: 'FeatureCollection', features: []}}>
+            <Layer
+              id='fire-radius-fill'
+              type='fill'
+              paint={{
+                'fill-color': '#fcba3e',
+                'fill-opacity': 0.3,
+              }} 
+            />
+
+            <Layer
+              id='fire-radius-outline'
+              type='line'
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 1,
+              }}
+            />
+          </Source>
+        )}
+
+        {girdFeautures.length > 0 && (
+          <Source
+            id="burn-grid"
+            type="geojson"
+            data={{ type: 'FeatureCollection', features: girdFeautures }}
+          >
+            <Layer
+              id="burn-grid-fill"
+              type="fill"
+              paint={{
+                'fill-color': ['match', ['get', 'state'], 1, '#fe8024', 2, '#46201d', '#000000'], // swap with ignite and torch vals
+                'fill-opacity': ['match', ['get', 'state'], 1, 0.5, 2, 0.35, 0],
+                'fill-antialias': false,
+              }}
+            />
+
+            <Layer
+              id="simulation-outline"
+              type="line"
+              paint={{
+                'line-color': '#000000',
+                'line-opacity': 0.15,
+                'line-width': 0.5,
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Water bodies - dams, lakes, resevoir */}
+        {showWater && combinedWaterFeatures.features.length > 0 && (
+          <Source id="large-water-bodies" type="geojson" data={combinedWaterFeatures}>
+            <Layer id="water-highlight-fill" type="fill"
+              paint={{ 'fill-color': '#38bdf8', 'fill-opacity': 0.35 }} />
+            <Layer id="water-highlight-outline" type="line"
+              paint={{ 'line-color': '#38bdf8', 'line-width': 2.5, 'line-opacity': 0.9 }} />
+          </Source>
+        )}
+
+        {/* Rivers */}
+        {showWater && riverFeatureCollection.features.length > 0 && (
+          <Source id="rivers-highlight" type="geojson" data={riverFeatureCollection}>
+            <Layer id="river-highlight-glow" type="line"
+              paint={{ 'line-color': '#38bdf8', 'line-width': 6, 'line-opacity': 0.4, 'line-blur': 2 }} />
+            <Layer id="river-highlight-line" type="line"
+              paint={{ 'line-color': '#7dd3fc', 'line-width': 2 }} />
+          </Source>
+        )}
+
+        {/* Containment Lines */}
+        {lines.length > 0 && (
+          <Source
+            id='containment-lines'
+            type='geojson'
+            data={containmentFeatures}
+          >
+            <Layer
+              id='containment-line-glow'
+              type='line'
+              paint={{
+                'line-color': ['case', ['get', 'synced'], '#38bdf8', '#fcba3e'],
+                'line-width': 6,
+                'line-opacity': 0.7,
+              }}
+            />
+
+            <Layer
+              id='containment-line-synced'
+              type='line'
+              filter={['==', ['get', 'synced'], true]}
+              paint={{
+                'line-color': '#0284c7',
+                'line-width': 6,
+                'line-dasharray': [2, 1]
+              }}
+            />
+
+            <Layer
+              id='containment-line-draft'
+              type='line'
+              filter={['==', ['get', 'synced'], false]}
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 6,
+                'line-dasharray': [1, 2]
+              }}
+            />
+
+          </Source>
+        )}
+        {suggestedLineFeature && (
+          <Source id="suggested-containment-line" type="geojson" data={suggestedLineFeature}>
+            <Layer
+              id="suggested-line-glow"
+              type="line"
+              paint={{
+                'line-color': '#a855f7',
+                'line-width': 8,
+                'line-opacity': 0.35,
+              }}
+            />
+            <Layer
+              id="suggested-line-dash"
+              type="line"
+              paint={{
+                'line-color': '#a855f7',
+                'line-width': 3,
+                'line-dasharray': [0.2, 1.5],
+              }}
+            />
+          </Source>
+        )}
+        {selectedFire && (
+          <Popup
+            longitude={selectedFire.lng}
+            latitude={selectedFire.lat}
+            onClose={() => {
+              setSelectedFire(null);
+              onDeselect?.();
+            }}
+            className="carbon-popup"
+          >
+            <div className="p-1">
+              <h3 className="font-display font-bold text-sm uppercase tracking-wide text-ignite">
+                {selectedFire.location}
+              </h3>
+              <p className="text-xs text-text-muted mt-1">
+                Reference: <span className="text-neutral-content">{selectedFire.ref}</span>
+              </p>
+              <p className="text-xs text-text-muted mt-1">
+                Status: <span className="text-neutral-content">{selectedFire.status}</span>
+              </p>
+              <p className="text-xs text-text-muted">
+                Submitted:{' '}
+                <span className="text-neutral-content">
+                  {new Date(selectedFire.reported).toLocaleString()}
+                </span>
+              </p>
+              {selectedFire.size && (
+                <p className="text-xs text-text-muted">
+                  Radius: <span className="text-neutral-content">{selectedFire.size} km</span>
+                </p>
+              )}
+            </div>
+          </Popup>
+        )}
+        {lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng) && (
+          <Marker
+            longitude={lng}
+            latitude={lat}
+            anchor="center"
+            onClick={(e) => {
+              e.originalEvent.stopPropagation();
+              setShowUserLocationTooltip((prev) => !prev);
+            }}
+          >
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label="Your location marker"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setShowUserLocationTooltip((prev) => !prev);
+                }
+              }}
+              className='relative flex items-center justify-center w-11 h-11 cursor-pointer focus:outline-none'
+            >
+              {/* Click to show badge */}
+              {showUserLocationTooltip && (
+                <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
                border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
-                Your location
-              </div>
-            )}
+                  Your location
+                </div>
+              )}
 
-            {/* pulse for marker */}
-            <span
-              className='animate-ping absolute inline-flex w-5 h-5 rounded-full opacity-75 pointer-events-none'
-              style={{ backgroundColor: 'var(--color-wind, #378add)' }}
-            />
+              {/* pulse for marker */}
+              <span
+                className='animate-ping absolute inline-flex w-5 h-5 rounded-full opacity-75 pointer-events-none'
+                style={{ backgroundColor: 'var(--color-wind, #378add)' }}
+              />
 
-            {/* solid marker dot */}
-            <span
-              className='relative inline-flex rounded-full size-3 border-2 border-white shadow-md shadow-black pointer-events-none'
-              style={{ backgroundColor: 'var(--color-wind, #378add)' }}
-            />
-          </div>
-        </Marker>
-      )}
-    </Map>
+              {/* solid marker dot */}
+              <span
+                className='relative inline-flex rounded-full size-3 border-2 border-white shadow-md shadow-black pointer-events-none'
+                style={{ backgroundColor: 'var(--color-wind, #378add)' }}
+              />
+            </div>
+          </Marker>
+        )}
+      </Map>
 
-    <button
-      type='button'
-      onClick={handleRecenter}
-      aria-label='Center map location on me'
-      className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
-    >
-      <LocateFixed className='w-5 h-5'/>
-    </button>
+      <button
+        type='button'
+        onClick={handleRecenter}
+        aria-label='Center map location on me'
+        className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+      >
+        <LocateFixed className='w-5 h-5' />
+      </button>
     </div>
   );
 }

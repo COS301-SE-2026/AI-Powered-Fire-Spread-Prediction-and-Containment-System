@@ -1,4 +1,6 @@
 import uuid
+import asyncio
+import numpy as np
 from datetime import datetime, timezone
 
 from geoalchemy2.elements import WKTElement
@@ -11,9 +13,14 @@ from sqlalchemy import func
 from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.enums.report_status import ReportStatus
-
+from app.backend.src.ai.simulation_api import simulate_single_fire
+from app.backend.src.ai.suggest_containment import suggest_containment_line
+from app.backend.src.schemas.containment_lines import (
+    SuggestedContainmentLine,
+    SuggestedContainmentLinesList,
+)
 MAX_RADIUS = 5  # max radius for containement auto-detection of nearby fire
-
+SUGGESTION_HORIZON_STEPS = 288 #72h as in dca.py
 
 # gets the containment lines
 def get_all_containment_lines(db: Session):
@@ -103,3 +110,49 @@ def delete_containment_line(db: Session, line_id: str):
 
     db.delete(line)
     db.commit()
+
+async def get_suggested_containment_lines(
+    db: Session, fire_ref: str, top_n: int = 1
+) -> SuggestedContainmentLinesList:
+    fire = (
+        db.query(
+            FireReports.id,
+            FireReports.reference_number,
+            func.ST_Y(FireReports.location_geom).label("lat"),
+            func.ST_X(FireReports.location_geom).label("lng"),
+            FireReports.boundary_radius,
+        )
+        .filter(
+            FireReports.reference_number == fire_ref,
+            FireReports.status == ReportStatus.verified,
+        )
+        .first()
+    )
+    
+    if fire is None:
+        raise ValueError(f"Verified fire {fire_ref} not found")
+
+    existing_wkts = [row.line_geom for row in get_lines_for_fire(db, fire_ref)["data"]]
+
+    semaphore = asyncio.Semaphore(1)
+    prediction = await simulate_single_fire(
+        fire, SUGGESTION_HORIZON_STEPS, semaphore, existing_wkts
+    )
+
+    history = [
+        np.array(tick, dtype=np.int64).reshape(prediction.grid_h, prediction.grid_w)
+        for tick in prediction.history
+    ]
+    suggestions = suggest_containment_line(
+        history=history,
+        fire_lat=fire.lat,
+        fire_lng=fire.lng,
+        boundary_radius_m=float(fire.boundary_radius) * 1000,
+        cell_size_m=prediction.cell_size_m,
+        n_steps=SUGGESTION_HORIZON_STEPS,
+        top_n=top_n,
+    )
+    return SuggestedContainmentLinesList(
+        data=[SuggestedContainmentLine(**s.__dict__) for s in suggestions],
+        total=len(suggestions),
+    )

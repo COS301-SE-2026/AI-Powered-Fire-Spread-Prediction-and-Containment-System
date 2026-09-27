@@ -229,7 +229,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
   return (
     <div className="flex flex-col p-2">
       <header>
-        <PageHeader title="Register a Resources" subtitle="Add your water trailer, tank, dam, hydrant, crew or equipment to be used in a fire." showIcons={showHeaderIcons} />
+        <PageHeader title="Register a Resource" subtitle="Add your water trailer, tank, dam, hydrant, crew or equipment to be used in a fire." showIcons={showHeaderIcons} />
       </header>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:grid-rows-1 mt-4">
@@ -251,7 +251,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
         <div className="xl:col-span-4 flex flex-col gap-3">
           <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 flex flex-col gap-3">
             <div className="mb-1">
-              <h4 className="p-1">What are you registering? </h4>
+              <p className="p-1">What are you registering? </p>
               <ResourceDropdown value={form.resource} other={form.otherResource} otherCapacity={form.otherCapacity} onChange={handleResourceChange} onChangeOther={handleOtherResourceChange} onChangeOtherCapacity={handleOtherCapacityChange} error={shown.otherResource}/>
             </div>
             <Info name={form.name} contact={form.contact} onNameChange={handleNameChange} onContactChange={handleContactChange} nameError={shown.name} contactError={shown.contact} />
