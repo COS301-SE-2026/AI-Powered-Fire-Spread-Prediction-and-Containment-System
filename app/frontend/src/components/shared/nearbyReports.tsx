@@ -1,5 +1,4 @@
 import { ChevronRight } from 'lucide-react';
-import { statusBadge } from '../admin/statusBadge';
 import type { NearbyFire } from '../../types/FirefighterDashboard';
 
 interface NearbyFireReports {

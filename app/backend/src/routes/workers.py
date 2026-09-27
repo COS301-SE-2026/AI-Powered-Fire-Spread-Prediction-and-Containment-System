@@ -4,22 +4,27 @@ from datetime import datetime, timezone, timedelta, tzinfo
 import json
 import logging
 import os
-from typing import Annotated, Dict, Optional
+from typing import Annotated, Dict, Optional, List
 
 from fastapi import (APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status)
 from jose import JWTError, jwt
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
 from app.backend.src.models.workers import WorkerNode
-from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse
+from app.backend.src.schemas.workers import WorkerRegisterRequest, WorkerTokenResponse, ComputeDistrubutionRatio, WorkerNodeResponse, WorkerRemovalRequest, WorkerEnrollmentKeyResponse, WorkerEnrollmentKeyRequest
 from app.backend.src.services import workers as worker_service
+from app.backend.src.enums.user_role import UserRole
 
 log = logging.getLogger("workers_route")
 
 router = APIRouter(prefix="/api/v1/workers", tags=["Workers"])
+
+db_session = Annotated[Session, Depends(get_db)]
+current_active_user = Annotated[User, Depends(get_current_user)]
 
 # worker_id -> WebSocket
 active_worker_connections: Dict[str, WebSocket] = {}
@@ -52,12 +57,120 @@ async def verify_worker_token(token: str) -> str:
         )
 
 
-@router.post("/keys", status_code=status.HTTP_201_CREATED)
+@router.get("", response_model=List[WorkerNodeResponse])
+def get_workers(
+    db: db_session,
+    current_user: current_active_user,
+):
+    """List worker nodes. 
+    Returns all nodes for admins or only the user's machines for volunteers."""
+    is_admin = current_user.role == UserRole.admin
+    return worker_service.list_workers(
+        db=db,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.post(
+    "/{worker_id}/activate",
+    response_model=WorkerNodeResponse
+)
+def activate_worker(
+    worker_id: str,
+    db: db_session,
+    current_user: current_active_user,
+):
+    """Activates a worker node, moving its status te 'active'."""
+    is_admin = current_user.role == UserRole.admin
+    return worker_service.activate_worker_node(
+        db=db,
+        worker_id=worker_id,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.post(
+    "/{worker_id}/deactivate",
+    response_model=WorkerNodeResponse
+)
+def deactivate_worker(
+    worker_id: str,
+    db: db_session,
+    current_user: current_active_user,
+):
+    """Deactivates a worker node, moving its status te 'deactiveted'."""
+    is_admin = current_user.role == UserRole.admin
+    return worker_service.deactivate_worker_node(
+        db=db,
+        worker_id=worker_id,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.post(
+    "/{worker_id}/remove",
+    response_model=WorkerNodeResponse
+)
+def remove_worker(
+    worker_id: str,
+    payload: WorkerRemovalRequest,
+    db: db_session,
+    current_user: current_active_user,
+):
+    """Marks a node as 'removed' and stores the removal reason.
+    Requires explanation for why removal."""
+    is_admin = current_user.role == UserRole.admin
+    return worker_service.remove_worker_node(
+        db=db,
+        worker_id=worker_id,
+        reason=payload.reason,
+        user_id=current_user.id,
+        is_admin=is_admin,
+    )
+
+
+@router.get(
+    "/compute-distribution",
+    response_model=ComputeDistrubutionRatio,
+    status_code=status.HTTP_200_OK,
+)
+def get_compute_distribution(db: Session = Depends(get_db)):
+    operational_statuses = ["active", "busy", "quarantined", "offline"]
+
+    counts = (
+        db.query(WorkerNode.status, func.count(WorkerNode.id))
+        .filter(WorkerNode.status.in_(operational_statuses))
+        .group_by(WorkerNode.status)
+        .all()
+    )
+
+    counts_dict = {status_key: count for status_key, count in counts}
+
+    active_count = counts_dict.get("active", 0)
+    busy_count = counts_dict.get("busy", 0)
+    quarantined_count = counts_dict.get("quarantined", 0)
+    offline_count = counts_dict.get("offline", 0)
+    total_count = active_count + busy_count + quarantined_count + offline_count
+
+    return ComputeDistrubutionRatio(
+        active=active_count,
+        busy=busy_count,
+        quarantined=quarantined_count,
+        offline=offline_count,
+        total=total_count,
+    )
+
+
+@router.post("/keys", status_code=status.HTTP_201_CREATED, response_model=WorkerEnrollmentKeyResponse)
 def generate_worker_enrollment_key(
-    current_user: Annotated[User, Depends(get_current_user)],
+    body: WorkerEnrollmentKeyRequest,
+    current_user: current_active_user
 ):
     """Generates a single-use setup key for the authenticated user and caches it in Valkey."""
-    return worker_service.generate_worker_key(current_user.id)
+    return worker_service.generate_worker_key(current_user.id, label=body.label, gpu_name=body.gpu_name)
 
 
 @router.post(
@@ -156,10 +269,12 @@ async def websocket_worker_endpoint(
                     # to dispatcher
                     valkey.setex(f"worker:sim:result:{job_id}", 60, json.dumps(data.get("payload", {})))
                     # return to idle
-                    node.status = "active"
-                    db.commit()
                     valkey.srem("worker:pool:busy", worker_id)
-                    valkey.sadd("worker:pool:idle", worker_id)
+                    db.refresh(node)
+                    if node.status == "busy":
+                        node.status = "active"
+                        db.commit()
+                        valkey.sadd("worker:pool:idle", worker_id)
                     continue
 
                 # sim error
@@ -207,6 +322,11 @@ def has_active_volunteer_workers() -> bool:
         return len(active_worker_connections) > 0
 
 async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = None) -> dict:
+    if db is None:
+        from app.backend.db import SessionLocal
+        with SessionLocal() as session:
+            return await dispatch_simulation_task(task_payload, db=session)
+    
     valkey = worker_service.valkey_client
     raw_worker_id = valkey.spop("worker:pool:idle")
 
@@ -224,27 +344,22 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
     job_id = task_payload.get("job_id", "sim_job")
     valkey.sadd("worker:pool:busy", worker_id)
 
-    from app.backend.db import SessionLocal
-    owns_session = False
-    session = db
-    if session is None:
-        session = SessionLocal()
-        owns_session = True
+    node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
+    if not node or node.status != "active":
+        log.info("skipping worker %s, (status -> %s)", worker_id, node.status if node else "missing")
+        valkey.srem("worker:pool:busy", worker_id)
+        return {"dispatched_to": "cloud_fallback", "status": "queued"}
 
+    node.status = "busy"
+    db.commit()
+
+    message = {
+        "type": "simulation_job",
+        "payload": task_payload,
+    }
+        
     try:
-        node = session.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
-        if node:
-            node.status = "busy"
-            session.commit()
-
-        message = {
-            "type": "simulation_job",
-            "payload": task_payload,
-        }
-
-    
         await ws.send_text(json.dumps(message))
-
         result_key = f"worker:sim:result:{job_id}"
         elapsed = 0.0
         poll_interval = 0.5
@@ -256,18 +371,18 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
                 return json.loads(raw_reslult)
 
             if worker_id not in active_worker_connections:
-                log.error("Worker %s disconnected mid-simulation for jab %s.", worker_id, job_id)
+                log.error("Worker %s disconnected mid-simulation for job %s.", worker_id, job_id)
                 break
 
             await asyncio.sleep(poll_interval)
             elapsed += poll_interval
 
-        log.warning("Worker %s exceeded 10s SLA limit on job %s. Quarantining %s", worker_id, JOB_TIMEOUT_SECONDS, job_id)
+        log.warning("Worker %s exceeded %.0fs limit on job %s. Quarantining", worker_id, JOB_TIMEOUT_SECONDS, job_id)
         if node:
             node.consecutive_failures += 1
             node.status = "quarantined"
             node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
-            session.commit()
+            db.commit()
         valkey.srem("worker:pool:busy", worker_id)
 
     except Exception as err:
@@ -276,11 +391,8 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
             node.consecutive_failures += 1
             node.status = "quarantined"
             node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
-            session.commit()
+            db.commit()
         valkey.srem("worker:pool:busy", worker_id)
-    finally:
-        if owns_session:
-            session.close()
 
     return {"dispatched_to": "cloud_fallback", "status": "queued"}
 

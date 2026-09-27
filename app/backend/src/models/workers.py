@@ -42,3 +42,18 @@ class WorkerNode(Base):
     deactivated_at = Column(DateTime(timezone=True), nullable=True)
     removed_at = Column(DateTime(timezone=True), nullable=True)
     removal_reason = Column(Text, nullable=True)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    user = relationship(User, foreign_keys=[user_id], backref="worker_nodes")

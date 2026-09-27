@@ -41,7 +41,11 @@ def payload(key, vram_mb=8192):
     }
 
 def new_key(client, headers):
-    resp = client.post("/api/v1/workers/keys", headers=headers)
+    resp = client.post(
+        "/api/v1/workers/keys",
+          headers=headers,
+          json={"label": "test-worker", "gpu_name": "Test GPU"}
+    )
     assert resp.status_code == 201, resp.text
     return resp.json()["registration_key"]
 
