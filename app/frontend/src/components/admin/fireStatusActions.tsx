@@ -75,7 +75,7 @@ export function FireStatusActions({ reportRef, status, fireStatus, onStatusChang
                             onClick={handleExtinguish}
                             disabled={loading}
                         >
-                            {loading ? 'Updating' : 'Mark Extinguuished'}
+                            {loading ? 'Updating' : 'Mark Extinguished'}
                         </button>
                     </div>
                 </div>
