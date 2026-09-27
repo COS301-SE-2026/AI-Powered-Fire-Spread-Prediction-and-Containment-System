@@ -23,21 +23,21 @@ export function NotificationSidebar({
     setMounted(true);
   }, []);
 
-  if(!mounted) return null;
+  if(!mounted || !isOpen) return null;
 
   const visibleNotifications = mounted ? notifications : [];
 
   return createPortal(
-    <div className={`fixed inset-0 z-50 ${isOpen ? '' : 'pointer-events-none'}`} style={{ paddingTop: 'env(safe-area-inset-top)' }} aria-hidden={!isOpen}>
+    <div role="dialog" aria-modal="true" aria-label="Notifications" className="fixed inset-0 z-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
 
       <button
         type="button"
         onClick={onClose}
         aria-label="Close notifications"
-        className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        className="absolute inset-0 bg-black/50 transition-opacity duration-200 opacity-100"
       />
 
-    <div className={`absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-carbon-side p-4 flex flex-col shadow-xl transition-transform duration-200 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+    <div className="absolute right-0 top-0 h-full w-80 max-w-[85vw] bg-carbon-side p-4 flex flex-col shadow-xl transition-transform duration-200 translate-x-0">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-text-primary font-bold uppercase text-medium">Notifications</h2>
         <button

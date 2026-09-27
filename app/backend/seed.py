@@ -469,6 +469,29 @@ REGIONAL_LOCATIONS = [
         "desc": "Massive mountain veld fire consuming open land.",
         "radius": 3.0,
     },
+   {
+        "name": "Suikerbosrand Nature Reserve, Heidelberg",
+        "lat": -26.5100,
+        "lng": 28.2500,
+        "desc": "Massive mountain veld fire consuming open land.",
+        "radius": 3.0,
+    },
+    {
+        "name": "Suikerbosrand Grassland West, Heidelberg",
+        "lat": -26.5050,
+        "lng": 28.2450,
+        "desc": "Veld fire on the western grassland slopes.",
+        "radius": 0.1,
+        "status": ReportStatus.verified,
+    },
+    {
+        "name": "Suikerbosrand Grassland East, Heidelberg",
+        "lat": -26.5080,
+        "lng": 28.2490,
+        "desc": "Second ignition across the valley from the western fire.",
+        "radius": 0.1,
+        "status": ReportStatus.verified,
+    },
 ]
 
 STATUS_CYCLES = [
@@ -868,7 +891,7 @@ def seed_fire_reports(db):
             print(f"  SKIP  fire report {ref} (already exists)")
             continue
 
-        status = STATUS_CYCLES[(index - 1) % len(STATUS_CYCLES)]
+        status = loc.get("status") or STATUS_CYCLES[(index - 1) % len(STATUS_CYCLES)]
         status_idx = STATUS_LEVEL_MAP[status]
         assigned_user = user_ids[(index - 1) % len(user_ids)]
 
