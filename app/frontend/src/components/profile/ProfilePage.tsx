@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { ReportStatus } from '../../types/Report';
 import type { Status } from '../../types/Resource';
+import type { UserResponse } from '../../types/User';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { useMyReportedFires } from '../../hooks/useMyReportedFires';
 import { useMyResources, useMyResource } from '../../hooks/useMyResource';
@@ -9,6 +10,7 @@ import { MyFireReportsTable } from './FireReportsTable';
 import { MyResourcesTable } from './ResourcesTable';
 import { ReportFilterTabs } from '../../components/admin/reportFilter';
 import { SearchBar } from '../../components/admin/searchBar';
+import { Info } from './Info';
 
 export default function ProfilePage(){
     const { user, isLoading} = useUserInfo();
@@ -19,6 +21,9 @@ export default function ProfilePage(){
     const [resourceFilter, setResourceFilter] = useState<'All' | Status>('All');
     const [resourceSearch, setResourceSearch] = useState('');
     const { updateStatus } = useUpdateResourceStatus();
+    const [updatedUser, setUpdatedUser] = useState<UserResponse | null>(null);
+
+    const displayUser = updatedUser ?? user;
 
     let name = "";
     let initial = "";
@@ -56,11 +61,16 @@ export default function ProfilePage(){
                 <div className='w-20 h-20 rounded-full bg-ignite flex items-center justify-center text-4xl font-display font-bold text-char shrink-0'>{initial}</div>
                 <div className="min-w-0">
                     <h1 className="text-text-primary uppercase">{name}</h1>
-                    {user ? (
-                        <h4 className="text-text-muted mt-0.5 uppercase">{user.role}</h4>
+                    {displayUser ? (
+                        <h4 className="text-text-muted mt-0.5 uppercase">{displayUser.role}</h4>
                     ) : null}
                 </div>
             </div>
+            {displayUser ? (
+                <div className='mb-6'>
+                    <Info user={displayUser} onUpdated={setUpdatedUser} />
+                </div>
+            ): null}
             {user ? (
                 <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>
                     <h2 className='uppercase mb-3'>
