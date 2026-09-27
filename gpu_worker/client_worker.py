@@ -31,7 +31,7 @@ REGISTRATION_KEY = os.getenv("REGISTRATION_KEY")
 WORKER_LABEL = os.getenv("WORKER_LABEL", os.getenv("HOSTNAME", "volunteer-desktop"))
 MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cached/ml/models/weather_convlstm.pt")
 
-MIN_VRAM_MB = 4096
+MIN_VRAM_MB = 3584
 BENCHMARK_DURATION_SECONDS = 1.0
 RECONNECT_DELAY_SECONDS = 5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

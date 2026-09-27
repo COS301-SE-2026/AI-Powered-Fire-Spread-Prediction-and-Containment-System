@@ -23,7 +23,7 @@ valkey_client = redis.Redis(
 )
 
 REGISTRATION_KEY_TTL = 86400 # 24 hours
-MIN_VRAM_MB = 4096
+MIN_VRAM_MB = 3584
 
 
 def generate_worker_key(user_id: str) -> dict:
