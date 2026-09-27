@@ -8,17 +8,23 @@ import { useMyResources, useMyResource } from '../../hooks/useMyResource';
 import { useUpdateResourceStatus } from '../../hooks/useUpdateResourceStatus';
 import { MyFireReportsTable } from './FireReportsTable';
 import { MyResourcesTable } from './ResourcesTable';
-import { ReportFilterTabs } from '../../components/admin/reportFilter';
-import { SearchBar } from '../../components/admin/searchBar';
+import { StatusFilter } from '../../components/shared/Filter';
+import { SearchBar } from '../../components/shared/Searchbar';
 import { Info } from './Info';
+
+type ReportFilter = 'All' | ReportStatus;
+type ResourceFilter = 'All' | Status;
+
+const REPORT_FILTERS: readonly ReportFilter[] = ['All', 'pending', 'received', 'rejected', 'verified'];
+const RESOURCE_FILTERS: readonly ResourceFilter[] = ['All', 'available', 'dispatched', 'unavailable'];
 
 export default function ProfilePage(){
     const { user, isLoading} = useUserInfo();
     const { reports, loading: reportsLoading, error: reportsError } = useMyReportedFires();
     const { resources, loading: resourcesLoading, error: resourcesError, refetch } = useMyResources();
-    const [filter, setFilter] = useState<'All' | ReportStatus>('All');
+    const [filter, setFilter] = useState<ReportFilter>('All');
     const [search, setSearch] = useState('');
-    const [resourceFilter, setResourceFilter] = useState<'All' | Status>('All');
+    const [resourceFilter, setResourceFilter] = useState<ResourceFilter>('All');
     const [resourceSearch, setResourceSearch] = useState('');
     const { updateStatus } = useUpdateResourceStatus();
     const [updatedUser, setUpdatedUser] = useState<UserResponse | null>(null);
@@ -79,7 +85,7 @@ export default function ProfilePage(){
 
                     <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3'>
                         <SearchBar value={search} onChange={setSearch} placeholder='Search...' />
-                        <ReportFilterTabs filter={filter} onChange={setFilter} />
+                        <StatusFilter<ReportFilter> options={REPORT_FILTERS} filter={filter} onChange={setFilter} />
                     </div>
         
                     {reportsError && <div>{reportsError}</div>}
@@ -101,8 +107,8 @@ export default function ProfilePage(){
                     </h2>
 
                     <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-2 mb-3'>
-                        {/* <SearchBar value={search} onChange={setSearch} placeholder='Search...' />
-                        <ReportFilterTabs filter={filter} onChange={setFilter} /> */}
+                        <SearchBar value={resourceSearch} onChange={setResourceSearch} placeholder='Search...' />
+                        <StatusFilter<ResourceFilter> options={RESOURCE_FILTERS} filter={resourceFilter} onChange={setResourceFilter} />
                     </div>
         
                     {resourcesError && <div>{resourcesError}</div>}
