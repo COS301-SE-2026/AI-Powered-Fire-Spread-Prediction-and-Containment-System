@@ -44,8 +44,9 @@ export default function PasswordInput({
             />
             <button
                 type="button"
+                aria-label={visible ? 'Hide password' : 'Show password'}
                 onClick={() => setVisble((prev) => !prev)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-white/60 hover:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
             >
                 {visible ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

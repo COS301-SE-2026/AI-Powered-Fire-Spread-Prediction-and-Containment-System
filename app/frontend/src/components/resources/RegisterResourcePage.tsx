@@ -251,7 +251,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
         <div className="xl:col-span-4 flex flex-col gap-3">
           <div className="rounded-lg bg-carbon-side border border-carbon-stroke p-3 flex flex-col gap-3">
             <div className="mb-1">
-              <h4 className="p-1">What are you registering? </h4>
+              <p className="p-1">What are you registering? </p>
               <ResourceDropdown value={form.resource} other={form.otherResource} otherCapacity={form.otherCapacity} onChange={handleResourceChange} onChangeOther={handleOtherResourceChange} onChangeOtherCapacity={handleOtherCapacityChange} error={shown.otherResource}/>
             </div>
             <Info name={form.name} contact={form.contact} onNameChange={handleNameChange} onContactChange={handleContactChange} nameError={shown.name} contactError={shown.contact} />
