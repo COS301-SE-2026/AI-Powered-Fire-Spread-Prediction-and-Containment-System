@@ -1,10 +1,13 @@
 'use client';
 
-import { LocateFixed } from 'lucide-react'
+import { Feather, LocateFixed } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
-import type { Feature, LineString } from 'geojson';
+import { buffer } from '@turf/buffer';
+import bbox from '@turf/bbox';
+import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
 import MapboxDraw, { DrawCreateEvent } from '@mapbox/mapbox-gl-draw';
@@ -12,7 +15,11 @@ import { useGuestNotifications } from '@/hooks/useGuestNotifications';
 import { useNotifications } from '@/hooks/useNotification';
 import { useAuth } from '@/hooks/useAuth';
 import { LocalLine } from '@/types/ContainmentLines';
-import { Prediction } from '../../hooks/useSimulation';
+import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
+import { buildFireFeatureCollection, FireEnvironment, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
+import { polygon } from '@turf/helpers'
+import { estimateMaxReachKm } from '@/lib/fireGrowth';
+import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { offlineStore, FireReportMapResponse } from '../../lib/offlineStore';
@@ -23,6 +30,10 @@ import { useWaterBodies } from '../../hooks/useWaterBodies';
 import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDamsFromOSM';
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
+import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+
+// How often animated fire params are recomputed and pushed to map
+const FIRE_GROWTH_TICK_MS = 2000;
 
 interface MapProps {
   lat: number;
@@ -41,12 +52,16 @@ interface MapProps {
   onSelectFire?: (ref: string) => void;
   onDeselect?: () => void;
   showKey?: boolean;
-    showWater?: boolean;
-    resources?: NearbyResource[];
-    showResources?: boolean;
-    selectedResourceId?: string | null;
-    onSelectResource?: (r: NearbyResource) => void;
+  showWater?: boolean;
+  resources?: NearbyResource[];
+  showResources?: boolean;
+  selectedResourceId?: string | null;
+  onSelectResource?: (r: NearbyResource) => void;
   suggestedLine?: string | null;
+  selectedFireIds?: Set<string>;
+  onToggleFireSelect?: (ref: string) => void;
+  clusterPredictions?: ClusterPrediction[];
+  disableGrowth?: boolean;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -54,7 +69,31 @@ function wktCoords(wkt: string): number[][] {
   return inner.split(',').map(p => p.trim().split(/\s+/).map(Number));
 }
 
-export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, predictions = [], currentTick = 0, onDeselect = undefined, selectedFireId = null, selectedFireLocation = null, recenter = 0, onSelectFire = undefined, showKey = false, lines = [], onLineRemoved = undefined, suggestedLine = null, showWater = true, resources=[], showResources = true, selectedResourceId = null, onSelectResource = undefined}: MapProps) {
+export function FireMap({ lat,
+  lng,
+  drawMode,
+  onDrawComplete,
+  clearDrawings,
+  predictions = [],
+  currentTick = 0,
+  onDeselect = undefined,
+  selectedFireId = null,
+  selectedFireLocation = null,
+  recenter = 0,
+  onSelectFire = undefined,
+  showKey = false,
+  lines = [],
+  onLineRemoved = undefined,
+  suggestedLine = null,
+  disableGrowth = false, showWater = true,
+  resources = [],
+  showResources = true,
+  selectedResourceId = null,
+  onSelectResource = undefined,
+  selectedFireIds = new Set(),
+  onToggleFireSelect = undefined,
+  clusterPredictions = [],
+}: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
@@ -69,9 +108,15 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
   const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
   const checkGuestNotifications = useGuestNotifications(showToast);
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
-  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 2000 });
+  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000 });
 
-  const combinedWaterFeatures = mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection);
+
+  const waterKey = String(waterFeatureCollection.features.length);
+
+  const combinedWaterFeatures = useMemo(() => 
+    mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection),
+    [waterKey]
+  );
 
   useEffect(() => {
     async function syncFires() {
@@ -92,6 +137,10 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
           size: f.size,
           submitted_at: f.reported ? new Date(f.reported).toISOString() : new Date().toISOString(),
           reporter_name: f.reporter,
+          updated_at: f.updated_at,
+          fire_status: f.fire_status,
+          containment_percent: f.containment_percent,
+          merged_into_id: f.merged_into_id,
         }));
         await offlineStore.cacheIncidents(mapped);
         return;
@@ -114,6 +163,10 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
               reported: c.submitted_at
                 ? new Date(c.submitted_at).toISOString()
                 : new Date().toISOString(),
+              updated_at: c.updated_at ?? null,
+              fire_status: c.fire_status ?? 'active',
+              containment_percent: c.containment_percent ?? null,
+              merged_into_id: c.merged_into_id ?? null,
               reporter: c.reporter_name || 'Anonymous',
               verification_notes: null,
               lat: c.lat,
@@ -217,9 +270,109 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
     }
   }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
 
-  const circleFeatures = useMemo(
+  // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
+  const fireEnvironment = useLiveFireEnvironment(lat, lng, !disableGrowth);
+
+  // polygonal water bodies (dams/lakes) used to clip fire growth so it stops at a shoreline instead of drawing over it
+  const waterPolygonFeatures = useMemo(
     () =>
-      activeFires
+      combinedWaterFeatures.features.filter(
+        (f): f is Feature<Polygon | MultiPolygon> =>
+          f.geometry?.type === 'Polygon' || f.geometry?.type === 'MultiPolygon'
+      ),
+      [combinedWaterFeatures]
+  );
+
+    // min shape growth model needs. `size` is treated as the radius at time fire reported,
+  // not its current size.
+  const growableFires = useMemo<GrowableFire[]>(
+    () => disableGrowth ? []
+                        : activeFires
+                          .filter((f) => f.size != null && f.size > 0 && !f.merged_into_id)
+                          .map((f) => ({
+                            id: f.id,
+                            ref: f.ref,
+                            lat: f.lat,
+                            lng: f.lng,
+                            initialRadiusKm: f.size,
+                            ignitedAtMs: f.reported ? new Date(f.reported).getTime() : Date.now(),
+                            fireStatus: f.fire_status,
+                            statusChangedAtMs: f.updated_at ? new Date(f.updated_at).getTime() : undefined
+                          })),
+          [activeFires, disableGrowth]            
+  );
+
+  const FIRE_PROXIMITY_KM = 5;
+
+  function isNearAnyFire(feature: Feature, candidateFires: GrowableFire[], env: FireEnvironment | null, nowMs: number): boolean {
+    if (!env) return false;
+    try {
+      const [minLng, minLat, maxLng, maxLat] = bbox(feature);
+      return candidateFires.some((fire) => {
+        const padDeg = estimateMaxReachKm(fire, env, nowMs) / 111;
+        return (
+          fire.lng >= minLng - padDeg &&
+          fire.lng <= maxLng + padDeg &&
+          fire.lat >= minLat - padDeg &&
+          fire.lat <= maxLat + padDeg
+        );
+      });
+      
+    } catch (err) {
+      console.warn('Skipping water/river feature with unreadable geometry during proximity filtering', err);
+      return false;
+    }
+  }
+
+  const RIVER_BUFFER_KM = 0.015;
+  const nowMs = Date.now();
+
+  const nearbyRivers = useMemo(
+    () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs)),
+    [riverFeatureCollection, growableFires, fireEnvironment]
+  );
+  const riverBufferKey = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`
+  
+
+  const bufferedRiverPolygons = useMemo(() => {
+    if (growableFires.length === 0) return [];
+
+    return nearbyRivers.reduce<Feature<Polygon | MultiPolygon>[]>((acc, f) => {
+      try {
+        const buffered = buffer(f, RIVER_BUFFER_KM, { units: 'kilometers'});
+        if (buffered) acc.push(buffered as Feature<Polygon | MultiPolygon>);
+      } catch (err) {
+        console.warn('Skipping malformed river feature while buffering for fire clipping', err);
+      }
+      return acc;
+    }, []);
+  }, [riverBufferKey]);
+  
+
+  const combinedWaterShape = useMemo(() => {
+    if (growableFires.length === 0) return null;
+    const nearbyDams = waterPolygonFeatures.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs));
+    const blockingFeatures = [...nearbyDams, ...bufferedRiverPolygons];
+    if (waterPolygonFeatures.length > 200) {
+      console.warn(
+        `Unioning ${blockingFeatures.length} water polygons for fire clipping`
+      );
+    }
+    return unionWaterPolygons(blockingFeatures)
+
+  }, [waterPolygonFeatures, growableFires, bufferedRiverPolygons, fireEnvironment]);
+
+  const combinedWaterShapeRef = useRef(combinedWaterShape);
+  useEffect(() => {
+      combinedWaterShapeRef.current = combinedWaterShape;
+  }, [combinedWaterShape]);
+
+
+  // disableGrowth path (simulation pages)
+  const staticCircleFeatures = useMemo(
+    () => !disableGrowth
+      ? []
+      : activeFires
         .filter((f) => f.size != null && f.size > 0)
         .map((f) =>
           circle([f.lng, f.lat], f.size, {
@@ -227,9 +380,35 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
             units: 'kilometers',
             properties: { ref: f.ref },
           })
-        ),
-    [activeFires]
+        ), [activeFires, disableGrowth]
   );
+
+  // Imperative animation loop. recompute every fire's perimeter and push it straight
+  // into the Mapbox source via setData().
+
+  const terrainBiasByFireId = useTerrainBiasMap(growableFires, !disableGrowth);
+
+  useEffect(() => {
+    if (disableGrowth || !fireEnvironment || growableFires.length === 0) return undefined;
+
+    const pushFrame = () => {
+      const map = mapRef.current?.getMap();
+      const source = map?.getSource('fire-circles') as GeoJSONSource | undefined;
+      if (!source) return;
+      source.setData(
+        buildFireFeatureCollection(
+          growableFires,
+          fireEnvironment,
+          Date.now(),
+          terrainBiasByFireId,
+          combinedWaterShapeRef.current
+      ));
+    };
+
+    pushFrame();  // paint immediately rather than waiting for the first tick
+    const id = setInterval(pushFrame, FIRE_GROWTH_TICK_MS);
+    return () => clearInterval(id);
+  }, [disableGrowth, growableFires, fireEnvironment, terrainBiasByFireId]);
 
   const handleRecenter = useCallback(() => {
     setViewState((v) => ({
@@ -277,12 +456,24 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
   const EXTENT_DEG = 0.05;
 
   const girdFeautures = useMemo(() => {
-    if (!predictions?.length) return [];
+    const allGrids = [
+      ...predictions.map(p => ({
+        ref: p.ref, lat: p.lat, lng: p.lng,
+        lat_extent_deg: p.lat_extent_deg, lon_extent_deg: p.lon_extent_deg,
+        grid_h: p.grid_h, grid_w: p.grid_w, history: p.history,
+      })),
+      ...clusterPredictions.map(cp => ({
+        ref: cp.fire_refs.join('+'), lat: cp.lat, lng: cp.lng,
+        lat_extent_deg: cp.lat_extent_deg, lon_extent_deg: cp.lon_extent_deg,
+        grid_h: cp.grid_h, grid_w: cp.grid_w, history: cp.history,
+      })),
+    ];
+
+    if (!allGrids.length) return [];
 
     const features = [];
-
-    for (const p of predictions) {
-      const grid = p.history[currentTick]
+    for (const p of allGrids) {
+      const grid = p.history[currentTick];
       if (!grid || !p.grid_h || !p.grid_w) continue;
 
       const cellLonSize = p.lon_extent_deg / p.grid_w;
@@ -316,24 +507,23 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
       }
     }
     return features;
-  }, [predictions, currentTick])
-
+  }, [predictions, clusterPredictions, currentTick]);
   useEffect(() => {
     if (recenter === 0) return;
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
   }, [recenter]);
 
-    useEffect(() => {
-      if(!selectedResourceId) return;
-      const res = resources.find((r) => r.id === selectedResourceId);
-      if (!res) return;
-      setViewState((v) => ({
-        ...v,
-        longitude: res.externalPin.lng,
-        latitude: res.externalPin.lat,
-        zoom: Math.max(v.zoom, 13),
-      }));
-    }, [selectedResourceId, resources]);
+  useEffect(() => {
+    if (!selectedResourceId) return;
+    const res = resources.find((r) => r.id === selectedResourceId);
+    if (!res) return;
+    setViewState((v) => ({
+      ...v,
+      longitude: res.externalPin.lng,
+      latitude: res.externalPin.lat,
+      zoom: Math.max(v.zoom, 13),
+    }));
+  }, [selectedResourceId, resources]);
 
   return (
     <div className='relative w-full h-full'>
@@ -385,34 +575,42 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
             anchor="center"
             onClick={(e) => {
               e.originalEvent.stopPropagation();
-              onSelectFire?.(fire.ref)
+              const isMultiSelect = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
+              if (isMultiSelect && onToggleFireSelect) {
+                onToggleFireSelect(fire.ref);
+              } else {
+                onSelectFire?.(fire.ref);
+              }
             }}
           >
             <div className="relative flex items-center justify-center size-6">
-              {/* The radar ping animation effect */}
               <span
-                className={`animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75 ${fire.ref === selectedFireId ? '' : 'hidden'}`}
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedFireIds.has(fire.ref) ? 'bg-purple-400' : 'bg-accent'
+                  } ${fire.ref === selectedFireId || selectedFireIds.has(fire.ref) ? '' : 'hidden'}`}
               />
-              {/* The solid core so the marker remains visible */}
               <span
-                className={`relative inline-flex rounded-full size-3 bg-accent shadow-lg shadow-black ${fire.ref === selectedFireId ? 'bg-flare ring-2 ring-white' : 'bg-accent'}`}
+                className={`relative inline-flex rounded-full size-3 shadow-lg shadow-black ${selectedFireIds.has(fire.ref)
+                  ? 'bg-purple-500 ring-2 ring-purple-200'
+                  : fire.ref === selectedFireId
+                    ? 'bg-flare ring-2 ring-white'
+                    : 'bg-accent'
+                  }`}
               />
             </div>
           </Marker>
         ))}
+        {/* Show resources */}
+        {showResources && (
+          <ResourceMarkers resources={resources} selectedResourceId={selectedResourceId} onSelectResource={onSelectResource} />)}
 
-      {/* Show resources */}
-      {showResources && (
-        <ResourceMarkers resources={resources} selectedResourceId={selectedResourceId} onSelectResource={onSelectResource} />      )}
-
-        {/* Circles around markers */}
-        {circleFeatures.length > 0 && (
+        {/* disableGrowth for simulation pages */}
+        {disableGrowth && staticCircleFeatures.length > 0 && (
           <Source
             id="fire-circles"
             type="geojson"
             data={{
               type: 'FeatureCollection',
-              features: circleFeatures,
+              features: staticCircleFeatures,
             }}
           >
             <Layer
@@ -420,13 +618,37 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
               type="fill"
               paint={{
                 'fill-color': '#fcba3e',
-                'fill-opacity': 0.3,
+                'fill-opacity': ['*', 0.3, ['coalesce', ['get', 'opacity'], 1]],
               }}
             />
 
             <Layer
               id="fire-radius-outline"
               type="line"
+              paint={{
+                'line-color': '#fcba3e',
+                'line-width': 1,
+                'line-opacity': ['coalesce', ['get', 'opacity'], 1],
+              }}
+            />
+          </Source>
+        )}
+
+        {/* Live, growing fire perimeters */}
+        {!disableGrowth && growableFires.length > 0 && (
+          <Source id='fire-circles' type='geojson' data={{ type: 'FeatureCollection', features: []}}>
+            <Layer
+              id='fire-radius-fill'
+              type='fill'
+              paint={{
+                'fill-color': '#fcba3e',
+                'fill-opacity': 0.3,
+              }} 
+            />
+
+            <Layer
+              id='fire-radius-outline'
+              type='line'
               paint={{
                 'line-color': '#fcba3e',
                 'line-width': 1,
@@ -463,25 +685,25 @@ export function FireMap({ lat, lng, drawMode, onDrawComplete, clearDrawings, pre
           </Source>
         )}
 
-      {/* Water bodies - dams, lakes, resevoir */}
-      {showWater && combinedWaterFeatures.features.length > 0 && (
-        <Source id="large-water-bodies" type="geojson" data={combinedWaterFeatures}>
-          <Layer id="water-highlight-fill" type="fill"
-            paint={{ 'fill-color': '#38bdf8', 'fill-opacity': 0.35 }} />
-          <Layer id="water-highlight-outline" type="line"
-            paint={{ 'line-color': '#38bdf8', 'line-width': 2.5, 'line-opacity': 0.9}} />
-        </Source>
-      )}
+        {/* Water bodies - dams, lakes, resevoir */}
+        {showWater && combinedWaterFeatures.features.length > 0 && (
+          <Source id="large-water-bodies" type="geojson" data={combinedWaterFeatures}>
+            <Layer id="water-highlight-fill" type="fill"
+              paint={{ 'fill-color': '#38bdf8', 'fill-opacity': 0.35 }} />
+            <Layer id="water-highlight-outline" type="line"
+              paint={{ 'line-color': '#38bdf8', 'line-width': 2.5, 'line-opacity': 0.9 }} />
+          </Source>
+        )}
 
-      {/* Rivers */}
-      {showWater && riverFeatureCollection.features.length > 0 && (
-        <Source id="rivers-highlight" type="geojson" data={riverFeatureCollection}>
-          <Layer id="river-highlight-glow" type="line"
-            paint={{ 'line-color': '#38bdf8', 'line-width': 6, 'line-opacity': 0.4, 'line-blur': 2 }} />
-          <Layer id="river-highlight-line" type="line"
-            paint={{ 'line-color': '#7dd3fc', 'line-width': 2 }} />
-        </Source>
-      )}
+        {/* Rivers */}
+        {showWater && riverFeatureCollection.features.length > 0 && (
+          <Source id="rivers-highlight" type="geojson" data={riverFeatureCollection}>
+            <Layer id="river-highlight-glow" type="line"
+              paint={{ 'line-color': '#38bdf8', 'line-width': 6, 'line-opacity': 0.4, 'line-blur': 2 }} />
+            <Layer id="river-highlight-line" type="line"
+              paint={{ 'line-color': '#7dd3fc', 'line-width': 2 }} />
+          </Source>
+        )}
 
         {/* Containment Lines */}
         {lines.length > 0 && (

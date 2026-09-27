@@ -1,5 +1,5 @@
 import { RoleRequest, UserSummary } from '../../types/RoleRequest';
-import { statusBadge } from './statusBadge';
+import { RoleStatusBadge } from './RoleStatusBadge';
 
 interface RoleApprovalModalProps {
   request: RoleRequest;
@@ -73,16 +73,7 @@ export function RoleApprovalModal({
             <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
               Status
             </p>
-            {(() => {
-              const badge = statusBadge[request.status] ?? {};
-              return (
-                <span
-                  className={`text-xs font-semibold px-2 py-0.5 rounded-full border capitalize ${badge.bg ?? 'bg-carbon-card'} ${badge.text ?? 'text-text-primary/50'} ${badge.border ?? 'border-carbon-card'}`}
-                >
-                  {request.status}
-                </span>
-              );
-            })()}
+            <RoleStatusBadge status={request.status} />
           </div>
         </div>
 

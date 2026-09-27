@@ -41,6 +41,7 @@ def init_db():
     from app.backend.src.models.users import User
     from app.backend.src.models.notification import Notification
     from app.backend.src.models.water_resource import WaterResource
+    from app.backend.src.models.workers import WorkerNode
 
     Base.metadata.create_all(bind=engine)
 

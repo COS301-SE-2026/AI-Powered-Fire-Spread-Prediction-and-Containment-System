@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   test-minio:
-    image: minio/minio:latest
+    image: quay.io/minio/minio:latest
     container_name: fireaway_test_minio
     environment:
       MINIO_ROOT_USER: admin

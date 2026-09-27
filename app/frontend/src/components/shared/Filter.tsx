@@ -1,19 +1,15 @@
 import React from 'react';
-import { ReportStatus } from '../../types/Report';
 
-type TableStatusFilter = 'all' | ReportStatus;
-
-interface StatusTableFilterProps {
-  readonly filter: TableStatusFilter;
-  readonly onChange: (filter: TableStatusFilter) => void;
+interface StatusFilterProps<T extends string> {
+    readonly options: readonly T[];
+    readonly filter: T;
+    readonly onChange: (filter: T) => void;
 }
 
-const filters: TableStatusFilter[] = ['all', 'pending', 'verified', 'rejected'];
-
-export function StatusTableFilter({ filter, onChange }: StatusTableFilterProps) {
+export function StatusFilter<T extends string>({ options, filter, onChange }: StatusFilterProps<T>) {
   return (
     <div className="flex gap-2 mb-2">
-      {filters.map((filt) => (
+      {options.map((filt) => (
         <button
           type="button"
           key={filt}

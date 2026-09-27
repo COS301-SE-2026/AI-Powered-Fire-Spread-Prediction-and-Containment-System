@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRouter } from 'next/router';
 import { ReportStatus } from '../../types/Report';
-import { StatusBadge } from '../admin/reportStatusBadge';
+import { ReportStatusBadge } from '../admin/ReportStatusBadge';
 import { FirefighterReportTable } from '../../types/FirefighterReports';
 import { FormatDate } from '../../lib/FormatDate';
 import { VerificationNotes } from '../../lib/VerificationNotes';
@@ -61,7 +61,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                   {req.location}
                 </td>
                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card">
-                  <StatusBadge status={req.status} />
+                  <ReportStatusBadge status={req.status} />
                 </td>
                 <td className="px-4 text-sm text-text-primary">
                   {VerificationNotes(req.verification_notes)}

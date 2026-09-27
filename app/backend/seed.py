@@ -20,6 +20,7 @@ from app.backend.src.models.water_resource import WaterResource
 
 # from models import User, RoleRequestDB, FireReportModel, ReportStatus
 from app.backend.src.models.users import User
+from app.backend.src.models.workers import WorkerNode
 
 DEFAULT_PASSWORD = os.getenv("SEED_DEFAULT_PASSWORD")
 ADMIN_PASSWORD = os.getenv("SEED_ADMIN_PASSWORD")
@@ -469,6 +470,29 @@ REGIONAL_LOCATIONS = [
         "desc": "Massive mountain veld fire consuming open land.",
         "radius": 3.0,
     },
+   {
+        "name": "Suikerbosrand Nature Reserve, Heidelberg",
+        "lat": -26.5100,
+        "lng": 28.2500,
+        "desc": "Massive mountain veld fire consuming open land.",
+        "radius": 3.0,
+    },
+    {
+        "name": "Suikerbosrand Grassland West, Heidelberg",
+        "lat": -26.5050,
+        "lng": 28.2450,
+        "desc": "Veld fire on the western grassland slopes.",
+        "radius": 0.1,
+        "status": ReportStatus.verified,
+    },
+    {
+        "name": "Suikerbosrand Grassland East, Heidelberg",
+        "lat": -26.5080,
+        "lng": 28.2490,
+        "desc": "Second ignition across the valley from the western fire.",
+        "radius": 0.1,
+        "status": ReportStatus.verified,
+    },
 ]
 
 STATUS_CYCLES = [
@@ -613,22 +637,6 @@ SEED_WATER_RESOURCES = [
         "contact": "061 555 7045",
     },
     {
-        "id": "res_10",
-        "user_id": "usr_11",
-        "resource": ResourceType.other,
-        "other_resource": "Portable diesel pump with 200 m of hose",
-        "other_capacity": "pumps",
-        "capacity": 3,
-        "status": ResourceStatus.available,
-        "from_days": -10,
-        "until_days": None,
-        "location": "Crocodile River Banks, Brits",
-        "lat": -25.6300,
-        "lng": 27.7800,
-        "name": "Zanele Mbatha",
-        "contact": "073 555 6612",
-    },
-    {
         "id": "res_11",
         "user_id": "usr_13",
         "resource": ResourceType.other,
@@ -714,22 +722,6 @@ SEED_WATER_RESOURCES = [
         "lng": 28.1480,
         "name": "Thandiwe Khumalo",
         "contact": "062 555 3307",
-    },
-    {
-        "id": "res_17",
-        "user_id": "usr_04",
-        "resource": ResourceType.other,
-        "other_resource": "Class A foam concentrate stock",
-        "other_capacity": "L of foam concentrate",
-        "capacity": 400,
-        "status": ResourceStatus.available,
-        "from_days": -6,
-        "until_days": 75,
-        "location": "Kromdraai Slopes, Cradle of Humankind",
-        "lat": -25.9700,
-        "lng": 27.7600,
-        "name": "Thandiwe Khumalo",
-        "contact": "064 555 8812",
     },
     # usr_01 (admin)
     {
@@ -868,7 +860,7 @@ def seed_fire_reports(db):
             print(f"  SKIP  fire report {ref} (already exists)")
             continue
 
-        status = STATUS_CYCLES[(index - 1) % len(STATUS_CYCLES)]
+        status = loc.get("status") or STATUS_CYCLES[(index - 1) % len(STATUS_CYCLES)]
         status_idx = STATUS_LEVEL_MAP[status]
         assigned_user = user_ids[(index - 1) % len(user_ids)]
 
@@ -919,6 +911,34 @@ def seed_water_resources(db):
         )
         db.add(resource)
         print(f" ADD water resource -> {data['name']} ({data['resource'].value})")
+
+
+def seed_worker_nodes(db):
+    target_user_id = "usr_09"
+    node_id = "mock-worker-usr-09"
+
+    existing = db.query(WorkerNode).filter(WorkerNode.id == node_id).first()
+    if existing:
+        print(f" SKIP worker node {node_id} (already)")
+        return
+
+    now = datetime.now(timezone.utc)
+    node = WorkerNode(
+        id=node_id,
+        user_id=target_user_id,
+        label="Test Rig 4090",
+        gpu_name="NVIDIA GeForce RTX 4090",
+        vram_mb=24576,
+        driver_version="550.54.14",
+        status="active",
+        consecutive_failures=0,
+        last_heartbeat=now - timedelta(minutes=2),
+        activated_at=now - timedelta(days=1),
+        created_at=now - timedelta(days=1),
+        updated_at=now,
+    )
+    db.add(node)
+    print(f" ADD worker node {node.label} for user {target_user_id}")
     
     
 
@@ -926,6 +946,7 @@ def seed_water_resources(db):
 def wipe_all_data(db):
     print(" Wiping database for a reseed")
 
+    db.query(WorkerNode).delete()
     db.query(WaterResource).delete()
     db.query(ContainmentLines).delete()
     db.query(FireReports).delete()
@@ -954,6 +975,9 @@ def seed(reseed: bool = False):
         
         print("\nSeeding water resources...")
         seed_water_resources(db)
+
+        print("\nSeeding worker nodes...")
+        seed_worker_nodes(db)
 
         db.commit()
         print("\nSeed complete!")

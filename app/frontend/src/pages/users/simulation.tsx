@@ -36,12 +36,16 @@ export default function GuestPublicDashboard() {
                 drawMode={false}
                 onDrawComplete={() => {}}
                 clearDrawings={0}
+                disableGrowth
               />
             </div>
           </div>
 
           {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
           <div className="xl:col-span-4 flex flex-col gap-3">
+            <h1 className='sr-only'>
+              Users Simulation Page
+            </h1>
             <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase shrink-0">
               Nearby Reports
             </h2>
