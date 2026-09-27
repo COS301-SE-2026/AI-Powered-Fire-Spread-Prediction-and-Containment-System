@@ -68,7 +68,7 @@ function nameForPart(
 function mergeFragments(
     fragments: Array<Feature<Polygon | MultiPolygon>>
 ): Array<Feature<Polygon | MultiPolygon>> {
-    if (fragments.length === 0) return null;
+    if (fragments.length === 0) return [];
     if (fragments.length === 1) return fragments;
 
    
@@ -135,10 +135,11 @@ export function useWaterBodies(
         // Rivers
         let waterwayFeatures: Array<Feature<Geometry>> = [];
         try {
-            waterwayFeatures = map.querySourceFeatures(sourceId, {
+                waterwayFeatures = map.querySourceFeatures(sourceId, {
                 sourceLayer: 'waterway',
                 filter: ['in', ['get', 'class'], ['literal', riverClasses]],
             }) as Array<Feature<Geometry>>;
+            
         } catch {
             waterwayFeatures = [];
         }
