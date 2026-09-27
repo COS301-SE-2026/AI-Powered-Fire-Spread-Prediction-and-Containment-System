@@ -18,6 +18,11 @@ TEST_DB_URL = (
     or"postgresql+psycopg2://postgres:postgres@localhost:5433/test_fire_db"
 )
 os.environ["DATABASE_URL"] = TEST_DB_URL
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-not-for-production")
+os.environ.setdefault("AWS_REGION", "us-east-1")
+os.environ.setdefault("SKIP_DB_INIT", "1")
+os.environ.setdefault("SKIP_SEED", "1")
+os.environ.setdefault("MINIO_ENDPOINT", "localhost:9002")
 
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
@@ -25,9 +30,6 @@ from app.backend.src.models.notification import Notification
 
 from unittest.mock import patch
 
-os.environ.setdefault("SKIP_DB_INIT", "1")
-os.environ.setdefault("SKIP_SEED", "1")
-os.environ["MINIO_ENDPOINT"] = "localhost:9000"
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
 from app.backend.main import app
@@ -39,6 +41,9 @@ from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
 from app.backend.src.models.water_resource import WaterResource
 
+#worker model
+from app.backend.src.models.workers import WorkerNode
+
 # seed data
 from app.backend.seed import (
     REGIONAL_LOCATIONS as SEED_FIRE_REPORTS,
@@ -48,9 +53,9 @@ from app.backend.seed import (
 )
 
 def minio_reachable() -> bool:
-    host, _, port = os.getenv("MINIO_ENDPOINT", "localhost:9000").partition(":")
+    host, _, port = os.getenv("MINIO_ENDPOINT", "localhost:9002").partition(":")
     try:
-        socket.create_connection((host, int(port or 9000)), timeout=1).close()
+        socket.create_connection((host, int(port or 9002)), timeout=1).close()
         return True
     except (OSError, ValueError):
         return False
@@ -72,6 +77,7 @@ def create_tables():
         bind=engine,
         tables=[
             User.__table__,
+            WorkerNode.__table__,
             RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
@@ -85,6 +91,7 @@ def create_tables():
         bind=engine,
         tables=[
             User.__table__,
+            WorkerNode.__table__,
             RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
@@ -130,8 +137,9 @@ def client(db):
             pass
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
+    with patch("app.backend.main.ensure_bucket"):
+        with TestClient(app) as test_client:
+            yield test_client
     app.dependency_overrides.clear()
 
 

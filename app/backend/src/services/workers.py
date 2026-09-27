@@ -26,7 +26,7 @@ valkey_client = redis.Redis(
 )
 
 REGISTRATION_KEY_TTL = 86400 # 24 hours
-MIN_VRAM_MB = 4096
+MIN_VRAM_MB = 3584
 
 
 def list_workers(
@@ -179,6 +179,16 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
     registers the node in PostgreSQL,
     and returns a scoped Worker Device JWT."""
 
+    # hardware capacity
+    if register_data.vram_mb < MIN_VRAM_MB:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                f"Worker rejected. Insufficient VRAM. "
+                f"Detected {register_data.vram_mb} MB, min VRAM required is {MIN_VRAM_MB} MB"
+            ),
+        )
+
     valkey_storage_key = f"worker:reg:{register_data.registration_key}"
 
     # atomic claim and burn prevents duplicate registration
@@ -192,16 +202,6 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired worker registration key",
-        )
-
-    # hardware capacity
-    if register_data.vram_mb < MIN_VRAM_MB:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Worker rejected. Insufficient VRAM. "
-                f"Detected {register_data.vram_mb} MB, min VRAM required is {MIN_VRAM_MB} MB"
-            ),
         )
 
     # new active
