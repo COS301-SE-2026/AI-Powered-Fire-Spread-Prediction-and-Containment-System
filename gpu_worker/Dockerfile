@@ -23,14 +23,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN uv venv /opt/venv
+RUN uv venv --seed /opt/venv
 
 # install dependencies
-COPY gpu_worker/requirements.txt ./requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install torch torchvision \
-    --index-url https://download.pytorch.org/whl/cu128 
 
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install torch torchvision \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    --retries 10 --timeout 120 \
+    --root-user-action=ignore
+
+COPY gpu_worker/requirements.txt ./requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install -r requirements.txt
 
