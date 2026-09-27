@@ -31,7 +31,7 @@ class WorkerStatus(str, Enum):
     # backend watchdog on simulation timeout or crash
     # failed mid-run / exceeded 10s, backoff 15 min
     # orange UI
-    quarentined = "quarentined"
+    quarantined = "quarantined"
 
     # volunteer user via dashboard
     # volunteer opts out / pauses their runner
