@@ -101,7 +101,7 @@ export function FireStatusActions({ reportRef, status, fireStatus, onStatusChang
                             onClick={handleReactive}
                             disabled={loading}
                         >
-                            {loading ? 'Updating...' : 'Reactive'}
+                            {loading ? 'Updating...' : 'Active'}
                         </button>
                     </div>
                 </div>
@@ -118,7 +118,7 @@ export function FireStatusActions({ reportRef, status, fireStatus, onStatusChang
                         onClick={handleReactive}
                         disabled={loading}
                     >
-                        {loading ? 'Updating...' : 'Reactive'}
+                        {loading ? 'Updating...' : 'Active'}
                     </button>
                 </div>
             )}
