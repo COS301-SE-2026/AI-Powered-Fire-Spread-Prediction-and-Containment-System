@@ -17,3 +17,9 @@ export interface UserResponse {
   created_at: string;
   is_active: boolean;
 }
+
+export interface UserUpdate {
+  name?: string;
+  surname?: string;
+  email?: string;
+}
