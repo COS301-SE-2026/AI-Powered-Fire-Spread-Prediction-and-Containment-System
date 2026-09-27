@@ -148,170 +148,172 @@ export default function Register() {
   };
 
   return (
-    <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
-      <div className="global-atmos">
-        <div className="ga-bloom-primary" />
-        <div className="ga-bloom-secondary" />
-        <div className="ga-bloom-tertiary" />
-      </div>
-
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="mb-8">
-          <Image
-            src="/images/logo-large.png"
-            alt="Fire Spread Prediction Logo"
-            width={450}
-            height={420}
-            className="mx-auto"
-          />
+    <main>
+      <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
+        <div className="global-atmos">
+          <div className="ga-bloom-primary" />
+          <div className="ga-bloom-secondary" />
+          <div className="ga-bloom-tertiary" />
         </div>
 
-        <div className="w-full max-w-3xl bg-carbon-card border border-carbon-stroke rounded-xl p-6 shadow-2xl backdrop-blur-sm">
-          <h2 className="text-2xl font-bold text-text-primary text-center mb-6">Create account</h2>
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 gap-3"
-            noValidate
-          >
-            <div>
-              <label htmlFor="name" className="block text-sm text-text-primary">
-                Name
-              </label>
-              <input
-                id="name"
-                name="name"
-                placeholder="Name"
-                value={form.name}
-                onChange={handleChange}
-                className={fieldClass(errors.name)}
-              />
-              {errors.name && <p className="text-flare text-xs mt-1">{errors.name}</p>}
-            </div>
+        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="mb-8">
+            <Image
+              src="/images/logo-large.png"
+              alt="Fire Spread Prediction Logo"
+              width={450}
+              height={420}
+              className="mx-auto"
+            />
+          </div>
 
-            <div>
-              <label htmlFor="surname" className="block text-sm text-text-primary">
-                Surname
-              </label>
-              <input
-                id="surname"
-                name="surname"
-                placeholder="Surname"
-                value={form.surname}
-                onChange={handleChange}
-                className={fieldClass(errors.surname)}
-              />
-              {errors.surname && <p className="text-flare text-xs mt-1">{errors.surname}</p>}
-            </div>
-
-            <div className="md:col-span-2">
-              <label htmlFor="email" className="block text-sm text-text-primary">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={form.email}
-                onChange={handleChange}
-                className={fieldClass(errors.email)}
-              />
-              {errors.email && <p className="text-flare text-xs mt-1">{errors.email}</p>}
-            </div>
-
-            <div className="md:col-span-2">
-              <label htmlFor="idNumber" className="block text-sm text-text-primary">
-                ID/Passport Number
-              </label>
-              <input
-                id="idNumber"
-                name="idNumber"
-                placeholder="13-digit SA ID"
-                value={form.idNumber}
-                onChange={handleChange}
-                className={fieldClass(errors.idNumber)}
-              />
-              {errors.idNumber && <p className="text-flare text-xs mt-1">{errors.idNumber}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm text-text-primary">
-                Password
-              </label>
-              <PasswordInput
-                id="password"
-                name="password"
-                placeholder="Min 8 chars, 1 uppercase, 1 number"
-                value={form.password}
-                onChange={handleChange}
-                autoComplete="new-password"
-                className={`${fieldClass(errors.password)} pr-10`}
-              />
-              {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm text-text-primary">
-                Confirm Password
-              </label>
-              <PasswordInput
-                id="confirmPassword"
-                name="confirmPassword"
-                placeholder="Repeat password"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                autoComplete="new-password"
-                className={`${fieldClass(errors.confirmPassword)} pr-10`}
-              />
-              {errors.confirmPassword && (
-                <p className="text-flare text-xs mt-1">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <div className="md:col-span-2">
-              <label htmlFor="role" className="block text-sm text-text-primary">
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                className={fieldClass()}
-              >
-                <option>User</option>
-                <option>Firefighter</option>
-              </select>
-            </div>
-
-            {apiError && (
-              <div className="md:col-span-2 bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">
-                {apiError}
+          <div className="w-full max-w-3xl bg-carbon-card border border-carbon-stroke rounded-xl p-6 shadow-2xl backdrop-blur-sm">
+            <h2 className="text-2xl font-bold text-text-primary text-center mb-6">Create account</h2>
+            <form
+              onSubmit={handleSubmit}
+              className="grid grid-cols-1 md:grid-cols-2 gap-3"
+              noValidate
+            >
+              <div>
+                <label htmlFor="name" className="block text-sm text-text-primary">
+                  Name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  placeholder="Name"
+                  value={form.name}
+                  onChange={handleChange}
+                  className={fieldClass(errors.name)}
+                />
+                {errors.name && <p className="text-flare text-xs mt-1">{errors.name}</p>}
               </div>
-            )}
 
-            <div className="md:col-span-2 mt-2">
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2 bg-primary hover:bg-deep text-white font-bold rounded-md transition disabled:opacity-50"
-              >
-                {isLoading ? 'Registering...' : 'Register now'}
-              </button>
-            </div>
-            <div className="md:col-span-2 mt-2">
-              <button
-                type="button"
-                onClick={() => router.push('/login')}
-                className="w-full py-2 bg-transparent border border-carbon-stroke hover:border-primary text-text-muted hover:text-text-primary font-bold rounded-md transition"
-              >
-                Back to login
-              </button>
-            </div>
+              <div>
+                <label htmlFor="surname" className="block text-sm text-text-primary">
+                  Surname
+                </label>
+                <input
+                  id="surname"
+                  name="surname"
+                  placeholder="Surname"
+                  value={form.surname}
+                  onChange={handleChange}
+                  className={fieldClass(errors.surname)}
+                />
+                {errors.surname && <p className="text-flare text-xs mt-1">{errors.surname}</p>}
+              </div>
 
-          </form>
+              <div className="md:col-span-2">
+                <label htmlFor="email" className="block text-sm text-text-primary">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={form.email}
+                  onChange={handleChange}
+                  className={fieldClass(errors.email)}
+                />
+                {errors.email && <p className="text-flare text-xs mt-1">{errors.email}</p>}
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="idNumber" className="block text-sm text-text-primary">
+                  ID/Passport Number
+                </label>
+                <input
+                  id="idNumber"
+                  name="idNumber"
+                  placeholder="13-digit SA ID"
+                  value={form.idNumber}
+                  onChange={handleChange}
+                  className={fieldClass(errors.idNumber)}
+                />
+                {errors.idNumber && <p className="text-flare text-xs mt-1">{errors.idNumber}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm text-text-primary">
+                  Password
+                </label>
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  placeholder="Min 8 chars, 1 uppercase, 1 number"
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  className={`${fieldClass(errors.password)} pr-10`}
+                />
+                {errors.password && <p className="text-flare text-xs mt-1">{errors.password}</p>}
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm text-text-primary">
+                  Confirm Password
+                </label>
+                <PasswordInput
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  placeholder="Repeat password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  className={`${fieldClass(errors.confirmPassword)} pr-10`}
+                />
+                {errors.confirmPassword && (
+                  <p className="text-flare text-xs mt-1">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2">
+                <label htmlFor="role" className="block text-sm text-text-primary">
+                  Role
+                </label>
+                <select
+                  id="role"
+                  name="role"
+                  value={form.role}
+                  onChange={handleChange}
+                  className={fieldClass()}
+                >
+                  <option>User</option>
+                  <option>Firefighter</option>
+                </select>
+              </div>
+
+              {apiError && (
+                <div className="md:col-span-2 bg-flare/10 border border-flare/50 text-flare text-sm p-2 rounded">
+                  {apiError}
+                </div>
+              )}
+
+              <div className="md:col-span-2 mt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-2 btn btn-primary text-lg hover:bg-deep text-white font-bold rounded-md transition disabled:opacity-60"
+                >
+                  {isLoading ? 'Registering...' : 'Register now'}
+                </button>
+              </div>
+              <div className="md:col-span-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => router.push('/login')}
+                  className="w-full py-2 bg-transparent border border-carbon-stroke hover:border-primary text-text-muted hover:text-text-primary font-bold rounded-md transition"
+                >
+                  Back to login
+                </button>
+              </div>
+
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

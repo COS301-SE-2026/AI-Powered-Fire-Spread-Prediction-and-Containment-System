@@ -57,4 +57,34 @@ def run_startup_migrations(engine: Engine) -> None:
         conn.execute(text("""
                 CREATE INDEX IF NOT EXISTS idx_fire_reports_submitted_at ON fire_reports (submitted_at DESC);
                 """))
+        # for fire-behaviour status
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS fire_status VARCHAR NOT NULL DEFAULT 'active';
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS containment_percent NUMERIC(5, 2);
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE fire_reports ADD COLUMN IF NOT EXISTS merged_into_id VARCHAR
+                    REFERENCES fire_reports(id) ON DELETE SET NULL;
+                """
+            )
+        )
+        conn.execute(
+            text(
+                """
+                CREATE INDEX IF NOT EXISTS idx_fire_reports_merged_into_id ON fire_reports (merged_into_id);
+                """
+            )
+        )
         conn.commit()

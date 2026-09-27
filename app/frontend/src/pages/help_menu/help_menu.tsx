@@ -1,3 +1,4 @@
+import Head from 'next/head';
 import { Siren, CirclePlay, Headset } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { SideBar } from '../../components/layout/SideBar';
@@ -64,187 +65,192 @@ export default function HelpPage() {
   ];
   const router = useRouter();
   return (
-    <SideBar items={null}>
-      <div className="flex flex-col p-6">
-        <PageHeader
-          title="Help Menu"
-          subtitle="Find answers, tutorials and support resources for the Fire Away system"
-          showIcons
-        />
-      </div>
-      <div className="flex flex-col p-6 gap-3  ">
-        {/* Tutorials */}
-        <details
-          className="collapse bg-carbon-bg border border-carbon-card rounded-lg transition-all group"
-          name="tutorial-accordion"
-          open
-        >
-          <summary className="collapse-title font-semibold p-4 flex items-center gap-3 cursor-pointer hover:bg-carbon-card/30 rounded-t-lg transition-colors">
-            <div className="size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center text-white/60 group-hover:text-ignite group-hover:border-ignite/30 transition-colors shrink-0">
-              <CirclePlay />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-white text-sm tracking-wide">Getting Started</span>
-              <span className="text-xs text-white/50 font-medium">Learn the basics</span>
-            </div>
-            {/* Optional expand/collapse indicator */}
-          </summary>
-          <div className="collapse-content p-4 pt-0">
-            <div className="flex flex-col md:flex-row gap-6 mt-4">
-              {/* Large screenshot */}
-              <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
-                <img
-                  src="/images/firefighter_report_circled.png"
-                  alt="Tutorial screenshot"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              {/* Description next to it */}
-              <div className="flex-1 flex flex-col justify-center">
-                <h4 className="text-white font-bold text-base mb-2">Step-by-step guide</h4>
-                <p className="text-white/70 text-sm leading-relaxed">
-                  You can report fires using the Report button. This takes you to a page where you
-                  can report a fire by giving a description and a photo for verification.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="collapse-content p-4 pt-0">
-            <div className="flex flex-col md:flex-row gap-6 mt-4">
-              <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
-                <img
-                  src="/images/dash_line_circled.png"
-                  alt="Logging a containment line on the live fire map"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <div className="flex-1 flex flex-col justify-center">
-                <h4 className="text-white font-bold text-base mb-2">Log a containment line</h4>
-                <p className="text-white/70 text-sm leading-relaxed">
-                  From the dashboard's Live Fire Map, select "Log containment line" under Quick
-                  Actions, then draw directly on the map to mark where a line has been established.
-                  Use "Clear Lines" in the top-right corner if you need to undo and redraw.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="collapse-content p-4 pt-0">
-            <div className="flex flex-col md:flex-row gap-6 mt-4">
-              <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
-                <img
-                  src="/images/sim_draw.png"
-                  alt="Drawing a containment line in the Fire Simulation view"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <div className="flex-1 flex flex-col justify-center">
-                <h4 className="text-white font-bold text-base mb-2">
-                  Simulate a containment strategy
-                </h4>
-                <p className="text-white/70 text-sm leading-relaxed">
-                  Open "Simulate fires" from Quick Actions to reach the Fire Simulation view, then
-                  tap "Draw Containment" to sketch a proposed containment line onto the predicted
-                  spread map before running the model.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="collapse-content p-4 pt-0">
-            <div className="flex flex-col md:flex-row gap-6 mt-4">
-              <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
-                <img
-                  src="/images/sim_run.png"
-                  alt="Running the fire spread simulation"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <div className="flex-1 flex flex-col justify-center">
-                <h4 className="text-white font-bold text-base mb-2">Run the simulation</h4>
-                <p className="text-white/70 text-sm leading-relaxed">
-                  Once your containment line is drawn, tap "RUN" to simulate how it affects the
-                  fire's predicted spread area, using the current weather inputs shown alongside the
-                  map.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="collapse-content p-4 pt-0">
-            <div className="flex flex-col md:flex-row gap-6 mt-4">
-              <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
-                <img
-                  src="/images/sim_time.png"
-                  alt="Scrubbing the simulation timeline"
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              <div className="flex-1 flex flex-col justify-center">
-                <h4 className="text-white font-bold text-base mb-2">Step through the timeline</h4>
-                <p className="text-white/70 text-sm leading-relaxed">
-                  Drag the timeline slider at the bottom of the simulation panel to see how the
-                  predicted spread area changes hour by hour, from now out to 24 hours ahead.
-                </p>
-              </div>
-            </div>
-          </div>
-        </details>
-
-        {/* Help center (I put the fire department link only) */}
-        <ActionCard
-          title="Help Center"
-          description="Need professional suppport?"
-          icon={<Headset />}
-          onClick={() => router.push('https://www.fireservices.gov.za/Pages/Home.aspx')}
-        />
-      </div>
-      {/* FAQ's */}
-      <div className="px-6 space-y-3">
-        {faqs.map((faq, index) => (
-          <div
-            key={faq.id}
-            className="group hover:bg-white/5 border border-white/5 rounded-[var(--radius-md)] px-3 py-2.5 transition-colors cursor-pointer"
+    <>
+      <Head>
+        <title>FireAway - Help and Support</title>
+      </Head>
+      <SideBar items={null}>
+        <div className="flex flex-col p-6">
+          <PageHeader
+            title="Help Menu"
+            subtitle="Find answers, tutorials and support resources for the Fire Away system"
+            showIcons
+          />
+        </div>
+        <div className="flex flex-col p-6 gap-3  ">
+          {/* Tutorials */}
+          <details
+            className="collapse bg-carbon-bg border border-carbon-card rounded-lg transition-all group"
+            name="tutorial-accordion"
+            open
           >
-            <div className="flex items-center justify-between">
-              <span className="font-display font-bold text-sm uppercase tracking-wide text-white/80 group-hover:text-white transition-colors">
-                {faq.q}
+            <summary className="collapse-title font-semibold p-4 flex items-center gap-3 cursor-pointer hover:bg-carbon-card/30 rounded-t-lg transition-colors">
+              <div className="size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center text-white/60 group-hover:text-ignite group-hover:border-ignite/30 transition-colors shrink-0">
+                <CirclePlay />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold text-white text-sm tracking-wide">Getting Started</span>
+                <span className="text-xs text-white/50 font-medium">Learn the basics</span>
+              </div>
+              {/* Optional expand/collapse indicator */}
+            </summary>
+            <div className="collapse-content p-4 pt-0">
+              <div className="flex flex-col md:flex-row gap-6 mt-4">
+                {/* Large screenshot */}
+                <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
+                  <img
+                    src="/images/firefighter_report_circled.png"
+                    alt="Tutorial screenshot"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                {/* Description next to it */}
+                <div className="flex-1 flex flex-col justify-center">
+                  <p className="text-white font-bold text-base mb-2">Step-by-step guide</p>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    You can report fires using the Report button. This takes you to a page where you
+                    can report a fire by giving a description and a photo for verification.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="collapse-content p-4 pt-0">
+              <div className="flex flex-col md:flex-row gap-6 mt-4">
+                <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
+                  <img
+                    src="/images/dash_line_circled.png"
+                    alt="Logging a containment line on the live fire map"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center">
+                  <p className="text-white font-bold text-base mb-2">Log a containment line</p>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    From the dashboard's Live Fire Map, select "Log containment line" under Quick
+                    Actions, then draw directly on the map to mark where a line has been established.
+                    Use "Clear Lines" in the top-right corner if you need to undo and redraw.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="collapse-content p-4 pt-0">
+              <div className="flex flex-col md:flex-row gap-6 mt-4">
+                <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
+                  <img
+                    src="/images/sim_draw.png"
+                    alt="Drawing a containment line in the Fire Simulation view"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center">
+                  <p className="text-white font-bold text-base mb-2">
+                    Simulate a containment strategy
+                  </p>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    Open "Simulate fires" from Quick Actions to reach the Fire Simulation view, then
+                    tap "Draw Containment" to sketch a proposed containment line onto the predicted
+                    spread map before running the model.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="collapse-content p-4 pt-0">
+              <div className="flex flex-col md:flex-row gap-6 mt-4">
+                <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
+                  <img
+                    src="/images/sim_run.png"
+                    alt="Running the fire spread simulation"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center">
+                  <p className="text-white font-bold text-base mb-2">Run the simulation</p>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    Once your containment line is drawn, tap "RUN" to simulate how it affects the
+                    fire's predicted spread area, using the current weather inputs shown alongside the
+                    map.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="collapse-content p-4 pt-0">
+              <div className="flex flex-col md:flex-row gap-6 mt-4">
+                <div className="flex-1 bg-carbon-card rounded-lg border border-carbon-card overflow-hidden">
+                  <img
+                    src="/images/sim_time.png"
+                    alt="Scrubbing the simulation timeline"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col justify-center">
+                  <p className="text-white font-bold text-base mb-2">Step through the timeline</p>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    Drag the timeline slider at the bottom of the simulation panel to see how the
+                    predicted spread area changes hour by hour, from now out to 24 hours ahead.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </details>
+
+          {/* Help center (I put the fire department link only) */}
+          <ActionCard
+            title="Help Center"
+            description="Need professional suppport?"
+            icon={<Headset />}
+            onClick={() => router.push('https://www.fireservices.gov.za/Pages/Home.aspx')}
+          />
+        </div>
+        {/* FAQ's */}
+        <div className="px-6 space-y-3">
+          {faqs.map((faq, index) => (
+            <div
+              key={faq.id}
+              className="group hover:bg-white/5 border border-white/5 rounded-[var(--radius-md)] px-3 py-2.5 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-display font-bold text-sm uppercase tracking-wide text-white/80 group-hover:text-white transition-colors">
+                  {faq.q}
+                </span>
+                <span className="text-white/40 group-hover:text-white/80">▼</span>
+              </div>
+              <div className="overflow-hidden max-h-0 group-hover:max-h-[500px] transition-all duration-300 ease-in-out">
+                <p className="pt-2 text-white/70 text-sm">{faq.a}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 px-6 pb-6">
+          <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-white/70 text-sm">
+            <div>
+              <span className="font-display font-bold uppercase tracking-wide text-white/90 text-xs">
+                <Siren className="w-8 h-8 text-brand-400" /> Emergency Contacts
               </span>
-              <span className="text-white/40 group-hover:text-white/80">▼</span>
-            </div>
-            <div className="overflow-hidden max-h-0 group-hover:max-h-[500px] transition-all duration-300 ease-in-out">
-              <p className="pt-2 text-white/70 text-sm">{faq.a}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-10 px-6 pb-6">
-        <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-white/70 text-sm">
-          <div>
-            <span className="font-display font-bold uppercase tracking-wide text-white/90 text-xs">
-              <Siren className="w-8 h-8 text-brand-400" /> Emergency Contacts
-            </span>
-            <div className="mt-1 space-y-1">
-              <p>
-                <span className="font-medium text-white/80">National Fire Emergency:</span>{' '}
-                <a
-                  href="tel:10177"
-                  className="text-brand-400 hover:text-brand-300 transition-colors"
-                >
-                  10177
-                </a>{' '}
-                (Toll-Free)
-              </p>
-              <p>
-                <span className="font-medium text-white/80">City of Cape Town Fire & Rescue:</span>{' '}
-                <a
-                  href="tel:0214807700"
-                  className="text-brand-400 hover:text-brand-300 transition-colors"
-                >
-                  021 480 7700
-                </a>
-              </p>
+              <div className="mt-1 space-y-1">
+                <p>
+                  <span className="font-medium text-white/80">National Fire Emergency:</span>{' '}
+                  <a
+                    href="tel:10177"
+                    className="text-brand-400 hover:text-brand-300 transition-colors"
+                  >
+                    10177
+                  </a>{' '}
+                  (Toll-Free)
+                </p>
+                <p>
+                  <span className="font-medium text-white/80">City of Cape Town Fire & Rescue:</span>{' '}
+                  <a
+                    href="tel:0214807700"
+                    className="text-brand-400 hover:text-brand-300 transition-colors"
+                  >
+                    021 480 7700
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </SideBar>
+      </SideBar>
+    </>
   );
 }

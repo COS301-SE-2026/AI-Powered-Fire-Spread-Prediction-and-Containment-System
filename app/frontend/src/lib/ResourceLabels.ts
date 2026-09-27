@@ -23,6 +23,6 @@ export function resourceLabel(r: ResourceTable): string {
 export function capacityLabel(r: ResourceTable): string {
     const amount = r.capacity.toLocaleString('en-ZA');
     if (r.capacityUnit === 'liters') return `${amount} L`;
-    if (r.capacityUnit === 'members') return `${amount} mambers`;
+    if (r.capacityUnit === 'members') return `${amount} members`;
     return r.otherCapacity ? `${amount} ${r.otherCapacity}` : amount;
 }

@@ -7,6 +7,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session, contains_eager
 
 from app.backend.src.enums.report_status import ReportStatus, status_level
+from app.backend.src.enums.fire_status import FireStatus
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.schemas.fire_report import FireReportCreate
 from app.backend.src.services.storage import get_presigned_url, public_image_url
@@ -110,6 +111,9 @@ def get_fire_report_by_id(report_ref: str, db: Session):
         "priotity": getattr(report, "system_verified", False),
         "system_verified": getattr(report, "system_verified", False),
         "verification_notes": report.verification_notes,
+        "fire_status": report.fire_status,
+        "containment_percent": float(report.containment_percent) if report.containment_percent is not None else None,
+        "merged_into_id": report.merged_into_id,
     }
 
 
@@ -189,3 +193,37 @@ def status_change(report_ref: str, status: ReportStatus, db: Session):
         notify_fire_update(db, report, f"Status changed to {status.value}")
 
     return get_fire_report_by_id(report_ref, db)
+
+def fire_status_change(
+    report_ref: str,
+    fire_status: FireStatus,
+    containment_percent: Optional[float],
+    db: Session,
+):
+    """Updates real fire-behaviour status"""
+    report = (
+        db.query(FireReports).filter(FireReports.reference_number == report_ref).first()
+    )
+    
+    if not report:
+        raise ValueError(f"Report with id {report_ref} does not exist")
+    
+    if report.status != ReportStatus.verified:
+        raise ValueError(
+            f"Report {report_ref} must be verified before its fire status can be changed"
+        )
+        
+    previous_fire_status = report.fire_status
+    
+    report.fire_status = fire_status
+    if containment_percent is not None:
+        report.containment_percent = containment_percent
+    report.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(report)
+    
+    if fire_status != previous_fire_status:
+        notify_fire_update(db, report, f"Fire status changed to {fire_status.value}")
+        
+    return get_fire_report_by_id(report_ref, db)
+    
