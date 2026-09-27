@@ -28,10 +28,11 @@ RUN uv venv /opt/venv
 # install dependencies
 COPY gpu_worker/requirements.txt ./requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install \
-    --index-strategy unsafe-best-match \
-    --extra-index-url https://download.pytorch.org/whl/cu128 \
-    -r requirements.txt
+    uv pip install torch torchvision \
+    --index-url https://download.pytorch.org/whl/cu128 
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r requirements.txt
 
 # copy backend app code
 COPY app/__init__.py ./app/__init__.py
