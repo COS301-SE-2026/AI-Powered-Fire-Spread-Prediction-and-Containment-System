@@ -23,13 +23,13 @@ const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) 
 });
 
 export default function MapView() {
-  const { userLocation, nearbyFires } = useNearbyFires();
+  const { userLocation, searchLocation, nearbyFires } = useNearbyFires();
   const { location, environmentVariables, recenter } = useGuestDashboard(20);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const [recenterCount, setRecenterCount] = useState(0);
   const [showWater, setShowWater] = useState(true);
 
-  const { nearbyResources } = useNearbyResources(userLocation ?? location);
+  const { nearbyResources } = useNearbyResources(searchLocation);
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const [showResources, setShowResources] = useState(true);
 
@@ -45,9 +45,6 @@ export default function MapView() {
     setRecenterCount((c) => c + 1);
   };
   useMapLink(handleSelectFire);
-
-  const currentLat = userLocation?.lat ?? location?.lat;
-  const currentLng = userLocation?.lng ?? location?.lng;
 
   return (
     <div className="flex flex-col p-2">
@@ -77,8 +74,8 @@ export default function MapView() {
           {/* Map */}
           <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-96 sm:h-104 lg:h-140 w-full shadow-md">
             <PublicFireMap
-              lat={currentLat}
-              lng={currentLng}
+              lat={userLocation?.lat ?? null}
+              lng={userLocation?.lng ?? null}
               drawMode={false}
               onDrawComplete={() => {}}
               clearDrawings={0}

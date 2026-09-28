@@ -9,8 +9,8 @@ from scipy.ndimage import binary_dilation
 from .schema import UNBURNED
 from .geo import bbox_from_fire
 from .simulation import build_boundary_ignition_mask
+from app.backend.src.ai.sim_constants import TICK_MINUTES
 
-TICK_MINUTES = 15 #same as dca.py
 MAX_LINE_LENGTH_M = 400.0
 MIN_STANDOFF_M = 50.0
 BUILD_RATE_M_PER_MIN = 3.0

@@ -3,6 +3,7 @@
 import { Feather, LocateFixed } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
 import { buffer } from '@turf/buffer';
@@ -34,10 +35,11 @@ import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
+const DEFAULT_CENTER = { lat: -25.7479, lng: 28.2293 };
 
 interface MapProps {
-  lat: number;
-  lng: number;
+  lat: number | null;
+  lng: number | null;
   drawMode: boolean;
   lines?: LocalLine[];
   onDrawComplete: (wkt: string) => void;
@@ -100,7 +102,11 @@ export function FireMap({ lat,
 
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
-  const [viewState, setViewState] = useState({ longitude: lng, latitude: lat, zoom: 12 });
+  const [viewState, setViewState] = useState({ 
+    longitude: lng ?? DEFAULT_CENTER.lng, 
+    latitude: lat ?? DEFAULT_CENTER.lat, 
+    zoom: 12 
+  });
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
   const [showUserLocationTooltip, setShowUserLocationTooltip] = useState(false);
   const { isAuth, isLoading: isAuthLoading } = useAuth();
@@ -110,6 +116,7 @@ export function FireMap({ lat,
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
   const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000 });
 
+  const hasCentered = useRef(false);
 
   const waterKey = String(waterFeatureCollection.features.length);
 
@@ -181,6 +188,11 @@ export function FireMap({ lat,
     syncFires();
   }, [fires]);
 
+  const onDrawCompleteRef = useRef(onDrawComplete);
+  useEffect(() => {
+    onDrawCompleteRef.current = onDrawComplete;
+  }, [onDrawComplete])
+
   const handleDrawCreate = useCallback(
     (e: DrawCreateEvent) => {
       const line = e.features[0];
@@ -188,12 +200,12 @@ export function FireMap({ lat,
       const coords = (line.geometry as LineString).coordinates;
       const wkt = `LINESTRING(${coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ')})`;
 
-      onDrawComplete(wkt);
+      onDrawCompleteRef.current(wkt);
 
       drawRef.current?.deleteAll();
       drawRef.current?.changeMode('simple_select');
     },
-    [onDrawComplete]
+    []
   );
 
   useEffect(() => {
@@ -259,19 +271,29 @@ export function FireMap({ lat,
   }, [suggestedLine]);
 
   useEffect(() => {
-    setViewState((v) => ({ ...v, longitude: lng, latitude: lat }));
+    if(lat == null || lng == null || Number.isNaN(lat) || Number.isNaN(lng)) return;
+
+    if(!hasCentered.current){
+      hasCentered.current = true;
+      setViewState((v) => ({...v, longitude: lng, latitude: lat}));
+    }
 
     if (isAuthLoading) return;
-    
-    if (isAuth) {
+
+    if(isAuth){
       updateUserLocation(lat, lng);
-    } else {
+    }else{
       checkGuestNotifications(lat, lng);
     }
+
   }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
 
   // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
-  const fireEnvironment = useLiveFireEnvironment(lat, lng, !disableGrowth);
+  const fireEnvironment = useLiveFireEnvironment(
+    lat ?? DEFAULT_CENTER.lat, 
+    lng ?? DEFAULT_CENTER.lng, 
+    !disableGrowth
+  );
 
   // polygonal water bodies (dams/lakes) used to clip fire growth so it stops at a shoreline instead of drawing over it
   const waterPolygonFeatures = useMemo(
@@ -411,6 +433,7 @@ export function FireMap({ lat,
   }, [disableGrowth, growableFires, fireEnvironment, terrainBiasByFireId]);
 
   const handleRecenter = useCallback(() => {
+    if(lat == null || lng == null) return;
     setViewState((v) => ({
       ...v,
       longitude: lng,
@@ -509,7 +532,7 @@ export function FireMap({ lat,
     return features;
   }, [predictions, clusterPredictions, currentTick]);
   useEffect(() => {
-    if (recenter === 0) return;
+    if (recenter === 0 || lat == null || lng == null) return;
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
   }, [recenter]);
 

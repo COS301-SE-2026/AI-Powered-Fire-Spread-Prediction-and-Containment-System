@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from app.backend.db import get_db
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.ai.sim_constants import TICKS_PER_HOUR, MAXSTEPS, TARGET_CELL_SIZE_M
 
 from .geo import bbox_from_fire, touch_edge
 
@@ -40,11 +41,9 @@ from app.backend.src.routes.workers import dispatch_simulation_task, has_active_
 router = APIRouter(prefix="/api", tags=["simulation"])
 
 METRES_PER_DEG_LAT = 111_320.0
-TARGET_CELL_SIZE_M = 15.0  # 15 meter per cell
 MIN_GRID_DIMENSION = 10
 MAX_GRID_DIMENSION = 800
-MAX_GRID_CELLS = 50000
-TICKS_PER_HOUR = 4
+MAX_GRID_CELLS = 100000
 
 AWS_REGION = os.environ.get("AWS_REGION")
 INFERENCE_QUEUE_URL = os.environ["INFERENCE_QUEUE_URL"]
@@ -131,19 +130,19 @@ class SimulationResponse(BaseModel):
 
 
 class OnDemandSimRequest(BaseModel):
-    n_steps: int = Field(288, ge=1, le=288, description="Number of sim steps")
+    n_steps: int = Field(MAXSTEPS, ge=1, le=MAXSTEPS, description="Number of sim steps")
     containment_lines: list[str] = Field(
         default_factory=list, description="List of WKT containment lines"
     )
 
 
 def burned_area_radius_m(
-    burned_cells: int, H: int, W: int, lat_extent_deg: float, lon_extent_deg: float
+    burned_cells: int, H: int, W: int, lat_extent_deg: float, lon_extent_deg: float, lat: float
 ) -> float:
     if burned_cells <= 0:
         return 0.0
     cell_h_m = (lat_extent_deg / H) * METRES_PER_DEG_LAT
-    cell_w_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT
+    cell_w_m = (lon_extent_deg / W) * METRES_PER_DEG_LAT * math.cos(math.radians(lat))
     return math.sqrt(burned_cells * cell_h_m * cell_w_m / math.pi)
 
 
@@ -355,7 +354,7 @@ async def simulate_single_fire(
         last_tick_flat = flattened_history[-1] if flattened_history else []
         burned_cells = sum(1 for c in last_tick_flat if c in (1, 2))
         radius_m = burned_area_radius_m(
-            burned_cells, H, W, lat_extent_deg, lon_extent_deg
+            burned_cells, H, W, lat_extent_deg, lon_extent_deg, fire.lat
         )
 
         last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
@@ -493,7 +492,7 @@ async def simulate_fire_cluster(
 
         last_tick_flat = flattened_history[-1] if flattened_history else []
         burned_cells = sum(1 for c in last_tick_flat if c in (1, 2))
-        radius_m = burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg)
+        radius_m = burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg, center_lat)
 
         last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
         truncated = bool(touch_edge(last_grid_2d, burning_val=1, burned_val=2))
@@ -528,7 +527,7 @@ async def run_simulation(
     """
     Endpoint for all verified fires
 
-    Runs for 4 ticks which is a 1 hour spread simulation
+    Runs for 2 ticks which is a 1 hour spread simulation
     """
 
     verified_fires_raw = (
@@ -557,7 +556,7 @@ async def run_simulation(
         for fire_report_id, wkt in rows:
             lines_by_fire[fire_report_id].append(wkt)
 
-    automatic_steps = 4
+    automatic_steps = TICKS_PER_HOUR
     semaphore = asyncio.Semaphore(MAX_CONCURR_USERS)
 
     groups = cluster_fires_by_bbox_overlap(verified_fires_raw, automatic_steps)
@@ -630,7 +629,7 @@ async def run_single_fire_simulation(
     """
     Endpiont for spread on a single spread which spreads for 72 hours
 
-    Runs the 72 hour spread which is 288 ticks for a fire selected on the map
+    Runs the 72 hour spread which is 144 ticks for a fire selected on the map
     """
 
     fire = (
@@ -667,7 +666,7 @@ async def run_single_fire_simulation(
 
 class ClusterSimRequest(BaseModel):
     fire_refs: list[str] = Field(..., min_length = 2, description="Reference numbers of fires ot simulate together")
-    n_steps: int = Field(288, ge=1, le=288)
+    n_steps: int = Field(MAXSTEPS, ge=1, le=MAXSTEPS)
     containment_lines: list[str] = Field(default_factory=list)
 
 @router.post(

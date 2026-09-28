@@ -1,5 +1,14 @@
 import { useState, useEffect } from 'react';
 
+const MIN_VRAM_MB =3584;
+
+function cleanGPUName(raw: string): string{
+    const match = raw.match(/(?:NVIDIA\s+)?(?:GeForce|Quadro|Tesla|RTX|GTX)[^,(]*/i);
+    if(!match) return raw;
+    const name = match[0].trim();
+    return /^nvidia/i.test(name) ? name: `NVIDIA ${name}`;
+}
+
 export interface DeviceCapability {
     isEligible: boolean;
     gpuName: string;
@@ -32,12 +41,12 @@ function estimateVramFromGpuName(gpuName: string): number | null {
     if (/rtx\s*2080/i.test(name)) return 8192;
     if (/rtx\s*2070/i.test(name)) return 8192;
     if (/rtx\s*2060/i.test(name)) return 6144;
-    if (/rtx\s*1080/i.test(name)) return 8192;
-    if (/rtx\s*1070/i.test(name)) return 8192;
-    if (/rtx\s*1660/i.test(name)) return 6144;
-    if (/rtx\s*1650/i.test(name)) return 4096;
-    if (/rtx\s*1060/i.test(name)) return 6144;
-    if (/rtx\s*1050/i.test(name)) return 2048;
+    if (/gtx\s*1080/i.test(name)) return 8192;
+    if (/gtx\s*1070/i.test(name)) return 8192;
+    if (/gtx\s*1660/i.test(name)) return 6144;
+    if (/gtx\s*1650/i.test(name)) return 4096;
+    if (/gtx\s*1060/i.test(name)) return 6144;
+    if (/gtx\s*1050/i.test(name)) return 2048;
 
     if (/nvidia|geforce|rtx/i.test(name)) {
         return 4096
@@ -94,11 +103,13 @@ export function useDeviceCapability(): DeviceCapability {
             // fallback
         }
 
-        const estimateVram = isNvidia ? estimateVramFromGpuName(detectedGpu) : null;
+        
+        const gpuName = isNvidia ? cleanGPUName(detectedGpu) : detectedGpu;
+        const estimateVram = isNvidia ? estimateVramFromGpuName(gpuName) : null;
 
         setCapability({
             isEligible: isDesktop && isNvidia,
-            gpuName: detectedGpu,
+            gpuName,
             vram_mb: estimateVram,
             osName: os,
             isDesktop,

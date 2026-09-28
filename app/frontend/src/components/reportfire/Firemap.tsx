@@ -40,7 +40,7 @@ function createPinElement(): HTMLDivElement {
   el.className = 'flex flex-col items-center pointer-events-none';
   el.innerHTML = `
       <div class="w-7 h-7 rounded-full bg-ignite border-2 border-white shadow-lg flex items-center justify-center">
-        <div class="w-2.5 h-2.5 rounded-full bg-white"><div/>
+        <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
       </div>
       <div class="w-1 h-5 bg-ignite/40"></div>
       <div class="w-1 h-1 rounded-full bg-ignite"></div>
@@ -60,7 +60,7 @@ function createUserLocationElement(): HTMLDivElement{
 
 function createRimElement(radiusKm: number): { el: HTMLDivElement; label: HTMLDivElement } {
   const el = document.createElement('div');
-  el.className = 'flex flex.col items-center gap-1 cursor-grab';
+  el.className = 'flex flex-col items-center gap-1 cursor-grab';
 
   const label = document.createElement('div');
   label.className =

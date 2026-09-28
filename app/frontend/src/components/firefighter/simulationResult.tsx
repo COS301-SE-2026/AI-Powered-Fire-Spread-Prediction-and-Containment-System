@@ -54,12 +54,12 @@ export function SimulationResults({
   fireLat = null,
   fireLng = null
 }: SimulationResultsProps) {
-  const { userLocation } = useNearbyFires();
+  const { searchLocation } = useNearbyFires();
 
   const selectedPrediction = selectedFireId ? predictions.find(p => p.ref === selectedFireId) : undefined;
 
-  const lat = selectedPrediction?.lat ?? fireLat ?? userLocation.lat;
-  const lng = selectedPrediction?.lng ?? fireLng ?? userLocation.lng;
+  const lat = selectedPrediction?.lat ?? fireLat ?? searchLocation.lat;
+  const lng = selectedPrediction?.lng ?? fireLng ?? searchLocation.lng;
 
   const { conditions, loading: conditionsLoading } = useFuelConditions(lat, lng);
 

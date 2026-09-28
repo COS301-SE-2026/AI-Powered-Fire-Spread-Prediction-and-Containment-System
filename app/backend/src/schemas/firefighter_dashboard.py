@@ -22,6 +22,8 @@ class EnvironmentVariables(BaseModel):
     temperature: float
     fire_danger: FireDanger
     humidity: float
+    fdi: float
+    fdi_color: str
 
 
 class NearbyFiresList(BaseModel):
