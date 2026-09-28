@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { apiCall } from '../lib/api';
 import type { NearbyFire, EnvironmentVariables } from '../types/FirefighterDashboard';
 
 const DEFAULT_LOCATION = { lat: -25.7479, lng: 28.2293 }; // Pretoria
 
 export function useNearbyFires() {
-  const [userLocation, setUserLocation] = useState(DEFAULT_LOCATION);
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
+  const [locationResolved, setLocationResolved] = useState(false);
+  const searchLocation = useMemo(() => userLocation ?? DEFAULT_LOCATION, [userLocation])
   const [nearbyFires, setNearbyFires] = useState<NearbyFire[]>([]);
   const [environmentVariables, setEnvironmentVariables] = useState<EnvironmentVariables | null>(
     null
@@ -15,7 +17,7 @@ export function useNearbyFires() {
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      // if user does not allow location return default location on map
+      setLocationResolved(true);
       return;
     }
 
@@ -26,18 +28,21 @@ export function useNearbyFires() {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         });
+        setLocationResolved(true);
       },
-      () => {} // keeps default if there is failure retreiving users location
+      () => setLocationResolved(true),
+      {timeout: 10000, maximumAge: 60000}
     );
   }, []);
 
   useEffect(() => {
+    if(!locationResolved) return;
     let cancelled = false;
     const fetchRequest = async () => {
       setLoading(true);
       setError(null);
 
-      const url = `/api/firefighter/dashboard?lat=${userLocation.lat}&lng=${userLocation.lng}`;
+      const url = `/api/firefighter/dashboard?lat=${searchLocation.lat}&lng=${searchLocation.lng}`;
       try {
         const data = await apiCall(url);
         if (cancelled) return;
@@ -57,6 +62,6 @@ export function useNearbyFires() {
     return () => {
       cancelled = true;
     };
-  }, [userLocation]);
-  return { userLocation, nearbyFires, environmentVariables, loading, error };
+  }, [locationResolved, searchLocation]);
+  return { userLocation, searchLocation, nearbyFires, environmentVariables, loading, error };
 }

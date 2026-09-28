@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { Cpu, X } from 'lucide-react';
 import { useDeviceCapability } from '../../hooks/useDeviceCapability';
@@ -10,15 +12,11 @@ const SEEN_KEY = "fireaway.gpuNotificationSeen";
 
 export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificationProps) {
     // uncomment real logic
-    // const { isEligible, gpuName } = useDeviceCapability();
+    const { isEligible } = useDeviceCapability();
     const [visible, setVisible] = useState(false);
-
-    const detected = useDeviceCapability();
-
-    // TEMP: preview only, remove when done
-    const isEligible = true;
-    const gpuName = "NVIDIA GeForce RTX 3060";
-    // ------------------------------------------
+    const router = useRouter();
+    const rolePrefix = router.pathname.split('/')[1];
+    const volunteerHref = `/${rolePrefix}/GpuVolunteer`
 
     function dismiss() {
         setVisible(false);
@@ -30,10 +28,9 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
             return;
         }
 
-        // uncomment actual logic
-        // if (localStorage. getItem(SEEN_KEY) === "true") {
-        //     return;
-        // }
+        if (localStorage. getItem(SEEN_KEY) === "true") {
+            return;
+        }
 
         setVisible(true);
         const timer = setTimeout(() =>{
@@ -47,10 +44,7 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
         return null;
     }
 
-    let message = "Your GPU is eligible to contribute to Fireaway simulations.";
-    if (gpuName) {
-        message = `${gpuName} is eligible to contribute to Fireaway simulations.`;
-    }
+    const message = `Your GPU looks compatible with FireAway simulations`;
     return (
         <div className='toast toast-start toast-top z-100'>
             <div 
@@ -58,14 +52,19 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
                 className='alert bg-ignite  text-char border border-ignite shadow-xl flex items-start gap-3 p-4 rounded-box relative max-w-md'
             >
                 <div>
-                    <button type='button' className='btn btn-ghost btn-xs btn-circle absolute top-2 left-1 text-char/70 hover:text-char' aria-label='Dismis notification' onClick={dismiss}>
+                    <button type='button' className='btn btn-ghost btn-xs btn-circle absolute top-2 left-1 text-char/70 hover:text-char' aria-label='Dismiss notification' onClick={dismiss}>
                         <X className='size-4' aria-hidden='true' />
                     </button>
                 </div>
                 <Cpu className='size-8' aria-hidden="true" />
                 <div>
-                    <p className='text-lg font-bold'>GPU qualified</p>
+                    <p className='text-lg font-bold'>Help run the simulations</p>
                     <p className='text-base font-semibold'>{message}</p>
+                    <Link
+                        href={volunteerHref} onClick={dismiss} className='link font-semibold mt-1 inline-blocks'                    
+                    >
+                        Join compute grid
+                    </Link>
                 </div>
             </div>
         </div>

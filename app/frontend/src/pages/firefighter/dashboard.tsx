@@ -22,8 +22,8 @@ export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [showWater, setShowWater] = useState(true);
-  const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
-  const { nearbyResources } = useNearbyResources(userLocation);
+  const { userLocation, searchLocation, nearbyFires, environmentVariables } = useNearbyFires();
+  const { nearbyResources } = useNearbyResources(searchLocation);
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
@@ -103,7 +103,11 @@ export default function FirefighterDashboard() {
 
                   <button
                     type="button"
-                    onClick={() => setClearDrawings((c) => c + 1)}
+                    onClick={() => {
+                        setClearDrawings((c) => c + 1);
+                        setLines([]);
+                      }
+                    }
                     className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
                   >
                   Clear Lines
@@ -113,8 +117,8 @@ export default function FirefighterDashboard() {
               </div>
               <div className="flex-1 w-full h-full pt-12 md:pt-13">
                 <FireMap
-                  lat={userLocation.lat}
-                  lng={userLocation.lng}
+                  lat={userLocation?.lat ?? null}
+                  lng={userLocation?.lng ?? null}
                   drawMode={drawMode}
                   onDrawComplete={handleDrawComplete}
                   lines={lines}
@@ -131,6 +135,11 @@ export default function FirefighterDashboard() {
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
+              {lineError && (
+                <div className='absolute bottom-4 left-4 z-20 max-w-xs rounded-lg bg-carbon-bg/90 border-red-400/30 px-3 py-2 text-xs text-red-300'>
+                  Line not saved: {lineError}
+                </div>
+              )}
             </div>
             <ResourceMapLegend />
 

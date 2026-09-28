@@ -7,10 +7,16 @@ export interface EnvironmentVariables {
   readonly temperature: number;
   readonly fire_danger: string;
   readonly humidity: number;
+  readonly fdi: number;
+  readonly fdi_color: string;
 }
 
 interface EnvironmentWidgetsProp {
   readonly variables: EnvironmentVariables | null;
+}
+
+function formatBand(band: string): string {
+  return band.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function WindDirection(degree: number): string {
@@ -54,14 +60,14 @@ export function EnvironmentWidgets({ variables }: EnvironmentWidgetsProp) {
     );
   }
 
-  const { wind, wind_dir: windDeg, temperature, fire_danger: fireDanger, humidity } = variables;
+  const { wind, wind_dir: windDeg, temperature, fire_danger: fireDanger, humidity, fdi } = variables;
   const windDirection = WindDirection(windDeg);
 
   return (
     <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full">
       <StatCard icon={<Wind />} label={`Wind ${windDirection} `} value={`${wind} km/h`} />
       <StatCard icon={<Thermometer />} label="Temperature" value={`${temperature}°C`} />
-      <StatCard icon={<Flame />} label="Fire Danger" value="fireDanger" />
+      <StatCard icon={<Flame />} label={`Fire Danger (FDI ${fdi})`} value={formatBand(fireDanger)} />
       <StatCard icon={<Droplets />} label="Humidity" value={`${humidity}%`} />
     </div>
   );
