@@ -87,4 +87,11 @@ def run_startup_migrations(engine: Engine) -> None:
                 """
             )
         )
+        conn.execute(
+            text(
+                """
+                ALTER TABLE users ADD COLUMN IF NOT EXISTS push_subscription TEXT;
+                """
+            )
+        )
         conn.commit()
