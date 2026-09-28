@@ -31,8 +31,8 @@ export default function GuestPublicDashboard() {
             {/* Map */}
             <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
               <FireMap
-                lat={userLocation.lat}
-                lng={userLocation.lng}
+                lat={userLocation?.lat ?? null}
+                lng={userLocation?.lng ?? null}
                 drawMode={false}
                 onDrawComplete={() => {}}
                 clearDrawings={0}

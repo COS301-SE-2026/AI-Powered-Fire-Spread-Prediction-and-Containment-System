@@ -5,6 +5,7 @@ import numpy as np
 
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.dca import run_dca
+from app.backend.src.ai.sim_constants import TICKS_PER_HOUR
 
 
 def autoregressive_weather_forecast(
@@ -125,7 +126,7 @@ def run_convlstm_dca(
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    n_hours = max(1, int(np.ceil(n_steps / 4)))  # 4 ticks per hour
+    n_hours = max(1, int(np.ceil(n_steps / TICKS_PER_HOUR))) 
 
     # pack the terrain rasters into the correct format [1, 6, H, W]
     static_stack = np.stack(

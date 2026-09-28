@@ -108,6 +108,7 @@ def fetch_static_grids(job: dict) -> dict:
         "aspect_cos": aspect_cos,
         "fuel_load": vegetation["fuel_load"],
         "dryness": vegetation["dryness"],
+        "nonburnable": vegetation["nonburnable"]
     }
 
 def build_volunteer_payload(

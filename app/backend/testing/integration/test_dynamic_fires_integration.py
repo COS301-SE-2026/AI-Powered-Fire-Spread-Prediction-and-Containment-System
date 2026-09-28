@@ -76,7 +76,7 @@ def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(client, db
     assert fire_a.merged_into_id is None
     assert fire_b.merged_into_id is None
     
-@patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_vale=True)
+@patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_value=True)
 def test_overlapping_fires_merge_once_debounce_is_satisfied(mock_debounce, client, db):
     now = datetime.now(timezone.utc)
     older = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now - timedelta(hours=1))

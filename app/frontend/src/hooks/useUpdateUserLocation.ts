@@ -1,4 +1,5 @@
 import { useCallback, useRef } from 'react';
+import { apiCall } from '../lib/api';
 
 const MIN_DELTA_DEG = 0.0005;
 
@@ -15,24 +16,13 @@ export function useUpdateUserLocation(onSynced?: () => void) {
       ) {
         return;
       }
-      lastSent.current = { lat, lng };
-
-      fetch('/api/users/me/location', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ latitude: lat, longitude: lng }),
+      apiCall('/api/users/me/location', 'PATCH', {latitude: lat, longitude: lng})
+      .then(() => {
+        lastSent.current = {lat, lng};
+        onSynced?.();
       })
-        .then((res) => {
-          if (!res.ok) {
-            console.warn('Location sync returned an error status', res.status);
-            return;
-          }
-
-          onSynced?.();
-        })
         .catch((err) => {
-          console.warn('Failed to sync user location');
+          console.warn('Failed to sync user location', err);
         });
     },
     [onSynced]

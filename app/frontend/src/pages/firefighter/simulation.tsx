@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity, Wand2 } from 'lucide-react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
+import { MAX_SIM_HOURS, SIM_MAX_STEPS, TICKS_PER_HOUR } from '@/types/simulation';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
@@ -17,9 +18,8 @@ export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const [selectedFireIds, setSelectedFireIds] = useState<Set<string>>(new Set());
-  const defaultLocation = { lat: -25.7479, lng: 28.2293 }; // Pretoria
   const [drawMode, setDrawMode] = useState(false);
-  const [userLocation, setUserLocation] = useState(defaultLocation);
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [lines, setLines] = useState<LocalLine[]>([])
   const { showHint, dismiss } = useRotate();
@@ -107,7 +107,7 @@ export default function Simulation() {
 
   function handleRun() {
     setLastClusterRefs(null);
-    const steps = selectedFireId ? 288 : 4
+    const steps = selectedFireId ? SIM_MAX_STEPS : TICKS_PER_HOUR
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     runSimulation(selectedFireId, steps, drafts);
   }
@@ -124,12 +124,12 @@ export default function Simulation() {
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     const refs = Array.from(selectedFireIds);
     setLastClusterRefs(refs);
-    runClusterSimulation(refs, 288, drafts);
+    runClusterSimulation(refs, SIM_MAX_STEPS, drafts);
   }
   function handleRerun() {
     if(lastClusterRefs){
       const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
-      runClusterSimulation(lastClusterRefs, 288, drafts)
+      runClusterSimulation(lastClusterRefs, SIM_MAX_STEPS, drafts)
     }else{
       handleRun();
     }
@@ -215,7 +215,7 @@ export default function Simulation() {
   const canClear = hasResult || lines.length > 0 || currentTick > 0 || status === 'error';
 
   const maxSlider = Math.max(totalTicks - 1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-  const totalHours = hasResult ? (maxSlider / 4) : 72;
+  const totalHours = hasResult ? (maxSlider / TICKS_PER_HOUR) : MAX_SIM_HOURS;
   return (
     <FirefighterSideBar hideLoginRegister>
       <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
@@ -277,8 +277,8 @@ export default function Simulation() {
               <div className='w-full h-full'>
                 <FireMap
                   suggestedLine={suggestion?.wkt ?? null}
-                  lat={userLocation.lat}
-                  lng={userLocation.lng}
+                  lat={userLocation?.lat ?? null}
+                  lng={userLocation?.lng ?? null}
                   drawMode={drawMode}
                   onDrawComplete={handleDrawComplete}
                   lines={lines}

@@ -6,7 +6,11 @@ import { StatCard } from './GuestStatCard';
 export function GuestEnvironment({ data }: { readonly data: EnvironmentVariables | null }) {
   if (!data) return <div className="text-xs opacity-50">No environment data</div>;
 
-  const { temperature, humidity, wind, wind_dir: windDeg, fire_danger: fireDanger } = data;
+  const { temperature, humidity, wind, wind_dir: windDeg, fire_danger: fireDanger, fdi } = data;
+
+  function formatBand(band: string): string {
+    return band.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  }
 
   const windDir = (deg?: number) => {
     if (deg === undefined || deg === null) return 'N/A';
@@ -31,7 +35,7 @@ export function GuestEnvironment({ data }: { readonly data: EnvironmentVariables
         value={wind !== undefined ? `${wind} km/h ${windDir(windDeg)}` : '--'}
         icon={<Wind />}
       />
-      <StatCard label="Fire Danger" value={fireDanger || '--'} icon={<Flame />} />
+      <StatCard label={fdi !== undefined ? `Fire Danger (FDI ${fdi})` : 'Fire danger'} value={fireDanger ? formatBand(fireDanger) : '--'} icon={<Flame/>} />
     </div>
   );
 }

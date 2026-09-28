@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 
 from app.backend.src.ai.simulation_api import router as simulation_router
-from app.backend.db import init_db, engine
+from app.backend.db import migrate_db
 from app.backend.src.routes import image_uploads
 from app.backend.src.routes import router as notifications_and_location_router
 from app.backend.src.routes.auth.forgot_password import router as forgot_password_router
@@ -20,7 +20,6 @@ from app.backend.src.routes.auth import router as auth_router
 from app.backend.src.routes.workers import router as workers_router
 from app.backend.src.routes.resources import router as resources_router
 
-from app.backend.startup_migrations import run_startup_migrations
 from app.backend.seed import seed
 from app.backend.src.services.storage import ensure_bucket
 from app.backend.src.services.notifications.websocket_manager import set_main_loop
@@ -33,9 +32,7 @@ async def lifespan(app: FastAPI):
     ensure_bucket()
 
     if os.environ.get("SKIP_DB_INIT") != "1":
-        init_db()
-
-    run_startup_migrations(engine)
+        migrate_db()
 
     if os.environ.get("RUN_SEED") == "1":
         seed()

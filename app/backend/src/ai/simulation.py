@@ -116,8 +116,17 @@ def build_env_data(
 
     slope = calculate_slope(elevation, torch.tensor(cell_size_m, dtype=torch.float32))
 
+    p_veg = torch.from_numpy(static_grids["fuel_load"]).float()
+    nonburnable = static_grids.get("nonburnable")
+    if nonburnable is not None:
+        p_veg = torch.where(
+            torch.from_numpy(np.asarray(nonburnable, dtype=bool)),
+            torch.tensor(-1.0),
+            p_veg,
+        )
+
     env_dict = {
-        "p_veg": torch.from_numpy(static_grids["fuel_load"]).float(),
+        "p_veg": p_veg,
         "p_den": torch.from_numpy(static_grids["dryness"]).float(),
         "wind_velocity": wind_velocity,
         "wind_towards_direction": wind_towards_direction,

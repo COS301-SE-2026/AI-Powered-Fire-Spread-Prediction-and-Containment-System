@@ -42,6 +42,7 @@ DEFAULT_SCL_MASKED_CLASSES = frozenset(
 )
 
 WEIGHTS_JSON = "processed/worldcover_base_weights.json"
+NONBURNABLE_WORLDCOVER_CLASSES = (50, 70, 80)
 
 # fallback if json not load
 FUEL_BASE_WEIGHTS = {
@@ -274,6 +275,8 @@ def process_sentinal2_and_worldcover(
     for class_val, weight in fuel_weights.items():
         fuel_base[wc_map == class_val] = weight
 
+    nonburnable = np.isin(wc_map, NONBURNABLE_WORLDCOVER_CLASSES)
+
     b04_dn = stream_cropped_raster(b04_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
     b08_dn = stream_cropped_raster(b08_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
     b11_dn = stream_cropped_raster(b11_path, min_lon, min_lat, max_lon, max_lat, (H, W), Resampling.bilinear)
@@ -292,6 +295,7 @@ def process_sentinal2_and_worldcover(
         cloud_mask = np.isin(
             scl, np.array(sorted(scl_masked_classes), dtype=scl.dtype)
         )
+        nonburnable |= scl == SCL_WATER
 
     b04 = _dn_to_reflectance(b04_dn, s2_reflectance_scale, s2_reflectance_offset)
     b08 = _dn_to_reflectance(b08_dn, s2_reflectance_scale, s2_reflectance_offset)
@@ -335,4 +339,5 @@ def process_sentinal2_and_worldcover(
         "fuel_load": fuel_load,
         "dryness": dryness,
         "valid_mask": valid_mask,
+        "nonburnable": nonburnable
     }

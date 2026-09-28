@@ -35,8 +35,8 @@ export default function RegisteredUserDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-6">
           <MapPanel colSpan={8} height="responsive">
             <FireMap
-              lat={userLocation.lat}
-              lng={userLocation.lng}
+              lat={userLocation?.lat ?? null}
+              lng={userLocation?.lng ?? null}
               drawMode={false}
               onDrawComplete={() => {}}
               clearDrawings={0}
