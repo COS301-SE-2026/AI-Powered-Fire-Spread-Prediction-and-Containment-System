@@ -91,7 +91,7 @@ class TestSeverityFromBoundaryRadius:
     def test_very_large_radius_is_extreme(self):
         assert severity_from_boundary_radius(1000) == Severity.extreme
 
-    def test_accepta_decimal_input(self):
+    def test_accepts_decimal_input(self):
         assert severity_from_boundary_radius(Decimal("3.20")) == Severity.high
 
     def test_accepts_string_input(self):
@@ -297,7 +297,7 @@ class TestNotifyFireAlert:
         # 30km beyond regular's outermost tier (20km) but within staff's wider 50km max
         with patch.object(
             svc, "point_to_latlng", return_value=(-25.75, 28.24)
-        ), patch.object(svc, "distance_to_fire_edge", return_value=30.0):
+        ), patch.object(svc, "distance_to_fire_edge", return_value=15.0):
             created = svc.notify_fire_alert(db, fire, "New fire")
 
         notified_ids = {n.user_id for n in created}
@@ -348,7 +348,7 @@ class TestCheckProximityForUser:
         fires_query = query_mock(all_result=[fire])
 
         # prev notified at 15km (outer 20km tier), now closer
-        distance_query = query_mock(scalar_result=15.0)
+        distance_query = query_mock(scalar_result=8.0)
         db.query.side_effect = [fires_query, distance_query]
 
         with patch.object(
@@ -402,6 +402,29 @@ class TestCheckProximityForUser:
         assert created == []
         fires_query.filter.assert_called_once()
 
+class TestCheckProximityForAllUsers:
+    def test_calls_check_proximity_for_user_for_every_located_user(self, db):
+        user1 = make_user("u1")
+        user2 = make_user("u2")
+        db.query.return_value = query_mock(all_result=[user1, user2])
+        
+        with patch.object(svc, "check_proximity_for_user") as mock_check:
+            mock_check.side_effect = [["notif-for-u1"], []]
+            created = svc.check_proximity_for_all_users(db)
+            
+        assert mock_check.call_count == 2
+        mock_check.assert_any_call(db, user1)
+        mock_check.assert_any_call(db, user2)
+        assert created == ["notif-for-u1"]
+        
+    def test_returns_empty_when_no_users_have_a_location(self, db):
+        db.query.return_value = query_mock(all_result=[])
+        
+        with patch.object(svc, "check_proximity_for_user") as mock_check:
+            created = svc.check_proximity_for_all_users(db)
+        
+        mock_check.assert_not_called()
+        assert created == []
 
 class TestNotifyFireUpdate:
     def test_returns_empty_if_no_one_previously_notified(self, db):
