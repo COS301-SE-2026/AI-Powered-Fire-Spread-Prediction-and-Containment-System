@@ -914,32 +914,96 @@ def seed_water_resources(db):
 
 
 def seed_worker_nodes(db):
-    target_user_id = "usr_09"
-    node_id = "mock-worker-usr-09"
-
-    existing = db.query(WorkerNode).filter(WorkerNode.id == node_id).first()
-    if existing:
-        print(f" SKIP worker node {node_id} (already)")
-        return
 
     now = datetime.now(timezone.utc)
-    node = WorkerNode(
-        id=node_id,
-        user_id=target_user_id,
-        label="Test Rig 4090",
-        gpu_name="NVIDIA GeForce RTX 4090",
-        vram_mb=24576,
-        driver_version="550.54.14",
-        status="active",
-        consecutive_failures=0,
-        last_heartbeat=now - timedelta(minutes=2),
-        activated_at=now - timedelta(days=1),
-        created_at=now - timedelta(days=1),
-        updated_at=now,
-    )
-    db.add(node)
-    print(f" ADD worker node {node.label} for user {target_user_id}")
-    
+
+    nodes_data = [
+        {
+            "id"="mock-worker-usr-09",
+            "user_id"="usr_09",
+            "label"="Test Rig 4090",
+            "gpu_name"="NVIDIA GeForce RTX 4090",
+            "vram_mb"=24576,
+            "driver_version"="550.54.14",
+            "status"="active",
+            "consecutive_failures"=0,
+            "last_heartbeat"=now - timedelta(minutes=2),
+            "activated_at"=now - timedelta(days=1),
+            "created_at"=now - timedelta(days=1),
+            "updated_at"=now,
+        },
+        {
+            "id"="mock-worker-usr-10",
+            "user_id"="usr_10",
+            "label"="Heinrich Workstation",
+            "gpu_name"="NVIDIA GeForce RTX 4080",
+            "vram_mb"=16384,
+            "driver_version"="545.29.06",
+            "status"="busy",
+            "consecutive_failures"=0,
+            "last_heartbeat"=now - timedelta(seconds=45),
+            "activated_at"=now - timedelta(days=3),
+            "created_at"=now - timedelta(days=3),
+            "updated_at"=now,
+        },
+        {
+            "id"="mock-worker-usr-11",
+            "user_id"="usr_11",
+            "label"="Zanele Compute Box",
+            "gpu_name"="NVIDIA GeForce RTX 3080",
+            "vram_mb"=10240,
+            "driver_version"="535.154.05",
+            "status"="active",
+            "consecutive_failures"=0,
+            "last_heartbeat"=now - timedelta(minutes=4),
+            "activated_at"=now - timedelta(days=7),
+            "created_at"=now - timedelta(days=7),
+            "updated_at"=now,
+        },
+        {
+            "id"="mock-worker-usr-12",
+            "user_id"="usr_12",
+            "label"="Ruan Gaming PC",
+            "gpu_name"="NVIDIA GeForce RTX 3060",
+            "vram_mb"=12288,
+            "driver_version"="535.129.03",
+            "status"="offline",
+            "consecutive_failures"=1,
+            "last_heartbeat"=now - timedelta(days=2),
+            "activated_at"=now - timedelta(days=14),
+            "created_at"=now - timedelta(days=14),
+            "updated_at"=now - timedelta(days=2),
+        },
+    ]
+
+    for item in nodes_data:
+        existing = db.query(WorkerNode).filter(WorkerNode.id == item["id"]).first()
+        if existing:
+            print(f" SKIP worker node {item['id']} (already exists)")
+            continue
+
+        node = WorkerNode(
+            id=item["id"],
+            user_id=item["user_id"],
+            label=item["label"],
+            gpu_name=item["gpu_name"],
+            vram_mb=item["vram_mb"],
+            driver_version=item["driver_version"],
+            status=item["status"],
+            consecutive_failures=item["consecutive_failures"],
+            quarantine_until=item["quarantine_until"],
+            last_heartbeat=item["last_heartbeat"],
+            activated_at=item["activated_at"],
+            deactivated_at=item.get("deactivated_at"),
+            removed_at=item.get("removed_at"),
+            removal_reason=item.get("removal_reason"),
+            created_at=item["created_at"],
+            updated_at=item["updated_at"],
+        )
+        db.add(node)
+        print(f" ADD worker node {node.label} for user {node.user_id}")
+
+    db.commit()    
     
 
 
