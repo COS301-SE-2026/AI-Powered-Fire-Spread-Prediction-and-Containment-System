@@ -12,6 +12,7 @@ import { useRotate } from '../../hooks/useRotate';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useSuggestContainmentLine } from '../../hooks/useSuggestContainmentLine';
 import { SuggestedLineCard } from '../../components/firefighter/suggestedLineCard';
+import { MAX_SIM_HOURS, SIM_MAX_STEPS, TICKS_PER_HOUR } from '@/types/simulation';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');
@@ -106,7 +107,7 @@ export default function Simulation() {
 
   function handleRun() {
     setLastClusterRefs(null);
-    const steps = selectedFireId ? 288 : 4
+    const steps = selectedFireId ? SIM_MAX_STEPS : TICKS_PER_HOUR
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     runSimulation(selectedFireId, steps, drafts);
   }
@@ -123,12 +124,12 @@ export default function Simulation() {
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     const refs = Array.from(selectedFireIds);
     setLastClusterRefs(refs);
-    runClusterSimulation(refs, 288, drafts);
+    runClusterSimulation(refs, SIM_MAX_STEPS, drafts);
   }
   function handleRerun() {
     if(lastClusterRefs){
       const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
-      runClusterSimulation(lastClusterRefs, 288, drafts)
+      runClusterSimulation(lastClusterRefs, SIM_MAX_STEPS, drafts)
     }else{
       handleRun();
     }
@@ -214,7 +215,7 @@ export default function Simulation() {
   const canClear = hasResult || lines.length > 0 || currentTick > 0 || status === 'error';
 
   const maxSlider = Math.max(totalTicks - 1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
-  const totalHours = hasResult ? (maxSlider / 4) : 72;
+  const totalHours = hasResult ? (maxSlider / TICKS_PER_HOUR) : MAX_SIM_HOURS;
   return (
     <FirefighterSideBar hideLoginRegister>
       <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>

@@ -4,6 +4,7 @@ boundary box and edge touch detection so if the DCA hits the edge but still need
 
 import math
 import numpy as np
+from app.backend.src.ai.sim_constants import TICKS_PER_HOUR, MAX_SPREAD_PER_HOUR
 
 METERS_PER_DEG_LAT = (
     111320.0  # the amount of meters that 1 latitude on earth is equal to
@@ -15,7 +16,7 @@ def bbox_from_fire(
     lng: float,
     boundary_radius_m: float,
     n_steps: int,
-    max_spread_m_per_tick: float = 15.0,  # placeholder will be changed after training/calibration
+    max_spread_m_per_tick: float = MAX_SPREAD_PER_HOUR,  # placeholder will be changed after training/calibration
     min_pad_ratio: float = 2.0,  # cannot pad less than 2 times the size of the reported fire
     min_extent_radius_m: float = 300,
 ) -> tuple[float, float, float, float]:  # (min_lon, min_lat, max_lon, max_lat)
@@ -25,7 +26,7 @@ def bbox_from_fire(
     Calculates the headroom based on the time steps in the simulation this is to prevent the model from hitting the edges of the grid before finishing
     """
 
-    spread_headroom_m = n_steps * max_spread_m_per_tick
+    spread_headroom_m = (n_steps / TICKS_PER_HOUR) * MAX_SPREAD_PER_HOUR
 
     padded_radius_m = max(
         boundary_radius_m * min_pad_ratio,

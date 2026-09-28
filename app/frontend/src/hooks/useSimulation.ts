@@ -1,5 +1,5 @@
 // All API communication and playback state for fire simulation
-import { read } from 'node:fs';
+import { SIM_MAX_STEPS } from '../types/simulation';
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface Prediction {
@@ -48,6 +48,7 @@ async function readError(resp: Response, prefix: string): Promise<string> {
   } catch{
     return `${prefix} ${resp.status}: ${text}`;
   }
+  return `${prefix} ${resp.status}`;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
@@ -114,7 +115,7 @@ export function useSimulation() {
 
   // API call
   const runSimulation = useCallback(
-    async (fireId: string | null = null, nSteps = 288, containmentLines: string[] = []) => {
+    async (fireId: string | null = null, nSteps = SIM_MAX_STEPS, containmentLines: string[] = []) => {
       const controller = new AbortController();
       abortRef.current = controller;
 
@@ -172,7 +173,7 @@ export function useSimulation() {
     [startAutoPlay, stopAutoPlay]
   );
   const runClusterSimulation = useCallback(
-    async (fireRefs: string[], nSteps = 288, containmentLines: string[] = []) => {
+    async (fireRefs: string[], nSteps = SIM_MAX_STEPS, containmentLines: string[] = []) => {
       if (fireRefs.length < 2) {
         setError('Select at least two fires to run a combined simulation');
         setStatus('error');

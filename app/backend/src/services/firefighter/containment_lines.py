@@ -15,12 +15,13 @@ from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.ai.simulation_api import simulate_single_fire
 from app.backend.src.ai.suggest_containment import suggest_containment_line
+from app.backend.src.ai.sim_constants import MAXSTEPS
 from app.backend.src.schemas.containment_lines import (
     SuggestedContainmentLine,
     SuggestedContainmentLinesList,
 )
 MAX_RADIUS = 5  # max radius for containement auto-detection of nearby fire
-SUGGESTION_HORIZON_STEPS = 288 #72h as in dca.py
+SUGGESTION_HORIZON_STEPS = MAXSTEPS #72h as in dca.py
 
 # gets the containment lines
 def get_all_containment_lines(db: Session):
