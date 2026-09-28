@@ -3,7 +3,7 @@ import { useFetch } from './useFetch';
 import type { RoleRequestList, RoleRequestCreate } from '../types/RoleRequest';
 import { apiCall } from '../lib/api';
 
-export function useMyRoleRequests(searchKey: string) {
+export function useMyRoleRequests() {
   const { data, loading, error, refetch } = useFetch<RoleRequestList>('/api/users/role-requests/me');
   
   const requestRole = useCallback(async (payload: RoleRequestCreate) => {
@@ -20,7 +20,6 @@ export function useMyRoleRequests(searchKey: string) {
     requests: data?.data ?? [],
     total: data?.total ?? 0,
     loading,
-    error,
     requestRole,
     cancelRequest,
     refetch,
