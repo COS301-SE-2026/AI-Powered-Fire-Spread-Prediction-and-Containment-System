@@ -49,6 +49,7 @@ test.describe('Accessibility and WCAG 2.1 AA Verification', () => {
         await page.goto('/');
         await page.waitForLoadState('networkidle');
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const accessibilityScanResults = await new AxeBuilder({ page: page as any }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
 
         const severeViolations = accessibilityScanResults.violations.filter(
