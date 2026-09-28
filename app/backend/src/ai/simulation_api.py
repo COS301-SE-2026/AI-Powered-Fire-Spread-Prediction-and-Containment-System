@@ -10,6 +10,8 @@ import boto3
 import asyncio
 import json
 from pathlib import Path
+import base64
+import zlib
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
@@ -35,7 +37,7 @@ from .cache import (
 
 from app.backend.src.models.containment_lines import ContainmentLines
 from collections import defaultdict
-from app.backend.src.ai.job_builder import fetch_weather_history, fetch_static_grids, build_volunteer_payload
+from app.backend.src.ai.job_builder import fetch_weather_history, fetch_static_grids, build_volunteer_payload, DEFAULT_DCA_PARAMS
 from app.backend.src.routes.workers import dispatch_simulation_task, has_active_volunteer_workers
 
 router = APIRouter(prefix="/api", tags=["simulation"])
@@ -61,6 +63,17 @@ logger = logging.getLogger(__name__)
 RESULT_POLL_INTERVAL_S = 1.0
 RESULT_POLL_TIMEOUT_S = 360.0
 
+def decode_history(raw_result: dict, H: int, W: int) -> np.ndarray:
+    """
+    returns the history as an int8 and will accept compressed or old format
+    """
+    if "history_z" in raw_result:
+        raw = zlib.decompress(base64.b64decode(raw_result["history_z"]))
+        return np.frombuffer(raw, dtype=np.int8).reshape(raw_result["history_shape"])
+    legacy = raw_result.get("history", [])
+    if not legacy:
+        return np.zeros((0, H, W), dtype=np.int8)
+    return np.asarray(legacy, dtype=np.int8).reshape(len(legacy), H, W)
 
 def grid_dimensions_for_extent(
     lat_extent_deg: float,
@@ -235,7 +248,27 @@ def cluster_fires_by_bbox_overlap(fires: list, n_steps: int)-> list[list]:
     return list(groups.values())
 
 
+async def run_simulation_job(job: dict) -> dict | None:
+    job_id = job["job_id"]
 
+    if has_active_volunteer_workers():
+        try:
+            logger.info(f"Volunteer worker is online. Dispatching job {job_id}")
+            dispatch_res = await dispatch_simulation_task(job)
+            if dispatch_res and dispatch_res.get("status") == "completed":
+                logger.info(f"Volunteer completed for the following job: {job_id} successfully") 
+                return dispatch_res
+            
+            logger.warning(f"Volunteer failed for the following job: {job_id}. Now falling back onto server workers")
+        except Exception as err:
+                logger.exception(f"Error during volunteer dispatch job {job_id}. Now falling back onto server workers")
+
+    await asyncio.to_thread(
+        sqs.send_message,
+        QueueUrl=INFERENCE_QUEUE_URL,
+        MessageBody=json.dumps(job),
+    )
+    return await wait_for_result(job_id)
 
 
 
@@ -304,60 +337,22 @@ async def simulate_single_fire(
             "grid_w": W,
             "boundary_radius_m": boundary_m,
             "containment_lines": lines,
+            "params": DEFAULT_DCA_PARAMS
         }
 
-        raw_result = None
-
-        # Try to see if a volunteer is avaliable
-        if has_active_volunteer_workers():
-            try:
-                logger.info(f"Volunteer worker is online. Dispatching job {job_id}")
-                dispatch_res = await dispatch_simulation_task(job)
-                if dispatch_res and dispatch_res.get("status") == "completed":
-                    raw_result = dispatch_res
-                    logger.info(f"Volunteer completed for the following job: {job_id} successfully") 
-                else:
-                    logger.warning(f"Volunteer failed for the following job: {job_id}. Now falling back onto server workers")
-            except Exception as err:
-                logger.exception(f"Error during volunteer dispatch job {job_id}. Now falling back onto server workers")
-
-        #Cloud fall back
+        raw_result = await run_simulation_job(job)
         if raw_result is None:
-
-            await asyncio.to_thread(
-                sqs.send_message,
-                QueueUrl=INFERENCE_QUEUE_URL,
-                MessageBody=json.dumps(job),
-            )
-
-            raw_result = await wait_for_result(job_id)
-            if raw_result is None:
-                raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
+            raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
 
         # Format and cache the output
-
-        raw_history = raw_result.get("history", [])
-
-        flattened_history: list[list[int]] = []
-        for tick_grid in raw_history:
-            if (
-                isinstance(tick_grid, list)
-                and len(tick_grid) > 0
-                and isinstance(tick_grid[0], list)
-            ):
-                flattened_history.append(
-                    [int(cell) for row in tick_grid for cell in row]
-                )
-            else:
-                flattened_history.append([int(cell) for cell in tick_grid])
-
-        last_tick_flat = flattened_history[-1] if flattened_history else []
-        burned_cells = sum(1 for c in last_tick_flat if c in (1, 2))
+        hist = decode_history(raw_result, H, W)
+        flattened_history = hist.reshape(hist.shape[0], -1).tolist()
+        
+        last_grid_2d = hist[-1] if len(hist) else np.zeros((H, W), dtype=np.int8)
+        burned_cells = int(np.isin(last_grid_2d, (1, 2)).sum())
         radius_m = burned_area_radius_m(
             burned_cells, H, W, lat_extent_deg, lon_extent_deg, fire.lat
         )
-
-        last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
         truncated = bool(touch_edge(last_grid_2d, burning_val=1, burned_val=2))
 
         prediction_payload = {
@@ -467,34 +462,24 @@ async def simulate_fire_cluster(
             "grid_h": H,
             "grid_w": W,
             "containment_lines": lines,
+            "params": DEFAULT_DCA_PARAMS
         }
 
-        await asyncio.to_thread(
-            sqs.send_message,
-            QueueUrl=INFERENCE_QUEUE_URL,
-            MessageBody=json.dumps(job),
-        )
-
-        raw_result = await wait_for_result(job_id)
+        raw_result = await run_simulation_job(job)
         if raw_result is None:
             raise HTTPException(
                 status_code=504,
                 detail=f"Cluster simulation for fires {fire_refs} timed out while waiting for worker",
             )
 
-        raw_history = raw_result.get("history", [])
-        flattened_history: list[list[int]] = []
-        for tick_grid in raw_history:
-            if isinstance(tick_grid, list) and len(tick_grid) > 0 and isinstance(tick_grid[0], list):
-                flattened_history.append([int(cell) for row in tick_grid for cell in row])
-            else:
-                flattened_history.append([int(cell) for cell in tick_grid])
+        hist = decode_history(raw_result, H, W)
+        flattened_history = hist.reshape(hist.shape[0], -1).tolist()
 
-        last_tick_flat = flattened_history[-1] if flattened_history else []
-        burned_cells = sum(1 for c in last_tick_flat if c in (1, 2))
-        radius_m = burned_area_radius_m(burned_cells, H, W, lat_extent_deg, lon_extent_deg, center_lat)
-
-        last_grid_2d = np.array(raw_history[-1]) if raw_history else np.zeros((H, W))
+        last_grid_2d = hist[-1] if len(hist) else np.zeros((H, W), dtype=np.int8)
+        burned_cells = int(np.isin(last_grid_2d, (1, 2)).sum())
+        radius_m = burned_area_radius_m(
+            burned_cells, H, W, lat_extent_deg, lon_extent_deg, center_lat
+        )
         truncated = bool(touch_edge(last_grid_2d, burning_val=1, burned_val=2))
 
         prediction_payload = {
