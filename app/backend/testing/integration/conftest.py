@@ -22,6 +22,7 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-not-for-production")
 os.environ.setdefault("AWS_REGION", "us-east-1")
 os.environ.setdefault("SKIP_DB_INIT", "1")
 os.environ.setdefault("SKIP_SEED", "1")
+os.environ.setdefault("DISABLE_PROXIMITY_SCHEDULER", "1")
 os.environ.setdefault("MINIO_ENDPOINT", "localhost:9002")
 
 from app.backend.src.enums.report_status import ReportStatus
