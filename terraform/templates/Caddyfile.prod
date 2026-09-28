@@ -1,4 +1,4 @@
-fireaway.site, www.fireaway.site {
+(fireaway_prod) {
     encode zstd gzip
 
     handle /health {
@@ -12,4 +12,13 @@ fireaway.site, www.fireaway.site {
     handle {
         reverse_proxy frontend-prod:3000
     }
+}
+
+fireaway.site, www.fireaway.site {
+    import fireaway_prod
+}
+
+fireaway.csml.co.za {
+    tls /etc/caddy/cloudflare-origin.pem /etc/caddy/cloudflare-origin.key
+    import fireaway_prod
 }

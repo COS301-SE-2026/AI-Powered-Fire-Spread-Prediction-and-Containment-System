@@ -41,7 +41,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY app/__init__.py    /app/app/__init__.py
 EXPOSE 8000
 
-CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--ws-max-size", "104857600"]
 
 # <----------------------------------------------------------------------------------------->
 #  Stage 3: Production Target (Self-contained)
@@ -58,4 +58,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--ws-max-size", "104857600"]
