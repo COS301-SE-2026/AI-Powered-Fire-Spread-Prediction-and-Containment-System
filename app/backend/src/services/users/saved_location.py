@@ -1,6 +1,10 @@
+import uuid
+from typing import Optional
+
+from sqlalchemy import func, select
+
 from geoalchemy2.elements import WKTElement
 from geoalchemy2.shape import to_shape
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.backend.models.saved_location import SavedLocation
@@ -29,7 +33,7 @@ def get_saved_locations(db: Session, user_id: str):
             func.ST_Y(SavedLocation.location_geom).label("lat"),
             func.ST_X(SavedLocation.location_geom).label("lng"),
         )
-        filter(SavedLocation.user_id == user_id)
+        .filter(SavedLocation.user_id == user_id)
         .order_by(SavedLocation.created_at)
         .all()
     )
@@ -49,7 +53,7 @@ def get_my_saved_locations(location_id: str, user_id: str, db: Session):
         raise ValueError(f"Saved location {location_id} does not exist")
 
     location, lat, lng = result
-    return _format_location(location, lat, lng)
+    return format_location(location, lat, lng)
 
 def create_saved_location(payload: SavedLocationCreate, user_id: str, db: Session):
     count = db.query(SavedLocation).filter(SavedLocation.user_id == user_id).count()
