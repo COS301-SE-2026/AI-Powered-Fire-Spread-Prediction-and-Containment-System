@@ -80,7 +80,7 @@ export function Info({ user, onUpdated }: InfoProps) {
             );
         }
         return (
-            <div className="w-full rounded-2xl border border-carbon-stroke p-6 flex flex-col">
+            <div className="w-full rounded-2xl border border-carbon-stroke p-10 flex flex-col">
                 <h2 className='uppercase mb-4'>Account Info</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
