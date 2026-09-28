@@ -14,7 +14,7 @@ import { RotateHint } from '../shared/RotateHint';
 import { useSuggestContainmentLine } from '../../hooks/useSuggestContainmentLine';
 import { SuggestedLineCard } from './suggestedLineCard';
 
-export default function Simulation() {
+export default function SimulationPage() {
   const { reports: fires } = useFirefighterReports('');
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const [selectedFireIds, setSelectedFireIds] = useState<Set<string>>(new Set());
@@ -217,8 +217,7 @@ export default function Simulation() {
   const maxSlider = Math.max(totalTicks - 1, 1);    // Timeline slider tracks currentTick when simulation is running. Manual drag seeks to specific task
   const totalHours = hasResult ? (maxSlider / TICKS_PER_HOUR) : MAX_SIM_HOURS;
   return (
-    <>
-      <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
+    <div className='p-2 landscape:p-2 flex flex-col h-full w-full gap-y-3 landscape:gap-y-2'>
 
         {/* Page header and subtitle */}
         <RotateHint show={showHint} onDismiss={dismiss} />
@@ -489,6 +488,5 @@ export default function Simulation() {
           </div>
         </div>
       </div>
-    </>
   );
 }
