@@ -265,7 +265,7 @@ class TestNotifyFireAlert:
         assert created[0].user_id == "u1"
         assert created[0].type == NotificationType.alert
         db.commit.assert_called_once()
-        patched_push.assert_called_once_with(created[0])
+        patched_push.assert_called_once_with(db, created[0])
 
     def test_skips_user_beyond_all_tiers(self, db):
         fire = make_fire(boundary_radius=0.0)
