@@ -73,7 +73,10 @@ def decode_history(raw_result: dict, H: int, W: int) -> np.ndarray:
     legacy = raw_result.get("history", [])
     if not legacy:
         return np.zeros((0, H, W), dtype=np.int8)
-    return np.asarray(legacy, dtype=np.int8).reshape(len(legacy), H, W)
+    arr = np.asarray(legacy, dtype=np.int8)
+    if arr.dim == 3:
+        return arr
+    return arr.reshape(len(legacy), H, W)
 
 def grid_dimensions_for_extent(
     lat_extent_deg: float,
