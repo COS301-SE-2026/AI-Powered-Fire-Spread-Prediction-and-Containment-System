@@ -26,6 +26,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: testing
       INFERENCE_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-inference"
       RESULTS_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-results"
+      STORAGE_BUCKET: fire-reports
       ARTIFACTS_ROOT: "/tmp/artifacts"
     steps:
       - name: Checkout
@@ -112,6 +113,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: testing
       INFERENCE_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-inference"
       RESULTS_QUEUE_URL: "https://sqs.us-east-1.amazonaws.com/000000000000/dummy-results"
+      STORAGE_BUCKET: fire-reports
       ARTIFACTS_ROOT: "/tmp/artifacts"
     steps:
       - name: Checkout
@@ -279,6 +281,7 @@ jobs:
           INFERENCE_QUEUE_URL: ${{ secrets.INFERENCE_QUEUE_URL }}
           SEED_DEFAULT_PASSWORD: ${{ secrets.SEED_DEFAULT_PASSWORD }}
           SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+          STORAGE_BUCKET: fire-reports
         run: |
           PYTHONPATH=. nohup uvicorn app.backend.main:app --host 0.0.0.0 --port 8000 > /tmp/uvicorn.log 2>&1 &
           for i in {1..30}; do
