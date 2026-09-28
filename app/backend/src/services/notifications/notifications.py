@@ -16,6 +16,7 @@ from .geo import haversine_km, point_to_latlng
 from .severity import severity_from_boundary_radius
 from .websocket_manager import manager, get_main_loop
 from app.backend.src.services.fire_growth import effective_boundary_radius_km
+from .push_webpush import send_push_notification
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,7 @@ def distance_to_fire_edge(
     return max(0.0, center_distance - float(boundary_radius))
 
 
-def push(notification: Notification) -> None:
+def push(db: Session, notification: Notification) -> None:
     payload = {
         "event": "notification",
         "data": NotificationOut.from_model(notification).model_dump(mode="json"),
@@ -64,34 +65,39 @@ def push(notification: Notification) -> None:
             notification.id,
             notification.user_id,
         )
-        return
-    try:
-        future = asyncio.run_coroutine_threadsafe(
-            manager.send_to_user(notification.user_id, payload), loop
-        )
-    except RuntimeError as exc:
-        logger.error(
-            "Failed to push notification %s to user %s: %s",
-                notification.id,
-                notification.user_id,
-                exc,
-            )
-        return
-
-    def log_if_failed(f: asyncio.Future) -> None:
+    else:
         try:
-            exc = f.exception()
-            if exc is not None:
-                logger.error(
-                    "Failed to push notification %s to user %s: %s",
+            future = asyncio.run_coroutine_threadsafe(
+                manager.send_to_user(notification.user_id, payload), loop
+            )
+        except RuntimeError as exc:
+            logger.error(
+                "Failed to push notification %s to user %s: %s",
                     notification.id,
                     notification.user_id,
                     exc,
                 )
-        except (asyncio.CancelledError, RuntimeError):
-            pass
+            future = None
+            
+        if future is not None:
+            def log_if_failed(f: asyncio.Future) -> None:
+                try:
+                    exc = f.exception()
+                    if exc is not None:
+                        logger.error(
+                            "Failed to push notifications %s to user %s: %s",
+                            notification.id,
+                            notification.user_id,
+                            exc,
+                        )
+                except (asyncio.CancelledError, RuntimeError):
+                    pass
+                
+            future.add_done_callback(log_if_failed)
 
-    future.add_done_callback(log_if_failed)
+    user = db.query(User).filter(User.id == notification.user_id).first()
+    if user is not None:
+        send_push_notification(db, user, notification)
 
 
 def notify_fire_alert(
@@ -154,7 +160,7 @@ def notify_fire_alert(
     db.commit()
     for n in created:
         db.refresh(n)
-        push(n)
+        push(db, n)
     return created
 
 
@@ -240,7 +246,7 @@ def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
     db.commit()
     for n in created:
         db.refresh(n)
-        push(n)
+        push(db, n)
 
     return created
 
@@ -384,7 +390,7 @@ def notify_fire_update(
     db.commit()
     for n in created:
         db.refresh(n)
-        push(n)
+        push(db, n)
 
     return created
 
