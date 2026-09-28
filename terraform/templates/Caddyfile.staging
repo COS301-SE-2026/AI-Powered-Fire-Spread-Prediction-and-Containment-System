@@ -1,0 +1,24 @@
+(fireaway_staging) {
+    encode zstd gzip
+
+    handle /health {
+        reverse_proxy backend-staging:8000
+    }
+
+    handle /api/* {
+        reverse_proxy backend-staging:8000
+    }
+
+    handle {
+        reverse_proxy frontend-staging:3000
+    }
+}
+
+staging.fireaway.site, demo.fireaway.site {
+    import fireaway_staging
+}
+
+staging-fireaway.csml.co.za {
+    tls /certs/cloudflare-origin.pem /certs/cloudflare-origin.key
+    import fireaway_staging
+}
