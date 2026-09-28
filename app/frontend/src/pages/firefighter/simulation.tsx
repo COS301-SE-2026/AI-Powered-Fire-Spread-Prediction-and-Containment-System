@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity, Wand2 } from 'lucide-react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
+import { MAX_SIM_HOURS, SIM_MAX_STEPS, TICKS_PER_HOUR } from '@/types/simulation';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { SimulationResults } from '../../components/firefighter/simulationResult';
 import { FireMap } from '../../components/shared/DynamicFirefighterMap';
@@ -12,7 +13,6 @@ import { useRotate } from '../../hooks/useRotate';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useSuggestContainmentLine } from '../../hooks/useSuggestContainmentLine';
 import { SuggestedLineCard } from '../../components/firefighter/suggestedLineCard';
-import { MAX_SIM_HOURS, SIM_MAX_STEPS, TICKS_PER_HOUR } from '@/types/simulation';
 
 export default function Simulation() {
   const { reports: fires } = useFirefighterReports('');

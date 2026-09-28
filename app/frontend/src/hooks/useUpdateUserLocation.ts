@@ -1,5 +1,5 @@
-import { apiCall } from '../lib/api';
 import { useCallback, useRef } from 'react';
+import { apiCall } from '../lib/api';
 
 const MIN_DELTA_DEG = 0.0005;
 

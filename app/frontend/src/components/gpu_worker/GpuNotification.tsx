@@ -44,7 +44,7 @@ export default function GpuNotification({ autoDismissMs = 8000 }: GpuNotificatio
         return null;
     }
 
-    let message = `Your GPU looks compatible with FireAway simulations`;
+    const message = `Your GPU looks compatible with FireAway simulations`;
     return (
         <div className='toast toast-start toast-top z-100'>
             <div 
