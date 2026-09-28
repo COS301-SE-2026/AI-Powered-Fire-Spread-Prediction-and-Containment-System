@@ -10,7 +10,7 @@ export function NavLink({
   const content = (
     <>
       <Icon className="size-5 shrink-0 ml-1 lg:group-hover:ml-6 transition-all" />
-      <span className="text-sm font-medium tracking-wide inline lg:hidden lg:group-hover:inline opacity-100 lg:opacity-0 lg: group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+      <span className="text-sm font-medium tracking-wide inline lg:hidden lg:group-hover:inline opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
         {label}
       </span>
     </>
