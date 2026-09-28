@@ -41,9 +41,12 @@ resource "aws_iam_role_policy" "read_env_secret" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = "secretsmanager:GetSecretValue"
-      Resource = "arn:aws:secretsmanager:${data.aws_region.current.region}:*:secret:${var.env_secret_name}-*"
+      Effect = "Allow"
+      Action = "secretsmanager:GetSecretValue"
+      Resource = [
+        "arn:aws:secretsmanager:${data.aws_region.current.region}:*:secret:${var.env_secret_name}-*",
+        "arn:aws:secretsmanager:${data.aws_region.current.region}:*:secret:fireaway/origin-cert-*"
+      ]
     }]
   })
 }

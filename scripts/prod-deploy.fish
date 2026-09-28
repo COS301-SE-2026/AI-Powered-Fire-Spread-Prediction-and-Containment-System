@@ -56,6 +56,15 @@ end
 set -l backend $repo/fireaway-ryan-backend:$argv[1]
 set -l frontend $repo/fireaway-ryan-frontend:$argv[2]
 
+#sync the deploy config from this checkout it has to match what is committed
+set -l root (git rev-parse --show-toplevel); or fail "run from inside the repo"
+set -l cfg docker-compose.yml docker-compose.prod.yml terraform/templates/Caddyfile.prod
+git -C $root diff --quiet HEAD -- $cfg; or fail "uncommitted changes in $cfg"
+for f in $cfg
+    aws s3 cp $root/$f s3://fireaway-ryan-artifacts/deploy/(basename $f) --region $region >/dev/null
+    or fail "upload of $f failed"
+end
+
 set -g eip_alloc (aws ec2 describe-addresses --region $region \
     --filters Name=tag:Name,Values=fireaway-prod-live \
     --query 'Addresses[0].AllocationId' --output text)
