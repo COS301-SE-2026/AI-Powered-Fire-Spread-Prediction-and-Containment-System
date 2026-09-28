@@ -1,23 +1,34 @@
 import os
+import socket
 import sys
 import uuid
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+
+TEST_DB_URL = (
+    os.getenv("TEST_DATABASE_URL")
+    or os.getenv("TEST_DB_URL")
+    or"postgresql+psycopg2://postgres:postgres@localhost:5433/test_fire_db"
+)
+os.environ["DATABASE_URL"] = TEST_DB_URL
+os.environ.setdefault("JWT_SECRET_KEY", "test-secret-not-for-production")
+os.environ.setdefault("AWS_REGION", "us-east-1")
+os.environ.setdefault("SKIP_DB_INIT", "1")
+os.environ.setdefault("SKIP_SEED", "1")
+os.environ.setdefault("MINIO_ENDPOINT", "localhost:9002")
 
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.notification import Notification
 
 from unittest.mock import patch
-
-os.environ.setdefault("SKIP_DB_INIT", "1")
-os.environ.setdefault("SKIP_SEED", "1")
 
 from app.backend.src.dependencies.auth import hash_password
 from app.backend.db import Base, get_db
@@ -28,17 +39,28 @@ from app.backend.src.models.containment_lines import ContainmentLines
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
+from app.backend.src.models.water_resource import WaterResource
+
+#worker model
+from app.backend.src.models.workers import WorkerNode
 
 # seed data
 from app.backend.seed import (
     REGIONAL_LOCATIONS as SEED_FIRE_REPORTS,
     SEED_USERS,
     seed_fire_reports,
+    seed_water_resources,
 )
 
-TEST_DB_URL = os.getenv(
-    "TEST_DB_URL", "postgresql://postgres:postgres@localhost:5433/test_fire_db"
-)
+def minio_reachable() -> bool:
+    host, _, port = os.getenv("MINIO_ENDPOINT", "localhost:9002").partition(":")
+    try:
+        socket.create_connection((host, int(port or 9002)), timeout=1).close()
+        return True
+    except (OSError, ValueError):
+        return False
+    
+MINIO_UP = minio_reachable()
 
 engine = create_engine(TEST_DB_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -55,10 +77,12 @@ def create_tables():
         bind=engine,
         tables=[
             User.__table__,
+            WorkerNode.__table__,
             RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
+            WaterResource.__table__,
         ],
     )
     yield
@@ -67,10 +91,12 @@ def create_tables():
         bind=engine,
         tables=[
             User.__table__,
+            WorkerNode.__table__,
             RoleRequest.__table__,
             FireReports.__table__,
             Notification.__table__,
             ContainmentLines.__table__,
+            WaterResource.__table__,
         ],
     )
 
@@ -111,8 +137,9 @@ def client(db):
             pass
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
+    with patch("app.backend.main.ensure_bucket"):
+        with TestClient(app) as test_client:
+            yield test_client
     app.dependency_overrides.clear()
 
 
@@ -125,7 +152,6 @@ def sample_user():
         "name": "Test",
         "surname": "User",
         "id_number": "12345678",
-        "licence_number": "LIC-001",
         "role": "user",
     }
 
@@ -149,7 +175,6 @@ def make_user(db, full_name="Test User", email=None, role="user", lat=None, lng=
         name=name,
         surname=surname,
         id_number=str(uuid.uuid4().int)[:13],
-        license_number=None,
         role=role,
         totp_secret=None,
         is_2fa_enabled=False,
@@ -169,7 +194,6 @@ def make_role_request(db, user, role="firefighter", status="pending"):
         requested_role=role,
         current_role=user.role,
         status=status,
-        firefighter_license_id="LIC-001",
     )
     db.add(request)
     db.commit()
@@ -221,7 +245,6 @@ def seed_users_table(db):
             surname=data["surname"],
             email=data["email"],
             id_number=data["id_number"],
-            license_number=data["license_number"],
             hashed_password=hash_password(data["password"]),
             role=data["role"],
             is_active=True,
@@ -237,6 +260,13 @@ def seeded_fire_reports(db):
     seed_users_table(db)
     seed_fire_reports(db)
     return db.query(FireReports).all()
+
+@pytest.fixture
+def seeded_water_resources(db):
+    seed_users_table(db)
+    seed_water_resources(db)
+    db.commit()
+    return db.query(WaterResource).order_by(WaterResource.id).all()
 
 
 @pytest.fixture
@@ -291,3 +321,19 @@ def mock_on_land():
         return_value=True,
     ):
         yield
+
+def make_orphaned_role_request(db, role="admin", status="pending"):
+    """A RoleReequest whose user_id doesn't exist in `users`"""
+    db.execute(text("ALTER TABLE role_requests DISABLE TRIGGER ALL"))
+    request = RoleRequest(
+        request_id=str(uuid.uuid4()),
+        user_id="nonexistent-user",
+        requested_role=role,
+        current_role="user",
+        status=status,
+    )
+    db.add(request)
+    db.commit()
+    db.execute(text("ALTER TABLE role_requests ENABLE TRIGGER ALL"))
+    db.commit()
+    return request

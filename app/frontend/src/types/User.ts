@@ -5,7 +5,6 @@ export interface UserCreate {
   surname: string;
   email: string;
   id_number: string;
-  license_number: string | null;
   role: UserRole;
 }
 

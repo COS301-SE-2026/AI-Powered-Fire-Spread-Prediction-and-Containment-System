@@ -21,3 +21,15 @@ class ContainmentLinesList(BaseModel):
 
 class CreateContainmentLine(BaseModel):
     wkt: str
+
+class SuggestedContainmentLine(BaseModel):
+    wkt: str
+    length_m: float
+    build_time_min: float
+    arrival_at_line_min: float
+    margin_min: float
+    shielded_cell_score: float
+
+class SuggestedContainmentLinesList(BaseModel):
+    data: List[SuggestedContainmentLine]
+    total: int

@@ -2,6 +2,7 @@ import numpy as np
 import torch
 from pytorchfire import WildfireModel
 
+from app.backend.src.ai.sim_constants import MAXSTEPS, TICK_MINUTES, TICKS_PER_HOUR
 from .ignition import IgnitionScorer
 from scipy.ndimage import binary_dilation
 from .schema import UNBURNED
@@ -13,9 +14,6 @@ from .simulation import (
     update_model_tensors,
     convert_containment_line,
 )
-
-MAXSTEPS = 288  # 4 ticks = 1 hour max ticks is 288 as 72 hours is max simulation time
-TICK_MINUTES = 15  # how many minutes 1 tick is equivalent to
 
 
 def run_dca(
@@ -86,13 +84,17 @@ def run_dca(
     else:
         containment_mask = containment_raw
 
-    effective_ignition[containment_mask] = False
-
     effective_static = static_grids.copy()
-    if "fuel_load" in effective_static:
-        fuel = effective_static["fuel_load"].copy()
-        fuel[containment_mask] = 0.0
-        effective_static["fuel_load"] = fuel
+    base_nonburnable = effective_static.get("nonburnable")
+    nonburnable = (
+        np.zeros((H, W), dtype=bool)
+        if base_nonburnable is None
+        else np.asarray(base_nonburnable, dtype=bool)
+    )
+    nonburnable = nonburnable | containment_mask
+    effective_static["nonburnable"] = nonburnable
+
+    effective_ignition[nonburnable] = False
 
     # Pack environment raster and ignition locations into Tensors
     env_data = build_env_data(
@@ -111,8 +113,8 @@ def run_dca(
         for step in range(n_steps):
             if isinstance(
                 weather_grids, list
-            ):  # Updates weather tensors every 4 ticks if supplied with dynamic weather
-                weather_idx = min(step // 4, len(weather_grids) - 1)
+            ):  # Updates weather tensors every ticks per hour ticks
+                weather_idx = min(step // TICKS_PER_HOUR, len(weather_grids) - 1)
                 update_model_tensors(model, weather_grids[weather_idx], device)
 
             if hasattr(model, "state") and isinstance(model.state, torch.Tensor):

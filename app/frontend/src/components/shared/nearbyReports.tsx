@@ -1,5 +1,4 @@
 import { ChevronRight } from 'lucide-react';
-import { statusBadge } from '../admin/statusBadge';
 import type { NearbyFire } from '../../types/FirefighterDashboard';
 
 interface NearbyFireReports {
@@ -19,7 +18,7 @@ export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire
     );
   }
   return (
-    <div className="h-194 overflow-y-auto flex flex-col p-2">
+    <div className="flex flex-col p-2">
       {fires.map((fire) => (
           <button
             key={fire.location_text}

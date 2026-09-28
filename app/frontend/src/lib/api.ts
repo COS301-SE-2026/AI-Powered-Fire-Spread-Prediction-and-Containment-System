@@ -19,7 +19,18 @@ export async function apiCall(endpoint: string, method: string = 'GET', body: un
   const data = hasJson ? await res.json().catch(() => null) : null;
 
   if (!res.ok){
-    const detail = (data && typeof data === 'object' && 'detail' in data ? String(data.detail) : null) ?? `Request failed(${res.status})`;
+    let detail = `Request failed (${res.status})`;
+
+    if(data && typeof data == 'object' && 'detail' in data){
+      if(Array.isArray(data.detail) && data.detail[0]?.msg){
+        detail = data.detail[0].msg.replace(/^Value error,\s*/, '');
+      } else if(typeof data.detail === 'string'){
+        detail = data.detail.replace(/^Value error,\s*/, '');
+      } else {
+        detail = JSON.stringify(data.detail);
+      }
+    }
+
     throw new Error(detail);
   } 
   return data;

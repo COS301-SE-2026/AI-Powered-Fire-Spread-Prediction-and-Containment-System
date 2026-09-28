@@ -1,5 +1,5 @@
 export type ReportStatus = 'received' | 'pending' | 'verified' | 'rejected';
-
+export type FireStatus = 'active' | 'contained' | 'extinguished';
 export interface FireReportCreate {
   lat: number;
   lng: number;
@@ -36,4 +36,7 @@ export interface FireReportDetailResponse {
   size: number;
   submitted_at: string;
   reporter_name: string | null;
+  fire_status: FireStatus;
+  containment_percent: number | null;
+  merged_into_id: string | null;
 }

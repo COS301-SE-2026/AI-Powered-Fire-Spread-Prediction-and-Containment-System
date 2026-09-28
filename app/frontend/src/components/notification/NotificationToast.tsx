@@ -23,6 +23,7 @@ export function NotificationToast({ notification, onDismiss }: NotificationToast
   const { type, fireLocation, distance, message, fireId, time } = notification;
   const mapLink = NotificationLink(fireId, role);
   const isLive = mapLink.startsWith('/admin/live-map');
+  const isAlert = type === 'alert';
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, AUTO_DISMISS_MS);
@@ -31,7 +32,7 @@ export function NotificationToast({ notification, onDismiss }: NotificationToast
 
   let icon;
   let headline: string;
-  if (type === 'alert') {
+  if (isAlert) {
     icon = <AlertTriangle className="h-5 w-5 text-error" aria-hidden="true" />;
     headline = 'Fire Alert!';
   } else {
@@ -46,11 +47,30 @@ export function NotificationToast({ notification, onDismiss }: NotificationToast
       <p className="text-xs text-text-primary">
         {distance} km | {FormatDate(time)}
       </p>
-      {!isAuthLoading && (
+      {isAlert && !isAuthLoading && (
         <p className="text-xs font-semibold text-error underline mt-1">View on map</p>
       )}
     </>
   );
+
+  let body;
+  if (!isAlert) {
+    body = <div className="flex-1">{linkContent}</div>;
+  } else if (isAuthLoading) {
+    body = <div className="flex-1">{linkContent}</div>;
+  } else if (isLive) {
+    body = (
+      <a href={mapLink!} onClick={onDismiss} className="flex-1">
+        {linkContent}
+      </a>
+    );
+  } else {
+    body = (
+      <Link href={mapLink!} onClick={onDismiss} className="flex-1">
+        {linkContent}
+      </Link>
+    );
+  }
 
   return (
     <div className={`alert border-2 shadow-lg max-w-72 ${TOAST_STYLE[type]}`}>

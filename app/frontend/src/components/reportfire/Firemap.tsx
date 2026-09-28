@@ -14,6 +14,7 @@ interface FireMapProps {
   onLocationSelect?: (loc: { lat: number; lng: number; address: string }) => void;
   onBoundarySizeChange?: (radiusKm: number) => void;
   externalPin?: { lng: number; lat: number } | null;
+  showRadius?: boolean;
 }
 
 const INITIAL_RADIUS_KM = 0.2;
@@ -39,7 +40,7 @@ function createPinElement(): HTMLDivElement {
   el.className = 'flex flex-col items-center pointer-events-none';
   el.innerHTML = `
       <div class="w-7 h-7 rounded-full bg-ignite border-2 border-white shadow-lg flex items-center justify-center">
-        <div class="w-2.5 h-2.5 rounded-full bg-white"><div/>
+        <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
       </div>
       <div class="w-1 h-5 bg-ignite/40"></div>
       <div class="w-1 h-1 rounded-full bg-ignite"></div>
@@ -59,7 +60,7 @@ function createUserLocationElement(): HTMLDivElement{
 
 function createRimElement(radiusKm: number): { el: HTMLDivElement; label: HTMLDivElement } {
   const el = document.createElement('div');
-  el.className = 'flex flex.col items-center gap-1 cursor-grab';
+  el.className = 'flex flex-col items-center gap-1 cursor-grab';
 
   const label = document.createElement('div');
   label.className =
@@ -129,6 +130,7 @@ export function FireMap({
   onLocationSelect,
   onBoundarySizeChange,
   externalPin,
+  showRadius = true,
 }: Readonly<FireMapProps>) {
   const mapRef = useRef<MapRef>(null);
   const [markerPos, setMarkerPos] = useState<{ lng: number; lat: number } | null>(null);
@@ -242,7 +244,7 @@ export function FireMap({
 
   // rim marker
   useEffect(() => {
-    if (!markerPos || !mapRef.current) return;
+    if (!markerPos || !mapRef.current || !showRadius) return;
     rimMarkerRef.current?.remove();
 
     const rimPos = getRimPos(markerPos.lng, markerPos.lat, radiusKmRef.current);
@@ -284,7 +286,7 @@ export function FireMap({
       rimMarker.off('dragend', handleDragEnd);
       rimMarker.remove();
     };
-  }, [markerPos]);
+  }, [markerPos, showRadius]);
 
   // map click
   const handleMapClick = useCallback(
@@ -302,7 +304,10 @@ export function FireMap({
     [onLocationSelect, setRadius]
   );
 
-  const circleData = markerPos ? makeCircle(markerPos.lng, markerPos.lat, radiusKm) : null;
+  let circleData = null;
+  if (markerPos && showRadius) {
+    circleData = makeCircle(markerPos.lng, markerPos.lat, radiusKm);
+  }
 
   return (
     <div className='relative w-full h-full'>
@@ -315,7 +320,7 @@ export function FireMap({
       onClick={handleMapClick}
       cursor="crosshair"
     >
-    
+
       {circleData && (
         <Source id="boundary" type="geojson" data={circleData}>
           <Layer

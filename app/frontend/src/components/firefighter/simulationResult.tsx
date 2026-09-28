@@ -54,12 +54,12 @@ export function SimulationResults({
   fireLat = null,
   fireLng = null
 }: SimulationResultsProps) {
-  const { userLocation } = useNearbyFires();
+  const { searchLocation } = useNearbyFires();
 
   const selectedPrediction = selectedFireId ? predictions.find(p => p.ref === selectedFireId) : undefined;
 
-  const lat = selectedPrediction?.lat ?? fireLat ?? userLocation.lat;
-  const lng = selectedPrediction?.lng ?? fireLng ?? userLocation.lng;
+  const lat = selectedPrediction?.lat ?? fireLat ?? searchLocation.lat;
+  const lng = selectedPrediction?.lng ?? fireLng ?? searchLocation.lng;
 
   const { conditions, loading: conditionsLoading } = useFuelConditions(lat, lng);
 
@@ -84,9 +84,9 @@ export function SimulationResults({
     <div className="w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto">
       {/* Simulation header */}
       <div>
-        <h3 className="text-xs uppercase tracking-widest text-text-muted font-semibold">
+        <h1 className="text-xs uppercase tracking-widest text-text-muted font-semibold">
           Simulation - time area
-        </h3>
+        </h1>
         <p className="text-xs text-text-disabled">
           {status === 'idle' && 'Not yet run'}
           {status === 'loading' && 'Running simulation...'}
@@ -269,7 +269,7 @@ export function SimulationResults({
             </span>
           )}
         </div>
-          
+
 
         {!hasResult ? (
           <p className="text-xs text-text-disabled">Run the simulation to see spread data</p>
@@ -298,7 +298,7 @@ export function SimulationResults({
 
                 radiusses.push(currRadius);
               }
-              
+
               const maxRadius = radiusses.length > 0 ? Math.max(...radiusses) : 0;
               const barWidth = Math.min((maxRadius / upperBoundSpread) * 100, 100);
 
@@ -325,7 +325,7 @@ export function SimulationResults({
       {/* logged containment lines */}
       <div>
         <p className="text-sm uppercase py-2">containment lines logged</p>
-        <LoggedContainmentLine 
+        <LoggedContainmentLine
           lines={containmentLines}
           selectedFireId={selectedFireId}
           onDeleteLine={onDeleteLine}

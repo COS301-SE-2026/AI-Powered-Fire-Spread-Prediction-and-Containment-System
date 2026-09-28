@@ -31,17 +31,21 @@ export default function GuestPublicDashboard() {
             {/* Map */}
             <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-[50rem] w-full shadow-md">
               <FireMap
-                lat={userLocation.lat}
-                lng={userLocation.lng}
+                lat={userLocation?.lat ?? null}
+                lng={userLocation?.lng ?? null}
                 drawMode={false}
                 onDrawComplete={() => {}}
                 clearDrawings={0}
+                disableGrowth
               />
             </div>
           </div>
 
           {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
           <div className="xl:col-span-4 flex flex-col gap-3">
+            <h1 className='sr-only'>
+              Users Simulation Page
+            </h1>
             <h2 className="text-xs font-bold tracking-widest text-text-primary/50 uppercase shrink-0">
               Nearby Reports
             </h2>

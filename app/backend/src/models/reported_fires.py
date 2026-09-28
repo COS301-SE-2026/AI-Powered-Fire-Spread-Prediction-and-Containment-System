@@ -16,6 +16,7 @@ from sqlalchemy.orm import relationship
 
 from app.backend.db import Base
 from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.fire_status import FireStatus
 
 from sqlalchemy import Boolean
 from app.backend.src.enums.report_priority import ReportPriority
@@ -63,6 +64,13 @@ class FireReports(Base):
 
     # for verification of the photo hash
     photo_hash = Column(String(64), nullable=True, index=True)
+    
+    fire_status = Column(Enum(FireStatus), default=FireStatus.active, nullable=False)
+    containment_percent = Column(Numeric(5, 2), nullable=True)
+    
+    merged_into_id = Column(
+        String, ForeignKey("fire_reports.id", ondelete="SET NULL"), nullable=True, index=True
+    )
 
     @property
     def reporter(self) -> str:

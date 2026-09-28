@@ -50,9 +50,23 @@ aws secretsmanager get-secret-value --region ${aws_region} --secret-id ${env_sec
 printf 'BACKEND_IMAGE=%s\nFRONTEND_IMAGE=%s\n' "$BACKEND_IMAGE" "$FRONTEND_IMAGE" >> .env
 chmod 600 .env
 
+aws s3 cp s3://fireaway-ryan-artifacts/deploy/Caddyfile.${compose_env} ./Caddyfile.new
+mkdir -p /home/ubuntu/caddy/certs
+aws secretsmanager get-secret-value --region ${aws_region} --secret-id fireaway/origin-cert-pem \
+  --query SecretString --output text > /home/ubuntu/caddy/certs/cloudflare-origin.pem
+aws secretsmanager get-secret-value --region ${aws_region} --secret-id fireaway/origin-cert-key \
+  --query SecretString --output text > /home/ubuntu/caddy/certs/cloudflare-origin.key
+chmod 600 /home/ubuntu/caddy/certs/cloudflare-origin.key
+docker run --rm \
+  -v /opt/fireaway/Caddyfile.new:/etc/caddy/Caddyfile:ro \
+  -v /home/ubuntu/caddy/certs:/certs:ro \
+  caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+cp Caddyfile.new /home/ubuntu/caddy/Caddyfile
+
 COMPOSE="docker compose -f docker-compose.yml -f docker-compose.${compose_env}.yml"
 $COMPOSE pull
 $COMPOSE up -d --remove-orphans
+$COMPOSE up -d --no-deps --force-recreate gateway
 
 for i in $(seq 1 30); do
   if $COMPOSE ps backend --format '{{.Health}}' | grep -q '^healthy$'; then
