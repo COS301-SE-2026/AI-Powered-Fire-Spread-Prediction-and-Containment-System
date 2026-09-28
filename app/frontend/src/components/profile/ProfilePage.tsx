@@ -11,6 +11,7 @@ import { MyResourcesTable } from './ResourcesTable';
 import { StatusFilter } from '../../components/shared/Filter';
 import { SearchBar } from '../../components/shared/Searchbar';
 import { Info } from './Info';
+import { RoleRequests } from './RoleRequests';
 
 type ReportFilter = 'All' | ReportStatus;
 type ResourceFilter = 'All' | Status;
@@ -52,8 +53,8 @@ export default function ProfilePage(){
 
      const filteredResources = resources.filter(
         (resource) =>
-            resource.location.toLowerCase().includes(search.toLowerCase()) ||
-            resource.id.toLowerCase().includes(search.toLowerCase())
+            resource.location.toLowerCase().includes(resourceSearch.toLowerCase()) ||
+            resource.id.toLowerCase().includes(resourceSearch.toLowerCase())
     );
 
     async function handleStatusChange(id: string, status: Status) {
@@ -73,8 +74,9 @@ export default function ProfilePage(){
                 </div>
             </div>
             {displayUser ? (
-                <div className='mb-6'>
+                <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
                     <Info user={displayUser} onUpdated={setUpdatedUser} />
+                    <RoleRequests user={displayUser} />
                 </div>
             ): null}
             {user ? (
