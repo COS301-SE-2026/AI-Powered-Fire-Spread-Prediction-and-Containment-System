@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { subscribeToPush } from '@/lib/push';
+import { useAuth } from './useAuth';
 
 export function usePushSubscription(): void {
     const { isAuth, isLoading } = useAuth();

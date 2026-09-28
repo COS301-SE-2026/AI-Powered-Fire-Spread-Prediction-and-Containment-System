@@ -4,13 +4,13 @@ import type { AppProps } from 'next/app';
 import '../styles/globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Head from 'next/head';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 import { NotificationsProvider, useNotifications } from '../hooks/useNotification';
 import { NotificationToast } from '../components/notification/NotificationToast';
 import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
 import { OfflineBar } from '../components/shared/OfflineBar';
 import GpuNotification from '../components/gpu_worker/GpuNotification';
-import { usePushSubscription } from '@/hooks/usePushSubscription';
 
 // function GlobalToast() {
 //   const { activeToast, dismissToast } = useNotifications();
