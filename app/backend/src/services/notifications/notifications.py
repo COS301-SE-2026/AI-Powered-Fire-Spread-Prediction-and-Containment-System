@@ -15,13 +15,14 @@ from app.backend.src.schemas.notification import NotificationOut
 from .geo import haversine_km, point_to_latlng
 from .severity import severity_from_boundary_radius
 from .websocket_manager import manager, get_main_loop
+from app.backend.src.services.fire_growth import effective_boundary_radius_km
 
 logger = logging.getLogger(__name__)
 
-TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0]
+TIER_THRESHOLDS_KM = [10.0, 5.0, 2.0]
 
 # Admin and firefighters get a wider escalation ladder since they may need broader situational awareness
-STAFF_TIER_THRESHOLDS_KM = [50.0, 20.0, 10.0, 5.0, 2.0]
+STAFF_TIER_THRESHOLDS_KM = [20.0, 10.0, 5.0, 2.0]
 
 
 def tier_for_distance(distance_km: float, thresholds: list[float]) -> float | None:
@@ -115,7 +116,8 @@ def notify_fire_alert(
         )
     fire_lat, fire_lng = fire_latlng
 
-    severity = severity_from_boundary_radius(fire_report.boundary_radius)
+    current_radius = effective_boundary_radius_km(fire_report)
+    severity = severity_from_boundary_radius(current_radius)
     all_users = db.query(User).all()
 
     created: list[Notification] = []
@@ -129,7 +131,7 @@ def notify_fire_alert(
             user_latlng[1],
             fire_lat,
             fire_lng,
-            fire_report.boundary_radius,
+            current_radius,
         )
         thresholds = tier_thresholds_for_role(user.role)
         if tier_for_distance(distance, thresholds) is None:
@@ -183,7 +185,7 @@ def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
             user_latlng[1],
             fire_latlng[0],
             fire_latlng[1],
-            fire_report.boundary_radius,
+            effective_boundary_radius_km(fire_report),
         )
         new_tier = tier_for_distance(distance, thresholds)
         if new_tier is None:
@@ -207,7 +209,7 @@ def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
         if old_tier is not None and new_tier >= old_tier:
             continue  # not closer than a tier they've already been fotified at
 
-        severity = severity_from_boundary_radius(fire_report.boundary_radius)
+        severity = severity_from_boundary_radius(effective_boundary_radius_km(fire_report))
         is_first_notification_for_fire = old_tier is None
 
         if is_first_notification_for_fire:
@@ -242,6 +244,15 @@ def check_proximity_for_user(db: Session, user: User) -> list[Notification]:
 
     return created
 
+def check_proximity_for_all_users(db: Session) -> list[Notification]:
+    """Re-runs check_proximity_fir_user for every user who has a saved location"""
+    users = db.query(User).filter(User.location_geom.isnot(None)).all()
+    
+    created: list[Notification] = []
+    for user in users:
+        created.extend(check_proximity_for_user(db, user))
+    return created
+
 
 def check_proximity_for_guest(
     db: Session, latitude: float, longitude: float
@@ -272,13 +283,13 @@ def check_proximity_for_guest(
             longitude,
             fire_latlng[0],
             fire_latlng[1],
-            fire_report.boundary_radius,
+            effective_boundary_radius_km(fire_report),
         )
         tier = tier_for_distance(distance, thresholds)
         if tier is None:
             continue
 
-        severity = severity_from_boundary_radius(fire_report.boundary_radius)
+        severity = severity_from_boundary_radius(effective_boundary_radius_km(fire_report))
         message = (
             f"Fire reported near {fire_report.location_text} ({distance:.1f}km away)"
         )
@@ -322,7 +333,8 @@ def notify_fire_update(
         )
     fire_lat, fire_lng = fire_latlng
 
-    severity = severity_from_boundary_radius(fire_report.boundary_radius)
+    current_radius = effective_boundary_radius_km(fire_report)
+    severity = severity_from_boundary_radius(current_radius)
 
     user_ids = [
         row[0]
@@ -350,7 +362,7 @@ def notify_fire_update(
                 user_latlng[1],
                 fire_lat,
                 fire_lng,
-                fire_report.boundary_radius,
+                current_radius,
             )
             personalized_message = f"{message} ({distance:.1f}km away)"
         else:
