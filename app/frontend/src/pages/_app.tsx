@@ -10,6 +10,7 @@ import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
 import { OfflineBar } from '../components/shared/OfflineBar';
 import GpuNotification from '../components/gpu_worker/GpuNotification';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 
 // function GlobalToast() {
 //   const { activeToast, dismissToast } = useNotifications();
@@ -24,6 +25,7 @@ import GpuNotification from '../components/gpu_worker/GpuNotification';
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const showGpuNotification = router.pathname.startsWith('/admin') || router.pathname.startsWith('/firefighter') || router.pathname.startsWith('/user');
+  usePushSubscription();
   useEffect(() => {
     // Only register in prod
 
