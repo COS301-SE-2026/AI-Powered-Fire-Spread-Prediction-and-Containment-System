@@ -18,6 +18,7 @@ runs:
     - shell: bash
       run: |
         UV_FLAGS="--system --require-hashes --only-binary :all: \
+          --no-binary http-ece \
           --extra-index-url https://download.pytorch.org/whl/cpu \
           --index-strategy unsafe-first-match"
         uv pip install $UV_FLAGS -r app/backend/requirements.txt
