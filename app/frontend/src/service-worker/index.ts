@@ -60,7 +60,7 @@ const serwist = new Serwist({
 serwist.addEventListeners();
 
 // handle incoming web push messages
-self.addEventListener('ppush', (event: PushEvent) => {
+self.addEventListener('push', (event: PushEvent) => {
     if (!event.data) return;
 
     let payload: {
