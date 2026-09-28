@@ -19,6 +19,7 @@ COPY app/backend/requirements.txt ./requirements.txt
 # Install locked production dependencies with BuildKit Caching
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --require-hashes --only-binary :all: \
+    --no-binary http-ece \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     --index-strategy unsafe-first-match \
     -r requirements.txt
