@@ -1,0 +1,15 @@
+fireaway.site, www.fireaway.site {
+    encode zstd gzip
+
+    handle /health {
+        reverse_proxy backend-prod:8000
+    }
+
+    handle /api/* {
+        reverse_proxy backend-prod:8000
+    }
+
+    handle {
+        reverse_proxy frontend-prod:3000
+    }
+}

@@ -11,7 +11,8 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_HTTP_TIMEOUT=300
 
 # Layer base lockfile early for docker caching
 COPY app/backend/requirements.txt ./requirements.txt
