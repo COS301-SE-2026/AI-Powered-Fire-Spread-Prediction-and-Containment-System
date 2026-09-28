@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.schemas.role_request import RoleRequestCreate, RoleRequestList, RoleRequestResponse
-from app.backend.src.services.user import role_request
+from app.backend.src.services.users import role_request
 
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 @router.get("/role-requests/me", response_model=RoleRequestList)
-def get_my_role_requests(db: Session = Depends(get_db)user: User = Depends(get_current_user)):
+def get_my_role_requests(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     return role_request.get_my_role_requests(db, user)
 
 
