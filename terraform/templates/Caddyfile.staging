@@ -15,10 +15,10 @@
 }
 
 staging.fireaway.site, demo.fireaway.site {
-    import fireaway_prod
+    import fireaway_staging
 }
 
-fireaway.csml.co.za {
-    tls /etc/caddy/cloudflare-origin.pem /etc/caddy/cloudflare-origin.key
-    import fireaway_prod
+staging-fireaway.csml.co.za {
+    tls /certs/cloudflare-origin.pem /certs/cloudflare-origin.key
+    import fireaway_staging
 }

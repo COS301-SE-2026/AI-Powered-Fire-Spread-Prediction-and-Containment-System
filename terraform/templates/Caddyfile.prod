@@ -19,6 +19,6 @@ fireaway.site, www.fireaway.site {
 }
 
 fireaway.csml.co.za {
-    tls /etc/caddy/cloudflare-origin.pem /etc/caddy/cloudflare-origin.key
+    tls /certs/cloudflare-origin.pem /certs/cloudflare-origin.key
     import fireaway_prod
 }
