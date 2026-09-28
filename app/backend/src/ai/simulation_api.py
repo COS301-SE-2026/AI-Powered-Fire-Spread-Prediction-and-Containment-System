@@ -74,7 +74,7 @@ def decode_history(raw_result: dict, H: int, W: int) -> np.ndarray:
     if not legacy:
         return np.zeros((0, H, W), dtype=np.int8)
     arr = np.asarray(legacy, dtype=np.int8)
-    if arr.dim == 3:
+    if arr.ndim == 3:
         return arr
     return arr.reshape(len(legacy), H, W)
 
