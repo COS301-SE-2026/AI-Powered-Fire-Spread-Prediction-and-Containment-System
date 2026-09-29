@@ -11,11 +11,15 @@ from .geo import bbox_from_fire
 from .simulation import build_boundary_ignition_mask
 from app.backend.src.ai.sim_constants import TICK_MINUTES
 
-MAX_LINE_LENGTH_M = 400.0
+MIN_LINE_LENGTH_M = 400.0
+MAX_LINE_LENGTH_M = 3000.0
+LENGTH_TO_DIAMETER = 0.9 # 90 % of predicted fires width
 MIN_STANDOFF_M = 50.0
-BUILD_RATE_M_PER_MIN = 3.0
+BUILD_RATE_M_PER_MIN = 10.0
+MAX_FRONTIER_CANDIDATES = 1000
 FRONTIER_SAMPLE_STRIDE_CELLS = 5
 LOOKAHEAD_PAD_M = 300.0
+PLANNING_HORIZON_FRACTION = 0.4 # plan against front at 40% of run
 
 
 @dataclass
@@ -44,7 +48,7 @@ def _standoff_mask(ignition_mask : np.array, standoff_cells: int) -> np.ndarray:
         mask = binary_dilation(mask, structure = struct)
     return mask
 
-def _frontier_cells(arrival: np.ndarray, stride : int)-> list[tuple[int,int]]:
+def _frontier_cells(arrival: np.ndarray)-> list[tuple[int,int]]:
     H, W = arrival.shape
     reached = arrival != -1
     never_reached = ~reached
@@ -56,7 +60,13 @@ def _frontier_cells(arrival: np.ndarray, stride : int)-> list[tuple[int,int]]:
 
     frontier = reached & neighbour_never_reached
     rows, cols = np.nonzero(frontier)
+    stride = max(1, len(rows) // MAX_FRONTIER_CANDIDATES)
     return list(zip(rows[::stride].tolist(), cols[::stride].tolist()))
+
+def line_length_m(arrival: np.ndarray, cell_size_m: float) -> float:
+    area_m2 = float((arrival != -1).sum()) * cell_size_m ** 2
+    diameter_m = 2.0 * math.sqrt(area_m2 / math.pi)
+    return float(np.clip(LENGTH_TO_DIAMETER * diameter_m, MIN_LINE_LENGTH_M, MAX_LINE_LENGTH_M))
 
 def _local_gradient_angle(arrival : np.ndarray, row: int, col: int)-> float:
     H, W = arrival.shape
@@ -122,7 +132,7 @@ def _score_candidate(
     yy, xx =np.mgrid[r_min:r_max, c_min:c_max]
 
     ref_r, ref_c = rows.mean(), cols.mean()
-    normal_r, normal_c = math.cos(angle_rad), math.sin(angle_rad)
+    normal_r, normal_c = math.sin(angle_rad), math.cos(angle_rad)
     side = (yy - ref_r) * normal_r + (xx - ref_c) * normal_c
 
     beyond = side >0
@@ -148,18 +158,21 @@ def suggest_containment_line(
     arrival = compute_arrival_ticks(history)
     ignition_mask = build_boundary_ignition_mask(H, W, cell_size_m, boundary_radius_m)
     standoff_cells = max(1, round(MIN_STANDOFF_M/ cell_size_m))
-    excluded = _standoff_mask(ignition_mask, standoff_cells)
+    horizon_tick = max(1, int(len(history) * PLANNING_HORIZON_FRACTION))
+    front_now = (arrival != -1) & (arrival <= horizon_tick)
+    excluded = _standoff_mask(front_now | ignition_mask, standoff_cells)
+    front_arrival = np.where(front_now, arrival, -1)
 
-    max_len_cells = MAX_LINE_LENGTH_M /cell_size_m
+    line_len_cells = line_length_m(arrival, cell_size_m) / cell_size_m
     lookahead_pad_cells = max(1, round(LOOKAHEAD_PAD_M / cell_size_m))
-    candidates : list[ConatainmentSuggestion] = []
+    candidates : list[ContainmentSuggestion] = []
 
-    for row, col in _frontier_cells(arrival, FRONTIER_SAMPLE_STRIDE_CELLS):
-        if excluded[row,col]: 
-            continue
-        
+    for row, col in _frontier_cells(front_arrival):
         angle = _local_gradient_angle(arrival, row, col)
-        p0, p1 = _make_candidate_segment(row, col, angle, max_len_cells/2)
+        offset = standoff_cells + 1
+        row_c = row + math.sin(angle) * offset
+        col_c = col + math.cos(angle) * offset
+        p0, p1 = _make_candidate_segment(row_c, col_c, angle, line_len_cells/2)
         cells = _rasterize_segment(p0, p1, H, W)
 
         if not cells or any(excluded[r, c] for r, c in cells):

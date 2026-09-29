@@ -553,6 +553,7 @@ export function FireMap({ lat,
     }));
   }, [selectedResourceId, resources]);
 
+  const simulationShown = girdFeautures.length > 0;
   return (
     <div className='relative w-full h-full'>
       {/* key for map legend */}
@@ -644,6 +645,7 @@ export function FireMap({ lat,
             <Layer
               id="fire-radius-fill"
               type="fill"
+              layout={{ visibility: simulationShown ? 'none' : 'visible' }}
               paint={{
                 'fill-color': '#fcba3e',
                 'fill-opacity': ['*', 0.3, ['coalesce', ['get', 'opacity'], 1]],
@@ -653,6 +655,7 @@ export function FireMap({ lat,
             <Layer
               id="fire-radius-outline"
               type="line"
+              layout={{ visibility: simulationShown ? 'none' : 'visible' }}
               paint={{
                 'line-color': '#fcba3e',
                 'line-width': 1,
@@ -782,7 +785,7 @@ export function FireMap({ lat,
               paint={{
                 'line-color': '#a855f7',
                 'line-width': 8,
-                'line-opacity': 0.35,
+                'line-opacity': 0.75,
               }}
             />
             <Layer
@@ -791,7 +794,7 @@ export function FireMap({ lat,
               paint={{
                 'line-color': '#a855f7',
                 'line-width': 3,
-                'line-dasharray': [0.2, 1.5],
+                'line-dasharray': [1, 1],
               }}
             />
           </Source>
