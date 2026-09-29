@@ -12,6 +12,7 @@ import { StatusFilter } from '../../components/shared/Filter';
 import { SearchBar } from '../../components/shared/Searchbar';
 import { Info } from './Info';
 import { RoleRequests } from './RoleRequests';
+import { SavedLocations } from './SavedLocations';
 
 type ReportFilter = 'All' | ReportStatus;
 type ResourceFilter = 'All' | Status;
@@ -79,6 +80,9 @@ export default function ProfilePage(){
                     <RoleRequests user={displayUser} />
                 </div>
             ): null}
+
+            {user ? <SavedLocations /> : null}
+
             {user ? (
                 <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>
                     <h2 className='uppercase mb-3'>
