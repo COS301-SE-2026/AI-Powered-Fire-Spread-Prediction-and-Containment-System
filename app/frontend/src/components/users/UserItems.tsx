@@ -15,7 +15,7 @@ export function UserItems() {
     <>
       <NavLink icon={Map} label="Home" href="/users/live-map" />
       <NavLink icon={Flame} label="Report a Fire" href="/users/report-fire" />
-      <NavLink icon={Play} label="Fire Simulation AI" href="/users/Simulation" />
+      <NavLink icon={Play} label="Fire Simulation AI" href="/users/simulation" />
       <NavLink icon={Droplets} label="Register Resources" href="/users/RegisterResource" />
       {shouldShowVolunteerTab && (
         <NavLink icon={Cpu} label="Volunteer your GPU" href="/users/GpuVolunteer" />

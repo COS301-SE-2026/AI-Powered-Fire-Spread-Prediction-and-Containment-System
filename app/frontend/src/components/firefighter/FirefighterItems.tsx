@@ -14,7 +14,7 @@ export function FirefighterItems() {
     <>
       <NavLink icon={Map} label="Firefighter Dashboard" href="/firefighter/dashboard" />
       <NavLink icon={CirclePlus} label="Report a Fire" href="/firefighter/report-fire" />
-      <NavLink icon={Play} label="Fire Simulation AI" href="/firefighter/Simulation" />
+      <NavLink icon={Play} label="Fire Simulation AI" href="/firefighter/simulation" />
       <NavLink icon={Droplets} label="Register Resources" href="/firefighter/RegisterResource" />
       {shouldShowVolunteerTab && (
         <NavLink icon={Cpu} label="Volunteer your GPU" href="/firefighter/GpuVolunteer" />
