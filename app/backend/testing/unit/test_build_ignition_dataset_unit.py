@@ -335,3 +335,113 @@ def test_load_static_grids_for_fire_falls_back_to_computing_aspect_sin_cos():
     }
     assert grids["aspect_sin"] == pytest.approx(np.sin(np.radians(90.0)))
     assert grids["aspect_cos"] == pytest.approx(np.cos(np.radians(90.0)), abs=1e-6)
+
+# build_rows_for_fire 
+def test_build_rows_for_fire_labels_and_eligibility():
+    ticks = [
+        pd.Timestamp("2024-01-01"),
+        pd.Timestamp("2024-01-02"),
+        pd.Timestamp("2024-01-03"),
+    ]
+    detection = pd.DataFrame(
+        {
+            "lat": [2.5, 1.5, 0.5],
+            "lon": [0.5, 1.5, 2.5],
+            "timestamp": ticks,
+        }
+    )
+    event = bid.FireEvent(
+        fire_id=0,
+        detection=detection,
+        min_lon=0,
+        min_lat=0,
+        max_lon=3,
+        max_lat=3,
+        ticks=ticks,
+    )
+
+    static_grids = {
+        "elevation": np.zeros((3, 3), dtype=np.float32),
+        "slope": np.zeros((3, 3), dtype=np.float32),
+        "aspect_sin": np.zeros((3, 3), dtype=np.float32),
+        "aspect_cos": np.ones((3, 3), dtype=np.float32),
+        "fuel_load": np.full((3, 3), 0.5, dtype=np.float32),
+        "dryness": np.full((3, 3), 0.5, dtype=np.float32),
+    }
+    weather_provider = bid.ConstantWeatherProvider()
+
+    x_all, y_all = bid.build_rows_for_fire(
+        event, static_grids, weather_provider, target_shape=(3, 3)
+    )
+
+    assert x_all.shape == (17, len(FEATURES))
+    assert y_all.shape == (17,)
+    assert y_all.sum() == 2.0
+
+
+def test_build_rows_for_fire_single_tick_fire_returns_empty():
+    ticks = [pd.Timestamp("2024-01-01")]
+    detection = pd.DataFrame({"lat": [1.0], "lon": [1.0], "timestamp": ticks})
+    event = bid.FireEvent(
+        fire_id=0,
+        detection=detection,
+        min_lon=0,
+        min_lat=0,
+        max_lon=2,
+        max_lat=2,
+        ticks=ticks,
+    )
+    static_grids = {
+        k: np.zeros((2, 2), dtype=np.float32)
+        for k in [
+            "elevation",
+            "slope",
+            "aspect_sin",
+            "aspect_cos",
+            "fuel_load",
+            "dryness",
+        ]
+    }
+    weather_provider = bid.ConstantWeatherProvider()
+
+    x_all, y_all = bid.build_rows_for_fire(
+        event, static_grids, weather_provider, target_shape=(2, 2)
+    )
+
+    assert x_all.shape == (0, len(FEATURES))
+    assert y_all.shape == (0,)
+
+
+# path validation (apparently relevant for security, idk)
+
+def test_validate_input_path_accepts_file_within_base_dir(tmp_path):
+    f = tmp_path / "data.csv"
+    f.write_text("a,b\n1,2\n")
+    resolved = bid.validate_input_path(f, base_dir=tmp_path)
+    assert resolved == f.resolve()
+
+
+def test_validate_input_path_rejects_traversal_outside_base_dir(tmp_path):
+    outside = tmp_path.parent / "outside.csv"
+    outside.write_text("x")
+    try:
+        with pytest.raises(ValueError, match="escapes allowed base_dir"):
+            bid.validate_input_path(tmp_path / ".." / "outside.csv", base_dir=tmp_path)
+    finally:
+        outside.unlink(missing_ok=True)
+
+
+def test_validate_input_path_rejects_nonexistent_file(tmp_path):
+    with pytest.raises(ValueError, match="not exist"):
+        bid.validate_input_path(tmp_path / "missing.csv", base_dir=tmp_path)
+
+
+def test_validate_output_path_creates_missing_parent_dirs(tmp_path):
+    target = tmp_path / "nested" / "dir" / "out.npz"
+    resolved = bid.validate_output_path(target, base_dir=tmp_path)
+    assert resolved.parent.is_dir()
+
+
+def test_validate_output_path_rejects_traversal_outside_base_dir(tmp_path):
+    with pytest.raises(ValueError, match="escapes allowed base_dir"):
+        bid.validate_output_path(tmp_path / ".." / "escaped.npz", base_dir=tmp_path)

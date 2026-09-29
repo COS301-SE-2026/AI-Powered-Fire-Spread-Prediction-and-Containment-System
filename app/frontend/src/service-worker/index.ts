@@ -58,3 +58,46 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// handle incoming web push messages
+self.addEventListener('push', (event: PushEvent) => {
+    if (!event.data) return;
+
+    let payload: {
+        title?: string;
+        body?: string;
+        notificationId?: string;
+        fireReportId?: string;
+        type?: string;
+        severity?: string;
+    };
+    try {
+        payload = event.data.json();
+    } catch {
+        return;
+    }
+
+    const title = payload.title || 'Fire Away';
+    event.waitUntil(
+        self.registration.showNotification(title, {
+            body: payload.body,
+            icon: '/icons/icon-192.png',
+            badge: '/icons/icon-192',
+            data: { fireReportId: payload.fireReportId, notificationId: payload.notificationId },
+        }),
+    );
+});
+
+// clicking OS-level notification focuses on open tab if there is one, else opens a new one at app's root
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+    event.notification.close();
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientsArr) => {
+            const existing = clientsArr.find((c) => 'focus' in c) as WindowClient | undefined;
+            if (existing) {
+                return existing.focus();
+            }
+            return self.clients.openWindow('/');
+        }),
+    );
+});
