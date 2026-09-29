@@ -22,6 +22,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       RUN_SEED: "1"
     volumes:
+      - ~/.aws:/root/.aws:ro
       - ./app/__init__.py:/app/app/__init__.py:ro,z
       - ./app/backend:/app/app/backend:z
       - ./app/artifact_store:/app/app/artifact_store:z
@@ -84,10 +85,29 @@ services:
       [internal]
 
   minio:
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
+    restart: unless-stopped
+    env_file:
+      [.env]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_DRIVE_MIN_FREE_DISK: "500MB"
+    volumes:
+      - miniodata:/data
     ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      [internal]
   valkey:
     ports: ["127.0.0.1:6379:6379"]
 
 volumes:
   pgdata:
   frontend_node_modules:
+  miniodata:

@@ -7,7 +7,7 @@ from typing import Optional, List
 from fastapi import HTTPException, status
 import redis
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from app.backend.src.dependencies.auth import create_access_token
 from app.backend.src.models.workers import WorkerNode
@@ -28,6 +28,12 @@ valkey_client = redis.Redis(
 REGISTRATION_KEY_TTL = 86400 # 24 hours
 MIN_VRAM_MB = 3584
 
+def public_backend_url(request_host: str | None) -> str:
+    """uses the host that user is on"""
+    default = os.getenv("BACKEND_PUBLIC_URL", "http://localhost:8000").rstrip("/")
+    allowed = {h.strip().lower() for h in os.getenv("WORKER_PUBLIC_HOSTS", "").split(",") if h.strip()}
+    host = (request_host or "").split(":")[0].strip().lower()
+    return f"https://{host}" if host in allowed else default
 
 def list_workers(
     db: Session,
@@ -143,6 +149,7 @@ def generate_worker_key(
         user_id: str,
         label: str = "volunteer-desktop",
         gpu_name: str = "Unkown GPU",
+        request_host: str | None = None,
 ) -> dict:
     """Generates single-use setup key and stores in Valkey with 24 h TTL to authenticate user"""
 
@@ -154,19 +161,26 @@ def generate_worker_key(
     # SETEX worker:reg:<key> 86400 <user_id>
     valkey_client.setex(valkey_storage_key, REGISTRATION_KEY_TTL, user_id)
 
-    backend_url = os.getenv("BACKEND_PUBLIC_URL", "http://localhost:8000")
-    ws_url = backend_url.rstrip("/").replace("http", "ws", 1) + "/api/v1/workers/connect"
+    backend_url = public_backend_url(request_host)
+    worker_image = os.getenv("WORKER_IMAGE", "fireaway-worker:latest")
+
+    if backend_url.startswith("https://"):
+        ws_url = "wss://" + backend_url[len("https://"):] + "/api/v1/workers/connect"
+    elif backend_url.startswith("http://"):
+        ws_url = "ws://" + backend_url[len("http://"):] + "/api/v1/workers/connect"
+    else:
+        ws_url = backend_url + "/api/v1/workers/connect"
 
     return {
         "registration_key": reg_key,
         "expires_in_seconds": REGISTRATION_KEY_TTL,
         "docker_command": (
-            f'docker run --gpus all --memory="8g" '
+            f'docker run --rm --gpus all --memory="8g" '
             f'-e REGISTRATION_KEY={shlex.quote(reg_key)} '
             f'-e WORKER_LABEL={shlex.quote(label)} '
             f'-e BACKEND_BASE_URL={shlex.quote(backend_url)} '
             f'-e WEBSOCKET_URL={shlex.quote(ws_url)} '
-            f'fireaway-worker:latest'
+            f'{shlex.quote(worker_image)}'
         ),
     }
 
@@ -191,12 +205,7 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
 
     valkey_storage_key = f"worker:reg:{register_data.registration_key}"
 
-    # atomic claim and burn prevents duplicate registration
-    pipe = valkey_client.pipeline()
-    pipe.get(valkey_storage_key)
-    pipe.delete(valkey_storage_key)
-    results = pipe.execute()
-    user_id = results[0]
+    user_id = valkey_client.get(valkey_storage_key)
 
     if not user_id:
         raise HTTPException(
@@ -204,17 +213,40 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
             detail="Invalid or expired worker registration key",
         )
 
-    # new active
-    node = WorkerNode(
-        user_id=user_id,
-        label=getattr(register_data, "label", "volunteer-desktop"),
-        gpu_name=register_data.gpu_name,
-        vram_mb=register_data.vram_mb,
-        driver_version=register_data.driver_version,
-        status="active",
-        consecutive_failures=0,
+    label = getattr(register_data, "label", "volunteer-desktop")
+
+    node = (
+        db.query(WorkerNode)
+        .filter(
+            WorkerNode.user_id == user_id,
+            WorkerNode.label == label,
+            WorkerNode.gpu_name == register_data.gpu_name
+        )
+        .first()
     )
-    db.add(node)
+
+    if node:
+        # reactivate the existing node
+        node.status = "active"
+        node.vram_mb = register_data.vram_mb
+        node.driver_version = register_data.driver_version
+        node.consecutive_failures = 0
+        node.quarantine_until = None
+        node.last_heartbeat = datetime.now(timezone.utc)
+        node.updated_at = datetime.now(timezone.utc)
+    else:
+        # new active
+        node = WorkerNode(
+            user_id=user_id,
+            label=getattr(register_data, "label", "volunteer-desktop"),
+            gpu_name=register_data.gpu_name,
+            vram_mb=register_data.vram_mb,
+            driver_version=register_data.driver_version,
+            status="active",
+            consecutive_failures=0,
+        )
+        db.add(node)
+
     db.commit()
     db.refresh(node)
 
@@ -224,7 +256,8 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
             "user_id": user_id,
             "role": "worker_node",
             "type": "worker_device",
-        }
+        },
+        expires_delta=timedelta(days=7)
     )
 
     return {
