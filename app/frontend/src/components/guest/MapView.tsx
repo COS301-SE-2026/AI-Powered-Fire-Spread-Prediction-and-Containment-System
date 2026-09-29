@@ -12,6 +12,7 @@ import { ResourceMapLegend } from '../shared/ResourceMapLegend';
 import { PageHeader } from '../layout/pageHeader';
 import { GuestEnvironment } from './GuestEnvironment';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
+import { MapLayerToggles } from '../shared/MapLayerToggles';
 
 const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) => mod.FireMap), {
   ssr: false,
@@ -54,23 +55,16 @@ export default function MapView() {
       {/* Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-8 flex flex-col gap-6">
-          {/* Show water toggle above map */}
+          {/* Water and resource toggles */}
           <div className='flex justify-end'>
-              <label className='flex items-center gap-2 cursor-pointer select-none bg-carbon-bg/90 border border-carbon-card rounded-full px-3 py-1.5 shadow-lg backdrop-blur-sm'>
-                <span className='text-sm font-medium text-text-muted'>
-                  Show Water
-                </span>
-                <button
-                  type='button'
-                  role='switch'
-                  aria-checked={showWater}
-                  onClick={() => setShowWater((w) => !w)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${showWater ? 'bg-ignite' : 'bg-carbon-stroke'}`}
-                >
-                  <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform ${showWater ? 'translate-x-4' : 'translate-x-1'}`} />
-                </button>
-              </label>
-            </div>
+            <MapLayerToggles 
+              pill
+              showWater={showWater}
+              onToggleWater={() => setShowWater((w) => !w)}
+              showResources={showResources}
+              onToggleResources={() => setShowResources((r) => !r)}
+            />
+          </div>
           {/* Map */}
           <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-96 sm:h-104 lg:h-140 w-full shadow-md">
             <PublicFireMap
