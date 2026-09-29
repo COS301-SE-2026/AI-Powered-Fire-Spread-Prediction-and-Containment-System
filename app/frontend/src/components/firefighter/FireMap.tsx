@@ -110,8 +110,8 @@ export function FireMap({ lat,
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
   const [showUserLocationTooltip, setShowUserLocationTooltip] = useState(false);
   const { isAuth, isLoading: isAuthLoading } = useAuth();
-  const { refetchAfterAction, showToast } = useNotifications();
-  const updateUserLocation = useUpdateUserLocation(refetchAfterAction);
+  const { refetchAfterAction, refetchSilent, showToast } = useNotifications();
+  const updateUserLocation = useUpdateUserLocation(refetchSilent);
   const checkGuestNotifications = useGuestNotifications(showToast);
   const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
   const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000 });

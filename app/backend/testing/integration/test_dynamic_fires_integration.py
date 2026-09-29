@@ -64,7 +64,9 @@ def test_merged_fire_is_excluded_from_growable_fires_by_reference(client, db):
     merged_entry = next(f for f in data if f["id"] == fire.id)
     assert merged_entry["merged_into_id"] == other.id
     
-def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(client, db):
+@patch("app.backend.src.services.firefighter.fire_merge.cache_client")
+def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(mock_cache, client, db):
+    mock_cache.get.return_value = None
     now = datetime.now(timezone.utc)
     fire_a = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now - timedelta(minutes=5))
     fire_b = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now)
@@ -76,7 +78,7 @@ def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(client, db
     assert fire_a.merged_into_id is None
     assert fire_b.merged_into_id is None
     
-@patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_vale=True)
+@patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_value=True)
 def test_overlapping_fires_merge_once_debounce_is_satisfied(mock_debounce, client, db):
     now = datetime.now(timezone.utc)
     older = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now - timedelta(hours=1))

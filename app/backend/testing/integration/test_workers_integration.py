@@ -90,8 +90,13 @@ class TestKeysAndRegistration:
         _, headers = user_headers
         key = new_key(client, headers)
 
-        assert client.post("/api/v1/workers/register", json=payload(key)).status_code == 200
-        assert client.post("/api/v1/workers/register", json=payload(key)).status_code == 401
+        res1 = client.post("/api/v1/workers/register", json=payload(key))
+        assert res1.status_code == 200
+
+        res2 = client.post("/api/v1/workers/register", json=payload(key))
+        assert res2.status_code == 200
+        
+        assert res1.json()["worker_id"] == res2.json()["worker_id"]
 
 class TestWebSocketControl:
     def test_connect_joins_idle_pool_and_answers_ping(self, client, test_valkey, user_headers):

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
@@ -45,13 +46,13 @@ def test_notify_fire_alert_persists_a_real_row(db, patched_push):
 def test_distance_is_computed_from_real_geometry(db):
     user = make_user(db, lat=0.0, lng=0.0)
     fire = make_report(
-        db, lat=0.1, lng=0.0, status=ReportStatus.verified, boundary_radius=0.0
+        db, lat=0.05, lng=0.0, status=ReportStatus.verified, boundary_radius=0.0
     )
 
     created = svc.notify_fire_alert(db, fire, "New fire nearby")
 
     assert len(created) == 1
-    assert created[0].distance == pytest.approx(11.12, abs=0.1)
+    assert created[0].distance == pytest.approx(5.56, abs=0.1)
 
 
 def test_user_outside_every_tier_gets_nothing(db):
@@ -83,8 +84,8 @@ def test_unverified_report_notifies_nobody(db):
 
 
 def test_admin_gets_wider_radius_than_regular_user(db):
-    admin = make_user(db, role=UserRole.admin, lat=0.0, lng=0.28)
-    regular = make_user(db, role=UserRole.user, lat=0.0, lng=0.28)
+    admin = make_user(db, role=UserRole.admin, lat=0.0, lng=0.15)
+    regular = make_user(db, role=UserRole.user, lat=0.0, lng=0.15)
     fire = make_report(
         db, lat=0.0, lng=0.0, status=ReportStatus.verified, boundary_radius=0.0
     )
@@ -136,7 +137,7 @@ def test_check_proximity_for_user_does_not_duplicate_on_repeat_call(db):
 def test_moving_closer_creates_a_real_update_row(db):
     user = make_user(db, lat=0.0, lng=0.0)
     fire = make_report(
-        db, lat=0.0, lng=0.15, status=ReportStatus.verified, boundary_radius=0.0
+        db, lat=0.0, lng=0.08, status=ReportStatus.verified, boundary_radius=0.0
     )
 
     first_call = svc.check_proximity_for_user(db, user)
@@ -144,7 +145,7 @@ def test_moving_closer_creates_a_real_update_row(db):
     assert first_call[0].type == NotificationType.alert
 
     # move user closer to same fire
-    user.location_geom = "SRID=4326;POINT(0.148 0.0)"  # ~0.2km from fire now
+    user.location_geom = "SRID=4326;POINT(0.078 0.0)"  # ~0.2km from fire now
     db.commit()
 
     second_call = svc.check_proximity_for_user(db, user)
@@ -160,7 +161,47 @@ def test_moving_closer_creates_a_real_update_row(db):
     assert len(all_rows) == 2
     assert all_rows[0].type == NotificationType.alert
     assert all_rows[1].type == NotificationType.update
-
+    
+def test_growing_boundary_notifies_a_stationary_user_who_never_moved(db):
+    """Regression test for active fires creeping outward and user is stationary"""
+    user = make_user(db, lat=0.0, lng=0.0)
+    far_away_user = make_user(db, lat=50.0, lng=50.0)
+    
+    fire = make_report(
+        db,
+        lat=0.2157,
+        lng=0.0,
+        status=ReportStatus.verified,
+        boundary_radius=0.0,
+        submitted_at=datetime.now(timezone.utc) - timedelta(days=6),
+    )
+    
+    created = svc.check_proximity_for_all_users(db)
+    
+    notified_ids = {n.user_id for n in created}
+    assert user.id in notified_ids
+    assert far_away_user.id not in notified_ids
+    
+    row = db.query(Notification).filter_by(user_id=user.id).first()
+    assert row.type == NotificationType.alert
+    assert 5.0 < row.distance <= 10.0
+    
+def test_growing_boundary_does_not_double_notify_within_same_tier(db):
+    user = make_user(db, lat=0.0, lng=0.0)
+    make_report(
+        db,
+        lat=0.2157,
+        lng=0.0,
+        status=ReportStatus.verified,
+        boundary_radius=0.0,
+        submitted_at=datetime.now(timezone.utc) - timedelta(days=10),
+    )
+    
+    first_sweep = svc.check_proximity_for_all_users(db)
+    second_sweep = svc.check_proximity_for_all_users(db)
+    
+    assert len(first_sweep) == 1
+    assert second_sweep == []
 
 def test_only_verified_fires_are_ever_considered(db):
     user = make_user(db, lat=-25.75, lng=28.24)
