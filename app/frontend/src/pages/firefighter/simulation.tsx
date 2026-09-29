@@ -228,7 +228,7 @@ export default function Simulation() {
           {/* left side of page: map + controls and buttons */}
           <div className="basis-full lg:basis-3/4 flex flex-col gap-4 min-w-0">
             {/* Fire Map */}
-            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[80vh] max-h-[420px] landscape:max-h-none overflow-hidden relative">
+            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[60vh] max-h-[420px] landscape:max-h-none overflow-hidden relative">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
                 <span className="font-bold text-lg tracking-wide text-text-primary uppercase">
                   LIVE FIRE MAP
