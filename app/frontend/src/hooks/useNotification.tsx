@@ -18,8 +18,9 @@ function isWithinRetention(time: string): boolean {
 }
 
 function getWebSocketUrl(path: string): string {
-  const httpBase = API_URL || window.location.origin;
-  return httpBase.replace(/^http/, 'ws') + path;
+  const httpBase = (API_URL || window.location.origin).replace(/\/+$/, '');
+  const cleanPath = path.startsWith('/') ? path :`/${path}`;
+  return httpBase.replace(/^http/, 'ws') + cleanPath;
 }
 
 type NotificationState = Readonly<{

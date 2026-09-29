@@ -1,6 +1,6 @@
 'use client';
 
-import { Feather, LocateFixed } from 'lucide-react'
+import { Feather, LocateFixed, MapPin } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
@@ -32,6 +32,7 @@ import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDam
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+import type { SavedLocation } from '../../types/SavedLocation';
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
@@ -59,11 +60,14 @@ interface MapProps {
   showResources?: boolean;
   selectedResourceId?: string | null;
   onSelectResource?: (r: NearbyResource) => void;
+  onDeselectResource?: () => void;
   suggestedLine?: string | null;
   selectedFireIds?: Set<string>;
   onToggleFireSelect?: (ref: string) => void;
   clusterPredictions?: ClusterPrediction[];
   disableGrowth?: boolean;
+  savedLocations?: SavedLocation[];
+  showSavedLocations?: boolean;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -92,9 +96,12 @@ export function FireMap({ lat,
   showResources = true,
   selectedResourceId = null,
   onSelectResource = undefined,
+  onDeselectResource = undefined,
   selectedFireIds = new Set(),
   onToggleFireSelect = undefined,
   clusterPredictions = [],
+  savedLocations = [],
+  showSavedLocations = true,
 }: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
@@ -548,6 +555,7 @@ export function FireMap({ lat,
     }));
   }, [selectedResourceId, resources]);
 
+  const simulationShown = girdFeautures.length > 0;
   return (
     <div className='relative w-full h-full'>
       {/* key for map legend */}
@@ -584,6 +592,7 @@ export function FireMap({ lat,
         }
         onClick={() => {
           setShowUserLocationTooltip(false);
+          onDeselectResource?.();
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/navigation-night-v1"
@@ -639,6 +648,7 @@ export function FireMap({ lat,
             <Layer
               id="fire-radius-fill"
               type="fill"
+              layout={{ visibility: simulationShown ? 'none' : 'visible' }}
               paint={{
                 'fill-color': '#fcba3e',
                 'fill-opacity': ['*', 0.3, ['coalesce', ['get', 'opacity'], 1]],
@@ -648,6 +658,7 @@ export function FireMap({ lat,
             <Layer
               id="fire-radius-outline"
               type="line"
+              layout={{ visibility: simulationShown ? 'none' : 'visible' }}
               paint={{
                 'line-color': '#fcba3e',
                 'line-width': 1,
@@ -777,7 +788,7 @@ export function FireMap({ lat,
               paint={{
                 'line-color': '#a855f7',
                 'line-width': 8,
-                'line-opacity': 0.35,
+                'line-opacity': 0.75,
               }}
             />
             <Layer
@@ -786,7 +797,7 @@ export function FireMap({ lat,
               paint={{
                 'line-color': '#a855f7',
                 'line-width': 3,
-                'line-dasharray': [0.2, 1.5],
+                'line-dasharray': [1, 1],
               }}
             />
           </Source>
@@ -869,6 +880,18 @@ export function FireMap({ lat,
             </div>
           </Marker>
         )}
+        {showSavedLocations && savedLocations.map((loc) => (
+          loc.lat != null && loc.lng != null ? (
+            <Marker key={loc.id} longitude={loc.lng} latitude={loc.lat} anchor='bottom'>
+              <div title={loc.label} className='flex flex-col items-center pointer-events-auto'>
+                <span className='px-1.5 py-0.5 mb-0.5 rounded bg-carbon-side/95 border border-carbon-stroke text-[11px] text-text-primary whitespace-nowrap shadow-lg'>
+                  {loc.label}
+                </span>
+                <MapPin className='size-6 text-text-primary drop-shadow-lg' />
+              </div>
+            </Marker>
+          ) : null
+        ))}
       </Map>
 
       <button

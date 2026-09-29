@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
+import { MapLayerToggles } from '@/components/shared/MapLayerToggles';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports } from '../../components/shared/nearbyReports';
@@ -17,6 +18,7 @@ import { useMapLink } from '../../hooks/useMapLink';
 import { NearbyResources } from '../../components/shared/NearbyResources';
 import { useNearbyResources } from '../../hooks/useNearbyResources';
 import { ResourceMapLegend } from '../../components/shared/ResourceMapLegend';
+import { useSavedLocations } from '../../hooks/useSavedLocations';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
@@ -38,6 +40,7 @@ export default function FirefighterDashboard() {
   const [showResources, setShowResources] = useState(true);
 
   const availableResources = nearbyResources.filter((r) => r.status === 'available');
+  const { locations } = useSavedLocations();
 
   async function handleDrawComplete(wkt: string) {
     const localId = crypto.randomUUID();
@@ -62,7 +65,7 @@ export default function FirefighterDashboard() {
   useMapLink(handleSelectFire);
 
   function handleSelectResource(r: { id: string }) {
-    setSelectedResourceId(r.id);
+    setSelectedResourceId((prev) => (prev === r.id ? null : r.id));
     setShowResources(true);
   }
   return (
@@ -85,22 +88,13 @@ export default function FirefighterDashboard() {
                 <span className="font-bold text-sm md:text-m tracking-wide text-text-primary/80">
                   LIVE FIRE MAP
                 </span>
-                <div className='flex items-center gap-4'>
-                  <label className='flex items-center gap-2 cursor-pointer select-none'>
-                    <span className='text-sm font-medium text-text-muted'>
-                      Show Water
-                    </span>
-                    <button
-                      type='button'
-                      role='switch'
-                      aria-checked={showWater}
-                      onClick={() => setShowWater((w) => !w)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${showWater ? 'bg-ignite' : 'bg-carbon-stroke'}`}
-                    >
-                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-md transition-transform ${showWater ? 'translate-x-4' : 'translate-x-1'}`} />
-                    </button>
-                  </label>
-
+                <div className='flex flex-wrap items-center gap-x-3 gap-y-1 md:gap-x-4'>
+                    <MapLayerToggles
+                      showWater={showWater}
+                      onToggleWater={() => setShowWater((w) => !w)}
+                      showResources={showResources}  
+                      onToggleResources={() => setShowResources((r) => !r)}
+                    />
                   <button
                     type="button"
                     onClick={() => {
@@ -132,6 +126,8 @@ export default function FirefighterDashboard() {
                   showResources={showResources}
                   selectedResourceId={selectedResourceId}
                   onSelectResource={handleSelectResource}
+                  onDeselectResource={() => setSelectedResourceId(null)}
+                  savedLocations={locations}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
@@ -178,7 +174,7 @@ export default function FirefighterDashboard() {
                 Available Resources
               </p>
               <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
+                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource}/>
               </div>
             </div>
         </div>

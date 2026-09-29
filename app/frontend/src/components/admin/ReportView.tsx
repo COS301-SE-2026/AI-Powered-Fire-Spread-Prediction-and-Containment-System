@@ -8,6 +8,7 @@ import { FireStatusActions } from './fireStatusActions';
 import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 import { PageHeader } from '../layout/pageHeader';
+import { useMyFireReport } from '../../hooks/useMyFireReport';
 
 const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.ReportMap), {
   ssr: false,
@@ -15,13 +16,16 @@ const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.Repo
 
 interface ViewProps {
   reportRef: string;
-  role?: 'admin' | 'firefighter';
+  role?: 'admin' | 'firefighter' | 'user';
 }
 
 export function ViewPage({ reportRef, role = 'admin' }: Readonly<ViewProps>) {
   const router = useRouter();
-  const { report, loading, error, refetch } = useFireReport(reportRef);
-
+  // const { report, loading, error, refetch } = useFireReport(reportRef);
+  const adminResult = useFireReport(reportRef);
+  const userResult = useMyFireReport(reportRef);
+  const { report, loading, error, refetch } =  role === 'user' ? userResult : adminResult;
+  
   if (loading)
     return (
       <div className="p-6">
