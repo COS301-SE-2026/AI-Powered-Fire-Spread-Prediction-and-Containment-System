@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from geoalchemy2 import Geometry
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.backend.db import Base
@@ -31,7 +31,7 @@ class User(Base):
         Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=True
     )
     
-    push_subscription = Column(String, nullable=True)
+    push_subscription = Column(Text, nullable=True)
 
     fire_reports = relationship("FireReports", back_populates="user")
     role_requests = relationship(

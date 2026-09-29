@@ -142,4 +142,6 @@ class NearbyResourceListResponse(CamelModel):
     data: List[NearbyResourceResponse]
     total: int
 
+class ResourceStatusUpdate(CamelModel):
+    status: ResourceStatus
     

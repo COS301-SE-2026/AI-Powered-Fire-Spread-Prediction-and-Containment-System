@@ -15,6 +15,7 @@ from app.backend.src.models.notification import Notification
 from app.backend.src.models.workers import WorkerNode
 from app.backend.src.models.water_resource import WaterResource
 from app.backend.src.models.audit_log import AuditLog
+from app.backend.src.models.saved_location import SavedLocation
 
 config = context.config
 target_metadata = Base.metadata
