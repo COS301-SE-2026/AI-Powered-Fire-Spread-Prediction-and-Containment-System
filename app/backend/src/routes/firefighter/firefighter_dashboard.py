@@ -7,7 +7,8 @@ from app.backend.db import get_db
 from app.backend.src.schemas.containment_lines import (
     ContainmentLines,
     CreateContainmentLine,
-    ContainmentLinesList
+    ContainmentLinesList,
+    SuggestedContainmentLinesList
 )
 from app.backend.src.schemas.firefighter_dashboard import DashboardData
 from app.backend.src.schemas.fuel_conditions import FuelConditions
@@ -97,3 +98,16 @@ def get_fuel_conditions(lat: float, lng: float):
         return fuel_conditions.get_fuel_conditions(lat, lng)
     except ValueError as error:
         raise HTTPException(status_code=503, detail=str(error))
+
+@router.get(
+    "/suggest-containment-line/{fire_ref}",
+    response_model=SuggestedContainmentLinesList,
+    responses={404: {"description": "Fire not found or verified"}},
+)
+async def suggest_containment_line_endpoint(
+    fire_ref: str, top_n: int = 1, db: Session = Depends(get_db)
+):
+    try:
+        return await containment_lines.get_suggested_containment_lines(db, fire_ref, top_n)
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))

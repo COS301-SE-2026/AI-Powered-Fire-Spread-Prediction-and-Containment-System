@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
@@ -70,3 +70,13 @@ def revoke_role_request(
         return request
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
+
+@router.get("/role-requests/search", response_model=RoleRequestList, responses={404: {"description": "key is not found"}})
+def search_location_table(key: str = Query(min_length=1), db: Session = Depends(get_db)):
+    try:
+        request = role_request.search_report_table(db, key)
+
+        return request
+    except ValueError as error:
+        raise HTTPException(status_code=404, detail=str(error))
+

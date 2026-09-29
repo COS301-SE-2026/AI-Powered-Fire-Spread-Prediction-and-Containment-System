@@ -18,6 +18,11 @@ export function useFetch<T>(url: string, options?: RequestInit) {
   }, []);
 
   useEffect(() => {
+    if(!url){
+      setData(null);
+      setLoading(false);
+      return;
+    }
     const controller = new AbortController();
     let cancelled = false;
 
@@ -46,7 +51,7 @@ export function useFetch<T>(url: string, options?: RequestInit) {
         if (err instanceof Error && err.name === 'AbortError') {
           return;
         }
-        console.error(`Failed to fetch ${url}`, err);
+        console.error(`Failed to fetch %s`, url,err);
         setError(err instanceof Error ? err.message : 'Unknown error');
         setData(null);
       } finally {

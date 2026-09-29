@@ -13,6 +13,7 @@ import { NotificationToastHost } from '../../components/notification/Notificatio
 import { useMapLink } from '../../hooks/useMapLink';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
+import { useSavedLocations } from '../../hooks/useSavedLocations';
 
 export default function RegisteredUserDashboard() {
   const { userLocation, nearbyFires } = useNearbyFires();
@@ -24,6 +25,7 @@ export default function RegisteredUserDashboard() {
       recenter();
       setRecenterCount((c) => c + 1);
   };
+  const { locations } = useSavedLocations();
 
   useMapLink(handleSelectFire);
   return (
@@ -35,8 +37,8 @@ export default function RegisteredUserDashboard() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 lg:gap-6">
           <MapPanel colSpan={8} height="responsive">
             <FireMap
-              lat={userLocation.lat}
-              lng={userLocation.lng}
+              lat={userLocation?.lat ?? null}
+              lng={userLocation?.lng ?? null}
               drawMode={false}
               onDrawComplete={() => {}}
               clearDrawings={0}
@@ -45,6 +47,7 @@ export default function RegisteredUserDashboard() {
               onSelectFire={handleSelectFire}
               onDeselect={clearSelect}
               selectedFireId={fireLocation}
+              savedLocations={locations}
             />
             {/* action buttons */}
               <div className='absolute top-3 left-3 z-20 flex flex-col gap-2'>

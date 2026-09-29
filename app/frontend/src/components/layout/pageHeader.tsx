@@ -4,12 +4,19 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotification';
 import { NotificationSidebar } from '../notification/NotificationSidebar';
+import { UserRole } from '../../types/User';
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   actions?: React.ReactNode;
   showIcons: boolean;
+}
+
+const PROFILE_ROUTES: Record<UserRole, string> = {
+  admin: '/admin/Profile',
+  firefighter: '/firefighter/Profile',
+  user: '/users/Profile',
 }
 
 const MAX_UNREAD_COUNT = 9;
@@ -20,7 +27,7 @@ export function PageHeader({
   actions,
   showIcons = true,
 }: Readonly<PageHeaderProps>) {
-  const { isAuth } = useAuth();
+  const { isAuth, role } = useAuth();
   const { unreadCount, notifications, markAsRead, locationEnabled } = useNotifications();
   const router = useRouter();
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -29,7 +36,11 @@ export function PageHeader({
   const authLabel = isAuth ? 'Profile' : 'Login / Register';
 
   const handleAuthClick = (): void => {
-    router.push(isAuth ? '/profile' : '/login');
+    if (!isAuth){
+      router.push('/login');
+      return;
+    }
+    router.push(role ? PROFILE_ROUTES[role] : '/profile');
   };
 
   return (
@@ -38,7 +49,7 @@ export function PageHeader({
         <div className='flex items-start justify-between gap-1'>
           <div className='min-w-0'>
             <h1 className=" text-text-primary uppercase">{title}</h1>
-            {subtitle && <h4 className="text-text-muted mt-0.5 ">{subtitle}</h4>}
+            {subtitle && <p className="text-text-muted mt-0.5 ">{subtitle}</p>}
           </div>
           {showIcons && isAuth && (
             <div className="flex items-center gap-1">

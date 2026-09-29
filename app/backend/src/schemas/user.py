@@ -11,7 +11,6 @@ class UserCreate(BaseModel):
     surname: str
     email: str
     id_number: str
-    license_number: Optional[str] = None
     role: UserRole = UserRole.user
 
 
@@ -26,3 +25,8 @@ class UserResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    email: Optional[str] = None

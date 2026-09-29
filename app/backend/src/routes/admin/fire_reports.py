@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.enums.fire_status import FireStatus
 from app.backend.src.enums.user_role import UserRole
 from app.backend.src.schemas.fire_report import (
     FireReportDetailResponse,
@@ -39,3 +40,17 @@ def get_fire_report_id(report_ref: str, db: dbSession):
 )
 def status_change(report_ref: str, status: ReportStatus, db: dbSession):
     return fire_report.status_change(report_ref, status, db)
+
+@router.patch(
+    "/reported-fires/{report_ref}/fire-status", response_model=FireReportDetailResponse
+)
+def fire_status_change(
+    report_ref: str,
+    fire_status: FireStatus,
+    db: dbSession,
+    containment_percent: float | None = None,
+):
+    try:
+        return fire_report.fire_status_change(report_ref, fire_status, containment_percent, db)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))

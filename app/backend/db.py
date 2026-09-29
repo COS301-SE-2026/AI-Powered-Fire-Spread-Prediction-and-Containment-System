@@ -1,7 +1,10 @@
 import os
+from pathlib import Path
 
+from alembic import command
+from alembic.config import Config
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
@@ -33,16 +36,22 @@ def get_db():
         db.close()
 
 
-def init_db():
-    """Create all tables on startup."""
-    from app.backend.src.models.containment_lines import ContainmentLines
-    from app.backend.src.models.reported_fires import FireReports
-    from app.backend.src.models.role_request import RoleRequest
-    from app.backend.src.models.users import User
-    from app.backend.src.models.notification import Notification
+BASELINE_REVISION = "7db2f82cc86f"
 
-    Base.metadata.create_all(bind=engine)
+def migrate_db():
+    """
+    Apply pending alembic migrations
+    """
 
-    from app.backend.startup_migrations import run_startup_migrations
-
-    run_startup_migrations(engine)
+    cfg = Config(str(Path(__file__).parent / "alembic.ini"))
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "SELECT pg_advisory_xact_lock(472019)"
+            )
+        )
+        cfg.attributes["connection"] = conn
+        insp = inspect(conn)
+        if not insp.has_table("alembic_version") and insp.has_table("users"):
+            command.stamp(cfg, BASELINE_REVISION)
+        command.upgrade(cfg, "head")

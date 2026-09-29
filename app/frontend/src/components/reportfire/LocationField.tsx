@@ -53,7 +53,7 @@ export function LocationField({ value, error = '', onChange, onValidSelect }: Lo
   useEffect(() => {
     function handleOutside(e: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setDismissed(false);
+        setDismissed(true);
       }
     }
     document.addEventListener('mousedown', handleOutside);
@@ -77,7 +77,7 @@ export function LocationField({ value, error = '', onChange, onValidSelect }: Lo
   return (
     <div className="dropdown w-full" ref={wrapperRef}>
       <span className="label-text text-lg font-semibold mb-2 block">Location</span>
-      <div className="input input-bordered w-full flex item-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
+      <div className="input input-bordered w-full flex items-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
         <input
           id={id}
           type="text"

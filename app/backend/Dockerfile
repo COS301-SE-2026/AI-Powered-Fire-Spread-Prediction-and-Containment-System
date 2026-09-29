@@ -11,7 +11,8 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    UV_COMPILE_BYTECODE=1
+    UV_COMPILE_BYTECODE=1 \
+    UV_HTTP_TIMEOUT=300
 
 # Layer base lockfile early for docker caching
 COPY app/backend/requirements.txt ./requirements.txt
@@ -19,6 +20,7 @@ COPY app/backend/requirements.txt ./requirements.txt
 # Install locked production dependencies with BuildKit Caching
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install --system --require-hashes --only-binary :all: \
+    --no-binary http-ece \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     --index-strategy unsafe-first-match \
     -r requirements.txt
@@ -40,7 +42,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 COPY app/__init__.py    /app/app/__init__.py
 EXPOSE 8000
 
-CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--ws-max-size", "104857600"]
 
 # <----------------------------------------------------------------------------------------->
 #  Stage 3: Production Target (Self-contained)
@@ -57,4 +59,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "app.backend.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--ws-max-size", "104857600"]

@@ -1,6 +1,6 @@
 import type { ReportStatus } from './Report';
 
-export type FireDanger = 'low' | 'medium' | 'high' | 'very high';
+export type FireDanger = 'LOW' | 'MODERATE' | 'DANGEROUS' | 'VERY DANGEROUS' | 'EXTREMELY DANGEROUS';
 
 export interface NearbyFire {
   id: string;
@@ -20,6 +20,8 @@ export interface EnvironmentVariables {
   temperature: number;
   fire_danger: FireDanger;
   humidity: number;
+  fdi: number;
+  fdi_color: string;
 }
 
 export interface NearbyFiresList {

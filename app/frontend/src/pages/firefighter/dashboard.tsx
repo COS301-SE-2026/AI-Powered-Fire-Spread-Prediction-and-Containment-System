@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
+import { MapLayerToggles } from '@/components/shared/MapLayerToggles';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports } from '../../components/shared/nearbyReports';
@@ -14,11 +15,18 @@ import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { useMapLink } from '../../hooks/useMapLink';
+import { NearbyResources } from '../../components/shared/NearbyResources';
+import { useNearbyResources } from '../../hooks/useNearbyResources';
+import { ResourceMapLegend } from '../../components/shared/ResourceMapLegend';
+import { useSavedLocations } from '../../hooks/useSavedLocations';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
-  const { userLocation, nearbyFires, environmentVariables } = useNearbyFires();
+  const [showWater, setShowWater] = useState(true);
+  const { userLocation, searchLocation, nearbyFires, environmentVariables } = useNearbyFires();
+  const { nearbyResources } = useNearbyResources(searchLocation);
+  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
   const [lines, setLines] = useState<LocalLine[]>([])
@@ -29,6 +37,10 @@ export default function FirefighterDashboard() {
     fetchLines,
     deleteLine
   } = useContainmentLine();
+  const [showResources, setShowResources] = useState(true);
+
+  const availableResources = nearbyResources.filter((r) => r.status === 'available');
+  const { locations } = useSavedLocations();
 
   async function handleDrawComplete(wkt: string) {
     const localId = crypto.randomUUID();
@@ -51,6 +63,11 @@ export default function FirefighterDashboard() {
     }
   }
   useMapLink(handleSelectFire);
+
+  function handleSelectResource(r: { id: string }) {
+    setSelectedResourceId((prev) => (prev === r.id ? null : r.id));
+    setShowResources(true);
+  }
   return (
     <FirefighterSideBar hideLoginRegister>
       <div className="flex flex-col p-2 md:p-6">
@@ -71,18 +88,31 @@ export default function FirefighterDashboard() {
                 <span className="font-bold text-sm md:text-m tracking-wide text-text-primary/80">
                   LIVE FIRE MAP
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setClearDrawings((c) => c + 1)}
-                  className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
-                >
+                <div className='flex flex-wrap items-center gap-x-3 gap-y-1 md:gap-x-4'>
+                    <MapLayerToggles
+                      showWater={showWater}
+                      onToggleWater={() => setShowWater((w) => !w)}
+                      showResources={showResources}  
+                      onToggleResources={() => setShowResources((r) => !r)}
+                    />
+                  <button
+                    type="button"
+                    onClick={() => {
+                        setClearDrawings((c) => c + 1);
+                        setLines([]);
+                      }
+                    }
+                    className="text-sm font-medium text-text-muted hover:text-ignite transition-colors"
+                  >
                   Clear Lines
                 </button>
+                </div>
+
               </div>
               <div className="flex-1 w-full h-full pt-12 md:pt-13">
                 <FireMap
-                  lat={userLocation.lat}
-                  lng={userLocation.lng}
+                  lat={userLocation?.lat ?? null}
+                  lng={userLocation?.lng ?? null}
                   drawMode={drawMode}
                   onDrawComplete={handleDrawComplete}
                   lines={lines}
@@ -91,12 +121,32 @@ export default function FirefighterDashboard() {
                   onSelectFire={handleSelectFire}
                   onDeselect={clearSelect}
                   selectedFireId={fireLocation}
+                  showWater={showWater}
+                  resources={availableResources}
+                  showResources={showResources}
+                  selectedResourceId={selectedResourceId}
+                  onSelectResource={handleSelectResource}
+                  onDeselectResource={() => setSelectedResourceId(null)}
+                  savedLocations={locations}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
+              {lineError && (
+                <div className='absolute bottom-4 left-4 z-20 max-w-xs rounded-lg bg-carbon-bg/90 border-red-400/30 px-3 py-2 text-xs text-red-300'>
+                  Line not saved: {lineError}
+                </div>
+              )}
             </div>
+            <ResourceMapLegend />
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-2 shrink-0">
               <div className="flex flex-col">
+                <h1 className='sr-only'>
+                  Firefighter Dashboard
+                </h1>
+                <h2 className='sr-only'>
+                  Dashboard
+                </h2>
                 <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
                   Environment Variables
                 </h3>
@@ -112,13 +162,19 @@ export default function FirefighterDashboard() {
           </div>
 
           {/* Right Column */}
-          <div className="xl:col-span-4 flex flex-col gap-3 h-full">
-              <h4 className=" text-text-muted uppercase">
+          <div className="xl:col-span-4 flex flex-col gap-3 xl:h-0 xl:min-h-full">
+              <p className=" text-text-muted uppercase shrink-0">
                 Nearby Reports
-              </h4>
-              <div
-                className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
+              </p>
+              <div className="shrink-0 max-h-64 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
                 <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+              </div>
+
+              <p className=" text-text-muted uppercase shrink-0">
+                Available Resources
+              </p>
+              <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
+                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource}/>
               </div>
             </div>
         </div>

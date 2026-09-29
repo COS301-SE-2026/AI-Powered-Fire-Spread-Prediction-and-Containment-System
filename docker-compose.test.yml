@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   test-minio:
-    image: minio/minio:latest
+    image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
     container_name: fireaway_test_minio
     environment:
       MINIO_ROOT_USER: admin
@@ -31,5 +31,20 @@ services:
     ports: 
       - "9002:9000"
       - "9003:9001"
+    
+    restart: unless-stopped
+
+  test-valkey:
+    image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd
+    container_name: fireaway_test_valkey
+
+    ports:
+      - "6380:6379"
+
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     
     restart: unless-stopped

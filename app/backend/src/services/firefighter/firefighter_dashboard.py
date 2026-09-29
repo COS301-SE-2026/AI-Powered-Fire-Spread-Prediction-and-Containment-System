@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-import requests
 from geoalchemy2.elements import WKTElement
 from geoalchemy2.functions import ST_Distance, ST_DWithin
 from geoalchemy2.shape import to_shape
@@ -9,6 +8,7 @@ from sqlalchemy import cast
 from sqlalchemy.orm import Session
 
 from app.backend.src.models.reported_fires import FireReports
+from app.backend.src.services.firefighter.fuel_conditions import get_fuel_conditions
 
 
 def calculate_time_ago(
@@ -71,43 +71,15 @@ def get_nearby_fires(db: Session, lat: float, lng: float, radius_km: float = 20)
     return {"data": formatted_result, "total": len(formatted_result)}
 
 
-def calculate_fire_danger(
-    temp: float, humidity: float, wind: float
-):  # need to find a calculation to determine fire risk will happen when model for AI is more researched will use XGboost for now acording to meetings
-    return "high"
-
-
-def get_current_environment_vars(
-    lat: float, lng: float
-):  # pings the open-meteo api every time this func is called will look at making it real-time later in project
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lng,
-        "current": [
-            "apparent_temperature",
-            "relative_humidity_2m",
-            "wind_speed_10m",
-            "wind_direction_10m",
-        ],
-    }
-
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        data = response.json()["current"]
-
-    except (requests.RequestException, KeyError) as e:
-        raise ValueError(f"Failed to fetch environment data: {e}")
+def get_current_environment_vars(lat: float, lng: float) -> dict:
+    conditions = get_fuel_conditions(lat, lng)
 
     return {
-        "temperature": data["apparent_temperature"],
-        "humidity": data["relative_humidity_2m"],
-        "wind": data["wind_speed_10m"],
-        "wind_dir": data["wind_direction_10m"],
-        "fire_danger": calculate_fire_danger(
-            data["apparent_temperature"],
-            data["relative_humidity_2m"],
-            data["wind_speed_10m"],
-        ),
+        "temperature": conditions["temperature"],
+        "humidity": conditions["humidity"],
+        "wind": conditions["wind_speed"],
+        "wind_dir": conditions["wind_direction"],
+        "fire_danger": conditions["fdi_band"],
+        "fdi": conditions["fdi"],
+        "fdi_color": conditions["fdi_color"],
     }

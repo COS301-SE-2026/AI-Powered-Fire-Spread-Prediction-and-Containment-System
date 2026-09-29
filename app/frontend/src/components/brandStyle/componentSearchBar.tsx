@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ComponentsGroup, Labled } from './componentsGroup';
-import { SearchBar } from '../admin/searchBar';
+import { SearchBar } from '../shared/Searchbar';
 
 export function SearchBarComponents() {
   const [value, setValue] = useState('');
@@ -11,7 +11,7 @@ export function SearchBarComponents() {
     <ComponentsGroup title="Search Bar">
       <div className="flex flex-wrap justify-center">
         <Labled caption="default">
-          <SearchBar value={value} onChange={setValue} />
+          <SearchBar value={value} placeholder="Search..." onChange={setValue} />
         </Labled>
       </div>
     </ComponentsGroup>
