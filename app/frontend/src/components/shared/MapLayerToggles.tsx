@@ -30,8 +30,8 @@ export function MapLayerToggles({
         document.addEventListener('pointerdown', onPointerDown);
         document.addEventListener('keydown', onKey);
         return () => {
-            document.addEventListener('pointerdown', onPointerDown);
-            document.addEventListener('keydown', onKey);
+            document.removeEventListener('pointerdown', onPointerDown);
+            document.removeEventListener('keydown', onKey);
         };
     }, []);
 
