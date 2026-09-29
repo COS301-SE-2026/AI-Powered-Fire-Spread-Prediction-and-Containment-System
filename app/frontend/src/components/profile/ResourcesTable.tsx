@@ -52,12 +52,12 @@ export function MyResourcesTable({ resources, filter, onStatusChange }: MyResour
               </td>
             </tr>
           ) : (
-            filtered.map((resources) => {
-                const group = RESOURCE_GROUPS[GROUP_BY_RESOURCE[resources.resource]];
+            filtered.map((r) => {
+                const group = RESOURCE_GROUPS[GROUP_BY_RESOURCE[r.resource]];
                 const Icon = group.icon;
                 return (
                 <tr
-                    key={resources.id}
+                    key={r.id}
                     className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80"
                 >
                 <td className="px-4 text-sm text-text-primary">
@@ -68,16 +68,16 @@ export function MyResourcesTable({ resources, filter, onStatusChange }: MyResour
                       >
                         <Icon className="size-4 text-carbon-bg" />
                       </span>
-                      {resources.resource === 'other' ? resources.otherResource : resources.resource}
+                      {r.resource === 'other' ? r.otherResource : r.resource}
                     </div>
                   </td>
-                    <td className="px-4 text-sm text-text-primary">{resources.resource === 'other' ? resources.otherResource : resources.resource}</td>
-                    <td className="px-4 text-sm text-text-primary">{resources.capacity} {resources.capacityUnit === 'other' ? resources.otherCapacity : resources.capacityUnit}</td>
-                    <td className="px-4 text-sm text-text-primary">{resources.location}</td>
-                    <td className="px-4 text-sm text-text-primary">{FormatDate(resources.availableFrom)}</td>
-                    <td className="px-4 text-sm text-text-primary">{resources.contact}</td>
+                    <td className="px-4 text-sm text-text-primary">{r.resource === 'other' ? r.otherResource : r.resource}</td>
+                    <td className="px-4 text-sm text-text-primary">{r.capacity} {r.capacityUnit === 'other' ? r.otherCapacity : r.capacityUnit}</td>
+                    <td className="px-4 text-sm text-text-primary">{r.location}</td>
+                    <td className="px-4 text-sm text-text-primary">{FormatDate(r.availableFrom)}</td>
+                    <td className="px-4 text-sm text-text-primary">{r.contact}</td>
                     <td className="px-4 py-3">
-                    <ResourceDropdown id={resources.id} status={resources.status} onStatusChange={onStatusChange} />
+                    <ResourceDropdown id={r.id} status={r.status} onStatusChange={onStatusChange} />
                     </td>
                 </tr>
                 );

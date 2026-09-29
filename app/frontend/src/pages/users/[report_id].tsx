@@ -9,6 +9,7 @@ export default function View() {
 
   return (
     <UserSideBar hideLoginRegister>
+      {/* eslint-disable-next-line jsx-a11y/aria-role -- "role" here is ViewPage's own domain prop (admin/user), not an ARIA role */}
       <ViewPage reportRef={reportId as string} role="user" />
     </UserSideBar>
   );
