@@ -37,7 +37,7 @@ export default function MapView() {
   const availableResources = nearbyResources.filter((r) => r.status === 'available');
 
   function handleSelectResource(r: { id: string }) {
-    setSelectedResourceId(r.id);
+    setSelectedResourceId((prev) => (prev === r.id ? null : r.id));
     setShowResources(true);
   }
 
@@ -82,6 +82,7 @@ export default function MapView() {
               showResources={showResources}
               selectedResourceId={selectedResourceId}
               onSelectResource={handleSelectResource}
+              onDeselectResource={() => setSelectedResourceId(null)}
               showWater={showWater}
             />
           <div className='absolute top-3 left-3 z-20 flex flex-col gap-2'>
@@ -116,7 +117,7 @@ export default function MapView() {
             Available Resources
           </p>
           <div className="max-h-64 xl:max-h-none xl:flex-1 xl:min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-            <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
+            <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource}/>
           </div>
         </div>
       </div>

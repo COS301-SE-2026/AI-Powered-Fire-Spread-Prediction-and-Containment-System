@@ -62,7 +62,7 @@ export default function FirefighterDashboard() {
   useMapLink(handleSelectFire);
 
   function handleSelectResource(r: { id: string }) {
-    setSelectedResourceId(r.id);
+    setSelectedResourceId((prev) => (prev === r.id ? null : r.id));
     setShowResources(true);
   }
   return (
@@ -123,6 +123,7 @@ export default function FirefighterDashboard() {
                   showResources={showResources}
                   selectedResourceId={selectedResourceId}
                   onSelectResource={handleSelectResource}
+                  onDeselectResource={() => setSelectedResourceId(null)}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />
@@ -169,7 +170,7 @@ export default function FirefighterDashboard() {
                 Available Resources
               </p>
               <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={(r) => setSelectedResourceId(r.id)}/>
+                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource}/>
               </div>
             </div>
         </div>
