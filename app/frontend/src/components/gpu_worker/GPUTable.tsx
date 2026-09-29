@@ -25,7 +25,7 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
     .sort((a, b) => new Date(b.activated_at).getTime() - new Date(a.activated_at).getTime());
 
   const isAdmin = variant === 'admin';
-  const columnCount = isAdmin ? 8 : 6;
+  const columnCount = isAdmin ? 7 : 6;
 
   return (
     <>
@@ -47,11 +47,6 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
             <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               VRAM
             </th>
-            {isAdmin && (
-              <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
-                User contact
-              </th>
-            )}
             <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
               Status
             </th>
@@ -82,9 +77,6 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
                 )}
                 <td className="px-10 py-3 text-sm text-text-primary">{worker.gpu_name}</td>
                 <td className="px-10 py-3 text-sm text-text-primary">{formatVram(worker.vram_mb)}</td>
-                {isAdmin && (
-                  <td className="px-10 py-3 text-sm text-text-primary">{worker.user_id}</td>
-                )}
                 <td className="px-10 py-3 text-sm text-text-primary">
                   <GpuStatusBadge worker={worker} />
                 </td>
