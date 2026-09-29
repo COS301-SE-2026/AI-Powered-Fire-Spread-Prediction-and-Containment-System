@@ -10,6 +10,7 @@ from app.backend.src.schemas.resource import (
     ResourceCreate,
     ResourceListResponse,
     ResourceResponse,
+    ResourceStatusUpdate,
 )
 from app.backend.src.services.users import resource as resource_service
 
@@ -31,3 +32,21 @@ def get_resources(
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
     return resource_service.list_resources(db, current_user, limit, offset)
+
+@router.patch("/resources/{resource_id}/status", response_model=ResourceResponse)
+def update_resource_status(
+    resource_id: str,
+    payload: ResourceStatusUpdate,
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return resource_service.update_resource_status(resource_id, payload, db, current_user)
+
+@router.get("/resources/mine", response_model=ResourceListResponse)
+def get_my_resource(
+    db: Annotated[Session, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+):
+    return resource_service.get_user_resource(db, current_user, limit, offset)

@@ -12,7 +12,7 @@ export interface UserSummary {
 }
 
 export interface RoleRequestCreate {
-  current_role: UserRole;
+  requested_role: UserRole;
 }
 
 export interface RoleRequest {
