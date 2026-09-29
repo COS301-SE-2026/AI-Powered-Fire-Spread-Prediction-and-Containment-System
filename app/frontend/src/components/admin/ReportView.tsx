@@ -21,7 +21,7 @@ interface ViewProps {
 
 export function ViewPage({ reportRef, role = 'admin' }: Readonly<ViewProps>) {
   const router = useRouter();
-  //const { report, loading, error, refetch } = useFireReport(reportRef);
+  // const { report, loading, error, refetch } = useFireReport(reportRef);
   const adminResult = useFireReport(reportRef);
   const userResult = useMyFireReport(reportRef);
   const { report, loading, error, refetch } =  role === 'user' ? userResult : adminResult;

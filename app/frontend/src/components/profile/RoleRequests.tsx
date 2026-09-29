@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
+import { FireExtinguisher, Ambulance, ShieldCheck, User } from 'lucide-react';
 import type { UserResponse, UserRole } from '../../types/User';
 import { useMyRoleRequests } from '../../hooks/useMyRoleRequests';
-import { FireExtinguisher, Ambulance, ShieldCheck, User } from 'lucide-react';
 
 interface RoleProps {
     user: UserResponse;
