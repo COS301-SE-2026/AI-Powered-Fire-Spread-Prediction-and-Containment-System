@@ -15,9 +15,14 @@ from app.backend.src.dependencies.auth import decode_token, get_current_user
 from app.backend.src.models.notification import Notification
 from app.backend.src.models.users import User
 from app.backend.src.schemas.notification import NotificationListOut, NotificationOut
+from app.backend.src.schemas.push import PushSubscribeIn
 from app.backend.src.services.notifications.notifications import (
     mark_all_read,
     mark_notification_read,
+)
+from app.backend.src.services.notifications.push_webpush import (
+    register_push_subscription,
+    unregister_push_subscription,
 )
 from app.backend.src.services.notifications.websocket_manager import manager
 
@@ -84,6 +89,26 @@ def read_notification(
 def read_all(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     count = mark_all_read(db, user.id)
     return {"marked_read": count}
+
+
+@router.post("/push/register")
+def register_push(
+    body: PushSubscribeIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Registers/re-registers browser for web push notifications"""
+    registered = register_push_subscription(db, user, body.model_dump())
+    return {"registered": registered}
+
+
+@router.delete("/push")
+def unregister_push(
+    user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    """Turns off push notifications for user"""
+    unregister_push_subscription(db, user)
+    return {"registered": False}
 
 
 @router.websocket("/ws")

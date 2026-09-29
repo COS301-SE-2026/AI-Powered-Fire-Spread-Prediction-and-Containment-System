@@ -5,6 +5,8 @@ import os
 import time
 from pathlib import Path
 
+import base64
+import zlib
 import boto3
 import numpy as np
 import requests
@@ -18,7 +20,7 @@ from app.backend.src.ai.simulation import (
 #from app.backend.src.ai.dca import run_dca
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
 from app.backend.src.ai.sim_constants import MAXSTEPS, TICKS_PER_HOUR
-from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history
+from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
 AWS_REGION = os.environ.get("AWS_REGION")
 INFERENCE_QUEUE_URL = os.environ.get("INFERENCE_QUEUE_URL")
@@ -35,17 +37,12 @@ s3 = boto3.client("s3", region_name=AWS_REGION)
 # messages are capped at 256KB and simulation output can easily exceed that
 
 RESULTS_DIR = ARTIFACTS_ROOT / "results"
-CONVLSTM_CHECKPOINT_PATH = ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST" / "model.pt"
+CONVLSTM_CHECKPOINT_PATH = Path(os.environ.get(
+    "CONVLSTM_CHECKPOINT_PATH",
+    str(ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST" / "model.pt")
+))
 DCA_PARAMS_PATH = ARTIFACTS_ROOT / "models" / "dca_params" / "calibrated_params.json"
 
-# fallback DCA params if calibrated_params.json isn't present on the mount
-DEFAULT_DCA_PARAMS = {
-    "a": 0.015,
-    "p_h": 0.06,
-    "c_1": 0.04,
-    "c_2": 0.03,
-    "p_continue": 0.6,
-}
 
 WEATHER_HISTORY_LENGTH = 6  # T=6 past hourly frames
 MAX_STEPS = MAXSTEPS 
@@ -114,7 +111,7 @@ try:
 except FileNotFoundError as e:
     log.warning("ConvLSTM checkppoint not available yet (%s) - inference will fail until it exists", e)
     convlstm_model = None
-default_dca_params = load_dca_params()
+default_dca_params = dict(DEFAULT_DCA_PARAMS)
 
 # def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list, grid_h: int, grid_w: int) -> np.ndarray:
 #     min_lon, min_lat, max_lon, max_lat = grid_bounds
@@ -207,10 +204,17 @@ def run_inference(job: dict) -> dict:
     )
     
 
+    hist = np.stack([
+        (g.detach().cpu().numpy() if hasattr(g, "detach") else np.asarray(g)).astype(np.int8)
+        for g in history
+    ])
+    
     return {
         "job_id": job_id,
         "region_id": region_id,
-        "history": [grid.tolist() for grid in history],
+        "status": "completed",
+        "history_z": base64.b64encode(zlib.compress(hist.tobytes(), 6)).decode("ascii"),
+        "history_shape": list(hist.shape),
     }
     
 def write_result_to_artifacts(job_id: str, result: dict) -> str:

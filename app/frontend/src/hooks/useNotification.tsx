@@ -31,6 +31,7 @@ type NotificationState = Readonly<{
   error: string | null;
   markAsRead: (id: string) => void;
   refetchAfterAction: () => Promise<void>;
+  refetchSilent: () => Promise<void>;
   activeToast: FireNotification | null;
   showToast: (notification: FireNotification) => void;
   dismissToast: () => void;
@@ -53,6 +54,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
   const [activeToast, setActiveToast] = useState<FireNotification | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set());
   const dismissIsRef = useRef<Set<string>>(new Set());
+  const initialLoadDoneRef = useRef(false);
 
   const showToast = useCallback((notification: FireNotification): void => {
     setActiveToast(notification);
@@ -82,10 +84,6 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    knownIdsRef.current = new Set(notifications.map((n) => n.id));
-  }, [notifications]);
-
   const fetchNotifications = useCallback(
     async (options: { toastIfNew: boolean }) => {
       try {
@@ -98,14 +96,12 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
         setNotifications(data.notifications);
         knownIdsRef.current = new Set(data.notifications.map((n) => n.id));
+        initialLoadDoneRef.current = true;
         setLocationEnabled(data.locationEnabled);
         setError(null);
-
-        if (options.toastIfNew) {
-          const toastCandidate =
-            newlyArrived.find((n) => !n.read && !dismissIsRef.current.has(n.id)) ??
-            data.notifications.find((n) => !n.read && !dismissIsRef.current.has(n.id));
-
+        
+        if (options.toastIfNew && newlyArrived.length > 0) {
+          const toastCandidate = newlyArrived.find((n) => !n.read);
           if (toastCandidate) {
             showToast(toastCandidate);
           }
@@ -121,6 +117,10 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
 
   const refetchAfterAction = useCallback(async () => {
     await fetchNotifications({ toastIfNew: true });
+  }, [fetchNotifications]);
+
+  const refetchSilent = useCallback(async () => {
+    await fetchNotifications({ toastIfNew: false });
   }, [fetchNotifications]);
 
   // initial load: recent notification history, unread count, whether user has location on file at all
@@ -161,7 +161,10 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
         knownIdsRef.current.add(incoming.id);
 
         setNotifications((prev) => [incoming, ...prev]);
-        showToast(incoming);
+        if (initialLoadDoneRef.current) {
+          showToast(incoming);
+        }
+        
       } catch (err) {
         console.warn('Failed to parse notification payload', err);
       }
@@ -198,6 +201,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       error,
       markAsRead,
       refetchAfterAction,
+      refetchSilent,
       activeToast,
       showToast,
       dismissToast,
@@ -211,6 +215,7 @@ export function NotificationsProvider({ children }: Readonly<{ children: React.R
       error,
       markAsRead,
       refetchAfterAction,
+      refetchSilent,
       activeToast,
       showToast,
       dismissToast,

@@ -157,7 +157,6 @@ yarn test
 yarn test:headed
 yarn test:report
 yarn test:install
-yarn eslint . --ext .js,.jsx,.ts,.tsx
 ```
 
 ## 8. Maintenance Commands:

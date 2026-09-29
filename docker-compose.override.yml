@@ -23,6 +23,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       RUN_SEED: "1"
     volumes:
+      - ~/.aws:/root/.aws:ro
       - ./app/__init__.py:/app/app/__init__.py:ro,z
       - ./app/backend:/app/app/backend:z
       - ./app/artifact_store:/app/app/artifact_store:z
