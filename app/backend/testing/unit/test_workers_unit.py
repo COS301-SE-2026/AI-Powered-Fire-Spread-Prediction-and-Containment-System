@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
+import zlib
+import base64
 from fastapi import HTTPException
 
 from app.backend.src.schemas.workers import WorkerRegisterRequest
@@ -144,4 +146,10 @@ class TestExecutePipelineTask:
         assert float(wt[0, 0, 0].mean()) == pytest.approx(3.0) # wind u
         assert float(wt[0, 0, 2].mean()) == pytest.approx(25.0) # temp 
         assert float(wt[0, 0, 3].mean()) == pytest.approx(30.0) # humidity
-        assert result == {"job_id": "unit-1", "status": "completed", "history": [np.zeros((5,5)).tolist()]}
+        assert result["job_id"] == "unit-1"
+        assert result["status"] == "completed"
+        assert result["history_shape"] == [1, 5, 5]
+        decoded = np.frombuffer(
+            zlib.decompress(base64.b64decode(result["history_z"])), dtype=np.int8
+        ).reshape(result["history_shape"])
+        assert np.array_equal(decoded, np.zeros((1, 5, 5), dtype=np.int8))
