@@ -1,7 +1,7 @@
 """add saved locations table
 
 Revision ID: 92d5b44272f9
-Revises: 0c36daf7a339
+Revises: 2bfc68816704
 Create Date: 2026-09-28 21:51:54.794907
 
 """
@@ -13,7 +13,7 @@ from geoalchemy2 import Geometry
 
 # revision identifiers, used by Alembic.
 revision: str = '92d5b44272f9'
-down_revision: Union[str, None] = '0c36daf7a339'
+down_revision: Union[str, None] = '2bfc68816704'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
