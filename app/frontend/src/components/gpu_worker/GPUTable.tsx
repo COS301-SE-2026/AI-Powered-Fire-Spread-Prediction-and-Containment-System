@@ -49,7 +49,7 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
             </th>
             {isAdmin && (
               <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
-                User contact
+                User System ID
               </th>
             )}
             <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-10 py-3">
