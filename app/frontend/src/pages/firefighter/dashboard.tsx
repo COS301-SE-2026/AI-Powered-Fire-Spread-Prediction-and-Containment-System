@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
+import { MapLayerToggles } from '@/components/shared/MapLayerToggles';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { QuickActions } from '../../components/firefighter/quickActions';
 import { NearbyReports } from '../../components/shared/nearbyReports';
@@ -18,7 +19,7 @@ import { NearbyResources } from '../../components/shared/NearbyResources';
 import { useNearbyResources } from '../../hooks/useNearbyResources';
 import { ResourceMapLegend } from '../../components/shared/ResourceMapLegend';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
-import { MapLayerToggles } from '@/components/shared/MapLayerToggles';
+
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
