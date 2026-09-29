@@ -8,6 +8,8 @@ import os
 import sys
 import time
 from typing import Optional, Tuple
+import base64
+import zlib
 
 import numpy as np
 import requests
@@ -16,7 +18,7 @@ import websockets
 
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.model_pipeline import run_convlstm_dca
-from app.backend.src.ai.simulation import build_boundary_ignition_mask
+from app.backend.src.ai.simulation import build_boundary_ignition_mask, build_multi_boundary_ignition_mask
 from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
 logging.basicConfig(
@@ -157,12 +159,24 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         frames.append(stacked)
     weather_tensor = torch.from_numpy(np.stack(frames, axis=0)).unsqueeze(0)
 
-    ignition_mask = build_boundary_ignition_mask(
-        H=payload["grid_h"],
-        W=payload["grid_w"],
-        cell_size_m=payload["cell_size_m"],
-        boundary_radius_m=payload["boundary_radius_m"]
-    )
+    fires = payload.get("fires")
+    if fires:
+        ignition_mask = build_multi_boundary_ignition_mask(
+            H=payload["grid_h"],
+            W=payload["grid_w"],
+            cell_size_m=payload["cell_size_m"],
+            fires=[(f["center_lat"], f["center_lon"], f["boundary_radius_m"]) for f in fires],
+            grid_bounds=tuple(payload["grid_bounds"])
+        )
+    else:
+        ignition_mask = build_boundary_ignition_mask(
+            H=payload["grid_h"],
+            W=payload["grid_w"],
+            cell_size_m=payload["cell_size_m"],
+            boundary_radius_m=payload["boundary_radius_m"]
+        )
+
+    
 
     raw_params = payload.get("params", DEFAULT_DCA_PARAMS)
     params = (
@@ -183,12 +197,16 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         params=params,
     )
 
-    history_list = [grid.tolist() for grid in history]
+    hist = np.stack([
+        (g.detach().cpu().numpy() if hasattr(g, "detach") else np.asarray(g)).astype(np.int8)
+        for g in history
+    ])
 
     return {
         "job_id": job_id,
         "status": "completed",
-        "history": history_list,
+        "history_z": base64.b64encode(zlib.compress(hist.tobytes(), 6)).decode("ascii"),
+        "history_shape": list(hist.shape),
     }
 
 async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
@@ -249,8 +267,8 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
 
         except websockets.exceptions.InvalidStatus as err:
             status_code = getattr(err.response, "status_code", "Unknown")
-            log.error("Authentication rejected: HTTP %s (%s)", status_code, err)
-            return
+            log.warning("Broker rejected connection: HTTP %s (node mat be quarantined). Retrying in 60 seconds", status_code)
+            await asyncio.sleep(60)
         except (websockets.exceptions.ConnectionClosed, OSError) as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
             await asyncio.sleep(RECONNECT_DELAY_SECONDS)

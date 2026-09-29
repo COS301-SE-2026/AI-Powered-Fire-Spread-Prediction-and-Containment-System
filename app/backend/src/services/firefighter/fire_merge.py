@@ -16,18 +16,15 @@ from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.services.cache import cache_client
 from app.backend.src.services.notifications import notify_fire_update
 
+from app.backend.src.services.fire_growth import (
+    estimate_current_radius_km,
+    NORMAL_CREEP_KM_PER_MIN,
+)
+
 METERS_PER_DEG_LAT = 111_320.0
 
 # a fire must show as overlapping for this long continuously before actually merged
 DEBOUNCE_SECONDS = 3 * 60
-
-NORMAL_CREEP_KM_PER_MIN = 0.002
-MAX_GROWTH_KM = 5.0
-
-def estimate_current_radius_km(boundary_radius_km: Decimal, submitted_at: datetime) -> float:
-    elapsed_min = max(0.0, (datetime.now(timezone.utc) - submitted_at).total_seconds() / 60.0)
-    growth = min(MAX_GROWTH_KM, NORMAL_CREEP_KM_PER_MIN * elapsed_min)
-    return float(boundary_radius_km) + growth
 
 def distance_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     dlat_km = (lat1 - lat2) * (METERS_PER_DEG_LAT / 1000.0)

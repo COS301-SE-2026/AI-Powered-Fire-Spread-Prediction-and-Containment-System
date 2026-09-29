@@ -4,6 +4,7 @@ import type { AppProps } from 'next/app';
 import '../styles/globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Head from 'next/head';
+import { usePushSubscription } from '@/hooks/usePushSubscription';
 import { NotificationsProvider, useNotifications } from '../hooks/useNotification';
 import { NotificationToast } from '../components/notification/NotificationToast';
 import { offlineStore } from '../lib/offlineStore';
@@ -24,6 +25,7 @@ import GpuNotification from '../components/gpu_worker/GpuNotification';
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const showGpuNotification = router.pathname.startsWith('/admin') || router.pathname.startsWith('/firefighter') || router.pathname.startsWith('/user');
+  usePushSubscription();
   useEffect(() => {
     // Only register in prod
 

@@ -18,3 +18,10 @@ dist
 **/.pytest_cache
 *.log
 database/
+**/.env
+**/.env.*
+**/*.pem
+**/*.key
+**/*.tfstate*
+terraform/
+tmp/
