@@ -6,7 +6,7 @@ import logging
 import os
 from typing import Annotated, Dict, Optional, List
 
-from fastapi import (APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status)
+from fastapi import (APIRouter, Depends, HTTPException, Query, Request, WebSocket, WebSocketDisconnect, status)
 from jose import JWTError, jwt
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -28,6 +28,8 @@ current_active_user = Annotated[User, Depends(get_current_user)]
 
 # worker_id -> WebSocket
 active_worker_connections: Dict[str, WebSocket] = {}
+#job id is future resolved by hander when worker replies
+pending_results: Dict[str, asyncio.Future] = {}
 
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 ALGORITHM = "HS256"
@@ -167,10 +169,16 @@ def get_compute_distribution(db: Session = Depends(get_db)):
 @router.post("/keys", status_code=status.HTTP_201_CREATED, response_model=WorkerEnrollmentKeyResponse)
 def generate_worker_enrollment_key(
     body: WorkerEnrollmentKeyRequest,
-    current_user: current_active_user
+    current_user: current_active_user,
+    request: Request
 ):
     """Generates a single-use setup key for the authenticated user and caches it in Valkey."""
-    return worker_service.generate_worker_key(current_user.id, label=body.label, gpu_name=body.gpu_name)
+    return worker_service.generate_worker_key(
+        current_user.id, 
+        label=body.label, 
+        gpu_name=body.gpu_name,
+        request_host=request.headers.get("host")
+    )
 
 
 @router.post(
@@ -266,8 +274,10 @@ async def websocket_worker_endpoint(
                 if msg_type == "simulation_result":
                     job_id = data.get("job_id")
                     log.info("Received simulation result for job %s from worker %s", job_id, worker_id)
-                    # to dispatcher
-                    valkey.setex(f"worker:sim:result:{job_id}", 60, json.dumps(data.get("payload", {})))
+
+                    fut = pending_results.pop(job_id, None)
+                    if fut and not fut.done():
+                        fut.set_result(data.get("payload", {}))
                     # return to idle
                     valkey.srem("worker:pool:busy", worker_id)
                     db.refresh(node)
@@ -281,6 +291,9 @@ async def websocket_worker_endpoint(
                 if msg_type == "simulation_error":
                     job_id = data.get("job_id")
                     log.error("Worker %s failed simulation job %s: %s", worker_id, job_id, data.get("error"))
+                    fut = pending_results.pop(job_id, None)
+                    if fut and not fut.done():
+                        fut.set_result(None)
                     node.consecutive_failures += 1
                     node.status = "quarantined"
                     node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION
@@ -357,42 +370,51 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
         "type": "simulation_job",
         "payload": task_payload,
     }
-        
+
+    pending = asyncio.get_running_loop().create_future()
+    pending_results[job_id] = pending
+    
     try:
         await ws.send_text(json.dumps(message))
-        result_key = f"worker:sim:result:{job_id}"
         elapsed = 0.0
-        poll_interval = 0.5
 
         while elapsed < JOB_TIMEOUT_SECONDS:
-            raw_reslult = valkey.get(result_key)
-            if raw_reslult:
-                valkey.delete(result_key)
-                return json.loads(raw_reslult)
+            done, _ = await asyncio.wait({pending}, timeout=1.0)
+            if done:
+                result = pending.result()
+                if result is not None:
+                    return result
+                return {"dispatched_to": "cloud_fallback", "status": "queued"} # worker reported error
 
             if worker_id not in active_worker_connections:
-                log.error("Worker %s disconnected mid-simulation for job %s.", worker_id, job_id)
-                break
+                log.error("Worker %s disconnected mid simulation for the job %s", worker_id, job_id)
+                return {"dispatched_to": "cloud_fallback", "status": "queued"}
+            elapsed += 1.0
 
-            await asyncio.sleep(poll_interval)
-            elapsed += poll_interval
 
         log.warning("Worker %s exceeded %.0fs limit on job %s. Quarantining", worker_id, JOB_TIMEOUT_SECONDS, job_id)
-        if node:
-            node.consecutive_failures += 1
-            node.status = "quarantined"
-            node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
-            db.commit()
-        valkey.srem("worker:pool:busy", worker_id)
+        node.consecutive_failures += 1
+        node.status = "quarantined"
+        node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
+        db.commit()
 
     except Exception as err:
-        log.error("Error communicating with worker %s on job %s: %s", worker_id, job_id, err)
-        if node:
-            node.consecutive_failures += 1
-            node.status = "quarantined"
-            node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION 
-            db.commit()
-        valkey.srem("worker:pool:busy", worker_id)
+        log.error("Error dispatching job %s to worker %s: %s", job_id, worker_id, err)
+        try:
+            db.refresh(node)
+            if node.status == "busy":
+                node.status = "active"
+                db.commit()
+                if worker_id in active_worker_connections:
+                    valkey.sadd("worker:pool:idle", worker_id)
+        except Exception:
+            log.exception("Could not reset the worker %s after dispatch error", worker_id)
+    finally:
+        pending_results.pop(job_id, None)
+        try:
+            valkey.srem("worker:pool:busy", worker_id)
+        except Exception:
+            pass
 
     return {"dispatched_to": "cloud_fallback", "status": "queued"}
 

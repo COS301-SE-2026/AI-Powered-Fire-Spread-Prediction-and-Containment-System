@@ -476,6 +476,7 @@ REGIONAL_LOCATIONS = [
         "lng": 28.2500,
         "desc": "Massive mountain veld fire consuming open land.",
         "radius": 3.0,
+        "status": ReportStatus.rejected,
     },
     {
         "name": "Suikerbosrand Grassland West, Heidelberg",
@@ -491,6 +492,22 @@ REGIONAL_LOCATIONS = [
         "lng": 28.2490,
         "desc": "Second ignition across the valley from the western fire.",
         "radius": 0.1,
+        "status": ReportStatus.verified,
+    },
+    {
+        "name": "Rietvlei Grassland North, Irene",
+        "lat": -25.8700,
+        "lng": 28.2850,
+        "desc": "Grass fire on the northern slopes, wind pushing south.",
+        "radius": 0.2,
+        "status": ReportStatus.verified,
+    },
+    {
+        "name": "Rietvlei Grassland South, Irene",
+        "lat": -25.8750,
+        "lng": 28.2900,
+        "desc": "Second grass fire ~700 m south-east of the northern fire.",
+        "radius": 0.2,
         "status": ReportStatus.verified,
     },
 ]

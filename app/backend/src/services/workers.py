@@ -28,6 +28,12 @@ valkey_client = redis.Redis(
 REGISTRATION_KEY_TTL = 86400 # 24 hours
 MIN_VRAM_MB = 3584
 
+def public_backend_url(request_host: str | None) -> str:
+    """uses the host that user is on"""
+    default = os.getenv("BACKEND_PUBLIC_URL", "http://localhost:8000").rstrip("/")
+    allowed = {h.strip().lower() for h in os.getenv("WORKER_PUBLIC_HOSTS", "").split(",") if h.strip()}
+    host = (request_host or "").split(":")[0].strip().lower()
+    return f"https://{host}" if host in allowed else default
 
 def list_workers(
     db: Session,
@@ -143,6 +149,7 @@ def generate_worker_key(
         user_id: str,
         label: str = "volunteer-desktop",
         gpu_name: str = "Unkown GPU",
+        request_host: str | None = None,
 ) -> dict:
     """Generates single-use setup key and stores in Valkey with 24 h TTL to authenticate user"""
 
@@ -154,7 +161,8 @@ def generate_worker_key(
     # SETEX worker:reg:<key> 86400 <user_id>
     valkey_client.setex(valkey_storage_key, REGISTRATION_KEY_TTL, user_id)
 
-    backend_url = os.getenv("BACKEND_PUBLIC_URL", "http://localhost:8000")
+    backend_url = public_backend_url(request_host)
+    worker_image = os.getenv("WORKER_IMAGE", "fireaway-worker:latest")
 
     if backend_url.startswith("https://"):
         ws_url = "wss://" + backend_url[len("https://"):] + "/api/v1/workers/connect"
@@ -167,12 +175,12 @@ def generate_worker_key(
         "registration_key": reg_key,
         "expires_in_seconds": REGISTRATION_KEY_TTL,
         "docker_command": (
-            f'docker run --gpus all --memory="8g" '
+            f'docker run --rm --gpus all --memory="8g" '
             f'-e REGISTRATION_KEY={shlex.quote(reg_key)} '
             f'-e WORKER_LABEL={shlex.quote(label)} '
             f'-e BACKEND_BASE_URL={shlex.quote(backend_url)} '
             f'-e WEBSOCKET_URL={shlex.quote(ws_url)} '
-            f'fireaway-worker:latest'
+            f'{shlex.quote(worker_image)}'
         ),
     }
 

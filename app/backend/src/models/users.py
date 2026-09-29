@@ -30,6 +30,8 @@ class User(Base):
     location_geom = Column(
         Geometry(geometry_type="POINT", srid=4326, spatial_index=True), nullable=True
     )
+    
+    push_subscription = Column(String, nullable=True)
 
     fire_reports = relationship("FireReports", back_populates="user")
     role_requests = relationship(

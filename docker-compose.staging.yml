@@ -43,11 +43,12 @@ services:
   valkey:
     image: valkey/valkey@sha256:3acc0687f2a2e1091fae6450d7842dd658c941338cf0a873ddd9e14b9e4ea4dd
     restart: always
+    command: ["valkey-server", "--appendonly", "yes", "--maxmemory", "256mb", "--maxmemory-policy", "volatile-lru"]
     deploy:
       resources:
         limits:
-          cpus: "0.05"
-          memory: "128M"
+          cpus: "0.25"
+          memory: "384M"
 
   # minio:
   #   image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
