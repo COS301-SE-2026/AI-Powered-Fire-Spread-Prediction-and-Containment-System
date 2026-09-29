@@ -1,6 +1,6 @@
 'use client';
 
-import { Feather, LocateFixed } from 'lucide-react'
+import { Feather, LocateFixed, MapPin } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
@@ -32,6 +32,7 @@ import { useDamsFromOSM, mergeWaterFeatureCollections } from '../../hooks/useDam
 import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
+import type { SavedLocation } from '../../types/SavedLocation';
 
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
@@ -64,6 +65,8 @@ interface MapProps {
   onToggleFireSelect?: (ref: string) => void;
   clusterPredictions?: ClusterPrediction[];
   disableGrowth?: boolean;
+  savedLocations?: SavedLocation[];
+  showSavedLocations?: boolean;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -95,6 +98,8 @@ export function FireMap({ lat,
   selectedFireIds = new Set(),
   onToggleFireSelect = undefined,
   clusterPredictions = [],
+  savedLocations = [],
+  showSavedLocations = true,
 }: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
@@ -869,6 +874,18 @@ export function FireMap({ lat,
             </div>
           </Marker>
         )}
+        {showSavedLocations && savedLocations.map((loc) => (
+          loc.lat != null && loc.lng != null ? (
+            <Marker key={loc.id} longitude={loc.lng} latitude={loc.lat} anchor='bottom'>
+              <div title={loc.label} className='flex flex-col items-center pointer-events-auto'>
+                <span className='px-1.5 py-0.5 mb-0.5 rounded bg-carbon-side/95 border border-carbon-stroke text-[11px] text-text-primary whitespace-nowrap shadow-lg'>
+                  {loc.label}
+                </span>
+                <MapPin className='size-6 text-text-primary drop-shadow-lg' />
+              </div>
+            </Marker>
+          ) : null
+        ))}
       </Map>
 
       <button

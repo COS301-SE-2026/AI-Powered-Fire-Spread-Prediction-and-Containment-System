@@ -13,6 +13,7 @@ services:
       [edge]
 
   backend:
+    platform: linux/amd64
     build: 
       context: .
       dockerfile: app/backend/Dockerfile
