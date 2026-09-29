@@ -13,6 +13,8 @@ import { SearchBar } from '../../components/shared/Searchbar';
 import { Info } from './Info';
 import { RoleRequests } from './RoleRequests';
 import { SavedLocations } from './SavedLocations';
+import { RotateHint } from '../shared/RotateHint';
+import { useRotate } from '../../hooks/useRotate';
 
 type ReportFilter = 'All' | ReportStatus;
 type ResourceFilter = 'All' | Status;
@@ -30,6 +32,7 @@ export default function ProfilePage(){
     const [resourceSearch, setResourceSearch] = useState('');
     const { updateStatus } = useUpdateResourceStatus();
     const [updatedUser, setUpdatedUser] = useState<UserResponse | null>(null);
+    const { showHint, dismiss } = useRotate();
 
     const displayUser = updatedUser ?? user;
 
@@ -65,6 +68,7 @@ export default function ProfilePage(){
 
     return (
         <div className='p-6'>
+            <RotateHint show={showHint} onDismiss={dismiss} />
             <div className='flex items-center gap-8 mt-6 mb-8 pb-8 bg-card'>
                 <div className='w-20 h-20 rounded-full bg-ignite flex items-center justify-center text-4xl font-display font-bold text-char shrink-0'>{initial}</div>
                 <div className="min-w-0">
