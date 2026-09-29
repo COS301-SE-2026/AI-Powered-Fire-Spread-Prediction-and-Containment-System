@@ -78,7 +78,7 @@ export function SideBar({
           </div>
 
         {/* footer */}
-        <div className="w-full p-4 border-t border-carbon-card flex flex-col items-center gap-2 group-hover:items-start group-hover:px-6 transition-all bg-carbon-side shrink-0">
+        <div className="w-full px-3 p-4 border-t border-carbon-card flex flex-col items-center gap-2 transition-all bg-carbon-side shrink-0">
 
           <NavLink icon={HelpCircle} label="Help Menu" href={`/${section}/Help`} />
 
@@ -95,15 +95,7 @@ export function SideBar({
           )}
 
             {!hideLogout && (
-              <button
-                onClick = {() => {
-                  logout();
-                }}
-                className="p-2 text-text-primary hover:text-flare rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-start gap-4"
-              >
-                <LogOut className="size-6 shrink-0" />
-                <span className="text-sm font-semibold inline lg:hidden lg:group-hover:inline">Logout</span>
-              </button>
+              <NavLink icon={LogOut} label="Logout" onClick={() => { logout(); }} />
             )}
           </div>
         </aside>
