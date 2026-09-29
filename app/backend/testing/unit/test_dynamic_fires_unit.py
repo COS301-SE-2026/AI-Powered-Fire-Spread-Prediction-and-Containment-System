@@ -10,6 +10,7 @@ import pytest
 
 from app.backend.src.enums.fire_status import FireStatus
 from app.backend.src.enums.report_status import ReportStatus
+from app.backend.src.services import fire_growth
 from app.backend.src.services.firefighter import fire_merge
 from app.backend.src.services.firefighter import fire_terrain_bias as ftb
 from app.backend.src.services.users import fire_report
@@ -38,11 +39,50 @@ def test_estimate_current_radius_km_starts_at_boundary_radius():
     radius = fire_merge.estimate_current_radius_km(Decimal("0.5"), now)
     assert radius == pytest.approx(0.5, abs=1e-6)
     
-def test_estimate_current_radius_km_is_capped_at_max_growth():
+def test_estimate_current_radius_km_grows_without_bound_for_a_very_old_fire():
     now = datetime.now(timezone.utc)
-    very_old = now - timedelta(days=30)
-    radius = fire_merge.estimate_current_radius_km(Decimal("0.5"), very_old)
-    assert radius == pytest.approx(0.5 + fire_merge.MAX_GROWTH_KM, abs=1e-6)
+    thirty_days = fire_merge.estimate_current_radius_km(Decimal("0.5"), now - timedelta(days=30))
+    sixty_days = fire_merge.estimate_current_radius_km(Decimal("0.5"), now - timedelta(days=60))
+    assert thirty_days > 5.5
+    assert sixty_days > thirty_days * 1.5
+    
+def make_growth_fire(boundary_radius, submitted_at, fire_status=FireStatus.active):
+    fire = MagicMock()
+    fire.boundary_radius = boundary_radius
+    fire.submitted_at = submitted_at
+    fire.fire_status = fire_status
+    return fire
+
+def test_effective_boundary_radius_km_grows_for_an_active_fire():
+    now = datetime.now(timezone.utc)
+    fire = make_growth_fire(Decimal("0.5"), now - timedelta(hours=2))
+    assert fire_growth.effective_boundary_radius_km(fire) > 0.5
+    
+def test_effective_boundary_radius_km_matches_estimate_current_radius_km():
+    now = datetime.now(timezone.utc)
+    submitted_at = now - timedelta(hours=1)
+    fire = make_growth_fire(Decimal("0.5"), submitted_at)
+    
+    expected = fire_growth.estimate_current_radius_km(Decimal("0.5"), submitted_at)
+    assert fire_growth.effective_boundary_radius_km(fire) == pytest.approx(expected)
+    
+def test_effective_boundary_radius_km_does_not_grow_a_contained_fire():
+    now = datetime.now(timezone.utc)
+    fire = make_growth_fire(
+        Decimal("0.5"), now - timedelta(days=30), fire_status=FireStatus.contained
+    )
+    assert fire_growth.effective_boundary_radius_km(fire) == pytest.approx(0.5)
+    
+def test_effective_boundary_radius_km_does_not_grow_an_extinguished_fire():
+    now = datetime.now(timezone.utc)
+    fire = make_growth_fire(
+        Decimal("0.5"), now - timedelta(days=30), fire_status=FireStatus.extinguished
+    )
+    assert fire_growth.effective_boundary_radius_km(fire) == pytest.approx(0.5)
+    
+def test_effective_boundary_radius_km_falls_back_when_submitted_at_missing():
+    fire = make_growth_fire(Decimal("0.5"), None, fire_status=None)
+    assert fire_growth.effective_boundary_radius_km(fire) == pytest.approx(0.5)
     
 def test_pair_key_is_order_independent():
     assert fire_merge.pair_key("a", "b") == fire_merge.pair_key("b", "a")

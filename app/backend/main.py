@@ -1,5 +1,6 @@
 import os
 import asyncio
+import contextlib
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,6 +25,10 @@ from app.backend.seed import seed
 from app.backend.src.services.storage import ensure_bucket
 from app.backend.src.services.notifications.websocket_manager import set_main_loop
 
+from app.backend.src.services.notifications.proximity_scheduler import (
+    run_proximity_check_loop,
+)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,8 +41,17 @@ async def lifespan(app: FastAPI):
 
     if os.environ.get("RUN_SEED") == "1":
         seed()
+        
+    proximity_task = None
+    if os.environ.get("DISABLE_PROXIMITY_SCHEDULER") != "1":
+        proximity_task = asyncio.create_task(run_proximity_check_loop())
 
     yield
+    
+    if proximity_task is not None:
+        proximity_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await proximity_task
 
 
 app = FastAPI(
