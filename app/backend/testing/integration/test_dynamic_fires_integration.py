@@ -1,3 +1,4 @@
+import pytest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
@@ -7,7 +8,23 @@ from app.backend.src.enums.fire_status import FireStatus
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.main import app
+from app.backend.src.services.firefighter import fire_merge
 
+class FakeCache:
+    def __init__(self):
+        self.store = {}
+    def get(self, key):
+        return self.store.get(key)
+    def set(self, key, value, ex=None):
+        self.store[key] = value
+    def delete(self, key):
+        self.store.pop(key, None)
+
+@pytest.fixture
+def fake_cache(monkeypatch):
+    cache = FakeCache()
+    monkeypatch.setattr(fire_merge, "cache_client", cache)
+    return cache
 def as_role(db, role):
     user = make_user(db, role=role)
     app.dependency_overrides[get_current_user] = lambda: user
@@ -64,9 +81,7 @@ def test_merged_fire_is_excluded_from_growable_fires_by_reference(client, db):
     merged_entry = next(f for f in data if f["id"] == fire.id)
     assert merged_entry["merged_into_id"] == other.id
     
-@patch("app.backend.src.services.firefighter.fire_merge.cache_client")
-def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(mock_cache, client, db):
-    mock_cache.get.return_value = None
+def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(client, db, fake_cache):
     now = datetime.now(timezone.utc)
     fire_a = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now - timedelta(minutes=5))
     fire_b = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now)
@@ -78,15 +93,23 @@ def test_close_overlapping_fires_do_not_merge_before_debounce_elapses(mock_cache
     assert fire_a.merged_into_id is None
     assert fire_b.merged_into_id is None
     
-@patch("app.backend.src.services.firefighter.fire_merge.is_persistently_overlapping", return_value=True)
-def test_overlapping_fires_merge_once_debounce_is_satisfied(mock_debounce, client, db):
+def test_overlapping_fires_merge_once_debounce_is_satisfied(client, db, fake_cache):
     now = datetime.now(timezone.utc)
-    older = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now - timedelta(hours=1))
-    newer = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0, status=ReportStatus.verified, submitted_at=now)
-    
+    older = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0,
+                        status=ReportStatus.verified, submitted_at=now - timedelta(hours=1))
+    newer = make_report(db, lat=-25.75, lng=28.23, boundary_radius=5.0,
+                        status=ReportStatus.verified, submitted_at=now)
+
+    client.get("/api/firefighter/reported-fires")   # first sighting, no merge
+    db.refresh(newer)
+    assert newer.merged_into_id is None
+
+    key = fire_merge.pair_key(older.id, newer.id)
+    fake_cache.store[key] = str(now.timestamp() - fire_merge.DEBOUNCE_SECONDS - 1)
+
     response = client.get("/api/firefighter/reported-fires")
     assert response.status_code == 200, response.text
-    
+
     db.refresh(older)
     db.refresh(newer)
     assert newer.merged_into_id == older.id
