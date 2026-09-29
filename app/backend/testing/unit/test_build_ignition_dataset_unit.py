@@ -211,3 +211,127 @@ def test_step_burn_state_burned_is_terminal():
     detected = np.array([[True]])
     new = bid.step_burn_state(prev, detected)
     assert new[0, 0] == BURNED
+
+
+# OpenMeteo Tests
+
+
+def test_open_meteo_provider_raises_if_fetch_before_prepare():
+    provider = bid.OpenMeteoWeatherProvider()
+    with pytest.raises(RuntimeError, match="prepare_for_fire"):
+        provider.fetch(0, 0, 1, 1, pd.Timestamp("2024-01-01"), (4, 4))
+
+
+def test_open_meteo_provider_raises_on_empty_fetch_result():
+    event = bid.FireEvent(
+        fire_id=1,
+        detection=pd.DataFrame(),
+        min_lon=0,
+        min_lat=0,
+        max_lon=1,
+        max_lat=1,
+        ticks=[pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")],
+    )
+    provider = bid.OpenMeteoWeatherProvider()
+    with patch(
+        "app.datasets.scripts.fetch_historical_weather.fetch_historical_weather",
+        return_value=pd.DataFrame(),
+    ):
+        with pytest.raises(RuntimeError, match="no data"):
+            provider.prepare_for_fire(event, target_shape=(4, 4))
+
+
+def test_open_meteo_provider_caches_per_fire_and_delegates_fetch():
+    event = bid.FireEvent(
+        fire_id=2,
+        detection=pd.DataFrame(),
+        min_lon=0,
+        min_lat=0,
+        max_lon=1,
+        max_lat=1,
+        ticks=[pd.Timestamp("2024-01-01"), pd.Timestamp("2024-01-02")],
+    )
+    fake_df = pd.DataFrame({"datetime": [pd.Timestamp("2024-01-01")]})
+    provider = bid.OpenMeteoWeatherProvider()
+
+    with patch(
+        "app.datasets.scripts.fetch_historical_weather.fetch_historical_weather",
+        return_value=fake_df,
+    ) as mock_fetch:
+        provider.prepare_for_fire(event, target_shape=(4, 4))
+        mock_fetch.assert_called_once()
+        assert provider._current_fire_id == 2
+        assert provider._df_by_fire[2] is fake_df
+
+    expected_grids = {
+        "wind_u": np.zeros((4, 4)),
+        "wind_v": np.zeros((4, 4)),
+        "temperature": np.zeros((4, 4)),
+        "rel_humidity": np.zeros((4, 4)),
+    }
+    with patch(
+        "app.datasets.scripts.fetch_historical_weather.get_weather_at_timestamp",
+        return_value=expected_grids,
+    ) as mock_get:
+        result = provider.fetch(0, 0, 1, 1, pd.Timestamp("2024-01-01"), (4, 4))
+        mock_get.assert_called_once()
+        assert result is expected_grids
+
+
+# Satic sources tests:
+
+
+def test_static_source_manifest_from_csv_converts_nan_to_none(tmp_path):
+    csv_path = tmp_path / "manifest.csv"
+    csv_path.write_text("fire_id,dem_path,scl_path\n1,/data/dem1.tif,\n")
+    manifest = bid.StaticSourceManifest.from_csv(csv_path)
+    row = manifest.get(1)
+    assert row["dem_path"] == "/data/dem1.tif"
+    assert row["scl_path"] is None
+
+
+def test_static_source_manifest_get_missing_fire_id_raises_keyerror(tmp_path):
+    csv_path = tmp_path / "manifest.csv"
+    csv_path.write_text("fire_id,dem_path\n1,/data/dem1.tif\n")
+    manifest = bid.StaticSourceManifest.from_csv(csv_path)
+    with pytest.raises(KeyError, match="fire_id=99"):
+        manifest.get(99)
+
+
+# Static grid loading
+
+
+def test_load_static_grids_for_fire_falls_back_to_computing_aspect_sin_cos():
+    manifest_row = {
+        "b04_path": "b04.tif",
+        "b08_path": "b08.tif",
+        "b11_path": "b11.tif",
+        "dem_path": "dem.tif",
+        "scl_path": None,
+        "worldcover_path": None,
+    }
+    fake_veg = {"fuel_load": np.full((2, 2), 0.5), "dryness": np.full((2, 2), 0.3)}
+    fake_terrain = {
+        "elevation": np.full((2, 2), 100.0),
+        "slope": np.full((2, 2), 5.0),
+        "aspect": np.full((2, 2), 90.0),  # only raw aspect given, no sin/cos
+    }
+    with patch(
+        "app.backend.ml.features.fuel_load.process_sentinal2_and_worldcover",
+        return_value=fake_veg,
+    ), patch(
+        "app.backend.ml.features.terrain.extract_terrain_features",
+        return_value=fake_terrain,
+    ):
+        grids = bid.load_static_grids_for_fire(manifest_row, 0, 0, 1, 1, (2, 2))
+
+    assert set(grids.keys()) == {
+        "elevation",
+        "slope",
+        "aspect_sin",
+        "aspect_cos",
+        "fuel_load",
+        "dryness",
+    }
+    assert grids["aspect_sin"] == pytest.approx(np.sin(np.radians(90.0)))
+    assert grids["aspect_cos"] == pytest.approx(np.cos(np.radians(90.0)), abs=1e-6)
