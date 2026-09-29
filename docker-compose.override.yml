@@ -86,7 +86,6 @@ services:
 
   minio:
     image: cgr.dev/chainguard/minio@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1
-    platform: linux/arm64
     restart: unless-stopped
     env_file:
       [.env]
@@ -106,7 +105,6 @@ services:
     networks:
       [internal]
   valkey:
-    platform: linux/arm64
     ports: ["127.0.0.1:6379:6379"]
 
 volumes:
