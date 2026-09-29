@@ -60,6 +60,7 @@ interface MapProps {
   showResources?: boolean;
   selectedResourceId?: string | null;
   onSelectResource?: (r: NearbyResource) => void;
+  onDeselectResource?: () => void;
   suggestedLine?: string | null;
   selectedFireIds?: Set<string>;
   onToggleFireSelect?: (ref: string) => void;
@@ -95,6 +96,7 @@ export function FireMap({ lat,
   showResources = true,
   selectedResourceId = null,
   onSelectResource = undefined,
+  onDeselectResource = undefined,
   selectedFireIds = new Set(),
   onToggleFireSelect = undefined,
   clusterPredictions = [],
@@ -590,6 +592,7 @@ export function FireMap({ lat,
         }
         onClick={() => {
           setShowUserLocationTooltip(false);
+          onDeselectResource?.();
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/navigation-night-v1"
