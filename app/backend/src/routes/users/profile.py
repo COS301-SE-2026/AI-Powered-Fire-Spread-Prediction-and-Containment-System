@@ -42,11 +42,4 @@ def get_my_reported_fires(
         raise HTTPException(status_code=404, detail="Report not found")
     return report
 
-@router.patch("/me", response_model=UserResponse)
-def update_my_profile(
-    payload:UserUpdate,
-    db: Annotated[Session, Depends(get_db)],
-    current_user:Annotated[User, Depends(get_current_user)],
-):
-    return profile_service.update_profile(payload, db, current_user)
 

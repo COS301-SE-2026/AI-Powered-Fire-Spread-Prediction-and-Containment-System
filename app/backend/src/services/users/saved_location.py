@@ -7,10 +7,9 @@ from geoalchemy2.elements import WKTElement
 from geoalchemy2.shape import to_shape
 from sqlalchemy.orm import Session
 
-from app.backend.models.saved_location import SavedLocation
-from app.backend.schemas.users.saved_location import (
+from app.backend.src.models.saved_location import SavedLocation
+from app.backend.src.schemas.saved_locations import (
     SavedLocationCreate,
-    SavedLocationResponse,
     SavedLocationUpdate,
 )
 
