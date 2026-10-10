@@ -25,8 +25,8 @@ export function LocationCard({ location, href }: LocationCardProps) {
         overlay = <Link href={href} aria-label={`Open ${location.label} on the live map`} className='absolute inset-0 rounded-xl' />;
     }
     return (
-        <div className="rounded-xl border border-carbon-stroke p-3 flex flex-col">
-            <div className="rounded-lg border border-carbon-stroke bg-carbon-card h-32 mb-3 overflow-hidden flex items-center justify-center">
+        <div className="relative aspect-square flex flex-col rounded-xl border border-carbon-stroke p-2 flex flex-col sm:aspect-square">
+            <div className="h-32 sm:h-auto flex-1 min-h-0 rounded-lg border border-carbon-stroke bg-carbon-card mb-3 overflow-hidden flex items-center justify-center">
                 {preview}
             </div>
             <span className="font-bold text-text-primary">{location.label}</span>

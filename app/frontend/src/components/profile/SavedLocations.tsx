@@ -29,7 +29,7 @@ export function SavedLocations({ role }: SavedLocationsProps) {
                     <span className="loading loading-spinner loading-lg text-primary" />
                 </div>
             ) : (
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
                     {rows}
                     <button type="button" onClick={() => setShow(true)} className="rounded-xl border border-dashed border-carbon-stroke text-text-muted flex items-center justify-center min-h-[10rem] hover:bg-carbon-card">+ Add location</button>
                 </div>
