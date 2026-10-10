@@ -2,14 +2,23 @@ import { useState } from 'react';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { LocationCard } from './LocationCard';
 import { AddLocation } from './AddLocation';
+import { LiveMapRef } from '@/lib/SaveLocationMapRef';
 
-export function SavedLocations() {
+interface SavedLocationsProps {
+    role: string;
+}
+
+export function SavedLocations({ role }: SavedLocationsProps) {
     const { locations, loading, error, addLocation } = useSavedLocations();
     const [show, setShow] = useState(false);
 
     const rows = [];
     for (const location of locations) {
-        rows.push(<LocationCard key={location.id} location={location} />);
+        let href: string | null = null;
+        if(location.lat != null && location.lng != null){
+            href = LiveMapRef(role, location.lat, location.lng);
+        } 
+        rows.push(<LocationCard key={location.id} location={location} href={href} />);
     }
     return (
         <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>
