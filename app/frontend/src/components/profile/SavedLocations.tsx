@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { LocationCard } from './LocationCard';
 import { AddLocation } from './AddLocation';
-import { LiveMapRef } from '@/lib/SaveLocationMapRef';
+import { LiveMapRef } from '../../lib/SaveLocationMapRef';
+
+
+const MAX_LOCATIONS = 6;
 
 interface SavedLocationsProps {
     role: string;
@@ -34,10 +37,27 @@ export function SavedLocations({ role }: SavedLocationsProps) {
         } 
         rows.push(<LocationCard key={location.id} location={location} href={href} onDelete={handleDelete} />);
     }
+
+    let addButton = null;
+    if (locations.length < MAX_LOCATIONS){
+        addButton = (
+            <button type="button" onClick={() => setShow(true)} className="aspect-square rounded-xl border border-dashed border-carbon-stroke text-text-muted flex items-center justify-center hover:bg-carbon-card"> + Add location </button>
+        );
+    }
+    let deleteErrorMessage = null;
+    if (deleteError) {
+        deleteErrorMessage = <div className='text-error text-sm mb-2'>{deleteError}</div>
+    }
     return (
         <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>
-            <h2 className='uppercase mb-3'>Saved locations</h2>
+            <div className='flex items-baseline gap-2 mb-3'>
+                <h2 className='uppercase'>Saved locations</h2>
+                <span className='text-base p-2 text-text-muted'>
+                    (only upto 6 locations)
+                </span>
+            </div>
             {error ? <div className='text-error text-sm mb-2'>{error}</div> : null}
+            {deleteErrorMessage}
             {loading ? (
                 <div className='flex justify-center items-center min-h-[20vh]'>
                     <span className="loading loading-spinner loading-lg text-primary" />
@@ -45,7 +65,7 @@ export function SavedLocations({ role }: SavedLocationsProps) {
             ) : (
                 <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
                     {rows}
-                    <button type="button" onClick={() => setShow(true)} className="rounded-xl border border-dashed border-carbon-stroke text-text-muted flex items-center justify-center min-h-[10rem] hover:bg-carbon-card">+ Add location</button>
+                    {addButton}
                 </div>
             )}
             {show ? (

@@ -13,7 +13,7 @@ from app.backend.src.schemas.saved_locations import (
     SavedLocationUpdate,
 )
 
-MAX_SAVED_LOCATIONS = 5
+MAX_SAVED_LOCATIONS = 6
 
 def format_location(location: SavedLocation, lat: Optional[float], lng: Optional[float]):
     return {
