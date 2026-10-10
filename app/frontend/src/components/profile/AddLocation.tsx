@@ -65,11 +65,16 @@ export function AddLocation({ onClose, onSubmit }: AddLocationProps) {
     }
 
     return (
-        <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4'>
-            <div className='rounded-2xl border border-carbon-stroke bg-carbon-card p-6 w-full max-w-2xl max-h-full overflow-y-auto'>
-                <h3 className='uppercase mb-4'>Add location</h3>
+        <div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 font-body p-4'>
+            <div className='rounded-2xl border border-carbon-stroke bg-carbon-card p-6 w-full max-w-2xl max-h-full text-text-primary overflow-y-auto'>
+                <h2 className='uppercase mb-4'>Add a location</h2>
                 <form onSubmit={handleSubmit} className='flex flex-col gap-3'>
-                    <input type="text" placeholder="Label (e.g. Home)" value={label} onChange={(e) => setLabel(e.target.value)} className="carbon-input" />
+                    <div>
+                        <label htmlFor='saved-location-label' className='text-lg font-semibold mb-2 text-text-primary block'>Label</label>
+                        <div className="input input-bordered w-full flex items-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none text-text-muted h-11">
+                            <input type="text" placeholder="E.g. Home" value={label} onChange={(e) => setLabel(e.target.value)} className="grow bg-transparent text-text-primary focus:outline-none placeholder:text-text-disabled" />
+                        </div>
+                    </div>
                     <LocationField value={address} onChange={handleLocationChange} onValidSelect={handleSearchSelect} />
                     <div className='h-64 md:h-80 rounded-lg border border-carbon-stroke overflow-hidden'>
                         <FireMap showRadius={false} externalPin={searchPin} onLocationSelect={handleLocationSelect}/>
