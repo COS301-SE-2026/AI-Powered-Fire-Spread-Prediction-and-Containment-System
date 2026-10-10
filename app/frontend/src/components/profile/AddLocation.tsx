@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { SavedLocationCreate } from '../../types/SavedLocation';
 import { LocationField } from '../reportfire/LocationField';
 import { LOCATION_PLACEHOLDER } from '../reportfire/locationConstants';
-
+import { FireMap } from '../shared/DynamicUserMap';
 
 interface AddLocationProps {
     onClose: () => void;
@@ -13,16 +13,23 @@ export function AddLocation({ onClose, onSubmit }: AddLocationProps) {
     const [label, setLabel] = useState('');
     const [address, setAddress] = useState(LOCATION_PLACEHOLDER);
     const [pin, setPin] = useState<{ lat: number; lng: number } | null>(null);
+    const [searchPin, setSearchPin] = useState<{ lat: number; lng: number } | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     function handleLocationChange(val: string) {
         setAddress(val);
+        setPin(null);
     }
 
     function handleLocationSelect(loc: { lat: number; lng: number; address: string }) {
         setAddress(loc.address);
         setPin({ lat: loc.lat, lng: loc.lng });
+    }
+
+    function handleSearchSelect(loc: { lat: number; lng: number; address: string }) {
+        handleLocationSelect(loc);
+        setSearchPin({ lat: loc.lat, lng: loc.lng });
     }
 
     async function handleSubmit(event: React.FormEvent) {
@@ -46,17 +53,31 @@ export function AddLocation({ onClose, onSubmit }: AddLocationProps) {
             setSubmitting(false);
         }
     }
+
+    let errorMessage = null;
+    if (error) {
+        errorMessage = <span className='text-error text-sm'>{error}</span>;
+    } 
+
+    let saveText = 'Save';
+    if (submitting){
+        saveText = 'Saving...';
+    }
+
     return (
-        <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50'>
-            <div className='rounded-2xl border border-carbon-stroke bg-carbon-card p-6 w-full max-w-lg'>
+        <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4'>
+            <div className='rounded-2xl border border-carbon-stroke bg-carbon-card p-6 w-full max-w-2xl max-h-full overflow-y-auto'>
                 <h3 className='uppercase mb-4'>Add location</h3>
                 <form onSubmit={handleSubmit} className='flex flex-col gap-3'>
                     <input type="text" placeholder="Label (e.g. Home)" value={label} onChange={(e) => setLabel(e.target.value)} className="carbon-input" />
-                    <LocationField value={address} onChange={handleLocationChange} onValidSelect={handleLocationSelect} />
-                    {error ? <span className='text-error text-sm'>{error}</span> :null}
+                    <LocationField value={address} onChange={handleLocationChange} onValidSelect={handleSearchSelect} />
+                    <div className='h-64 md:h-80 rounded-lg border border-carbon-stroke overflow-hidden'>
+                        <FireMap showRadius={false} externalPin={searchPin} onLocationSelect={handleLocationSelect}/>
+                    </div>
+                    {errorMessage}
                     <div className='flex justify-end gap-2 mt-2'>
                         <button type="button" onClick={onClose} className="text-text-muted px-3 py-2">Cancel</button>
-                        <button type="submit" disabled={submitting} className="bg-ignite text-char px-4 py-2 rounded-lg font-bold">{submitting ? 'Saving...' : 'Save'}</button>
+                        <button type="submit" disabled={submitting || pin === null} className="bg-ignite text-char px-4 py-2 rounded-lg font-bold">{saveText}</button>
                     </div>
                 </form>
             </div>
