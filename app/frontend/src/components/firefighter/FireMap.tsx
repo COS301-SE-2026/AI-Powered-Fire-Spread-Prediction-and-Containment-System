@@ -558,7 +558,7 @@ export function FireMap({ lat,
     }));
   }, [selectedResourceId, resources]);
 
-  //for saved locations on the profile page 
+  // for saved locations on the profile page 
   useEffect(() => {
     if (!focus) {
       return;

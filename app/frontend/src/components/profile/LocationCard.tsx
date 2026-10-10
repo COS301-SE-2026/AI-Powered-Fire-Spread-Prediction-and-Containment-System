@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import type { SavedLocation } from "../../types/SavedLocation";
 import { X } from 'lucide-react';
+import type { SavedLocation } from "../../types/SavedLocation";
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const PREVIEW_ZOOM = 14;
