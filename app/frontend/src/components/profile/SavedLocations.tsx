@@ -9,8 +9,22 @@ interface SavedLocationsProps {
 }
 
 export function SavedLocations({ role }: SavedLocationsProps) {
-    const { locations, loading, error, addLocation } = useSavedLocations();
+    const { locations, loading, error, addLocation, removeLocation } = useSavedLocations();
     const [show, setShow] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+
+    async function handleDelete(id: string) {
+        setDeleteError('');
+        try {
+            await removeLocation(id);
+        } catch (err) {
+            if (err instanceof Error) {
+                setDeleteError(err.message);
+            } else {
+                setDeleteError('Could not delete location.');
+            }
+        }
+    }
 
     const rows = [];
     for (const location of locations) {
@@ -18,7 +32,7 @@ export function SavedLocations({ role }: SavedLocationsProps) {
         if(location.lat != null && location.lng != null){
             href = LiveMapRef(role, location.lat, location.lng);
         } 
-        rows.push(<LocationCard key={location.id} location={location} href={href} />);
+        rows.push(<LocationCard key={location.id} location={location} href={href} onDelete={handleDelete} />);
     }
     return (
         <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>

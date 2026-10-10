@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { SavedLocation } from "../../types/SavedLocation";
+import { X } from 'lucide-react';
 
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 const PREVIEW_ZOOM = 14;
@@ -11,9 +12,10 @@ function buildPreviewUrl(lat: number, lng: number): string {
 interface LocationCardProps {
     location: SavedLocation;
     href: string | null;
+    onDelete: (id: string) => void;
 }
 
-export function LocationCard({ location, href }: LocationCardProps) {
+export function LocationCard({ location, href, onDelete }: LocationCardProps) {
     const hasCoords = location.lat != null && location.lng != null;
     let preview = <span className="text-text-muted text-sm">No Map Preview</span>;
     if (hasCoords) {
@@ -28,6 +30,9 @@ export function LocationCard({ location, href }: LocationCardProps) {
         <div className="relative aspect-square flex flex-col rounded-xl border border-carbon-stroke p-2 flex flex-col sm:aspect-square">
             <div className="h-32 sm:h-auto flex-1 min-h-0 rounded-lg border border-carbon-stroke bg-carbon-card mb-3 overflow-hidden flex items-center justify-center">
                 {preview}
+                <button type="button" onClick={() => onDelete(location.id)} aria-label={`Delete ${location.label}`} title="Delete location" className="absolute top-1.5 right-1.5 z-10 size-7 rounded-full bg-carbon-bg/80 border border-carbon-stroke text-text-muted flex items-center justify-center hover:text-text-primary active:scale-95 transition cursor-pointer">
+                    <X className="size-4" />
+                </button>
             </div>
             <span className="font-bold text-text-primary">{location.label}</span>
             <span className="text-text-muted text-sm mt-1">{location.address}</span>
