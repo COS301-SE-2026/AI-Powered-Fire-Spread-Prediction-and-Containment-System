@@ -32,12 +32,39 @@ WEBSOCKET_URL = os.getenv("WEBSOCKET_URL")
 REGISTRATION_KEY = os.getenv("REGISTRATION_KEY")
 WORKER_LABEL = os.getenv("WORKER_LABEL", os.getenv("HOSTNAME", "volunteer-desktop"))
 MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cached/ml/models/weather_convlstm.pt")
+CREDENTIALS_PATH = os.getenv("WORKER_CREDENTIALS_PATH", "/data/worker_credentials.json")
 
 MIN_VRAM_MB = 3584
 BENCHMARK_DURATION_SECONDS = 1.0
 RECONNECT_DELAY_SECONDS = 5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+def load_saved_credentials() -> Optional[Tuple[str,str]]:
+    try:
+        with open(CREDENTIALS_PATH) as f:
+            data = json.load(f)
+        if data.get("access_token") and data.get("worker_id"):
+            log.info("Using saved credentials for node %s", data["worker_id"])
+            return data["access_token"], data["worker_id"]
+    except FileNotFoundError:
+        pass
+    except (OSError, json.JSONDecodeError) as err:
+        log.warning("Saved credentials unreadable (%s); ignoring them.", err)
+    return None
+
+def save_credentials(token: str, worker_id: str) -> None:
+    os.makedirs(os.path.dirname(CREDENTIALS_PATH), exist_ok=True)
+    tmp_path = f"{CREDENTIALS_PATH}.tmp"
+    with open(tmp_path, "w") as f:
+        json.dump({"access_token": token, "worker_id": worker_id}, f)
+    os.chmod(tmp_path, 0o600)
+    os.replace(tmp_path, CREDENTIALS_PATH)
+
+def clear_saved_credentials() -> None:
+    try:
+        os.remove(CREDENTIALS_PATH)
+    except FileNotFoundError:
+        pass
 
 def run_pre_flight_check() -> Tuple[bool, str, int]:
     log.info("Starting hardware qualification check...")
@@ -267,7 +294,11 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
 
         except websockets.exceptions.InvalidStatus as err:
             status_code = getattr(err.response, "status_code", "Unknown")
-            log.warning("Broker rejected connection: HTTP %s (node mat be quarantined). Retrying in 60 seconds", status_code)
+            if status_code == 401:
+                log.error("Saved credentials were rejected. Use 'Reset credentials' in FireAway to get new setup command.")
+                clear_saved_credentials()
+                sys.exit(1)
+            log.warning("Broker rejected connection: HTTP %s (node may be quarantined). Retrying in 60 seconds", status_code)
             await asyncio.sleep(60)
         except (websockets.exceptions.ConnectionClosed, OSError) as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
@@ -278,21 +309,24 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
 
 
 def main():
-    if not REGISTRATION_KEY:
-        log.error("Missing REGISTRATION_KEY environment variable. Terminating.")
-        sys.exit(1)
 
     passed, gpu_name, vram_mb = run_pre_flight_check()
     if not passed:
         log.error("Hardware qualification failed. Exiting.")
         sys.exit(1)
 
-    registration_result = register_worker(REGISTRATION_KEY, gpu_name, vram_mb)
-    if not registration_result:
-        log.error("Registration rejected by broker. Exiting.")
-        sys.exit(1)
+    credentials = load_saved_credentials()
+    if credentials is None:
+        if not REGISTRATION_KEY:
+            log.error("No saved credentials and no REGISTRATION_KEY set. Get a setup command from FireAway.")
+            sys.exit(1)
+        credentials = register_worker(REGISTRATION_KEY, gpu_name, vram_mb)
+        if not credentials:
+            log.error("Registration rejected by broker. Exiting")
+            sys.exit(1)
+        save_credentials(*credentials)
 
-    jwt_token, worker_id = registration_result
+    jwt_token, worker_id = credentials
     model = load_inference_model()
 
     asyncio.run(run_worker_loop(model, jwt_token))

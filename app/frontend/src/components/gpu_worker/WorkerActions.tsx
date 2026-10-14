@@ -6,17 +6,29 @@ interface WorkerActionsProps {
   onActivate: (id: string) => void;
   onDeactivate: (id: string) => void;
   onRemove: (worker: GPUWorker) => void;
+  onShowCommand?: (worker: GPUWorker) => void;
 }
 
-export function WorkerActions({ worker, onActivate, onDeactivate, onRemove }: WorkerActionsProps) {
+export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onShowCommand }: WorkerActionsProps) {
   if (worker.status === 'removed'){
     return <span className='text-xs text-text-muted'>No actions</span>
   }
+  const commandButton = onShowCommand && (
+    <button 
+      type='button'
+      onClick={() => onShowCommand(worker)}
+      className='text-xs font-semibold btn- btn-sm btn-outline border-ignite/60 rounded-xl text-ignite hover-bg-ignite/10 hover:text-ignite transition-colors'
+    >
+      Command
+    </button>
+  );
+
   const removeButton = (
     <button type='button' onClick={() => onRemove(worker)} className='text-xs font-semibold btn btn-sm btn-outline border-error/60 rounded-xl text-error hover:bg-error/10 hover:text-error transition-colors'>
       Remove
     </button>
   );
+  
   if (worker.status === 'deactivated'){
     return (
       <div className='flex gap-2'>

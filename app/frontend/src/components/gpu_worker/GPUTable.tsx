@@ -4,6 +4,7 @@ import { FormatDate } from '../../lib/FormatDate';
 import { GpuStatusBadge } from './GpuStatusBadge';
 import { RemoveModal } from './Remove';
 import { WorkerActions } from './WorkerActions';
+import { WorkerCommandModal } from './WorkerCommandModal';
 
 interface GpuWorkersTableProps {
   readonly workers: GPUWorker[];
@@ -20,6 +21,7 @@ function formatVram(vramMb: number): string {
 
 export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactivate, onRemove }: GpuWorkersTableProps) {
   const [pendingRemoval, setPendingRemoval] = useState<GPUWorker | null>(null);
+  const [commandWorker, setCommandWorker] = useState<GPUWorker | null>(null);
   const filtered = workers
     .filter((w) => filter === 'All' || w.status === filter)
     .sort((a, b) => new Date(b.activated_at).getTime() - new Date(a.activated_at).getTime());
@@ -84,7 +86,7 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
                   {worker.last_heartbeat === null ? 'Never' : FormatDate(worker.last_heartbeat)}
                 </td>
                 <td className="px-10 py-3">
-                  <WorkerActions worker={worker} onActivate={onActivate} onDeactivate={onDeactivate} onRemove={setPendingRemoval} />
+                  <WorkerActions worker={worker} onActivate={onActivate} onDeactivate={onDeactivate} onRemove={setPendingRemoval} onShowCommand={isAdmin ? undefined : setCommandWorker}/>
                 </td>
               </tr>
             ))
@@ -102,6 +104,9 @@ export function GpuWorkersTable({ workers, filter, variant,onActivate, onDeactiv
             setPendingRemoval(null);
           }}
         />
+      )}
+      {commandWorker && (
+        <WorkerCommandModal worker={commandWorker} onClose={() => setCommandWorker(null)}/>
       )}
   </>
   );

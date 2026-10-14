@@ -25,7 +25,10 @@ valkey_client = redis.Redis(
     decode_responses=True,
 )
 
-REGISTRATION_KEY_TTL = 86400 # 24 hours
+REGISTRATION_KEY_TTL = 86400 * 7 # 7 days
+WORKER_TOKEN_LIFETIME = timedelta(days=365)
+WORKER_CONTAINER_NAME = "fireaway-worker"
+WORKER_VOLUME_NAME = "fireaway-worker-data"
 MIN_VRAM_MB = 3584
 
 def public_backend_url(request_host: str | None) -> str:
@@ -205,7 +208,7 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
 
     valkey_storage_key = f"worker:reg:{register_data.registration_key}"
 
-    user_id = valkey_client.get(valkey_storage_key)
+    user_id = valkey_client.getdel(valkey_storage_key)
 
     if not user_id:
         raise HTTPException(
@@ -220,7 +223,8 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
         .filter(
             WorkerNode.user_id == user_id,
             WorkerNode.label == label,
-            WorkerNode.gpu_name == register_data.gpu_name
+            WorkerNode.gpu_name == register_data.gpu_name,
+            WorkerNode.status != "removed"
         )
         .first()
     )
@@ -257,7 +261,7 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
             "role": "worker_node",
             "type": "worker_device",
         },
-        expires_delta=timedelta(days=7)
+        expires_delta=WORKER_TOKEN_LIFETIME
     )
 
     return {
