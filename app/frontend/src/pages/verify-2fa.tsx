@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react'
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { apiCall } from '../lib/api';
+
+const isOtpAuthUrl = (u?: string): u is string => 
+  typeof u === 'string' && /^otpauth:\/\/(totp|hotp)\//i.test(u);
 
 export default function Verify2FA() {
   const [code, setCode] = useState('');
@@ -35,17 +39,13 @@ export default function Verify2FA() {
         }
       }
     }
-
+    if (!isOtpAuthUrl(otpauthUrl)) otpauthUrl = '';
     setAuthData({email, otpauthUrl, registrationToken})
   }, [router.isReady, router.query]);
 
   const isRegistration = Boolean(authData.registrationToken);
   const isValidSession = Boolean(authData.email || authData.registrationToken);
   const hasQrSetup = Boolean(authData.otpauthUrl);
-
-  const qrCodeSrc = hasQrSetup
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(authData.otpauthUrl as string)}`
-    : '';
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -144,17 +144,16 @@ export default function Verify2FA() {
                       etc.), then enter the 6-digit code below.
                     </p>
                     <div className="flex justify-center mb-4">
-                      <img
-                        src={qrCodeSrc}
-                        alt="2FA QR Code"
-                        width={220}
-                        height={220}
-                        className="rounded-md border border-carbon-stroke"
-                      />
+                      <div className='rounded-md border border-carbon-stroke bg-white p-2'>
+                        <QRCodeSVG value={authData.otpauthUrl as string} size={220} aria-label="2FA QR Code" />
+                      </div>
                     </div>
-                    <a href={authData.otpauthUrl as string} className='block text-sm text-primary hover:text-ember underline mb-4'>
-                      On this device? Tab here to open your authenticator app
-                    </a>
+                    {isOtpAuthUrl(authData.otpauthUrl) && (
+                      <a href={authData.otpauthUrl as string} className='block text-sm text-primary hover:text-ember underline mb-4'>
+                        On this device? Tab here to open your authenticator app
+                      </a>
+                    )}
+                    
                   </>
                 )}
 
