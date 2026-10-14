@@ -1,13 +1,12 @@
-<h1 align="center">AI-Powered Fire Spread Prediction and Containment System</h1> 
 
 <img width="2000" height="961" alt="logo-dark" src="https://github.com/user-attachments/assets/eb4ccdab-2208-4ab0-b3be-f790434e729b" />
 
+
 <p align="center">
-  <a href="https://fireaway.csml.co.za/" style="background-color: #0969da; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Visit Fire Away</a>
+  <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml"><img src="https://img.shields.io/github/actions/workflow/status/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/cicd.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=build%20and%20tests" /></a>
+   <a href="https:///github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml?query=branch%3Amain"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/python-coverage-comment-action-data/endpoint.json&style=for-the-badge"/></a>
 </p>
 
-
-Fire Away is an AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
 
 
 <h2 align="center">Team: Panic! At The Kernel in collaboration with EPI-USE Africa</h2>
@@ -17,11 +16,7 @@ Fire Away is an AI-Powered Fire Spread Prediction and Containment System is a pr
 </p>
 <br><br>
 
-[![GitHub Actions](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml/badge.svg)](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml)
-[![Coveralls](https://coveralls.io/repos/github/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/badge.svg?branch=main)](https://coveralls.io/github/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System?branch=main)
-[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=COS301-SE-2026_AI-Powered-Fire-Spread-Prediction-and-Containment-System&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=COS301-SE-2026_AI-Powered-Fire-Spread-Prediction-and-Containment-System)
-[![GitHub issues](https://img.shields.io/github/issues/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System)](https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/issues)
-<!-- [![Uptime Robot](https://img.shields.io/uptimerobot/status/m000000000000000000000000?label=Uptime%20Robot)](https://stats.uptimerobot.com/<YOUR_PUBLIC_KEY>) -->
+Fire Away is an AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
 
 
 # Documentation
