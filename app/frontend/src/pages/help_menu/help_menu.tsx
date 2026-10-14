@@ -69,7 +69,7 @@ export default function HelpPage() {
       <Head>
         <title>FireAway - Help and Support</title>
       </Head>
-      <SideBar items={null}>
+      <SideBar items={null} hideLogout>
         <div className="flex flex-col p-6">
           <PageHeader
             title="Help Menu"
