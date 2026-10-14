@@ -11,6 +11,7 @@ const navItems = [
 
 export function LandingNavbar() {
     const [activeSection, setActiveSection] = useState('home');
+    const [menuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         const sectionElements = navItems
@@ -43,8 +44,14 @@ export function LandingNavbar() {
     <div className='fixed top-0 left-0 right-0 z-50 '>
     <div className='navbar bg-base-100 shadow-sm bg-carbon-side/80 backdrop-blur-md rounded-xl border border-carbon-stroke'>
       <div className='navbar-start'>
-        <div className='dropdown'>
-          <button type="button" aria-label="Open navigation menu" className='btn btn-ghost lg:hidden'>
+        <div className='relative lg:hidden'>
+          <button 
+            type="button" 
+            aria-label="Open navigation menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+            className='btn btn-ghost'
+          >
             <svg
               xmlns='http://www.w3.org/2000/svg'
               className='h-5 w-5'
@@ -62,9 +69,10 @@ export function LandingNavbar() {
             </svg>
           </button>
 
+        
+          {menuOpen && (
           <ul
-            tabIndex={-1}
-            className='menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow font-display uppercase tracking-wide text-lg'
+            className='menu menu-sm absolute left-0 top-full bg-base-100 rounded-box z-50 mt-3 w-52 p-2 shadow font-display uppercase tracking-wide text-lg'
           >
             {navItems.map((item) => {
                 const isActive = activeSection === item.id;
@@ -72,6 +80,7 @@ export function LandingNavbar() {
                     <li key={item.id}>
                         <Link
                             href={item.href}
+                            onClick={() => setMenuOpen(false)}
                             className={`transition-colors ${
                                 isActive ? 'text-text-primary font-bold bg-carbon-stroke/50' : 'text-text-muted hover:text-text-primary'
                             }`}
@@ -82,6 +91,7 @@ export function LandingNavbar() {
                 );
             })}
           </ul>
+          )}
         </div>
         <Link
             href='#home'
@@ -95,7 +105,7 @@ export function LandingNavbar() {
                 priority
                 className='object-contain transition-transform group-hover:scale-105'
             />
-            <span className='font-display font-bold text-xl uppecase tracking-wider text-text-primary group-hover:text-primary transition-colors'>
+            <span className='font-display font-bold text-xl uppercase tracking-wider text-text-primary group-hover:text-primary transition-colors'>
                 FIREAWAY
             </span>
         </Link>
@@ -120,12 +130,20 @@ export function LandingNavbar() {
         </ul>
       </div>
       <div className='navbar-end'>
-        <Link
-            href='/start'
-            className='btn btn-primary uppercase text-text-primary font-display text-lg'
-        >
-            Get Started
-        </Link>
+        <div className='flex items-center gap-2 p-2'>
+            <Link
+                href='/start'
+                className='btn btn-primary btn-sm  sm:btn-md uppercase text-text-primary font-display sm:text-lg'
+            >
+                Get Started
+            </Link>
+            <Link
+                href='/login'
+                className='btn btn-ghost btn-sm sm:btn-md border border-carbon-stroke uppercase text-text-primary font-display sm:text-lg hover:bg-carbon-stroke'
+            >
+                Login
+            </Link>
+        </div>
       </div>
     </div>
     </div>

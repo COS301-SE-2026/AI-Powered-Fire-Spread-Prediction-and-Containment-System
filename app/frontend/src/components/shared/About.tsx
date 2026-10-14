@@ -9,7 +9,7 @@ const benchmarks = [
         detail: 'Fast Cellular Automaton inference delivered immediatly upon incident verification.'
     },
     {
-        value: '10m²',
+        value: '30m²',
         label: 'Spatial Resolution',
         detail: 'High-precision probability grids computed across various time steps.'
     },
@@ -19,7 +19,7 @@ const benchmarks = [
         detail: 'Complete offline logging and synchronization for tactical containment barriers.'
     },
     {
-        value: '99.9%',
+        value: '95%',
         label: 'Mission Availiablity',
         detail: 'Resilient architecture designed for low-connectivity rural and field deployments.'
     }
