@@ -43,7 +43,7 @@ def build_docker_command(label: str, request_host:str | None, reg_key: str | Non
         ws_url = backend_url + "/api/v1/workers/connect"
 
     parts = [
-        "docker run -d",
+        "docker run",
         f"--name {WORKER_CONTAINER_NAME}",
         "--restart unless-stopped",
         "--gpus all",
