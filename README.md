@@ -28,6 +28,15 @@
 
 Fire Away is an AI-powered wildfire spread prediction and containment system that helps emergency responders and the public react to fires faster. Our aim is to change fire response from reactive chaos to proactive defense, helping to keep first responders and communities safe. Fire Away combines live weather and terrain data, machine-learning models and community fire reports to simulate how a fire will grow, flag the areas at risk, and recommend where to build containment boundaries. The platform has separate experiences for guests, users, firefighters and administrators, and it works as an installable, offline-capable web app. 
 
+## Key Features
+- **Role-based Access Control:** Separate experiences for guests, users, firefighters and admins, with role-request approvals, two-factor authentication and audit logging.
+- **Fire Spread Predication Simulation:** Projects a fire's growth over time using a differentiable wildfire model and deep-learning forecasting pipeline.
+- **Containment Recommendations:** Suggests containment boundary placements based on the predicted fire front and a set planning horizon.
+- **Fire-reporting and Live Map:** All users can report fires, with photo evidence uploads, and follow incidents on a live map.
+- **Resource Tracking:** Registration and display of water resources to support firefighting decisions.
+- **Alerts:** Push notifications for relevant incidents.
+- **Distributed Compute:** Simulation jobs are queued and processed by GPU workers, including volunteer-contributed ones.
+- **Analytics:** An admin dashboard for incident and usage insights.
 
 ## Documentation
 ## Demo 1
@@ -66,6 +75,8 @@ Fire Away is an AI-powered wildfire spread prediction and containment system tha
 - [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
 - [Service Contract](docs/Demo_3/service_contract.yaml)
 - [Demo 4 Video](https://drive.google.com/drive/folders/1fBHFX1r7PS7xMcdS3nlimVbZfzZK610T?usp=sharing)
+
+
 
 ## Meet the Team
 <p align="center">
