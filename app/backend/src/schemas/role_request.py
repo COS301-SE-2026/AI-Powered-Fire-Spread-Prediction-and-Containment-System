@@ -40,6 +40,9 @@ class RoleRequestResponse(BaseModel):
     created_at: datetime
     reviewed_at: Optional[datetime] = None
     reviewer: Optional[ReviewerSummary] = None
+    trust_score: Optional[float] = None
+    reports_verified: int = 0
+    reports_rejected: int = 0
 
     class Config:
         from_attributes = True
