@@ -76,7 +76,26 @@ Fire Away is an AI-powered wildfire spread prediction and containment system tha
 - [Service Contract](docs/Demo_3/service_contract.yaml)
 - [Demo 4 Video](https://drive.google.com/drive/folders/1fBHFX1r7PS7xMcdS3nlimVbZfzZK610T?usp=sharing)
 
+## Technology Stack
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=nextjs,react,ts,tailwind,py,fastapi,postgres,redis,pytorch,docker,nginx,terraform,aws,git,github,githubactions,nodejs,yarn&perline=9&theme=dark" alt="Tech Stack" />
+  </a>
+</p>
 
+<div align="center">
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | Next.js, React, TypeScript, daisyUI (Tailwind CSS), Mapbox GL, Turf.js |
+| **Backend** | Python, FastAPI, SQLAlchemy, Alembic |
+| **Data** | PostgresSQL + PostGIS, Redis-compatible cache, MinIO |
+| **AI/ML** | PyTorch, PyTorchFire, rasterio, STAC satellite data |
+| **Infrastructure** | Docker Compose, Nginx, Caddy, Terraform, AWS |
+| **Quality** | pytest, Playwright, pylint, ESLint, Git, GitHub, GitHub Actions |
+| **Runtime & Tooling** | Node.js, Yarn |
+  
+</div>
 
 ## Meet the Team
 <p align="center">
