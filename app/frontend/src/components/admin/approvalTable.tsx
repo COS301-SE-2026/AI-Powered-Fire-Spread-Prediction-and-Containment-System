@@ -1,6 +1,7 @@
 import React from 'react';
 import { RoleRequest, RoleStatus } from '../../types/RoleRequest';
 import { RoleStatusBadge } from './RoleStatusBadge';
+import { ScoreBadge } from './ScoreBadge';
 
 interface RoleRequestTableProps {
   requests: RoleRequest[];
@@ -29,6 +30,9 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
               Date
             </th>
             <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">
+              Trust 
+            </th>
+            <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">
               Status
             </th>
             <th className="text-left text-xs font-bold tracking-widest text-text-primary uppercase px-4 py-3">
@@ -39,7 +43,7 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
         <tbody>
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-4 py-8 text-center text-sm font-bold text-error ">
+              <td colSpan={7} className="px-4 py-8 text-center text-sm font-bold text-error ">
                 No requests found
               </td>
             </tr>
@@ -66,6 +70,9 @@ export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTable
                       hour: '2-digit',
                       minute: '2-digit',
                     })}
+                  </td>
+                  <td className='px-4 py-3'>
+                    <ScoreBadge score={req.trust_score} />
                   </td>
                   <td className="px-4 py-3">
                     <RoleStatusBadge status={req.status} />

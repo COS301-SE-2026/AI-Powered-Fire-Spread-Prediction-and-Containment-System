@@ -1,5 +1,6 @@
 import { RoleRequest, UserSummary } from '../../types/RoleRequest';
 import { RoleStatusBadge } from './RoleStatusBadge';
+import { ScoreBadge } from './ScoreBadge';
 
 interface RoleApprovalModalProps {
   request: RoleRequest;
@@ -7,6 +8,13 @@ interface RoleApprovalModalProps {
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onRevoke: (id: string) => void;
+}
+
+function getReportBreakdown(verified: number, rejected: number): string {
+  if (verified + rejected === 0){
+    return 'No report history';
+  }
+  return `${verified} veridfied | ${rejected} rejected`;
 }
 
 export function RoleApprovalModal({
@@ -74,6 +82,18 @@ export function RoleApprovalModal({
               Status
             </p>
             <RoleStatusBadge status={request.status} />
+          </div>
+        </div>
+
+        <div className='mb-6'>
+          <p className='text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1'>
+              Trust Score
+          </p>
+          <div className='flex item-center gap-3'>
+            <ScoreBadge score={request.trust_score} />
+            <span className='text-xs text-text-primary/60'>
+              {getReportBreakdown(request.reports_verified, request.reports_rejected)}
+            </span>
           </div>
         </div>
 
