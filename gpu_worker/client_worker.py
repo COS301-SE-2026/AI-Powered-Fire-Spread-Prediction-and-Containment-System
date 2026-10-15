@@ -294,13 +294,16 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
 
         except websockets.exceptions.InvalidStatus as err:
             status_code = getattr(err.response, "status_code", "Unknown")
-            if status_code == 401:
-                log.error("Saved credentials were rejected. Use 'Reset credentials' in FireAway to get new setup command.")
+            log.warning("Broker rejected connection: HTTP %s (node may be quarantined or deactivated). Retrying in 60 seconds", status_code)
+            await asyncio.sleep(60)
+        except websockets.exceptions.ConnectionClosed as err:
+            if getattr(err.rcvd, "code", None) == 4401:
+                log.error("Saved credentials were rejected (worker removed or token invalid). Use 'Reset credentials' in FireAway to get a new setup command.")
                 clear_saved_credentials()
                 sys.exit(1)
-            log.warning("Broker rejected connection: HTTP %s (node may be quarantined). Retrying in 60 seconds", status_code)
-            await asyncio.sleep(60)
-        except (websockets.exceptions.ConnectionClosed, OSError) as err:
+            log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
+            await asyncio.sleep(RECONNECT_DELAY_SECONDS)
+        except OSError as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
             await asyncio.sleep(RECONNECT_DELAY_SECONDS)
         except Exception as err:

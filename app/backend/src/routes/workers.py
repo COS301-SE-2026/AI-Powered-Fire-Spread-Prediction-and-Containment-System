@@ -37,6 +37,12 @@ JOB_TIMEOUT_SECONDS = float(os.getenv("SIMULATION_JOB_TIMEOUT", "90.0"))
 
 QUARANTINE_DURATION = timedelta(minutes=15)
 
+WORKER_CREDENTIAL_INVALID = 4401 # app specific code that tells worker to drops its saved token
+
+async def reject_worker_credentials(websocket: WebSocket) -> None:
+    await websocket.accept()
+    await websocket.close(code=WORKER_CREDENTIAL_INVALID, reason="Invalid worker credentials")
+
 async def verify_worker_token(token: str) -> str:
     """Decodes and validates scoped Worker Device JWT.
     Returns and worker_id."""
@@ -133,6 +139,25 @@ def remove_worker(
         is_admin=is_admin,
     )
 
+@router.get("/{worker_id}/command")
+def get_worker_command(
+    worker_id: str,
+    db: db_session,
+    current_user: current_active_user,
+    request: Request
+):
+    """Run command for an existing worker, without a registration key"""
+    return worker_service.get_worker_command(db, worker_id, current_user.id, request.headers.get("host"))
+
+@router.post("/{worker_id}/reset-key", status_code=status.HTTP_201_CREATED, response_model=WorkerEnrollmentKeyResponse)
+def reset_worker_key(
+    worker_id: str,
+    db: db_session,
+    current_user: current_active_user,
+    request: Request
+):
+    """Issues a fresh setup key that re-attaches to this worker on registration"""
+    return worker_service.reset_worker_key(db, worker_id, current_user.id, request.headers.get("host"))
 
 @router.get(
     "/compute-distribution",
@@ -219,12 +244,16 @@ async def websocket_worker_endpoint(
     try:
         worker_id = await verify_worker_token(auth_token)
     except HTTPException:
-        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        await reject_worker_credentials(websocket)
         return
 
     # verify worker existence active status
     node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
-    if not node or node.status in ["rejected", "removed", "deactivated"]:
+    if not node or node.status in ["rejected", "removed"]:
+        await reject_worker_credentials(websocket)
+        return
+
+    if node.status == "deactivated":
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 

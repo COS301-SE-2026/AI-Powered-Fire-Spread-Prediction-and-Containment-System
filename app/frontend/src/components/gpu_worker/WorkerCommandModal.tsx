@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { X, Check } from 'lucide-react';
 import { GPUWorker } from "../../types/GPUWorkers";
+import { apiCall } from "@/lib/api";
 
 const START_COMMAND = 'docker start fireaway-worker';
 
@@ -17,12 +18,12 @@ function CommandBox({ command }: { command : string }){
     };
 
     return (
-        <div className='relative rounded-sm border border-border-carbon-stroke bg-carbon-input p-3'>{command}
+        <div className='relative rounded-sm border border-border-carbon-stroke bg-carbon-input p-3'>
             <pre className='font-mono text-xs text-text-primary whitespace-pre-wrap break-all pr-16 select-all'>{command}</pre>
             <button
                 type='button'
                 onClick={copy}
-                className='absolute right-3 top-3 rounded-box border border-carbon-stroke bg-[#1a2030] hover:bg-smoke-hover py-1 text-xs font-medium text-text-primary transition-colors'            
+                className='absolute right-3 top-3 rounded-box border border-carbon-stroke bg-[#1a2030] hover:bg-smoke-hover px-3 py-1 text-xs font-medium text-text-primary transition-colors'            
             >
                 {copied ? <span className='flex items-center gap-1 text-humidity'><Check className='size-3.5'/> Copied</span>: 'Copy'}
             </button>
@@ -37,10 +38,9 @@ export function WorkerCommandModal({worker, onClose}: {worker: GPUWorker, onClos
     const [resetting, setResetting] = useState(false);
 
     useEffect(() => {
-        fetch(`/api/v1/workers/${worker.id}/command`, { credentials: 'include'})
-        .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Could not load command'))))
+        apiCall(`/api/v1/workers/${worker.id}/command`)
         .then((data) => setRunCommand(data.docker_command))
-        .catch((err: Error) => setError(err.message));
+        .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not load command'))
     }, [worker.id])
 
     const handleReset = async () => {
@@ -48,10 +48,7 @@ export function WorkerCommandModal({worker, onClose}: {worker: GPUWorker, onClos
         setError(null);
 
         try {
-            const res = await fetch(`/api/v1/workers/${worker.id}/reset-key`, { method: 'POST', credentials: 'include'});
-
-            if(!res.ok) throw new Error('Could not reset credentials');
-            const data = await res.json();
+            const data = await apiCall(`/api/v1/workers/${worker.id}/reset-key`, 'POST', null);
             setResetCommand(data.docker_command);
         } catch (err){
             setError(err instanceof Error ? err.message : 'Could not reset credentials');
@@ -73,7 +70,6 @@ export function WorkerCommandModal({worker, onClose}: {worker: GPUWorker, onClos
                 </button>
                 <h2 className='text-xl font-bold font-display tracking-wide'>{worker.label}</h2>
                 <p className='text-sm text-text-muted'>{worker.gpu_name}</p>
-            </div>
 
             {error && <div className='rounded-sm bg-danger/10 border border-danger/40 p-2.5 text-xs text-flare font-mono'>{error}</div>}
 
@@ -116,6 +112,7 @@ export function WorkerCommandModal({worker, onClose}: {worker: GPUWorker, onClos
                     </>
                 )
             }
+            </div>
             </div>
         </div>
     );

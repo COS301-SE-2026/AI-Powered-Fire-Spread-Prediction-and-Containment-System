@@ -17,7 +17,7 @@ export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onSh
     <button 
       type='button'
       onClick={() => onShowCommand(worker)}
-      className='text-xs font-semibold btn- btn-sm btn-outline border-ignite/60 rounded-xl text-ignite hover-bg-ignite/10 hover:text-ignite transition-colors'
+      className='text-xs font-semibold btn btn-sm btn-outline border-ignite/60 rounded-xl text-ignite hover:bg-ignite/10 hover:text-ignite transition-colors'
     >
       Command
     </button>
@@ -35,6 +35,7 @@ export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onSh
         <button type='button' onClick={() => onActivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors w-21'>
           Activate
         </button>
+        {commandButton}
         {removeButton}
       </div>
     );
@@ -45,6 +46,7 @@ export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onSh
             <button type='button' onClick={() => onActivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors invisible pointer-events-none'>
                 Deactivate
             </button>
+            {commandButton}
             {removeButton}
         </div>
     );
@@ -54,6 +56,7 @@ export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onSh
       <button type='button' onClick={() => onDeactivate(worker.id)} className='text-xs font-semibold btn btn-sm btn-outline border-text-primary rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>
         Deactivate
       </button>
+      {commandButton}
       {removeButton}
     </div>
   );
