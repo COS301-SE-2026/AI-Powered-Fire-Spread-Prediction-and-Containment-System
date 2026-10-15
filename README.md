@@ -1,21 +1,26 @@
+<h1 align="center">AI-Powered Fire Spread Prediction and Containment System</h1> 
 
 <img width="2000" height="961" alt="logo-dark" src="https://github.com/user-attachments/assets/eb4ccdab-2208-4ab0-b3be-f790434e729b" />
-
-
-<p align="center">
-  <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml"><img src="https://img.shields.io/github/actions/workflow/status/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/cicd.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=build%20and%20tests" /></a>
-   <a href="https:///github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml?query=branch%3Amain"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/python-coverage-comment-action-data/endpoint.json&style=for-the-badge"/></a>
-</p>
-
-
 
 <h2 align="center">Team: Panic! At The Kernel in collaboration with EPI-USE Africa</h2>
 
 <p align="center">
   <img width="650" alt="panic_epi_conbined" src="https://github.com/user-attachments/assets/36cdc2b0-44a5-4307-bf6d-b93029d96b2f" />
 </p>
-<br><br>
+<br>
 
+<p align="center">
+  <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml"><img src="https://img.shields.io/github/actions/workflow/status/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/cicd.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=build%20and%20tests" /></a>
+   <a href="https:///github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml?query=branch%3Amain"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/python-coverage-comment-action-data/endpoint.json&style=for-the-badge"/></a>
+</p>
+<p align="center">
+  <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/issues"><img src="https://img.shields.io/github/issues/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System?style=for-the-badge&logo=github" /></a>
+  <img src="https://img.shields.io/github/last-commit/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System?style=for-the-badge&logo=git&logoColor=white" />
+ <a href="https://fireaway.csml.co.za/"><img src="https://img.shields.io/website?url=https%3A%2F%2Ffireaway.csml.co.za&up_message=up&down_message=down&label=status&style=for-the-badge" alt="Status"/></a>
+<a href="https://github.com/orgs/COS301-SE-2026/projects/50"><img src="https://img.shields.io/badge/project%20board-GitHub%20Projects-181717?style=for-the-badge&logo=github&logoColor=white" alt="Project board"/></a>
+</p>
+
+# Oveview
 Fire Away is an AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
 
 
