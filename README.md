@@ -25,10 +25,11 @@
 <br>
 
 ## Oveview
-<p align="center">Fire Away is an AI-Powered Fire Spread Prediction and Containment System is a project that aims to develop an AI powered fire spread prediction system that uses real-time weather data, environmental conditions, and user-reported fire locations to simulate fire progression, predict impacted infrastructure, and support emergency responders with early warnings and realtime strategic containment guidance.
-</p>
 
-# Documentation
+Fire Away is an AI-powered wildfire spread prediction and containment system that helps emergency responders and the public react to fires faster. Our aim is to change fire response from reactive chaos to proactive defense, helping to keep first responders and communities safe. Fire Away combines live weather and terrain data, machine-learning models and community fire reports to simulate how a fire will grow, flag the areas at risk, and recommend where to build containment boundaries. The platform has separate experiences for guests, users, firefighters and administrators, and it works as an installable, offline-capable web app. 
+
+
+## Documentation
 ## Demo 1
 - [System Requirements Specification](docs/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
 - [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
@@ -66,18 +67,20 @@
 - [Service Contract](docs/Demo_3/service_contract.yaml)
 - [Demo 4 Video](https://drive.google.com/drive/folders/1fBHFX1r7PS7xMcdS3nlimVbZfzZK610T?usp=sharing)
 
-# Meet Our Team
-
-<img width="1182" height="665" alt="IMG_6956" src="https://github.com/user-attachments/assets/9d86ca1f-e46f-4e0f-9908-086e2aa7416c" />
+## Meet the Team
+<p align="center">
+  <img width="750" alt="IMG_6956" src="https://github.com/user-attachments/assets/9d86ca1f-e46f-4e0f-9908-086e2aa7416c" />
+</p>
 
 <table style="border-width: 1px; width: 100%; font-family: Arial, sans-serif; border-collapse: collapse;">
 <tr>
   <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-    <img alt="Megan Lai" src="https://github.com/user-attachments/assets/83dcc4c3-3dab-4679-81ce-012779465c96" width="900" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;"/>
+    <img alt="Megan Lai" src="https://github.com/user-attachments/assets/966addf9-d94b-4bb6-be7d-6d50cb43d361" width="900" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;"/>
     </td>
+
   <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
     <h2><b style="font-size: 18px;">Megan Lai</b></h2>
-    <h3><b style="font-size: 16px;">Team Lead, Full Stack Engineer</b></h3><br>
+    <h3><b style="font-size: 15px;">Team Lead, Full Stack Engineer</b></h3>
     I am a final-year student at the University of Pretoria, majoring in both Computer Science and Data Science. I am a driven problem-solver and aspiring software engineer who thrives on tackling complex technical challenges. While I possess a solid
 foundation in frontend technologies, my primary expertise and professional passion lie in backend development. I am passionate about software engineering and development, cybersecurity, artificial intelligence, and machine learning. I am always looking for ways to expand my knowledge and learn new skills in order to build innovative and impactful solutions.
    <br><br>
@@ -96,7 +99,7 @@ foundation in frontend technologies, my primary expertise and professional passi
     </td>
   <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
     <h2><b style="font-size: 18px;">Ryan Lynn</b></h2>
-    <h3><b style="font-size: 16px;">Full Stack Engineer</b></h3><br>
+    <h3><b style="font-size: 15px;">Full Stack Engineer</b></h3>
    I am a final-year Computer Science student with a strong focus on backend development and system design. I take a structured and analytical approach to solving complex technical problems, with a particular interest in building efficient, scalable, and well-architected systems.
    <br><br>
 <a href="https://github.com/Axil1ty">
@@ -114,7 +117,7 @@ foundation in frontend technologies, my primary expertise and professional passi
     </td>
   <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
     <h2><b style="font-size: 18px;">Inge Keyser</b></h2>
-    <h3><b style="font-size: 16px;">Full Stack Engineer</b></h3><br>
+    <h3><b style="font-size: 15px;">Full Stack Engineer</b></h3>
     I am a results-oriented BSc Computer Science student at the University of Pretoria
 with a strong foundation in data analysis, programming, and mathematics. I am
 passionate about leveraging data-driven insights to
@@ -132,11 +135,11 @@ Science. I am quick to adapt and master new technologies, I apply creative probl
 
  <tr>
   <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-    <img  alt="Janri du Toit" src="https://github.com/user-attachments/assets/f7772141-aed1-4437-9e6b-267b2e4dfa2d" width="900" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;"/>
+    <img  alt="Janri du Toit" src="https://github.com/user-attachments/assets/595ed096-5262-462b-bc83-8e096ef5df64" width="900" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;"/>
     </td>
   <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
-    <h2><b style="font-size: 18px;">Janri du Toit</b></h2>
-    <h3><b style="font-size: 16px;">Full Stack Engineer</b></h3><br>
+    <h2><b style="font-size: 18px;">Janri du Toit</b>
+    <h3><b style="font-size: 15px;">Full Stack Engineer</b></h3>
     I am a final-year student with a growing interest and curiosity in all the facets of
 Computers Science. I gravitate more towards AI and data science where algorithms
 don't just solve problems, they uncover them. To me, the ability of a well-trained
@@ -154,11 +157,11 @@ solutions to real-world challenges, is where logic meets true impact.
 
   <tr>
   <td style="vertical-align: top; width:auto; border: 0; padding: 10px;">
-    <img  alt="Marco de Wit" src="https://github.com/user-attachments/assets/4ca31f53-642b-4720-b455-11f03f269b94" width="900" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;"/>
+    <img  alt="Marco de Wit" src="https://github.com/user-attachments/assets/2a7a39a6-cf90-43ab-bc47-e8605b8c64f7" width="900" height="auto" style="display: block; margin: 0 auto; border-radius: 30px;"/>
     </td>
   <td style="vertical-align: top; width: auto; border: 0; padding: 10px;">
     <h2><b style="font-size: 18px;">Marco de Wit</b></h2>
-    <h3><b style="font-size: 16px;">Full Stack Engineer</b></h3><br>
+    <h3><b style="font-size: 16px;">Full Stack Engineer</b></h3>
     I am a final-year Mathematics student with a strong foundation in software
 development, specialising in C++, TypeScript, and Python. I bring a combination
 of analytical thinking and practical problem-solving, allowing me to design
@@ -173,6 +176,8 @@ efficient and optimised solutions grounded in mathematical principles
   </td>
 </tr>
 </table>
+
+
 
 
 
