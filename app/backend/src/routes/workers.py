@@ -39,6 +39,35 @@ QUARANTINE_DURATION = timedelta(minutes=15)
 
 WORKER_CREDENTIAL_INVALID = 4401 # app specific code that tells worker to drops its saved token
 
+job_progress_keys : Dict[str, str] = {}
+PROGRESS_TTL_SECONDS = 600
+
+def set_sim_progress(progress_key: Optional[str], stage: str, message:str) -> None:
+    if not progress_key:
+        return
+
+    try:
+        worker_service.valkey_client.setex(
+            f"sim:progress:{progress_key}",
+            PROGRESS_TTL_SECONDS,
+            json.dumps({"stage": stage, "message": message})
+        )
+    except Exception as err:
+        log.warning("Could not store simulation progress for %s: %s", progress_key, err)
+
+def clear_sim_progress(progress_key: Optional[str]) -> None:
+    if not progress_key:
+        return
+
+    try:
+        worker_service.valkey_client.delete(f"sim:progress:{progress_key}")
+    except Exception as err:
+        log.warning("Could not clear simulation progress for %s: %s", progress_key, err)
+
+def cloud_fallback(progress_key: Optional[str]) -> dict:
+    set_sim_progress(progress_key, "cloud", "Running on cloud worker")
+    return {"dispatched_to": "cloud_fallback", "status": "queued"}
+
 async def reject_worker_credentials(websocket: WebSocket) -> None:
     await websocket.accept()
     await websocket.close(code=WORKER_CREDENTIAL_INVALID, reason="Invalid worker credentials")
@@ -79,6 +108,12 @@ def get_workers(
         is_admin=is_admin,
     )
 
+
+@router.get("/progress/{progress_key}")
+def get_simulation_progress(progress_key: str, current_user: current_active_user):
+    """Latest stage for a runnning simulation or null if none is recorded"""
+    raw = worker_service.valkey_client.get(f"sim:progress:{progress_key}")
+    return json.loads(raw) if raw else {"stage": None, "message": None}
 
 @router.post(
     "/{worker_id}/activate",
@@ -299,6 +334,10 @@ async def websocket_worker_endpoint(
                         await websocket.send_text(json.dumps({"type": "pong"}))
                     continue
 
+                if msg_type == "progress":
+                    set_sim_progress(job_progress_keys.get(data.get("job_id")), data.get("stage", ""), data.get("message", ""))
+                    continue
+                
                 # completed simulation
                 if msg_type == "simulation_result":
                     job_id = data.get("job_id")
@@ -363,25 +402,26 @@ def has_active_volunteer_workers() -> bool:
         log.warning("Error checking active workers: %s", err)
         return len(active_worker_connections) > 0
 
-async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = None) -> dict:
+async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = None, progress_key: Optional[str] = None) -> dict:
     if db is None:
         from app.backend.db import SessionLocal
         with SessionLocal() as session:
-            return await dispatch_simulation_task(task_payload, db=session)
-    
+            return await dispatch_simulation_task(task_payload, db=session, progress_key=progress_key)
+
+    set_sim_progress(progress_key, "queued", "Finding an available GPU")
     valkey = worker_service.valkey_client
     raw_worker_id = valkey.spop("worker:pool:idle")
 
     if not raw_worker_id:
         log.warning("No idle workers availiable")
-        return {"dispatched_to": "cloud_fallback", "status": "queued"}
+        return cloud_fallback(progress_key)
 
     worker_id = raw_worker_id.decode("utf-8") if isinstance(raw_worker_id, bytes) else str(raw_worker_id)
 
     ws = active_worker_connections.get(worker_id)
     if not ws:
         valkey.srem("worker:pool:idle", worker_id)
-        return {"dispatched_to": "cloud_fallback", "status": "queued"}
+        return cloud_fallback(progress_key)
 
     job_id = task_payload.get("job_id", "sim_job")
     valkey.sadd("worker:pool:busy", worker_id)
@@ -390,10 +430,12 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
     if not node or node.status != "active":
         log.info("skipping worker %s, (status -> %s)", worker_id, node.status if node else "missing")
         valkey.srem("worker:pool:busy", worker_id)
-        return {"dispatched_to": "cloud_fallback", "status": "queued"}
+        return cloud_fallback(progress_key)
 
     node.status = "busy"
     db.commit()
+    job_progress_keys[job_id] = progress_key
+    set_sim_progress(progress_key, "dispatched", f"Job sent to volunteer GPU ({node.gpu_name})")
 
     message = {
         "type": "simulation_job",
@@ -412,12 +454,14 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
             if done:
                 result = pending.result()
                 if result is not None:
+                    if progress_key:
+                        valkey.delete(f"sim:progress:{progress_key}")
                     return result
-                return {"dispatched_to": "cloud_fallback", "status": "queued"} # worker reported error
+                return cloud_fallback(progress_key) # worker reported error
 
             if worker_id not in active_worker_connections:
                 log.error("Worker %s disconnected mid simulation for the job %s", worker_id, job_id)
-                return {"dispatched_to": "cloud_fallback", "status": "queued"}
+                return cloud_fallback(progress_key)
             elapsed += 1.0
 
 
@@ -440,10 +484,11 @@ async def dispatch_simulation_task(task_payload: dict, db: Optional[Session] = N
             log.exception("Could not reset the worker %s after dispatch error", worker_id)
     finally:
         pending_results.pop(job_id, None)
+        job_progress_keys.pop(job_id, None)
         try:
             valkey.srem("worker:pool:busy", worker_id)
         except Exception:
             pass
 
-    return {"dispatched_to": "cloud_fallback", "status": "queued"}
+    return cloud_fallback(progress_key)
 

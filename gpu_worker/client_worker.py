@@ -10,6 +10,10 @@ import time
 from typing import Optional, Tuple
 import base64
 import zlib
+import warnings
+
+# pystac's storage extension warnings removal from terminal
+warnings.filterwarnings("ignore", message="Could not parse bucket/account from href", category=UserWarning, module="pystac")
 
 import numpy as np
 import requests
@@ -38,6 +42,17 @@ MIN_VRAM_MB = 3584
 BENCHMARK_DURATION_SECONDS = 1.0
 RECONNECT_DELAY_SECONDS = 5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+def make_progress_reporter(websocket, loop: asyncio.AbstractEventLoop, job_id: str):
+    """logs a stage of the model running and forwards it to the broker. Safe to call from the to_thread_worker thread"""
+    def report(stage: str, message: str) -> None:
+        log.info("%s (%s)", message, job_id)
+        msg = json.dumps({"type": "progress", "job_id": job_id, "stage": stage, "message": message})
+        try:
+            asyncio.run_coroutine_threadsafe(websocket.send(msg), loop)
+        except RuntimeError:
+            pass
+    return report
 
 def load_saved_credentials() -> Optional[Tuple[str,str]]:
     try:
@@ -163,12 +178,14 @@ def register_worker(reg_key: str, gpu_name: str, vram_mb: int) -> Optional[Tuple
         return None
 
 
-def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
+def execute_pipeline_task(model: WeatherDeltaModel, payload: dict, report=lambda stage, message: None) -> dict:
     job_id = payload.get("job_id", "sim_task")
     log.info("Fetching remote terrain and weather data for job: %s", job_id)
 
     # fetch satelite and weather data
+    report("fetching_weather", "Fetching weather data")
     weather_history = fetch_weather_history(payload)
+    report("fetching_terrain", "Fetching terrain and satellite data")
     static_grids = fetch_static_grids(payload)
 
     # build the [1 T 4 H W] tensor for lstm
@@ -212,6 +229,7 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         else None
     )
 
+    report("running_model", "Running fire spread model")
     history = run_convlstm_dca(
         convlstm_model=model,
         weather_history=weather_tensor,
@@ -224,6 +242,7 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         params=params,
     )
 
+    report("packaging", "Packaging results")
     hist = np.stack([
         (g.detach().cpu().numpy() if hasattr(g, "detach") else np.asarray(g)).astype(np.int8)
         for g in history
@@ -263,9 +282,11 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                     if msg_type == "simulation_job":
                         job_payload = data.get("payload", {})
                         job_id = job_payload.get("job_id", "unknown")
+                        report = make_progress_reporter(websocket, asyncio.get_running_loop(), job_id)
+                        report("received", "Job picked up by this gpu")
                         try:
                             start_t = time.monotonic()
-                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload)
+                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload, report)
                             duration = time.monotonic() - start_t
                             log.info("Job %s completed in %.2fs. Sending results.", job_id, duration)
 
