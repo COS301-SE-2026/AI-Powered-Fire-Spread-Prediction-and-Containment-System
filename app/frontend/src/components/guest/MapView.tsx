@@ -14,6 +14,7 @@ import { GuestEnvironment } from './GuestEnvironment';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { MapLayerToggles } from '../shared/MapLayerToggles';
+import { useLocationToMap } from '../../hooks/useLocationToMap';
 
 const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) => mod.FireMap), {
   ssr: false,
@@ -37,6 +38,9 @@ export default function MapView() {
 
   const availableResources = nearbyResources.filter((r) => r.status === 'available');
   const { locations } = useSavedLocations();
+
+  const [focus, setFocus] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  useLocationToMap(setFocus);
 
   function handleSelectResource(r: { id: string }) {
     setSelectedResourceId((prev) => (prev === r.id ? null : r.id));
@@ -87,6 +91,8 @@ export default function MapView() {
               onDeselectResource={() => setSelectedResourceId(null)}
               showWater={showWater}
               savedLocations={locations}
+              focus={focus}
+              
             />
           <div className='absolute top-3 left-3 z-20 flex flex-col gap-2'>
               <Link href='/admin/report-fire' aria-label='Report a fire' title='Report a fire' className='w-10 h-10 rounded-full bg-primary text-text-primary flex items-center justify-center shadow-lg ring-lg ring-black/10 hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all duration-150'>

@@ -19,6 +19,7 @@ import { NearbyResources } from '../../components/shared/NearbyResources';
 import { useNearbyResources } from '../../hooks/useNearbyResources';
 import { ResourceMapLegend } from '../../components/shared/ResourceMapLegend';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
+import { useLocationToMap } from '../../hooks/useLocationToMap';
 
 export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
@@ -41,6 +42,9 @@ export default function FirefighterDashboard() {
 
   const availableResources = nearbyResources.filter((r) => r.status === 'available');
   const { locations } = useSavedLocations();
+
+  const [focus, setFocus] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  useLocationToMap(setFocus);
 
   async function handleDrawComplete(wkt: string) {
     const localId = crypto.randomUUID();
@@ -128,6 +132,7 @@ export default function FirefighterDashboard() {
                   onSelectResource={handleSelectResource}
                   onDeselectResource={() => setSelectedResourceId(null)}
                   savedLocations={locations}
+                  focus={focus}
                 />
               </div>
               <MapStatsOverlay nearbyFires={nearbyFires} />

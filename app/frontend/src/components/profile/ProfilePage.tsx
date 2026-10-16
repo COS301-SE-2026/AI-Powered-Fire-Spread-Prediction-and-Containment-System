@@ -85,7 +85,7 @@ export default function ProfilePage(){
                 </div>
             ): null}
 
-            {user ? <SavedLocations /> : null}
+            {user ? <SavedLocations role={user.role} /> : null}
 
             {user ? (
                 <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>

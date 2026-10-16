@@ -2,27 +2,70 @@ import { useState } from 'react';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { LocationCard } from './LocationCard';
 import { AddLocation } from './AddLocation';
+import { LiveMapRef } from '../../lib/SaveLocationMapRef';
 
-export function SavedLocations() {
-    const { locations, loading, error, addLocation } = useSavedLocations();
+
+const MAX_LOCATIONS = 6;
+
+interface SavedLocationsProps {
+    role: string;
+}
+
+export function SavedLocations({ role }: SavedLocationsProps) {
+    const { locations, loading, error, addLocation, removeLocation } = useSavedLocations();
     const [show, setShow] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+
+    async function handleDelete(id: string) {
+        setDeleteError('');
+        try {
+            await removeLocation(id);
+        } catch (err) {
+            if (err instanceof Error) {
+                setDeleteError(err.message);
+            } else {
+                setDeleteError('Could not delete location.');
+            }
+        }
+    }
 
     const rows = [];
     for (const location of locations) {
-        rows.push(<LocationCard key={location.id} location={location} />);
+        let href: string | null = null;
+        if(location.lat != null && location.lng != null){
+            href = LiveMapRef(role, location.lat, location.lng);
+        } 
+        rows.push(<LocationCard key={location.id} location={location} href={href} onDelete={handleDelete} />);
+    }
+
+    let addButton = null;
+    if (locations.length < MAX_LOCATIONS){
+        addButton = (
+            <button type="button" onClick={() => setShow(true)} className="aspect-square rounded-xl border border-dashed border-carbon-stroke text-text-muted flex items-center justify-center hover:bg-carbon-card"> + Add location </button>
+        );
+    }
+    let deleteErrorMessage = null;
+    if (deleteError) {
+        deleteErrorMessage = <div className='text-error text-sm mb-2'>{deleteError}</div>
     }
     return (
         <div className='w-full rounded-2xl border border-carbon-stroke p-4 flex flex-col'>
-            <h2 className='uppercase mb-3'>Saved locations</h2>
+            <div className='flex items-baseline gap-2 mb-3'>
+                <h2 className='uppercase'>Saved locations</h2>
+                <span className='text-base p-2 text-text-muted'>
+                    (only upto 6 locations)
+                </span>
+            </div>
             {error ? <div className='text-error text-sm mb-2'>{error}</div> : null}
+            {deleteErrorMessage}
             {loading ? (
                 <div className='flex justify-center items-center min-h-[20vh]'>
                     <span className="loading loading-spinner loading-lg text-primary" />
                 </div>
             ) : (
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
                     {rows}
-                    <button type="button" onClick={() => setShow(true)} className="rounded-xl border border-dashed border-carbon-stroke text-text-muted flex items-center justify-center min-h-[10rem] hover:bg-carbon-card">+ Add location</button>
+                    {addButton}
                 </div>
             )}
             {show ? (
