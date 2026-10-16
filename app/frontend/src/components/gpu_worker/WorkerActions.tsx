@@ -9,7 +9,7 @@ interface WorkerActionsProps {
   onShowCommand?: (worker: GPUWorker) => void;
 }
 
-export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onShowCommand }: WorkerActionsProps) {
+export function WorkerActions({ worker, onActivate, onDeactivate, onRemove, onShowCommand = undefined }: WorkerActionsProps) {
   if (worker.status === 'removed'){
     return <span className='text-xs text-text-muted'>No actions</span>
   }

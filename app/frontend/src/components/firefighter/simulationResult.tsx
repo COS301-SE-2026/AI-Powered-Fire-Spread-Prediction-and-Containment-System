@@ -1,12 +1,12 @@
 import { LocalLine } from '@/types/ContainmentLines';
 import { AlertTriangle, Droplets, Flame, Thermometer, Wind } from 'lucide-react';
+import { TICKS_PER_HOUR } from '@/types/simulation';
 import { EnvironmentWidgets } from './EnvironmentWidgets';
 import { LoggedContainmentLine } from './containmentLineCard';
 import { Prediction, SimulationStatus, ClusterPrediction } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useFuelConditions } from '../../hooks/useFuelConditions';
 import { Sparkline } from './Sparkline';
-import { TICKS_PER_HOUR } from '@/types/simulation';
 
 interface SimulationResultsProps {
   predictions?: Prediction[];
