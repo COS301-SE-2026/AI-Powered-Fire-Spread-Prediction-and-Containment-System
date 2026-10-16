@@ -362,6 +362,17 @@ async def websocket_worker_endpoint(
                     fut = pending_results.pop(job_id, None)
                     if fut and not fut.done():
                         fut.set_result(None)
+
+                    if data.get("error_kind") == "data_source":
+                        #not workers fault
+                        valkey.srem("worker:pool:busy", worker_id)
+                        db.refresh(node)
+                        if node.status == "busy":
+                            node.status = "active"
+                            db.commit()
+                            valkey.sadd("worker:pool:idle", worker_id)
+                        continue
+
                     node.consecutive_failures += 1
                     node.status = "quarantined"
                     node.quarantine_until = datetime.now(timezone.utc) + QUARANTINE_DURATION

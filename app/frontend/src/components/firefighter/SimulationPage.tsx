@@ -243,7 +243,7 @@ export default function SimulationPage() {
                 {/* Live tick badge */}
                 {hasResult && (
                   <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
-                    TICK {currentTick + 1} / {totalTicks}
+                    +{(currentTick / TICKS_PER_HOUR).toFixed(1)}h / {totalHours}h
                   </span>
                 )}
               </div>
@@ -425,7 +425,7 @@ export default function SimulationPage() {
                   <div className="flex flex-col gap-1 p-2">
                     <div className="flex flex-row items-center justify-between">
                       <span className="text-sm text-text-muted p-1">
-                        {hasResult ? `Tick ${currentTick + 1} of ${totalTicks}` : 'Not yet run'}
+                        {hasResult ? `+${(currentTick / TICKS_PER_HOUR).toFixed(1)}h of ${totalHours}h` : 'Not yet run'}
                       </span>
                     </div>
 
@@ -485,6 +485,7 @@ export default function SimulationPage() {
               containmentLines={lines}
               selectedFireId={selectedFireId}
               predictions={predictions}
+              clusterPredictions={clusterPredictions}
               currentTick={currentTick}
               status={status}
               onDeleteLine={handleDeleteLine}

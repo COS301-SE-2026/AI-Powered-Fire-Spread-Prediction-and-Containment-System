@@ -301,6 +301,19 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                                     }
                                 )
                             )
+                        except requests.exceptions.RequestException as err:
+                            # upstream data source failed so gpu not quarentined
+                            log.warning("Data source unavailable for %s: %s", job_id, err)
+                            await websocket.send(
+                                json.dumps(
+                                    {
+                                        "type": "simulation_error",
+                                        "job_id": job_id,
+                                        "error": "Upstream data source unavailable",
+                                        "error_kind": "data_source"
+                                    }
+                                )
+                        )
                         except Exception as err:
                             log.exception("Task processing error for %s: %s", job_id, err)
                             await websocket.send(
