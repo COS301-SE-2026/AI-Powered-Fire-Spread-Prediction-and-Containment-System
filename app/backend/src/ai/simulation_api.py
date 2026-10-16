@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 import base64
 import zlib
+import time
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
@@ -270,7 +271,7 @@ async def run_simulation_job(job: dict, progress_key: str | None = None) -> dict
     await asyncio.to_thread(
         sqs.send_message,
         QueueUrl=INFERENCE_QUEUE_URL,
-        MessageBody=json.dumps(job),
+        MessageBody=json.dumps({**job, "expires_at": time.time() + RESULT_POLL_TIMEOUT_S}),
     )
     try:
         return await wait_for_result(job_id)
