@@ -22,6 +22,9 @@
  <a href="https://fireaway.csml.co.za/"><img src="https://img.shields.io/website?url=https%3A%2F%2Ffireaway.csml.co.za&up_message=up&down_message=down&label=status&style=for-the-badge" alt="Status"/></a>
 <a href="https://github.com/orgs/COS301-SE-2026/projects/50"><img src="https://img.shields.io/badge/project%20board-GitHub%20Projects-181717?style=for-the-badge&logo=github&logoColor=white" alt="Project board"/></a>
 </p>
+<p align="center">
+  <a href="mailto:panicatthekernel.26@gmail.com"><img src="https://img.shields.io/badge/Email-Contact%20Us-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt=Email" /></a>
+</p>
 <br>
 
 ## Oveview
@@ -97,7 +100,8 @@ foundation in frontend technologies, my primary expertise and professional passi
 </a>&nbsp;&nbsp; 
 <a href="https://www.linkedin.com/in/megan-lai-720685368/">
   <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-</a>
+</a>&nbsp;&nbsp; 
+<a href="mailto:megan.laisa24@gmail.com"><img src="https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt=Email" /></a>
   </td>
 </tr>
 
@@ -115,7 +119,8 @@ foundation in frontend technologies, my primary expertise and professional passi
 </a>&nbsp;&nbsp;
 <a href="https://www.linkedin.com/in/ryan-lynn-152319286/" >
   <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-</a>
+</a>&nbsp;&nbsp; 
+<a href="mailto:ryanmatlynn6@gmail.com"><img src="https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt=Email" /></a>
   </td>
 </tr>
 
@@ -137,7 +142,8 @@ Science. I am quick to adapt and master new technologies, I apply creative probl
 </a>&nbsp;&nbsp;
 <a href="https://www.linkedin.com/in/inge-keyser/">
   <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-</a>
+</a>&nbsp;&nbsp; 
+<a href="mailto:keyseringe@gmail.com"><img src="https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt=Email" /></a>
   </td>
 </tr>
 
@@ -159,7 +165,8 @@ solutions to real-world challenges, is where logic meets true impact.
 </a>&nbsp;&nbsp;
 <a href="https://www.linkedin.com/in/janri-du-toit-9708192b5/">
   <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-</a>
+</a>&nbsp;&nbsp; 
+<a href="mailto:janridut@gmail.com"><img src="https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt=Email" /></a>
   </td>
 </tr>
 
@@ -180,10 +187,16 @@ efficient and optimised solutions grounded in mathematical principles
 </a>&nbsp;&nbsp;
     <a href="https://www.linkedin.com/in/marco-de-wit-149934356/" >
   <img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn" />
-</a>
+</a>&nbsp;&nbsp; 
+<a href="mailto:marcodewit45@gmail.com"><img src="https://img.shields.io/badge/Email-Contact-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt=Email" /></a>
   </td>
 </tr>
 </table>
+
+---
+<p align="center">
+  <i>&copy; COS301 Capstone Project 2026 &middot; University of Pretoria &middot; EPI-USE Africa &middot; Panic! At The Kernel</i>
+</p>
 
 
 
