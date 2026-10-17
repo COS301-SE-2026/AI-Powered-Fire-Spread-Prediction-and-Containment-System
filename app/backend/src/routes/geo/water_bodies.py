@@ -13,6 +13,7 @@ fair-use limits and because this data rarely changes.
 import hashlib
 import json
 import math
+import logging
 from typing import Optional
 
 import httpx
@@ -21,6 +22,7 @@ from fastapi import APIRouter, HTTPException, Query
 from app.backend.src.ai.cache import client as cache_client
 
 router = APIRouter(prefix="/api/geo", tags=["Geo"])
+logger = logging.getLogger(__name__)
 
 # Public Overpass instances tried in order (main instance often under load so fallback to 
 # mirrors rather than fail the request)
@@ -176,15 +178,21 @@ async def get_water_bodies(
         raise HTTPException(status_code=400, detail=f"Bounding box too large; each side must be under {MAX_BBOX_SIDE_DEG} degrees",)
     
     key = cache_key(min_lat, min_lng, max_lat, max_lng, min_area_m2)
-    
-    cached = cache_client.get(key)
-    if cached:
-        return json.loads(cached)
+
+    try:
+        cached = cache_client.get(key)
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        logger.warning("water-bodies cache read failed", exc_info=True)
     
     query = build_query(min_lat, min_lng, max_lat, max_lng)
     raw = await query_overpass(query)
     geojson = elements_to_geojson(raw.get("elements", []), min_area_m2)
-    
-    cache_client.set(key, json.dumps(geojson), ex=CACHE_TTL_SECONDS)
+
+    try:
+        cache_client.set(key, json.dumps(geojson), ex=CACHE_TTL_SECONDS)
+    except Exception:
+        logger.warning("water-bodies cache write failed", exc_info=True)
     
     return geojson
