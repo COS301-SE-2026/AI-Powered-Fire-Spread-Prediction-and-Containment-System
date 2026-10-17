@@ -1,14 +1,16 @@
 import { LocalLine } from '@/types/ContainmentLines';
 import { AlertTriangle, Droplets, Flame, Thermometer, Wind } from 'lucide-react';
+import { TICKS_PER_HOUR } from '@/types/simulation';
 import { EnvironmentWidgets } from './EnvironmentWidgets';
 import { LoggedContainmentLine } from './containmentLineCard';
-import { Prediction, SimulationStatus } from '../../hooks/useSimulation';
+import { Prediction, SimulationStatus, ClusterPrediction } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useFuelConditions } from '../../hooks/useFuelConditions';
 import { Sparkline } from './Sparkline';
 
 interface SimulationResultsProps {
   predictions?: Prediction[];
+  clusterPredictions?: ClusterPrediction[];
   currentTick?: number;
   status?: SimulationStatus;
   containmentLines?: LocalLine[];
@@ -44,8 +46,16 @@ function countStates(grid: number[] | undefined) {
   return { burning, burned, unburned: grid.length - burning - burned, total: grid.length };
 }
 
+function formatKm2(km2: number): string{
+  if(km2 === 0) return '0';
+  if(km2 < 0.01) return '< 0.01';
+  if(km2 < 1) return km2.toFixed(2);
+  return km2.toFixed(1);
+}
+
 export function SimulationResults({
   predictions = [],
+  clusterPredictions = [],
   currentTick = 0,
   status = 'idle',
   containmentLines = [],
@@ -63,7 +73,26 @@ export function SimulationResults({
 
   const { conditions, loading: conditionsLoading } = useFuelConditions(lat, lng);
 
-  const totals = predictions.reduce(
+  const runs: { history: number[][], cell_size_m: number }[] = [...predictions, ...clusterPredictions];
+
+  function affectedAreaKm(tick: number): number {
+    return runs.reduce((sum, r) => {
+      const grid = r.history[Math.min(tick, r.history.length - 1)];
+      if(!grid) return sum;
+      const c = countStates(grid);
+      return sum + ((c.burning + c.burned) * r.cell_size_m ** 2) / 1000000;
+    }, 0)
+  }
+
+  const areaNowKm = affectedAreaKm(currentTick);
+  const areaHourAgoKm = affectedAreaKm(Math.max(currentTick - TICKS_PER_HOUR,0));
+  const radiusKm = (areaKm2: number) => Math.sqrt(areaKm2 / Math.PI);
+  const hoursBack = Math.min(currentTick, TICKS_PER_HOUR) / TICKS_PER_HOUR;
+  const spreadSpeedKmh = hoursBack > 0
+    ? Math.max(radiusKm(areaNowKm) - radiusKm(areaHourAgoKm), 0) / hoursBack : 0;
+  const elapsedHours = currentTick / TICKS_PER_HOUR;
+
+  const totals = runs.reduce(
     (acc, p) => {
       const c = countStates(p.history[currentTick]);
       return {
@@ -75,7 +104,7 @@ export function SimulationResults({
     { burning: 0, burned: 0, unburned: 0 }
   );
 
-  const hasResult = predictions.length > 0;
+  const hasResult = runs.length > 0;
   const upperBoundSpread = 15.0; // in km
 
   const bandColor = conditions ? BAND_COLOR[conditions.fdi_color] ?? 'text-text-primary' : '';
@@ -98,27 +127,22 @@ export function SimulationResults({
 
       {/* Live burn stats for current tick */}
       {hasResult && (
-        <div className="flex gap-3">
-          <div className="flex flex-col">
-            <span className="text-xs text-text-muted uppercase">Burning</span>
-            <span className="text-sm font-semibold text-ignite">
-              {totals.burning}
-              cells
-            </span>
+        <div className='grid grid-cols-2 gap-2'>
+          <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+            <span className='text-xs text-text-muted uppercase'>Elapsed</span>
+            <span className='text-sm font-semibold text-text-primary'>+{elapsedHours.toFixed(1)} h</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs text-text-muted uppercase">Burned</span>
-            <span className="text-sm font-semibold text-green-500/70">
-              {totals.burned}
-              cells
-            </span>
+          <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+            <span className='text-xs text-text-muted uppercase'>Area Affected</span>
+            <span className='text-sm font-semibold text-text-primary'>{formatKm2(areaNowKm)} km²</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-xs text-text-muted uppercase">Unburned</span>
-            <span className="text-sm font-semibold text-green-500/70">
-              {totals.unburned}
-              cells
-            </span>
+          <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+            <span className='text-xs text-text-muted uppercase'>Spread Speed</span>
+            <span className='text-sm font-semibold text-text-primary'>{spreadSpeedKmh.toFixed(2)} km/h</span>
+          </div>
+          <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+            <span className='text-xs text-text-muted uppercase'>Active front</span>
+            <span className='text-sm font-semibold text-text-primary'>{totals.burning} cells</span>
           </div>
         </div>
       )}
@@ -265,7 +289,7 @@ export function SimulationResults({
           <p className="text-sm uppercase py-2">predicted spread area</p>
           {hasResult && (
             <span className='text-sm uppercase font-mono text-text-muted bg-carbon-bg px-1.5 py-0.5 rounded border border-carbon-stroke'>
-              {predictions.length > 1 ? `Max Overall Spread (${predictions.length} Fires)` : `Single Fire`}
+              {clusterPredictions.length > 0 ? 'Fire cluster' : predictions.length > 1 ? `Max Overall Spread (${predictions.length} Fires)` : 'Single Fire'}
             </span>
           )}
         </div>
@@ -280,7 +304,7 @@ export function SimulationResults({
               const tickHour = hour * 4;
               const radiusses: number[] = [];
 
-              for(const p of predictions){
+              for(const p of runs){
                 const realTick = Math.min(tickHour, p.history.length - 1);
                 const grid = p.history[realTick];
 

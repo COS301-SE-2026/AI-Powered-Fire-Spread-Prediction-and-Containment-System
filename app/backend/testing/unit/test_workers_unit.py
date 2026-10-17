@@ -55,7 +55,7 @@ class TestRegisterWorkerNode:
 
     def test_unknown_key_raises_401(self):
         fake_valkey = MagicMock()
-        fake_valkey.get.return_value = None
+        fake_valkey.getdel.return_value = None
         with patch.object(worker_service, "valkey_client", fake_valkey):
             with pytest.raises(HTTPException) as exc:
                 worker_service.register_worker_node(MagicMock, self._req(8192))

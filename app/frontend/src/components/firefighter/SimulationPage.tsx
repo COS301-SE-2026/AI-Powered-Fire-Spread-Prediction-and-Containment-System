@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity, Wand2 } from 'lucide-react';
+import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Square, Trash2, Wand2 } from 'lucide-react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
 import { MAX_SIM_HOURS, SIM_MAX_STEPS, TICKS_PER_HOUR } from '@/types/simulation';
+import { useSimulationProgress } from '@/hooks/useSimulationProgress';
 import { FirefighterSideBar } from './FirefighterSidebar';
 import { SimulationResults } from './simulationResult';
 import { FireMap } from '../shared/DynamicFirefighterMap';
@@ -13,6 +14,7 @@ import { useRotate } from '../../hooks/useRotate';
 import { RotateHint } from '../shared/RotateHint';
 import { useSuggestContainmentLine } from '../../hooks/useSuggestContainmentLine';
 import { SuggestedLineCard } from './suggestedLineCard';
+import { SimulationProgress } from './SimulationProgress';
 
 export default function SimulationPage() {
   const { reports: fires } = useFirefighterReports('');
@@ -24,6 +26,7 @@ export default function SimulationPage() {
   const [lines, setLines] = useState<LocalLine[]>([])
   const { showHint, dismiss } = useRotate();
   const [lastClusterRefs, setLastClusterRefs] = useState<string[] | null>(null);
+  const [progressKey, setProgressKey] = useState<string | null>(null);
   const {
     submitLine,
     loading: savingLine,
@@ -56,6 +59,7 @@ export default function SimulationPage() {
   } = useSimulation();
 
   const isLoading = status === 'loading';
+  const progress = useSimulationProgress(progressKey, isLoading);
   const isPlaying = status === 'playing';
   const hasResult = totalTicks > 0;
 
@@ -107,6 +111,7 @@ export default function SimulationPage() {
 
   function handleRun() {
     setLastClusterRefs(null);
+    setProgressKey(selectedFireId ?? 'all');
     const steps = selectedFireId ? SIM_MAX_STEPS : TICKS_PER_HOUR
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     runSimulation(selectedFireId, steps, drafts);
@@ -124,11 +129,13 @@ export default function SimulationPage() {
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     const refs = Array.from(selectedFireIds);
     setLastClusterRefs(refs);
+    setProgressKey([...refs].sort().join('+'));
     runClusterSimulation(refs, SIM_MAX_STEPS, drafts);
   }
   function handleRerun() {
     if(lastClusterRefs){
       const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
+      setProgressKey([...lastClusterRefs].sort().join('+'));
       runClusterSimulation(lastClusterRefs, SIM_MAX_STEPS, drafts)
     }else{
       handleRun();
@@ -236,18 +243,15 @@ export default function SimulationPage() {
                 {/* Live tick badge */}
                 {hasResult && (
                   <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
-                    TICK {currentTick + 1} / {totalTicks}
+                    +{(currentTick / TICKS_PER_HOUR).toFixed(1)}h / {totalHours}h
                   </span>
                 )}
               </div>
 
               {/* Loading overlay */}
               {isLoading && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-carbon-bg/70 backdrop-blur-sm gap-3">
-                  <Loader2 className="animate-spin text-ignite" size={40} />
-                  <span className="text-neutral/70 text-sm font-mono uppercase tracking-widest">
-                    Running Simulation...
-                  </span>
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-carbon-bg/70 backdrop-blur-sm">
+                  <SimulationProgress progress={progress}/>
                 </div>
               )}
 
@@ -421,7 +425,7 @@ export default function SimulationPage() {
                   <div className="flex flex-col gap-1 p-2">
                     <div className="flex flex-row items-center justify-between">
                       <span className="text-sm text-text-muted p-1">
-                        {hasResult ? `Tick ${currentTick + 1} of ${totalTicks}` : 'Not yet run'}
+                        {hasResult ? `+${(currentTick / TICKS_PER_HOUR).toFixed(1)}h of ${totalHours}h` : 'Not yet run'}
                       </span>
                     </div>
 
@@ -481,6 +485,7 @@ export default function SimulationPage() {
               containmentLines={lines}
               selectedFireId={selectedFireId}
               predictions={predictions}
+              clusterPredictions={clusterPredictions}
               currentTick={currentTick}
               status={status}
               onDeleteLine={handleDeleteLine}

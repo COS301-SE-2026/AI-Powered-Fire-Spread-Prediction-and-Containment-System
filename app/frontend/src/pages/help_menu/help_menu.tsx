@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { Siren, CirclePlay, Headset } from 'lucide-react';
+import { Siren, CirclePlay, Headset, Cpu } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { SideBar } from '../../components/layout/SideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
@@ -69,7 +69,7 @@ export default function HelpPage() {
       <Head>
         <title>FireAway - Help and Support</title>
       </Head>
-      <SideBar items={null}>
+      <SideBar items={null} hideLogout>
         <div className="flex flex-col p-6">
           <PageHeader
             title="Help Menu"
@@ -193,10 +193,63 @@ export default function HelpPage() {
             </div>
           </details>
 
+          {/* GPU volunteer */}
+          <details
+            className='collapse bg-carbon-bg border border-carbon-card rounded-lg transition-all group'
+            name='tutorial-accordion'
+          >
+            <summary className='collapse-title font-semibold p-4 flex items-center gap-3 cursor-pointer hover:bg-carbon-card/30 rounded-t-lg transition-colors'>
+              <div className='size-10 rounded-lg bg-carbon-bg border border-carbon-card flex items-center justify-center text-white/60 group-hover:text-ignite group-hover:border-ignite/30 transition-colors shrink-0'>
+                <Cpu/>
+              </div>
+              <div className='flex flex-col'>
+                <span className='font-bold text-white text-sm tracking-wide'>Volunteer</span>
+                <span className='text-xs text-white/50 font-medium'>Help power fire spread simulations</span>
+              </div>
+            </summary>
+            <div className='collapse-content p-4 pt-0 space-y-6'>
+              <div className='mt-4'>
+                <p className='text-white font-bold text-base mb-2'>
+                  What you need
+                </p>
+                <ul className='list-disc list-inside text-white/70 text-sm leading-relaxed space-y-1'>
+                  <li>A computer with an NVIDIA graphics card.</li>
+                  <li>Docker installed (on Windows, Docker Desktop with WSL 2).</li>
+                  <li>NVIDIA GPU support for Docker (the NVIDIA Container Toolkit).</li>
+                </ul>
+              </div>
+
+              <div>
+                <p className='text-white font-bold text-base mb-2'>
+                  Step-by-step guide
+                </p>
+                <ol className='list-decimal list-inside text-white/70 text-sm leading-relaxed space-y-1'>
+                  <li>Open <span className='text-white font-semibold'>Volunteer Your GPU</span> from the sidebar.</li>
+                  <li>Click <span className='text-white font-semibold'>Add a machine</span>. FireAway generates a one-time setup command for your computer.</li>
+                  <li>Copy the command and run it in a terminal on the machine you want to volunteer. It downloads and starts the FireAway worker.</li>
+                  <li>Wait while the worker checks your GPU and runs a quick benchmark.</li>
+                  <li>Your machine appears in the table with its GPU, VRAM and status. Once it shows active, it is ready to run simulations.</li>
+                  <li>Use <span className='text-white font-semibold'>Deactivate</span> to pause it, or <span className='text-white font-semibold'>Remove</span> to take it off FireAway completely.</li>
+                </ol>
+              </div>
+
+              <div>
+                <p className='text-white font-bold text-base mb-2'>
+                  Good to know
+                </p>
+                <ul className='list-disc list-inside text-white/70 text-sm leading-relaxed space-y-1'>
+                  <li>Each setup command works once and expires after 24 hours. If it expires, click <span className='text-white font-semibold'>Add a machine</span> again.</li>
+                  <li>Your machine only receives jobs while the worker is running. Close it and the machine goes offline.</li>
+                  <li>If your GPU doesn't pass the checks, the machine won't be added.</li>
+                </ul>
+              </div>
+            </div>
+          </details>
+
           {/* Help center (I put the fire department link only) */}
           <ActionCard
             title="Help Center"
-            description="Need professional suppport?"
+            description="Need professional support?"
             icon={<Headset />}
             onClick={() => router.push('https://www.fireservices.gov.za/Pages/Home.aspx')}
           />

@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 import base64
 import zlib
+import time
 
 import numpy as np
 from fastapi import APIRouter, Depends, HTTPException
@@ -38,7 +39,7 @@ from .cache import (
 from app.backend.src.models.containment_lines import ContainmentLines
 from collections import defaultdict
 from app.backend.src.ai.job_builder import fetch_weather_history, fetch_static_grids, build_volunteer_payload, DEFAULT_DCA_PARAMS
-from app.backend.src.routes.workers import dispatch_simulation_task, has_active_volunteer_workers
+from app.backend.src.routes.workers import dispatch_simulation_task, has_active_volunteer_workers, set_sim_progress,  clear_sim_progress
 
 router = APIRouter(prefix="/api", tags=["simulation"])
 
@@ -251,13 +252,13 @@ def cluster_fires_by_bbox_overlap(fires: list, n_steps: int)-> list[list]:
     return list(groups.values())
 
 
-async def run_simulation_job(job: dict) -> dict | None:
+async def run_simulation_job(job: dict, progress_key: str | None = None) -> dict | None:
     job_id = job["job_id"]
 
     if has_active_volunteer_workers():
         try:
             logger.info(f"Volunteer worker is online. Dispatching job {job_id}")
-            dispatch_res = await dispatch_simulation_task(job)
+            dispatch_res = await dispatch_simulation_task(job, progress_key=progress_key)
             if dispatch_res and dispatch_res.get("status") == "completed":
                 logger.info(f"Volunteer completed for the following job: {job_id} successfully") 
                 return dispatch_res
@@ -266,12 +267,16 @@ async def run_simulation_job(job: dict) -> dict | None:
         except Exception as err:
                 logger.exception(f"Error during volunteer dispatch job {job_id}. Now falling back onto server workers")
 
+    set_sim_progress(progress_key, "cloud", "Running on the cloud worker")
     await asyncio.to_thread(
         sqs.send_message,
         QueueUrl=INFERENCE_QUEUE_URL,
-        MessageBody=json.dumps(job),
+        MessageBody=json.dumps({**job, "expires_at": time.time() + RESULT_POLL_TIMEOUT_S}),
     )
-    return await wait_for_result(job_id)
+    try:
+        return await wait_for_result(job_id)
+    finally:
+        clear_sim_progress(progress_key)
 
 
 
@@ -280,6 +285,7 @@ async def simulate_single_fire(
     automatic_steps: int,
     semaphore: asyncio.Semaphore,
     containment_lines: list[str] | None = None,
+    progress_key: str | None = None,
 ) -> Prediction:
     """
     ECoordinates caching, dispatches job to SQS, and waits for worker output
@@ -343,7 +349,7 @@ async def simulate_single_fire(
             "params": DEFAULT_DCA_PARAMS
         }
 
-        raw_result = await run_simulation_job(job)
+        raw_result = await run_simulation_job(job, progress_key)
         if raw_result is None:
             raise HTTPException(status_code=504, detail=f"Simulation for fire {fire.reference_number} timed out while waiting for worker")
 
@@ -382,6 +388,7 @@ async def simulate_fire_cluster(
     n_steps: int,
     semaphore: asyncio.Semaphore,
     containment_lines_by_fire: dict[str, list[str]] | None = None,
+    progress_key: str | None = None,
 ) -> ClusterPrediction:  # stubbed, I know it does not exist
     """
     Executes the dca for a cluster of ifres using a combined grid. Any merging of
@@ -468,7 +475,7 @@ async def simulate_fire_cluster(
             "params": DEFAULT_DCA_PARAMS
         }
 
-        raw_result = await run_simulation_job(job)
+        raw_result = await run_simulation_job(job, progress_key)
         if raw_result is None:
             raise HTTPException(
                 status_code=504,
@@ -565,6 +572,7 @@ async def run_simulation(
                             lines_by_fire.get(fire.id, []) + (req.containment_lines or [])
                         )
                     ),
+                    progress_key="all",
                 )
             )
         else:
@@ -582,6 +590,7 @@ async def run_simulation(
                     automatic_steps,
                     semaphore,
                     containment_lines_by_fire,
+                    progress_key="all",
                 )
             )
 
@@ -650,7 +659,7 @@ async def run_single_fire_simulation(
     lines = list(dict.fromkeys(persisted + (req.containment_lines or [])))
 
     semaphore = asyncio.Semaphore(1)
-    return await simulate_single_fire(fire, req.n_steps, semaphore, lines)
+    return await simulate_single_fire(fire, req.n_steps, semaphore, lines, progress_key=fire_id)
 
 class ClusterSimRequest(BaseModel):
     fire_refs: list[str] = Field(..., min_length = 2, description="Reference numbers of fires ot simulate together")
@@ -725,5 +734,5 @@ async def run_cluster_simulation(
 
     semaphore = asyncio.Semaphore(1)
     return await simulate_fire_cluster(
-        fires, req.n_steps, semaphore, containment_lines_by_fire
+        fires, req.n_steps, semaphore, containment_lines_by_fire, progress_key="+".join(sorted(refs)),
     )
