@@ -9,44 +9,51 @@ import { apiCall } from '../lib/api';
 
 interface UseDamsFromOSMOptions {
     minAreaM2?: number;
-    minMoveFraction?: number;
+    mapReady?: boolean;
 }
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] };
+const MAX_HALF_SPAN_DEG = 0.4;
+const MIN_HALF_SPAN_DEG = 0.15;
+const SNAP_DEG = 0.05;
+const snapDown = (v: number) => Math.floor(v / SNAP_DEG) * SNAP_DEG;
+const snapUp = (v: number) => Math.ceil(v / SNAP_DEG) * SNAP_DEG;
 
 export function useDamsFromOSM(
     mapRef: React.RefObject<MapRef | null>,
-    { minAreaM2 = 2000, minMoveFraction = 0.3 }: UseDamsFromOSMOptions = {}
+    { minAreaM2 = 2000, mapReady = true}: UseDamsFromOSMOptions = {}
 ) {
     const [osmWater, setOsmWater] = useState<FeatureCollection>(EMPTY);
     const [isLoading, setIsLoading] = useState(false);
     const lastQueriedBounds = useRef<{ minLat: number; minLng: number; maxLat: number; maxLng: number } | null>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const requestIdRef = useRef(0);
+    const lastSigRef = useRef('');
 
     const maybeFetch = useCallback(async () => {
         const map = mapRef.current?.getMap();
         if (!map) return;
+        if(map.getZoom() < 10) return;
 
         const bounds = map.getBounds();
         if (!bounds) return;
 
-        const minLat = bounds.getSouth();
-        const minLng = bounds.getWest();
-        const maxLat = bounds.getNorth();
-        const maxLng = bounds.getEast();
-
         const prev = lastQueriedBounds.current;
-        if (prev) {
-            const latSpan = maxLat - minLat;
-            const lngSpan = maxLng - minLng;
-            const moved = 
-                Math.abs(minLat - prev.minLat) > latSpan * minMoveFraction ||
-                Math.abs(maxLat - prev.maxLat) > latSpan * minMoveFraction ||
-                Math.abs(minLng - prev.minLng) > lngSpan * minMoveFraction ||
-                Math.abs(maxLng - prev.maxLng) > lngSpan * minMoveFraction;
-            if (!moved) return; // still within the area we already fetched, skip round-trip
+        if (prev &&
+            bounds.getSouth() >= prev.minLat && bounds.getNorth() <= prev.maxLat &&
+            bounds.getWest() >= prev.minLng && bounds.getEast() <= prev.maxLng) {
+                return; // viewport
         }
+
+        const c = map.getCenter();
+        const clampHalf = (span: number) => 
+            Math.min(MAX_HALF_SPAN_DEG, Math.max(MIN_HALF_SPAN_DEG, span/2));
+        const halfLat = clampHalf(bounds.getNorth() - bounds.getSouth());
+        const halfLng = clampHalf(bounds.getEast() - bounds.getWest());
+        const minLat = snapDown(c.lat - halfLat);
+        const maxLat = snapUp(c.lat + halfLat);
+        const minLng = snapDown(c.lng - halfLng);
+        const maxLng = snapUp(c.lng + halfLng);
 
         const requestId = ++requestIdRef.current;
         setIsLoading(true);
@@ -63,16 +70,22 @@ export function useDamsFromOSM(
             if (requestId !== requestIdRef.current) return; // newer request superseded this one
 
             lastQueriedBounds.current = { minLat, minLng, maxLat, maxLng};
-            setOsmWater(data ?? EMPTY);
+            const next = data ?? EMPTY;
+            const sig = next.features.map((f) => f.properties?.id).join('|');
+            if (sig !== lastSigRef.current) {
+                lastSigRef.current = sig;
+                setOsmWater(next);
+            }
         } catch (err) {
             // non-fatal. Mapbox's own water layer still renders via useWaterBodies, this is a best-efforst supplement
             console.warn('Failed to fetch OSM water bodies:', err);
         } finally {
             if (requestId === requestIdRef.current) setIsLoading(false);
         }
-    }, [mapRef, minAreaM2, minMoveFraction]);
+    }, [mapRef, minAreaM2]);
 
     useEffect(() => {
+        if (!mapReady) return undefined;
         const map = mapRef.current?.getMap();
         if (!map) return undefined;
 
@@ -88,7 +101,7 @@ export function useDamsFromOSM(
             map.off('moveend', scheduleFetch);
             if (debounceRef.current) clearTimeout(debounceRef.current);
         };
-    }, [mapRef, maybeFetch]);
+    }, [mapRef, maybeFetch, mapReady]);
 
     return { osmWaterFeatureCollection: osmWater, isLoading };
 }
