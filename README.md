@@ -39,42 +39,20 @@ Fire Away is an AI-powered wildfire spread prediction and containment system tha
 - **Analytics:** An admin dashboard for incident and usage insights.
 
 ## Documentation
-## Demo 1
-- [System Requirements Specification](docs/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
-- [Design Specification](https://ai-powered-fire-spread-prediction-a-rho.vercel.app/brand_style)
-- [GitHub Project Board](https://github.com/orgs/COS301-SE-2026/projects/50)
-- [Demo 1 Video](https://drive.google.com/file/d/16Z-MCgUCJp-F70VOWNHeQ-Bj-QO6Uusz/view?usp=sharing)
+- [System Requirements Specification]()
+- [Software Architecture Specification]()
+- [Coding Standards Document]()
+- [Testing Policy]()
+- [User Manual]()
+- [Technical Installation Manual]()
+- [Brand Style Guide]()
+- [Service Contract]()
+- [Demo 4 Video]()
+<br>
 
-## Demo 2
-- [System Requirements Specification](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_SRS_v2.pdf)
-- [Software Architecture Specification](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications_v1.pdf)
-- [Coding Standards Document](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards_v1.pdf)
-- [Testing Policy](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy_v1.pdf)
-- [User Manual](docs/Demo\2/AI_Powered_Fire_Spread_and_Containment_System_User_Manual_v1.pdf)
-- [Brand Style Guide](docs/Demo\2/Brand\Style\Guide\Demo2.pdf)
-- [Demo 2 Video](https://drive.google.com/file/d/1zWEK_NMULq0Mn66kDRX5lD-8BBIXezy3/view?usp=sharing)
-  
-## Demo 3
-- [System Requirements Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
-- [Software Architecture Specification](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications.pdf)
-- [Coding Standards Document](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards.pdf)
-- [Testing Policy](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy.pdf)
-- [User Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_User_Manual.pdf)
-- [Technical Installation Manual](docs/Demo_3/AI_Powered_Fire_Spread_and_Containment_System_Technical_Installation_Manual.pdf)
-- [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
-- [Service Contract](docs/Demo_3/service_contract.yaml)
-- [Demo 3 Video](https://drive.google.com/file/d/1HUqzDCWZbNxkSNpc5LPWVbNsd3dMQ__0/view?usp=sharing)
+For previous versions of documentation, please visit our wiki page!
 
-## Demo 4
-- [System Requirements Specification](docs/Demo_4/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
-- [Software Architecture Specification](docs/Demo_4/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications.pdf)
-- [Coding Standards Document](docs/Demo_4/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards.pdf)
-- [Testing Policy](docs/Demo_4/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy.pdf)
-- [User Manual](docs/Demo_4/AI_Powered_Fire_Spread_and_Containment_System_User_Manual.pdf)
-- [Technical Installation Manual](docs/Demo_4/AI_Powered_Fire_Spread_and_Containment_System_Technical_Installation_Manual.pdf)
-- [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
-- [Service Contract](docs/Demo_3/service_contract.yaml)
-- [Demo 4 Video](https://drive.google.com/drive/folders/1fBHFX1r7PS7xMcdS3nlimVbZfzZK610T?usp=sharing)
+<a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/wiki"><img src="https://img.shields.io/badge/docs-project%20wiki-E8470A?style=for-the-badge&logo=github&logoColor=white" alt="Project Wiki" /></a>
 
 ## Technology Stack
 <p align="center">
