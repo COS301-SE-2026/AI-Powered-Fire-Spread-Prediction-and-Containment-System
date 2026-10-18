@@ -20,6 +20,7 @@ export default function SimulationPage() {
   const { reports: fires } = useFirefighterReports('');
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const [selectedFireIds, setSelectedFireIds] = useState<Set<string>>(new Set());
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [clearDrawings, setClearDrawings] = useState(0);
@@ -130,6 +131,7 @@ export default function SimulationPage() {
     const refs = Array.from(selectedFireIds);
     setLastClusterRefs(refs);
     setProgressKey([...refs].sort().join('+'));
+    setMultiSelectMode(false);
     runClusterSimulation(refs, SIM_MAX_STEPS, drafts);
   }
   function handleRerun() {
@@ -152,6 +154,7 @@ export default function SimulationPage() {
     setClearDrawings((prev) => prev + 1);
     setLines(prev => prev.filter(l => l.synced));
     setSelectedFireIds(new Set());
+    setMultiSelectMode(false);
   }
 
   function handleReset() {
@@ -234,18 +237,33 @@ export default function SimulationPage() {
           {/* left side of page: map + controls and buttons */}
           <div className="basis-full lg:basis-3/4 flex flex-col gap-4 min-w-0">
             {/* Fire Map */}
-            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[60vh] overflow-hidden relative">
+            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke shadow-2xl shadow-black/20 h-[50vh] landscape:h-[60vh] overflow-hidden relative isolate">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                <span className="font-bold text-lg tracking-wide text-text-primary uppercase">
+                <span className="font-bold font-display text-lg tracking-wide text-text-primary uppercase">
                   LIVE FIRE MAP
                 </span>
 
-                {/* Live tick badge */}
-                {hasResult && (
-                  <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
-                    +{(currentTick / TICKS_PER_HOUR).toFixed(1)}h / {totalHours}h
-                  </span>
-                )}
+                <div className='flex items-center gap-2'>
+                  <button
+                    type='button'
+                    onClick={() => setMultiSelectMode((m) => !m)}
+                    aria-pressed={multiSelectMode}
+                    className={`btn btn-xs rounded-lg ${
+                      multiSelectMode
+                        ? 'bg-purple-500 border-purple-400 text-white hover:bg-purple-600'
+                        : 'btn-outline text-text-primary'
+                    }`}
+                  >
+                    {multiSelectMode ? `Selecting (${selectedFireIds.size})` : 'Select multiple'}
+                  </button>
+                
+                  {/* Live tick badge */}
+                  {hasResult && (
+                    <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
+                      +{(currentTick / TICKS_PER_HOUR).toFixed(1)}h / {totalHours}h
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Loading overlay */}
@@ -277,7 +295,7 @@ export default function SimulationPage() {
                 </div>
               )}
 
-              <div className='w-full h-full'>
+              <div className='w-full h-full rounded-2xl overflow-hidden'>
                 <FireMap
                   suggestedLine={suggestion?.wkt ?? null}
                   lat={userLocation?.lat ?? null}
@@ -295,6 +313,7 @@ export default function SimulationPage() {
                   onToggleFireSelect={handleToggleFireSelect}
                   showKey
                   disableGrowth
+                  multiSelectMode={multiSelectMode}
                 />
               </div>
               {selectedFireIds.size >= 2 && (
@@ -312,7 +331,7 @@ export default function SimulationPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSelectedFireIds(new Set())}
+                    onClick={() => {setSelectedFireIds(new Set()); setMultiSelectMode(false); }}
                     className="btn btn-ghost btn-xs"
                   >
                     Clear

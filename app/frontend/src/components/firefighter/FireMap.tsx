@@ -65,6 +65,7 @@ interface MapProps {
   suggestedLine?: string | null;
   selectedFireIds?: Set<string>;
   onToggleFireSelect?: (ref: string) => void;
+  multiSelectMode?: boolean;
   clusterPredictions?: ClusterPrediction[];
   disableGrowth?: boolean;
   savedLocations?: SavedLocation[];
@@ -101,6 +102,7 @@ export function FireMap({ lat,
   onDeselectResource = undefined,
   selectedFireIds = EMPTY_SET,
   onToggleFireSelect = undefined,
+  multiSelectMode = false,
   clusterPredictions = EMPTY_ARR,
   savedLocations = EMPTY_ARR,
   showSavedLocations = true,
@@ -475,18 +477,18 @@ export function FireMap({ lat,
     setSelectedFire(fire ?? null);
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
-  useEffect(() => {
-    if (!mapReady || !mapRef.current)
-      return undefined;
-    const map = mapRef.current.getMap();
-    const container = map.getContainer();
-    const resizeObserver = new ResizeObserver(() => {
-      map.resize();
-    });
-    resizeObserver.observe(container);
+  // useEffect(() => {
+  //   if (!mapReady || !mapRef.current)
+  //     return undefined;
+  //   const map = mapRef.current.getMap();
+  //   const container = map.getContainer();
+  //   const resizeObserver = new ResizeObserver(() => {
+  //     map.resize();
+  //   });
+  //   resizeObserver.observe(container);
 
-    return () => resizeObserver.disconnect();
-  }, [mapReady]);
+  //   return () => resizeObserver.disconnect();
+  // }, [mapReady]);
 
   const EXTENT_DEG = 0.05;
 
@@ -625,7 +627,7 @@ export function FireMap({ lat,
             anchor="center"
             onClick={(e) => {
               e.originalEvent.stopPropagation();
-              const isMultiSelect = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
+              const isMultiSelect = multiSelectMode || e.originalEvent.ctrlKey || e.originalEvent.metaKey;
               if (isMultiSelect && onToggleFireSelect) {
                 onToggleFireSelect(fire.ref);
               } else {
@@ -633,7 +635,7 @@ export function FireMap({ lat,
               }
             }}
           >
-            <div className="relative flex items-center justify-center size-6">
+            <div className="relative flex items-center justify-center size-11 cursor-pointer">
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedFireIds.has(fire.ref) ? 'bg-purple-400' : 'bg-accent'
                   } ${fire.ref === selectedFireId || selectedFireIds.has(fire.ref) ? '' : 'hidden'}`}
