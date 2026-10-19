@@ -27,11 +27,8 @@ RUN uv venv --seed /opt/venv
 
 # install dependencies
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install torch torchvision \
-    --index-url https://download.pytorch.org/whl/cu128 \
-    --retries 10 --timeout 120 \
-    --root-user-action=ignore
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install torch --index-url https://download.pytorch.org/whl/cu128
 
 COPY gpu_worker/requirements.txt ./requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -46,5 +43,8 @@ COPY app/artifact_store ./app/artifact_store
 COPY gpu_worker/client_worker.py ./
 COPY app/artifact_store/models/weather_convlstm/LATEST/model.pt /app/model/weather_convlstm.pt
 ENV MODEL_WEIGHTS_PATH=/app/model/weather_convlstm.pt
+
+RUN mkdir -p /data
+VOLUME ["/data"]
 
 CMD ["python", "client_worker.py"]

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Loader2, Square, Trash2, SquareActivity, Wand2 } from 'lucide-react';
+import { Pencil, CirclePlay, Pause, RotateCcw, AlertTriangle, Square, Trash2, Wand2 } from 'lucide-react';
 import type { LocalLine, CreateContainmentLine } from '@/types/ContainmentLines';
 import { MAX_SIM_HOURS, SIM_MAX_STEPS, TICKS_PER_HOUR } from '@/types/simulation';
+import { useSimulationProgress } from '@/hooks/useSimulationProgress';
 import { FirefighterSideBar } from './FirefighterSidebar';
 import { SimulationResults } from './simulationResult';
 import { FireMap } from '../shared/DynamicFirefighterMap';
@@ -13,17 +14,20 @@ import { useRotate } from '../../hooks/useRotate';
 import { RotateHint } from '../shared/RotateHint';
 import { useSuggestContainmentLine } from '../../hooks/useSuggestContainmentLine';
 import { SuggestedLineCard } from './suggestedLineCard';
+import { SimulationProgress } from './SimulationProgress';
 
 export default function SimulationPage() {
   const { reports: fires } = useFirefighterReports('');
   const [selectedFireId, setSelectedFireId] = useState<string | null>(null);
   const [selectedFireIds, setSelectedFireIds] = useState<Set<string>>(new Set());
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [drawMode, setDrawMode] = useState(false);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [lines, setLines] = useState<LocalLine[]>([])
   const { showHint, dismiss } = useRotate();
   const [lastClusterRefs, setLastClusterRefs] = useState<string[] | null>(null);
+  const [progressKey, setProgressKey] = useState<string | null>(null);
   const {
     submitLine,
     loading: savingLine,
@@ -56,6 +60,7 @@ export default function SimulationPage() {
   } = useSimulation();
 
   const isLoading = status === 'loading';
+  const progress = useSimulationProgress(progressKey, isLoading);
   const isPlaying = status === 'playing';
   const hasResult = totalTicks > 0;
 
@@ -107,6 +112,7 @@ export default function SimulationPage() {
 
   function handleRun() {
     setLastClusterRefs(null);
+    setProgressKey(selectedFireId ?? 'all');
     const steps = selectedFireId ? SIM_MAX_STEPS : TICKS_PER_HOUR
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     runSimulation(selectedFireId, steps, drafts);
@@ -124,11 +130,14 @@ export default function SimulationPage() {
     const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
     const refs = Array.from(selectedFireIds);
     setLastClusterRefs(refs);
+    setProgressKey([...refs].sort().join('+'));
+    setMultiSelectMode(false);
     runClusterSimulation(refs, SIM_MAX_STEPS, drafts);
   }
   function handleRerun() {
     if(lastClusterRefs){
       const drafts = lines.filter(l => !l.synced).map(l => l.wkt);
+      setProgressKey([...lastClusterRefs].sort().join('+'));
       runClusterSimulation(lastClusterRefs, SIM_MAX_STEPS, drafts)
     }else{
       handleRun();
@@ -145,6 +154,7 @@ export default function SimulationPage() {
     setClearDrawings((prev) => prev + 1);
     setLines(prev => prev.filter(l => l.synced));
     setSelectedFireIds(new Set());
+    setMultiSelectMode(false);
   }
 
   function handleReset() {
@@ -227,27 +237,39 @@ export default function SimulationPage() {
           {/* left side of page: map + controls and buttons */}
           <div className="basis-full lg:basis-3/4 flex flex-col gap-4 min-w-0">
             {/* Fire Map */}
-            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke backdrop-blur-sm shadow-2xl shadow-black/20 h-[50vh] landscape:h-[60vh] overflow-hidden relative">
+            <div className="rounded-2xl bg-carbon-side/80 border border-carbon-stroke shadow-2xl shadow-black/20 h-[50vh] landscape:h-[60vh] overflow-hidden relative isolate">
               <div className="p-4 border-b border-carbon-card bg-carbon-bg/50 backdrop-blur-md absolute top-0 w-full z-10 flex justify-between items-center border-l-2 border-l-ignite/60">
-                <span className="font-bold text-lg tracking-wide text-text-primary uppercase">
+                <span className="font-bold font-display text-lg tracking-wide text-text-primary uppercase">
                   LIVE FIRE MAP
                 </span>
 
-                {/* Live tick badge */}
-                {hasResult && (
-                  <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
-                    TICK {currentTick + 1} / {totalTicks}
-                  </span>
-                )}
+                <div className='flex items-center gap-2'>
+                  <button
+                    type='button'
+                    onClick={() => setMultiSelectMode((m) => !m)}
+                    aria-pressed={multiSelectMode}
+                    className={`btn btn-xs rounded-lg ${
+                      multiSelectMode
+                        ? 'bg-purple-500 border-purple-400 text-white hover:bg-purple-600'
+                        : 'btn-outline text-text-primary'
+                    }`}
+                  >
+                    {multiSelectMode ? `Selecting (${selectedFireIds.size})` : 'Select multiple'}
+                  </button>
+                
+                  {/* Live tick badge */}
+                  {hasResult && (
+                    <span className="text-xs font-mono text-ignite/80 bg-ignite/10 border border-ignite/30 px-2 py-1 rounded-md">
+                      +{(currentTick / TICKS_PER_HOUR).toFixed(1)}h / {totalHours}h
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Loading overlay */}
               {isLoading && (
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-carbon-bg/70 backdrop-blur-sm gap-3">
-                  <Loader2 className="animate-spin text-ignite" size={40} />
-                  <span className="text-neutral/70 text-sm font-mono uppercase tracking-widest">
-                    Running Simulation...
-                  </span>
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-carbon-bg/70 backdrop-blur-sm">
+                  <SimulationProgress progress={progress}/>
                 </div>
               )}
 
@@ -273,7 +295,7 @@ export default function SimulationPage() {
                 </div>
               )}
 
-              <div className='w-full h-full'>
+              <div className='w-full h-full rounded-2xl overflow-hidden'>
                 <FireMap
                   suggestedLine={suggestion?.wkt ?? null}
                   lat={userLocation?.lat ?? null}
@@ -291,6 +313,7 @@ export default function SimulationPage() {
                   onToggleFireSelect={handleToggleFireSelect}
                   showKey
                   disableGrowth
+                  multiSelectMode={multiSelectMode}
                 />
               </div>
               {selectedFireIds.size >= 2 && (
@@ -308,7 +331,7 @@ export default function SimulationPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSelectedFireIds(new Set())}
+                    onClick={() => {setSelectedFireIds(new Set()); setMultiSelectMode(false); }}
                     className="btn btn-ghost btn-xs"
                   >
                     Clear
@@ -421,7 +444,7 @@ export default function SimulationPage() {
                   <div className="flex flex-col gap-1 p-2">
                     <div className="flex flex-row items-center justify-between">
                       <span className="text-sm text-text-muted p-1">
-                        {hasResult ? `Tick ${currentTick + 1} of ${totalTicks}` : 'Not yet run'}
+                        {hasResult ? `+${(currentTick / TICKS_PER_HOUR).toFixed(1)}h of ${totalHours}h` : 'Not yet run'}
                       </span>
                     </div>
 
@@ -481,6 +504,7 @@ export default function SimulationPage() {
               containmentLines={lines}
               selectedFireId={selectedFireId}
               predictions={predictions}
+              clusterPredictions={clusterPredictions}
               currentTick={currentTick}
               status={status}
               onDeleteLine={handleDeleteLine}

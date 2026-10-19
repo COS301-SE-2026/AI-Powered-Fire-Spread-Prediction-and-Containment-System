@@ -10,6 +10,10 @@ import time
 from typing import Optional, Tuple
 import base64
 import zlib
+import warnings
+
+# pystac's storage extension warnings removal from terminal
+warnings.filterwarnings("ignore", message="Could not parse bucket/account from href", category=UserWarning, module="pystac")
 
 import numpy as np
 import requests
@@ -32,12 +36,50 @@ WEBSOCKET_URL = os.getenv("WEBSOCKET_URL")
 REGISTRATION_KEY = os.getenv("REGISTRATION_KEY")
 WORKER_LABEL = os.getenv("WORKER_LABEL", os.getenv("HOSTNAME", "volunteer-desktop"))
 MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cached/ml/models/weather_convlstm.pt")
+CREDENTIALS_PATH = os.getenv("WORKER_CREDENTIALS_PATH", "/data/worker_credentials.json")
 
 MIN_VRAM_MB = 3584
 BENCHMARK_DURATION_SECONDS = 1.0
 RECONNECT_DELAY_SECONDS = 5
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+def make_progress_reporter(websocket, loop: asyncio.AbstractEventLoop, job_id: str):
+    """logs a stage of the model running and forwards it to the broker. Safe to call from the to_thread_worker thread"""
+    def report(stage: str, message: str) -> None:
+        log.info("%s (%s)", message, job_id)
+        msg = json.dumps({"type": "progress", "job_id": job_id, "stage": stage, "message": message})
+        try:
+            asyncio.run_coroutine_threadsafe(websocket.send(msg), loop)
+        except RuntimeError:
+            pass
+    return report
+
+def load_saved_credentials() -> Optional[Tuple[str,str]]:
+    try:
+        with open(CREDENTIALS_PATH) as f:
+            data = json.load(f)
+        if data.get("access_token") and data.get("worker_id"):
+            log.info("Using saved credentials for node %s", data["worker_id"])
+            return data["access_token"], data["worker_id"]
+    except FileNotFoundError:
+        pass
+    except (OSError, json.JSONDecodeError) as err:
+        log.warning("Saved credentials unreadable (%s); ignoring them.", err)
+    return None
+
+def save_credentials(token: str, worker_id: str) -> None:
+    os.makedirs(os.path.dirname(CREDENTIALS_PATH), exist_ok=True)
+    tmp_path = f"{CREDENTIALS_PATH}.tmp"
+    with open(tmp_path, "w") as f:
+        json.dump({"access_token": token, "worker_id": worker_id}, f)
+    os.chmod(tmp_path, 0o600)
+    os.replace(tmp_path, CREDENTIALS_PATH)
+
+def clear_saved_credentials() -> None:
+    try:
+        os.remove(CREDENTIALS_PATH)
+    except FileNotFoundError:
+        pass
 
 def run_pre_flight_check() -> Tuple[bool, str, int]:
     log.info("Starting hardware qualification check...")
@@ -136,12 +178,14 @@ def register_worker(reg_key: str, gpu_name: str, vram_mb: int) -> Optional[Tuple
         return None
 
 
-def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
+def execute_pipeline_task(model: WeatherDeltaModel, payload: dict, report=lambda stage, message: None) -> dict:
     job_id = payload.get("job_id", "sim_task")
     log.info("Fetching remote terrain and weather data for job: %s", job_id)
 
     # fetch satelite and weather data
+    report("fetching_weather", "Fetching weather data")
     weather_history = fetch_weather_history(payload)
+    report("fetching_terrain", "Fetching terrain and satellite data")
     static_grids = fetch_static_grids(payload)
 
     # build the [1 T 4 H W] tensor for lstm
@@ -185,6 +229,7 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         else None
     )
 
+    report("running_model", "Running fire spread model")
     history = run_convlstm_dca(
         convlstm_model=model,
         weather_history=weather_tensor,
@@ -197,6 +242,7 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict) -> dict:
         params=params,
     )
 
+    report("packaging", "Packaging results")
     hist = np.stack([
         (g.detach().cpu().numpy() if hasattr(g, "detach") else np.asarray(g)).astype(np.int8)
         for g in history
@@ -236,9 +282,11 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                     if msg_type == "simulation_job":
                         job_payload = data.get("payload", {})
                         job_id = job_payload.get("job_id", "unknown")
+                        report = make_progress_reporter(websocket, asyncio.get_running_loop(), job_id)
+                        report("received", "Job picked up by this gpu")
                         try:
                             start_t = time.monotonic()
-                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload)
+                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload, report)
                             duration = time.monotonic() - start_t
                             log.info("Job %s completed in %.2fs. Sending results.", job_id, duration)
 
@@ -253,6 +301,19 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                                     }
                                 )
                             )
+                        except requests.exceptions.RequestException as err:
+                            # upstream data source failed so gpu not quarentined
+                            log.warning("Data source unavailable for %s: %s", job_id, err)
+                            await websocket.send(
+                                json.dumps(
+                                    {
+                                        "type": "simulation_error",
+                                        "job_id": job_id,
+                                        "error": "Upstream data source unavailable",
+                                        "error_kind": "data_source"
+                                    }
+                                )
+                        )
                         except Exception as err:
                             log.exception("Task processing error for %s: %s", job_id, err)
                             await websocket.send(
@@ -267,9 +328,16 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
 
         except websockets.exceptions.InvalidStatus as err:
             status_code = getattr(err.response, "status_code", "Unknown")
-            log.warning("Broker rejected connection: HTTP %s (node mat be quarantined). Retrying in 60 seconds", status_code)
+            log.warning("Broker rejected connection: HTTP %s (node may be quarantined or deactivated). Retrying in 60 seconds", status_code)
             await asyncio.sleep(60)
-        except (websockets.exceptions.ConnectionClosed, OSError) as err:
+        except websockets.exceptions.ConnectionClosed as err:
+            if getattr(err.rcvd, "code", None) == 4401:
+                log.error("Saved credentials were rejected (worker removed or token invalid). Use 'Reset credentials' in FireAway to get a new setup command.")
+                clear_saved_credentials()
+                sys.exit(1)
+            log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
+            await asyncio.sleep(RECONNECT_DELAY_SECONDS)
+        except OSError as err:
             log.warning("Broker connection dropped (%s). Reconnecting in %ds...", err, RECONNECT_DELAY_SECONDS)
             await asyncio.sleep(RECONNECT_DELAY_SECONDS)
         except Exception as err:
@@ -278,21 +346,24 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
 
 
 def main():
-    if not REGISTRATION_KEY:
-        log.error("Missing REGISTRATION_KEY environment variable. Terminating.")
-        sys.exit(1)
 
     passed, gpu_name, vram_mb = run_pre_flight_check()
     if not passed:
         log.error("Hardware qualification failed. Exiting.")
         sys.exit(1)
 
-    registration_result = register_worker(REGISTRATION_KEY, gpu_name, vram_mb)
-    if not registration_result:
-        log.error("Registration rejected by broker. Exiting.")
-        sys.exit(1)
+    credentials = load_saved_credentials()
+    if credentials is None:
+        if not REGISTRATION_KEY:
+            log.error("No saved credentials and no REGISTRATION_KEY set. Get a setup command from FireAway.")
+            sys.exit(1)
+        credentials = register_worker(REGISTRATION_KEY, gpu_name, vram_mb)
+        if not credentials:
+            log.error("Registration rejected by broker. Exiting")
+            sys.exit(1)
+        save_credentials(*credentials)
 
-    jwt_token, worker_id = registration_result
+    jwt_token, worker_id = credentials
     model = load_inference_model()
 
     asyncio.run(run_worker_loop(model, jwt_token))

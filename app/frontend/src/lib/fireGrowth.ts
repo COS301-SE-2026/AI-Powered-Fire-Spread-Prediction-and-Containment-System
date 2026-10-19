@@ -7,10 +7,12 @@ import union from '@turf/union';
 import difference from '@turf/difference';
 import flatten from '@turf/flatten';
 import centroid from '@turf/centroid';
+import bbox from '@turf/bbox';
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon';
 import booleanIntersects from '@turf/boolean-intersects';
 import type { Feature, FeatureCollection, MultiPolygon, Polygon } from 'geojson';
 import area from '@turf/area'
+
 
 export interface FireEnvironment {
     windKph: number;
@@ -100,6 +102,11 @@ function terrainFactorAt(bearingDeg: number, bias: DirectionalBias[] | undefined
     return bias[i0].factor * (1 - t) + bias[i1].factor * t;
 }
 
+function headDistanceKm(fire: GrowableFire, env: FireEnvironment, elapsedMin: number): number {
+    const grown = fire.initialRadiusKm + headRateOfSpreadKmPerMin(env) * elapsedMin * easeIn(elapsedMin);
+    return Math.min(grown, Math.max(MAX_RADIUS_KM, fire.initialRadiusKm));
+}
+
 function effectiveGrowthState(
     fire: GrowableFire,
     nowMs: number
@@ -130,9 +137,9 @@ function effectiveGrowthState(
 
 export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs: number, terrainBias?: DirectionalBias[]): Feature<Polygon> {
     const { elapsedMinForGrowth: elapsedMin, opacity } = effectiveGrowthState(fire, nowMs);
-    const growth = easeIn(elapsedMin);
-    const headROS = headRateOfSpreadKmPerMin(env);
-    const headDistKm = fire.initialRadiusKm + headROS * elapsedMin * growth;
+    // const growth = easeIn(elapsedMin);
+    // const headROS = headRateOfSpreadKmPerMin(env);
+    const headDistKm = headDistanceKm(fire, env, elapsedMin);
     const backDistKm = fire.initialRadiusKm + (headDistKm - fire.initialRadiusKm) * 0.15;
 
     const lbr = lengthToBreadth(env.windKph);
@@ -140,7 +147,7 @@ export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs
     const downwindRad = ((env.windDirDeg + 180) * Math.PI / 180);
 
     const coords: number[][] = [];
-    for (let i = 0; i <= PERIMETER_POINTS; i++) {
+    for (let i = 0; i < PERIMETER_POINTS; i++) {
         const bearingDeg = (360 / PERIMETER_POINTS) * i;
         const bearingRad = (bearingDeg * Math.PI) / 180;
 
@@ -154,7 +161,7 @@ export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs
             0.15 * Math.sin(bearingRad * 3 + seed) +
             0.08 * Math.sin(bearingRad * 7 + seed * 1.7 + elapsedMin * 0.02);
 
-        const radiusKm = Math.max(0.02, baseRadiusKm * noise);
+        const radiusKm = Math.min(Math.max(MAX_RADIUS_KM, fire.initialRadiusKm) * 1.3 ,Math.max(0.02, baseRadiusKm * noise));
         const point = destination([fire.lng, fire.lat], radiusKm, bearingDeg, { units: 'kilometers'});
         coords.push(point.geometry.coordinates);
     }
@@ -163,25 +170,57 @@ export function buildFirePolygon(fire: GrowableFire, env: FireEnvironment, nowMs
     return turfPolygon([coords], { ref: fire.ref, id: fire.id, opacity });
 }
 
+type BBox = [number, number, number, number];
+const bboxesOverlap = (a: BBox, b: BBox) => 
+    a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1]
+
 export function mergeOverlappingFires(polygons: Feature<Polygon>[]): Feature<Polygon | MultiPolygon>[] {
-    const groups: Feature<Polygon>[][] = [];
+    const boxes = polygons.map((p) => bbox(p) as BBox);
+    const groups: number[][] = [];
 
-    for (const poly of polygons) {
-        const touchingGroup = groups.find((group) => group.some((p) => booleanIntersects(p, poly)));
-        if (touchingGroup) {
-            touchingGroup.push(poly);
-        } else {
-            groups.push([poly]);
-        }
-    }
-
-    return groups.map((group) => {
-        if (group.length === 1) return group[0];
-        return group.reduce<Feature<Polygon | MultiPolygon>>((merged, next) => {
-            const result = union(featureCollection<Polygon | MultiPolygon>([merged, next]));
-            return (result ?? merged) as Feature<Polygon | MultiPolygon>;
-        }, group[0]);
+    polygons.forEach((poly, i) => {
+        const group = groups.find((g) =>
+            g.some((j) => {
+                if(!bboxesOverlap(boxes[i], boxes[j])) return false;
+                try {
+                    return booleanIntersects(polygons[j], poly);
+                } catch {
+                    return false;
+                }
+            })
+        );
+        if(group) group.push(i);
+        else groups.push([i]);
     });
+
+    return groups.map((g) => {
+        if(g.length === 1) return polygons[g[0]];
+        try{
+            return (union(featureCollection<Polygon | MultiPolygon>(g.map((i) => polygons[i])))
+            ?? polygons[g[0]]) as Feature<Polygon | MultiPolygon>;
+        } catch {
+            return polygons[g[0]];
+        }
+    });
+
+    // const groups: Feature<Polygon>[][] = [];
+
+    // for (const poly of polygons) {
+    //     const touchingGroup = groups.find((group) => group.some((p) => booleanIntersects(p, poly)));
+    //     if (touchingGroup) {
+    //         touchingGroup.push(poly);
+    //     } else {
+    //         groups.push([poly]);
+    //     }
+    // }
+
+    // return groups.map((group) => {
+    //     if (group.length === 1) return group[0];
+    //     return group.reduce<Feature<Polygon | MultiPolygon>>((merged, next) => {
+    //         const result = union(featureCollection<Polygon | MultiPolygon>([merged, next]));
+    //         return (result ?? merged) as Feature<Polygon | MultiPolygon>;
+    //     }, group[0]);
+    // });
 }
 
 function clipToLand(
@@ -189,8 +228,10 @@ function clipToLand(
     combinedWater: Feature<Polygon |  MultiPolygon> | null | undefined
 ): Feature<Polygon | MultiPolygon>[] {
     if (!combinedWater) return fires;
+    const waterBox = bbox(combinedWater) as BBox;
 
     return fires.map((fire) => {
+        if (!bboxesOverlap(bbox(fire) as BBox, waterBox)) return fire;
         try {
             const clipped = difference(featureCollection<Polygon | MultiPolygon>([fire, combinedWater]));
             if (!clipped) return fire;
@@ -251,11 +292,12 @@ export function buildFireFeatureCollection(
 
 export function estimateMaxReachKm(fire: GrowableFire, env: FireEnvironment, nowMs: number): number {
     const { elapsedMinForGrowth: elapsedMin } = effectiveGrowthState(fire, nowMs);
-    const growth = easeIn(elapsedMin);
-    const headROS = headRateOfSpreadKmPerMin(env);
-    const headDistKm = Math.min(
-        MAX_RADIUS_KM,
-        fire.initialRadiusKm + headROS * elapsedMin * growth
-    );
-    return headDistKm * 1.3 + 1;
+    // const growth = easeIn(elapsedMin);
+    // const headROS = headRateOfSpreadKmPerMin(env);
+    // const headDistKm = Math.min(
+    //     MAX_RADIUS_KM,
+    //     fire.initialRadiusKm + headROS * elapsedMin * growth
+    // );
+    // return headDistKm * 1.3 + 1;
+    return headDistanceKm(fire, env, elapsedMin) * 1.3 + 1;
 }

@@ -1,10 +1,49 @@
 import json
+import logging
+import time
 import math
 import requests
 
 from app.backend.src.services.cache import cache_client
 
-FUEL_CONDITIONS_CACHE_TTL_SECONDS = 5 *60
+logger = logging.getLogger(__name__)
+
+FUEL_CONDITIONS_CACHE_TTL_SECONDS = 15 *60
+FUEL_CONTITIONS_STALE_TTL_SECONDS = 6 * 60 * 60
+RETRYABLE_STATUS = {429, 500, 502, 503, 504}
+
+def cache_get(key: str) -> dict | None:
+    if cache_client is None:
+        return None
+    try:
+        raw = cache_client.get(key)
+        return json.loads(raw) if raw else None
+    except Exception:
+        return None
+
+def cache_set(key: str, value: dict, ttl: int) -> None:
+    if cache_client is None:
+        return None
+    try:
+        cache_client.set(key, json.dumps(value), ex=ttl)
+    except Exception:
+        pass
+
+def fetch_open_meteo(params: dict, attempts: int = 3) -> dict:
+    last_err: Exception | None = None
+    for attempt in range(attempts):
+        try:
+            resp = requests.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=8)
+            if resp.status_code in RETRYABLE_STATUS:
+                last_err = requests.HTTPError(f"open-meteo returned {resp.status_code}", response=resp)
+            else:
+                resp.raise_for_status() # non retryable
+                return resp.json()
+        except (requests.ConnectionError, requests.Timeout) as e:
+            last_err = e
+        if attempt < attempts - 1:
+            time.sleep(1.5 * 2 ** attempt)
+    raise last_err
 
 def fuel_conditions_cache_key(lat: float, lng: float) -> str:
     return f"weather:fuel-conditions:{round(lat, 2)}:{round(lng, 2)}"
@@ -128,14 +167,10 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
     Open-meteo call for the current conditions, 31 days of history of dryness and 2 day ahead wind forecast
     """
     cache_key = fuel_conditions_cache_key(lat, lng)
-    
-    if cache_client is not None:
-        try:
-            cached = cache_client.get(cache_key)
-            if cached:
-                return json.loads(cached)
-        except Exception:
-            pass
+
+    cached = cache_get(cache_key)
+    if cached:
+        return cached
 
     params = {
         "latitude": lat,
@@ -161,14 +196,17 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
         "timezone": "Africa/Johannesburg"
     }
     try:
-        resp = requests.get("https://api.open-meteo.com/v1/forecast", params=params, timeout=15)
-        resp.raise_for_status()
-        payload = resp.json()
+        payload = fetch_open_meteo(params)
         current = payload["current"]
         daily = payload["daily"]
         hourly = payload["hourly"]
     except (requests.RequestException, KeyError) as e:
-        raise ValueError(f"Failed to fetch fuel conditions: {e}")
+        stale = cache_get(f"{cache_key}:stale")
+        if stale:
+            logger.warning("Open-Meteo failed (%s); serving stale fuel conditions", e)
+            return {**stale, "stale": True}
+        logger.warning("Open-Meteo failed with no stale fallback: %s", e)
+        raise ValueError("Weather provider is temporarily unavailiable. Try again shortly.") from e
 
     precipitation_30 = [p or 0.0 for p in daily["precipitation_sum"][:31]]
     tmax_30 = [t if t is not None else 25.0 for t in daily["temperature_2m_max"][:31]]
@@ -226,10 +264,7 @@ def get_fuel_conditions(lat: float, lng: float) -> dict:
         "source": "open-meteo"
     }
     
-    if cache_client is not None:
-        try:
-            cache_client.set(cache_key, json.dumps(result), ex=FUEL_CONDITIONS_CACHE_TTL_SECONDS)
-        except Exception:
-            pass
+    cache_set(cache_key, result, FUEL_CONDITIONS_CACHE_TTL_SECONDS)
+    cache_set(f"{cache_key}:stale", result, FUEL_CONTITIONS_STALE_TTL_SECONDS)
         
     return result

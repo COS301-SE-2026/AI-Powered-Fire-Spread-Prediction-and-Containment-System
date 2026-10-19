@@ -63,7 +63,7 @@ def test_nearby_weather_success(client, db, stub_fuel_conds):
     assert env["wind"] == 12.0
     assert env["wind_dir"] == 90
 
-def test_weather_failure_returns_404(client, db, monkeypatch):
+def test_weather_failure_still_returns_dashboard_without_environment(client, db, monkeypatch):
     def fail(lat, lng):
         raise ValueError("Failed to fetch fuel conditions, timeout")
 
@@ -74,4 +74,7 @@ def test_weather_failure_returns_404(client, db, monkeypatch):
         params={"lat": -25.7479, "lng": 28.2293}
     )
 
-    assert response.status_code == 404
+    assert response.status_code == 200
+    body = response.json()
+    assert body["environment_variables"] is None
+    assert "nearby_fires" in body
