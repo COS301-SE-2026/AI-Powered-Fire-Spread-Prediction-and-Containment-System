@@ -49,13 +49,16 @@ def admin():
 # -------------------Services-------------------------------------------------
 
 # get_role_requests
-def test_get_role_requests_returns_data_and_total():
+@patch.object(service, "role_request_list")
+def test_get_role_requests_builds_list_from_all_rows(mock_build):
     rows = [object(), object()]
     db = MagicMock()
     db.query.return_value.all.return_value = rows
-
-    assert service.get_role_requests(db) == {"data": rows, "total": 2}
-
+    
+    result = service.get_role_requests(db)
+    
+    mock_build.assert_called_once_with(db,rows)
+    assert result is mock_build.return_value
 
 # unknown request id return none
 @pytest.mark.parametrize("action, bad, good", SERVICE_ACTIONS)
@@ -119,12 +122,16 @@ def test_service_actions_valid_request_updates_and_commits( action, start_status
     db.commit.assert_called_once()
 
 # search_report_table
+@patch.object(service, "role_request_list")
 def test_search_report_table_returns_data_and_total():
     rows = [object(), object()]
     db = MagicMock()
     db.query.return_value.outerjoin.return_value.filter.return_value.all.return_value = rows
 
-    assert service.search_report_table(db, "smith") == {"data": rows, "total": 2}
+    result = service.search_report_table(db, "smith")
+
+    mock_build.assert_called_once_with(db, rows)
+    assert result is mock_build.return_value
 
 # ------------------------------------routes-------------------------------------------------------------------------
 PATCH = "app.backend.src.routes.admin.role_requests.role_request"
