@@ -42,15 +42,15 @@ Fire Away is an AI-powered wildfire spread prediction and containment system tha
 - **Analytics:** An admin dashboard for incident and usage insights.
 
 ## Documentation
-- [System Requirements Specification]()
-- [Software Architecture Specification]()
-- [Coding Standards Document]()
-- [Testing Policy]()
-- [User Manual]()
-- [Technical Installation Manual]()
-- [Brand Style Guide]()
-- [Service Contract]()
-- [Demo 4 Video]()
+- [System Requirements Specification](docs/Project_day/AI_Powered_Fire_Spread_and_Containment_System_SRS.pdf)
+- [Software Architecture Specification](docs/Project_day/AI_Powered_Fire_Spread_and_Containment_System_Software_Architecture_Specifications.pdf)
+- [Coding Standards Document](docs/Project_day/AI_Powered_Fire_Spread_and_Containment_System_Coding_Standards.pdf)
+- [Testing Policy](docs/Project_day/AI_Powered_Fire_Spread_and_Containment_System_Testing_Policy.pdf)
+- [User Manual](docs/Project_day/AI_Powered_Fire_Spread_and_Containment_System_User_Manual.pdf)
+- [Technical Installation Manual](docs/Project_day/AI_Powered_Fire_Spread_and_Containment_System_Technical_Installation_Manual.pdf)
+- [Brand Style Guide](https://fireaway.csml.co.za/brand_style)
+- [Service Contract](docs/Project_day/service_contracts.yaml)
+- [Demo Video](https://drive.google.com/drive/folders/1fBHFX1r7PS7xMcdS3nlimVbZfzZK610T?usp=sharing)
 <br>
 
 For previous versions of documentation, please visit our wiki page!
