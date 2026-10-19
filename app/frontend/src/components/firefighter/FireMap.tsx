@@ -7,6 +7,7 @@ import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
 import { buffer } from '@turf/buffer';
+import { polygon } from '@turf/helpers';
 import bbox from '@turf/bbox';
 import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
@@ -18,7 +19,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { LocalLine } from '@/types/ContainmentLines';
 import { useTerrainBiasMap } from '@/hooks/useTerrainBias';
 import { buildFireFeatureCollection, FireEnvironment, unionWaterPolygons, type GrowableFire } from '@/lib/fireGrowth';
-import { polygon } from '@turf/helpers'
 import { estimateMaxReachKm } from '@/lib/fireGrowth';
 import { Prediction, ClusterPrediction } from '../../hooks/useSimulation';
 import type { FirefighterReportTable } from '../../types/FirefighterReports';
@@ -33,10 +33,12 @@ import { ResourceMarkers } from '../shared/ResourceMarkers';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { useLiveFireEnvironment } from '../../hooks/useLiveFireEnvironment';
 import type { SavedLocation } from '../../types/SavedLocation';
-
 // How often animated fire params are recomputed and pushed to map
 const FIRE_GROWTH_TICK_MS = 2000;
 const DEFAULT_CENTER = { lat: -25.7479, lng: 28.2293 };
+const EMPTY_FC = { type: 'FeatureCollection' as const, features: [] };
+const EMPTY_ARR: never[] = [];
+const EMPTY_SET = new Set<string>();
 
 interface MapProps {
   lat: number | null;
@@ -46,7 +48,6 @@ interface MapProps {
   onDrawComplete: (wkt: string) => void;
   onLineRemoved?: (localId: string) => void;
   clearDrawings: number;
-  burnGrid?: number[] | null;
   recenter?: number;
   predictions?: Prediction[];
   currentTick?: number;
@@ -64,10 +65,12 @@ interface MapProps {
   suggestedLine?: string | null;
   selectedFireIds?: Set<string>;
   onToggleFireSelect?: (ref: string) => void;
+  multiSelectMode?: boolean;
   clusterPredictions?: ClusterPrediction[];
   disableGrowth?: boolean;
   savedLocations?: SavedLocation[];
   showSavedLocations?: boolean;
+  focus?: { lat: number; lng: number; zoom: number } | null;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -80,7 +83,7 @@ export function FireMap({ lat,
   drawMode,
   onDrawComplete,
   clearDrawings,
-  predictions = [],
+  predictions = EMPTY_ARR,
   currentTick = 0,
   onDeselect = undefined,
   selectedFireId = null,
@@ -88,48 +91,54 @@ export function FireMap({ lat,
   recenter = 0,
   onSelectFire = undefined,
   showKey = false,
-  lines = [],
+  lines = EMPTY_ARR,
   onLineRemoved = undefined,
   suggestedLine = null,
   disableGrowth = false, showWater = true,
-  resources = [],
+  resources = EMPTY_ARR,
   showResources = true,
   selectedResourceId = null,
   onSelectResource = undefined,
   onDeselectResource = undefined,
-  selectedFireIds = new Set(),
+  selectedFireIds = EMPTY_SET,
   onToggleFireSelect = undefined,
-  clusterPredictions = [],
-  savedLocations = [],
+  multiSelectMode = false,
+  clusterPredictions = EMPTY_ARR,
+  savedLocations = EMPTY_ARR,
   showSavedLocations = true,
+  focus = null,
 }: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
   const drawRef = useRef<MapboxDraw | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   const { reports: fires } = useFirefighterReports(''); // no search — just the full nearby fires list for the map
   const [activeFires, setActiveFires] = useState<FirefighterReportTable[]>([]);
-  const [viewState, setViewState] = useState({ 
-    longitude: lng ?? DEFAULT_CENTER.lng, 
-    latitude: lat ?? DEFAULT_CENTER.lat, 
-    zoom: 12 
-  });
+  // const [viewState, setViewState] = useState({ 
+  //   longitude: lng ?? DEFAULT_CENTER.lng, 
+  //   latitude: lat ?? DEFAULT_CENTER.lat, 
+  //   zoom: 12 
+  // });
+  const flyTo = useCallback((toLng: number, toLat: number, zoom?: number) => {
+    const map = mapRef.current;
+    if(!map) return;
+    map.flyTo({ center: [toLng, toLat], zoom: zoom ?? Math.max(map.getZoom(), 13), duration: 800});
+  }, []);
   const [selectedFire, setSelectedFire] = useState<FirefighterReportTable | null>(null);
   const [showUserLocationTooltip, setShowUserLocationTooltip] = useState(false);
   const { isAuth, isLoading: isAuthLoading } = useAuth();
   const { refetchAfterAction, refetchSilent, showToast } = useNotifications();
   const updateUserLocation = useUpdateUserLocation(refetchSilent);
   const checkGuestNotifications = useGuestNotifications(showToast);
-  const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000 });
-  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000 });
+  const { waterFeatureCollection, riverFeatureCollection } = useWaterBodies(mapRef, { minAreaM2: 20000, mapReady });
+  const { osmWaterFeatureCollection } = useDamsFromOSM(mapRef, { minAreaM2: 20000, mapReady });
 
   const hasCentered = useRef(false);
 
-  const waterKey = String(waterFeatureCollection.features.length);
-
   const combinedWaterFeatures = useMemo(() => 
     mergeWaterFeatureCollections(waterFeatureCollection, osmWaterFeatureCollection),
-    [waterKey]
+    [waterFeatureCollection, osmWaterFeatureCollection]
   );
 
   useEffect(() => {
@@ -280,9 +289,9 @@ export function FireMap({ lat,
   useEffect(() => {
     if(lat == null || lng == null || Number.isNaN(lat) || Number.isNaN(lng)) return;
 
-    if(!hasCentered.current){
+    if(!hasCentered.current && mapRef.current){
       hasCentered.current = true;
-      setViewState((v) => ({...v, longitude: lng, latitude: lat}));
+      mapRef.current?.jumpTo({ center: [lng, lat] });
     }
 
     if (isAuthLoading) return;
@@ -293,7 +302,7 @@ export function FireMap({ lat,
       checkGuestNotifications(lat, lng);
     }
 
-  }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications]);
+  }, [lat, lng, isAuth, isAuthLoading, updateUserLocation, checkGuestNotifications, mapReady]);
 
   // live weather driving fire growth model. resuses same dashboard endpoint useNearbyFires
   const fireEnvironment = useLiveFireEnvironment(
@@ -360,9 +369,7 @@ export function FireMap({ lat,
     () => riverFeatureCollection.features.filter((f) => isNearAnyFire(f, growableFires, fireEnvironment, nowMs)),
     [riverFeatureCollection, growableFires, fireEnvironment]
   );
-  const riverBufferKey = `${nearbyRivers.length}:${growableFires.map((f) => f.id).join(',')}`
   
-
   const bufferedRiverPolygons = useMemo(() => {
     if (growableFires.length === 0) return [];
 
@@ -375,7 +382,7 @@ export function FireMap({ lat,
       }
       return acc;
     }, []);
-  }, [riverBufferKey]);
+  }, [nearbyRivers, growableFires.length]);
   
 
   const combinedWaterShape = useMemo(() => {
@@ -412,6 +419,11 @@ export function FireMap({ lat,
         ), [activeFires, disableGrowth]
   );
 
+  const staticCircleCollection = useMemo(
+    () => ({ type: 'FeatureCollection' as const, features: staticCircleFeatures}),
+    [staticCircleFeatures]
+  )
+
   // Imperative animation loop. recompute every fire's perimeter and push it straight
   // into the Mapbox source via setData().
 
@@ -422,16 +434,21 @@ export function FireMap({ lat,
 
     const pushFrame = () => {
       const map = mapRef.current?.getMap();
+      if (map?.isMoving()) return;
       const source = map?.getSource('fire-circles') as GeoJSONSource | undefined;
       if (!source) return;
-      source.setData(
+      try{
+        source.setData(
         buildFireFeatureCollection(
           growableFires,
           fireEnvironment,
           Date.now(),
           terrainBiasByFireId,
           combinedWaterShapeRef.current
-      ));
+        ));
+      } catch (err){
+        console.warn('Skipping fire growth frame', err);
+      }
     };
 
     pushFrame();  // paint immediately rather than waiting for the first tick
@@ -441,25 +458,15 @@ export function FireMap({ lat,
 
   const handleRecenter = useCallback(() => {
     if(lat == null || lng == null) return;
-    setViewState((v) => ({
-      ...v,
-      longitude: lng,
-      latitude: lat,
-      zoom: Math.max(v.zoom, 13),
-    }))
-  }, [lat, lng])
+    flyTo(lng, lat);
+  }, [lat, lng, flyTo])
 
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) return;
     const fire = activeFires.find((f) => (selectedFireId && f.ref === selectedFireId) || (selectedFireLocation && f.location === selectedFireLocation));
     if (!fire) return;
-    setViewState((v) => ({
-      ...v,
-      longitude: fire.lng,
-      latitude: fire.lat,
-      zoom: Math.max(v.zoom, 13),
-    }));
-  }, [selectedFireId, selectedFireLocation, activeFires]);
+    flyTo(fire.lng, fire.lat);
+  }, [selectedFireId, selectedFireLocation, activeFires, flyTo]);
 
   useEffect(() => {
     if (!selectedFireId && !selectedFireLocation) {
@@ -470,18 +477,18 @@ export function FireMap({ lat,
     setSelectedFire(fire ?? null);
   }, [selectedFireId, selectedFireLocation, activeFires]);
 
-  useEffect(() => {
-    if (!mapRef.current)
-      return undefined;
-    const map = mapRef.current.getMap();
-    const container = map.getContainer();
-    const resizeObserver = new ResizeObserver(() => {
-      map.resize();
-    });
-    resizeObserver.observe(container);
+  // useEffect(() => {
+  //   if (!mapReady || !mapRef.current)
+  //     return undefined;
+  //   const map = mapRef.current.getMap();
+  //   const container = map.getContainer();
+  //   const resizeObserver = new ResizeObserver(() => {
+  //     map.resize();
+  //   });
+  //   resizeObserver.observe(container);
 
-    return () => resizeObserver.disconnect();
-  }, []);
+  //   return () => resizeObserver.disconnect();
+  // }, [mapReady]);
 
   const EXTENT_DEG = 0.05;
 
@@ -538,22 +545,33 @@ export function FireMap({ lat,
     }
     return features;
   }, [predictions, clusterPredictions, currentTick]);
+
+  const gridCollection = useMemo(
+    () => ({ type: 'FeatureCollection' as const, features: girdFeautures }),
+    [girdFeautures]
+  );
+
   useEffect(() => {
     if (recenter === 0 || lat == null || lng == null) return;
-    setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
-  }, [recenter]);
+    flyTo(lng, lat);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenter, flyTo]);
 
   useEffect(() => {
     if (!selectedResourceId) return;
     const res = resources.find((r) => r.id === selectedResourceId);
     if (!res) return;
-    setViewState((v) => ({
-      ...v,
-      longitude: res.externalPin.lng,
-      latitude: res.externalPin.lat,
-      zoom: Math.max(v.zoom, 13),
-    }));
-  }, [selectedResourceId, resources]);
+    flyTo(res.externalPin.lng, res.externalPin.lat);
+  }, [selectedResourceId, resources, flyTo]);
+
+  // for saved locations on the profile page 
+  useEffect(() => {
+    if (!focus) {
+      return;
+    }
+    hasCentered.current = true;
+    flyTo(focus.lng, focus.lat, focus.zoom);
+  }, [focus, flyTo]);
 
   const simulationShown = girdFeautures.length > 0;
   return (
@@ -585,11 +603,13 @@ export function FireMap({ lat,
 
       <Map
         ref={mapRef}
+        onLoad={() => setMapReady(true)}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        {...viewState}
-        onMove={
-          (evt) => { setViewState(evt.viewState); }
-        }
+        initialViewState={{
+          longitude: lng ?? DEFAULT_CENTER.lng,
+          latitude: lat ?? DEFAULT_CENTER.lat,
+          zoom: 12,
+        }}
         onClick={() => {
           setShowUserLocationTooltip(false);
           onDeselectResource?.();
@@ -607,7 +627,7 @@ export function FireMap({ lat,
             anchor="center"
             onClick={(e) => {
               e.originalEvent.stopPropagation();
-              const isMultiSelect = e.originalEvent.ctrlKey || e.originalEvent.metaKey;
+              const isMultiSelect = multiSelectMode || e.originalEvent.ctrlKey || e.originalEvent.metaKey;
               if (isMultiSelect && onToggleFireSelect) {
                 onToggleFireSelect(fire.ref);
               } else {
@@ -615,7 +635,7 @@ export function FireMap({ lat,
               }
             }}
           >
-            <div className="relative flex items-center justify-center size-6">
+            <div className="relative flex items-center justify-center size-11 cursor-pointer">
               <span
                 className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${selectedFireIds.has(fire.ref) ? 'bg-purple-400' : 'bg-accent'
                   } ${fire.ref === selectedFireId || selectedFireIds.has(fire.ref) ? '' : 'hidden'}`}
@@ -640,10 +660,7 @@ export function FireMap({ lat,
           <Source
             id="fire-circles"
             type="geojson"
-            data={{
-              type: 'FeatureCollection',
-              features: staticCircleFeatures,
-            }}
+            data={staticCircleCollection}
           >
             <Layer
               id="fire-radius-fill"
@@ -670,7 +687,7 @@ export function FireMap({ lat,
 
         {/* Live, growing fire perimeters */}
         {!disableGrowth && growableFires.length > 0 && (
-          <Source id='fire-circles' type='geojson' data={{ type: 'FeatureCollection', features: []}}>
+          <Source id='fire-circles' type='geojson' data={EMPTY_FC}>
             <Layer
               id='fire-radius-fill'
               type='fill'
@@ -695,7 +712,7 @@ export function FireMap({ lat,
           <Source
             id="burn-grid"
             type="geojson"
-            data={{ type: 'FeatureCollection', features: girdFeautures }}
+            data={gridCollection}
           >
             <Layer
               id="burn-grid-fill"

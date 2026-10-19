@@ -1,0 +1,94 @@
+import React, { useEffect, useState } from "react";
+import { X } from 'lucide-react';
+import { apiCall } from "@/lib/api";
+import { GPUWorker } from "../../types/GPUWorkers";
+import { CommandBox } from './CommandBox';
+
+const START_COMMAND = 'docker start fireaway-worker';
+
+export function WorkerCommandModal({worker, onClose}: {worker: GPUWorker, onClose: () => void}) {
+    const [runCommand, setRunCommand] = useState('');
+    const [resetCommand, setResetCommand] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [resetting, setResetting] = useState(false);
+
+    useEffect(() => {
+        apiCall(`/api/v1/workers/${worker.id}/command`)
+        .then((data) => setRunCommand(data.docker_command))
+        .catch((err: unknown) => setError(err instanceof Error ? err.message : 'Could not load command'))
+    }, [worker.id])
+
+    const handleReset = async () => {
+        setResetting(true);
+        setError(null);
+
+        try {
+            const data = await apiCall(`/api/v1/workers/${worker.id}/reset-key`, 'POST', null);
+            setResetCommand(data.docker_command);
+        } catch (err){
+            setError(err instanceof Error ? err.message : 'Could not reset credentials');
+        } finally {
+            setResetting(false);
+        }
+    };
+
+    return (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 font-body backdrop-blur-xs'>
+            <div className='relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-box border border-carbon-stroke bg-carbon-card p-6 shadow-2xl text-text-primary space-y-4'>
+                <button
+                    type='button'
+                    onClick={onClose}
+                    aria-label='Close modal'
+                    className='absolute right-4 top-4 text-text-muted hover:text-text-primary'
+                >
+                    <X className='size-5'/>
+                </button>
+                <h2 className='text-xl font-bold font-display tracking-wide'>{worker.label}</h2>
+                <p className='text-sm text-text-muted'>{worker.gpu_name}</p>
+
+            {error && <div className='rounded-sm bg-danger/10 border border-danger/40 p-2.5 text-xs text-flare font-mono'>{error}</div>}
+
+            <div>
+                <p className='text-sm font-semibold mb-1.5'>Start it again</p>
+                <p className='text-xs text-text-muted mb-2'>If your computer was off or the worker stopped, run this:</p>
+                <CommandBox command={START_COMMAND} />
+            </div>
+
+            {runCommand && (
+                <div>
+                    <p className='text-sm font-semibold mb-1.5'>Recreate the container</p>
+                    <p className='text-xs text-text-muted mb-2'>If the container was deleted, run this. It reconnects using the credentials saved on your machine.</p>
+                    <CommandBox command={runCommand} />
+                </div>
+            )}
+
+            <div className='pt-4 border-t border-carbon-stroke'>
+                <p className='text-sm font-semibold mb-1.5'>Still can't connect?</p>
+                {resetCommand ? (
+                    <>
+                        <p className='text-xs text-text-muted mb-2'>
+                            Remove the old container with <code className='font-mono'>docker rm -f fireaway-worker</code>, then run this new command. It works once and expires in 7 days.
+                        </p>
+                        <CommandBox command={resetCommand}/>                    
+                    </>
+                ) : (
+                    <>
+                        <p className='text-xs text-text-muted mb-2'>
+                            Reset this machine's credentials to get a new setup command. The old credentials stop working.
+                        </p>
+                        <button
+                            type='button'
+                            onClick={handleReset}
+                            disabled={resetting}
+                            className='btn btn-sm btn-outline border-error/60 rounded-xl text-error hover:bg-error/10'
+                        >
+                            {resetting ? 'Resetting...' : 'Reset Credentials'}
+                        </button>
+                    </>
+                )
+            }
+            </div>
+            </div>
+        </div>
+    );
+}

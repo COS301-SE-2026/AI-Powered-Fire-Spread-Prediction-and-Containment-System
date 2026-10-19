@@ -34,7 +34,7 @@ const featureData: FeautureCard[] = [
         number: '02',
         title: 'Offline Action Sync',
         description: 
-            'Automatic background caching, and replay queues to keep incident reports and safe-point bookmarks when connection is lost.',
+            'Automatic background caching and replay queues to keep incident reports and safe-point bookmarks when connection is lost.',
         colSpan: 'md:col-span-1',
         accentColor: 'text-secondary',
         badgeBg: 'bg-secondary/10',
@@ -71,7 +71,7 @@ const featureData: FeautureCard[] = [
     { 
         id: 'custom-weather-prediction',
         number: '05',
-        title: 'Purpose Built Weather Prediction',
+        title: 'Purpose-Built Weather Prediction',
         description: 
             'Predicts the weather using a custom built Neural Network.',
         colSpan: 'md:col-span-2',
@@ -86,7 +86,7 @@ const featureData: FeautureCard[] = [
         number: '06',
         title: 'Log Containment Lines',
         description: 
-            'Log containment lines near fires to see how it effects the spread.',
+            'Log containment lines near fires to see how they affect the spread.',
         colSpan: 'md:col-span-1',
         accentColor: 'text-torch',
         badgeBg: 'bg-torch/10',
@@ -105,10 +105,10 @@ export function Features() {
                     Tactical Capabilities
                 </span>
                 <h2 className='text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-text-primary font-display'>
-                    Engineerd for Extreme Conditions
+                    Engineered for Extreme Conditions
                 </h2>
                 <p className='text-text-muted text-base sm:text-lg'>
-                    Everything filed commanders, community leaders, and first responders need in one unified program.
+                    Everything field commanders, community leaders, and first responders need in one unified program.
                 </p>
             </div>
 
