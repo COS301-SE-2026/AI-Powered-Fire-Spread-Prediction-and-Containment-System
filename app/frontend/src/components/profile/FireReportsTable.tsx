@@ -49,15 +49,12 @@ export function MyFireReportsTable({ reports, filter }: MyFireReportsTableProps)
             <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
               Reported
             </th>
-            <th className="text-left text-sm font-bold font-display tracking-widest text-text-primary uppercase px-4 py-3">
-              View
-            </th>
           </tr>
         </thead>
         <tbody>
           {filtered.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-4 py-8 text-center text-sm font-bold text-error">
+              <td colSpan={6} className="px-4 py-8 text-center text-sm font-bold text-error">
                 No reports yet
               </td>
             </tr>
@@ -78,15 +75,6 @@ export function MyFireReportsTable({ reports, filter }: MyFireReportsTableProps)
                 <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
                 <td className="px-4 text-sm text-text-primary">
                   {FormatDate(report.submitted_at)}
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => router.push(`/${basePath}/${report.reference_number}`)}
-                    className="text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors"
-                  >
-                    View
-                  </button>
                 </td>
               </tr>
             ))

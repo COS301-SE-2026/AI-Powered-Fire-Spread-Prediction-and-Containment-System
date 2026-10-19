@@ -56,22 +56,18 @@ export function MyResourcesTable({ resources, filter, onStatusChange }: MyResour
                 const group = RESOURCE_GROUPS[GROUP_BY_RESOURCE[r.resource]];
                 const Icon = group.icon;
                 return (
-                <tr
-                    key={r.id}
-                    className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80"
-                >
-                <td className="px-4 text-sm text-text-primary">
-                    <div className="flex items-center gap-5">
-                      <span
-                        className="flex size-7 shrink-0 items-center justify-center rounded-lg"
-                        style={{ background: group.color }}
-                      >
-                        <Icon className="size-4 text-carbon-bg" />
-                      </span>
-                      {r.resource === 'other' ? r.otherResource : r.resource}
-                    </div>
-                  </td>
-                    <td className="px-4 text-sm text-text-primary">{r.resource === 'other' ? r.otherResource : r.resource}</td>
+                <tr key={r.id} className="[&>td]:border-t [&>td]:border-carbon-card hover:bg-surface-hover even:bg-carbon-bg/80">
+                  <td className="px-4 text-sm text-text-primary">
+                      <div className="flex items-center gap-5">
+                        <span
+                          className="flex size-7 shrink-0 items-center justify-center rounded-lg"
+                          style={{ background: group.color }}
+                        >
+                          <Icon className="size-4 text-carbon-bg" />
+                        </span>
+                        {r.resource === 'other' ? r.otherResource : r.resource}
+                      </div>
+                    </td>
                     <td className="px-4 text-sm text-text-primary">{r.capacity} {r.capacityUnit === 'other' ? r.otherCapacity : r.capacityUnit}</td>
                     <td className="px-4 text-sm text-text-primary">{r.location}</td>
                     <td className="px-4 text-sm text-text-primary">{FormatDate(r.availableFrom)}</td>

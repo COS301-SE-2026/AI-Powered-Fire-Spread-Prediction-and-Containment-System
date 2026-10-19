@@ -14,6 +14,7 @@ import { useMapLink } from '../../hooks/useMapLink';
 import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
+import { useLocationToMap } from '../../hooks/useLocationToMap';
 
 export default function RegisteredUserDashboard() {
   const { userLocation, nearbyFires } = useNearbyFires();
@@ -28,6 +29,10 @@ export default function RegisteredUserDashboard() {
   const { locations } = useSavedLocations();
 
   useMapLink(handleSelectFire);
+
+  const [focus, setFocus] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
+  useLocationToMap(setFocus);
+
   return (
     <UserSideBar>
       <div className="flex flex-col px-2 py-2 ">
@@ -48,6 +53,7 @@ export default function RegisteredUserDashboard() {
               onDeselect={clearSelect}
               selectedFireId={fireLocation}
               savedLocations={locations}
+              focus={focus}
             />
             {/* action buttons */}
               <div className='absolute top-3 left-3 z-20 flex flex-col gap-2'>

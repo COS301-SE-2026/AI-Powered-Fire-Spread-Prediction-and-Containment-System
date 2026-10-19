@@ -76,8 +76,8 @@ export function LocationField({ value, error = '', onChange, onValidSelect }: Lo
   }
   return (
     <div className="dropdown w-full" ref={wrapperRef}>
-      <span className="label-text text-lg font-semibold mb-2 block">Location</span>
-      <div className="input input-bordered w-full flex items-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none h-11">
+      <span className="text-lg font-semibold mb-2 block">Location</span>
+      <div className="input input-bordered w-full flex items-center gap-2  bg-surface-input border-carbon-stroke focus-within:outline-ignite focus-within:border-none text-text-muted h-11">
         <input
           id={id}
           type="text"
@@ -86,7 +86,7 @@ export function LocationField({ value, error = '', onChange, onValidSelect }: Lo
           onFocus={handleFocus}
           onClick={handleClick}
           placeholder="Drop a pin or type your address"
-          className="grow bg-transparent focus:outline-none"
+          className="grow bg-transparent text-text-primary focus:outline-none placeholder:text-text-disabled"
           aria-invalid={!!error}
           aria-describedby={errorId}
         />
