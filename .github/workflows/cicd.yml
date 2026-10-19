@@ -2,13 +2,15 @@ name: CI/CD
 
 on:
   pull_request:
+  push:
+    branches: [main]
 
 jobs:
   backend-unit-tests:
     name: Backend Unit Tests
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/test_fire_db"
@@ -56,7 +58,7 @@ jobs:
     name: Backend Integration Tests
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       pull-requests: write
     services:
       postgres:
