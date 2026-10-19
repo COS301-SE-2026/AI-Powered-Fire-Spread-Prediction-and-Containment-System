@@ -30,7 +30,7 @@ export const ComputeDistribution: React.FC<ComputeDistributionProps> = ({
 
         const fetchDistribution = async () => {
             try {
-                const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
+                const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '';
 
                 const res = await fetch(
                     `${apiBaseUrl}/api/v1/workers/calculate-distribution`,
