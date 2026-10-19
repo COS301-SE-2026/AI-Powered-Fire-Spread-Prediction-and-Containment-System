@@ -9,8 +9,12 @@ interface RoleRequestTableProps {
   onView: (request: RoleRequest) => void;
 }
 
+  const getLastChanged = (req: RoleRequest) =>
+  new Date(req.reviewed_at ?? req.created_at).getTime();
+
 export function RoleRequestsTable({ requests, filter, onView }: RoleRequestTableProps) {
-  const filtered = requests.filter((req) => filter === 'All' || req.status === filter);
+  const filtered = requests.filter((req) => filter === 'All' || req.status === filter)
+    .sort((a, b) => getLastChanged(b) - getLastChanged(a));
 
   return (
     <div className="w-full overflow-x-auto rounded-2xl border border-carbon-stroke max-h-170">
