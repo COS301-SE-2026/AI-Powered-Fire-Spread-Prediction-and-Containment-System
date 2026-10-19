@@ -33,4 +33,4 @@ class NearbyFiresList(BaseModel):
 
 class DashboardData(BaseModel):
     nearby_fires: NearbyFiresList
-    environment_variables: EnvironmentVariables
+    environment_variables: EnvironmentVariables | None = None

@@ -1,6 +1,8 @@
 import logging
 import requests
 import numpy as np
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # static grid
 from app.backend.src.ai.resolve_tiles import resolve_dem_path, resolve_sentinel2_bands
@@ -20,6 +22,22 @@ DEFAULT_DCA_PARAMS = {
     "p_continue": 0.6,
 }
 
+def http_session() -> requests.Session:
+    """Retries request failures from openMeteo with backoff instead of failing a job"""
+    retry = Retry(
+        total=4,
+        backoff_factor=1.5,
+        status_forcelist=(429, 500, 502, 503, 504),
+        allowed_methods=("GET",),
+        respect_retry_after_header=True,
+    )
+
+    session = requests.Session()
+    session.mount("https://", HTTPAdapter(max_retries=retry))
+    return session
+
+_HTTP = http_session()
+
 def fetch_weather_history(job: dict) -> list:
     """
     Fetches weather history length hours for fire's center points, and broadcasts each hourly point value across the (grid_h, grid_w) grid.
@@ -38,7 +56,7 @@ def fetch_weather_history(job: dict) -> list:
         "timezone": "UTC"
     }
 
-    response = requests.get(OPEN_METEO_URL, params=params, timeout=10)
+    response = _HTTP.get(OPEN_METEO_URL, params=params, timeout=10)
     response.raise_for_status()
     hourly = response.json()["hourly"]
 

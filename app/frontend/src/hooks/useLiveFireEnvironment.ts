@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { EnvironmentVariables } from '@/types/FirefighterDashboard';
+import type { FuelConditions } from '@/types/FuelConditions';
 import type { FireEnvironment } from '@/lib/fireGrowth';
 import { apiCall } from '../lib/api';
 
@@ -35,47 +35,42 @@ export function useLiveFireEnvironment(lat: number, lng: number, enabled = true)
         let cancelled = false;
 
         const fetchEnv = async () => {
-            const [dashboardResult, fuelConditionsResult] = await Promise.allSettled([
-                apiCall(`/api/firefighter/dashboard?lat=${roundedLat}&lng=${roundedLng}`),
-                apiCall(`/api/firefighter/fuel-conditions?lat=${roundedLat}&lng=${roundedLng}`),
-            ]);
-
-            if (cancelled) return;
-            
-            if (dashboardResult.status === 'rejected') {
-                console.error('Unable to fetch live environment for fire growth', dashboardResult.reason);
-
-                 const sinceSuccessMs = lastSuccessAtRef.current == null ? Infinity : Date.now() - lastSuccessAtRef.current;
-                if (sinceSuccessMs > STALE_WARNING_MS && !warnedStaleRef.current) {
+            let fc: FuelConditions | null = null;
+            try{
+                fc = await apiCall(`/api/firefighter/fuel-conditions?lat=${roundedLat}&lng=${roundedLng}`);
+            } catch (err){
+                if(cancelled) return;
+                console.warn('Unable to fetch live environment for fire growth', err);
+                const sinceSuccessMs = lastSuccessAtRef.current == null ? Infinity : Date.now() - lastSuccessAtRef.current;
+                if (sinceSuccessMs > STALE_WARNING_MS && !warnedStaleRef.current){
                     warnedStaleRef.current = true;
-                    console.warn(`Fire growth has been running on stale/default weather for ocer ${Math.round(STALE_WARNING_MS / 60000)} minutes. Live weather fetches keep failing.`);
+                    console.warn(`Fire growth has been running on stale/default weather for over ${Math.round(STALE_WARNING_MS / 60000)} minutes.`);
                 }
                 return;
             }
-
-            const envVars = dashboardResult.value?.environment_variables as EnvironmentVariables | undefined;
-            if (!envVars) return;
-
-            // dryness_grass optional, buildFirePolygon falls back to a cruder
-            // temp/humidity estimate when missing so failed/slow
-            // fuel-conditions call degrades gracefully rather than blocking growth
-            const drynessGrass =
-                fuelConditionsResult.status === 'fulfilled' ? fuelConditionsResult.value?.dryness_grass : undefined;
-            if (fuelConditionsResult.status === 'rejected') {
-                console.error('Unable to fetch fuel conditions for fire growth', fuelConditionsResult.reason);
-            }
+            if (cancelled || !fc) return;
 
             lastSuccessAtRef.current = Date.now();
             warnedStaleRef.current = false;
-            setEnv({
-                windKph: envVars.wind,
-                windDirDeg: envVars.wind_dir,
-                temperatureC: envVars.temperature,
-                humidityPct: envVars.humidity,
-                drynessGrass,
-            });
-        };
 
+            const next: FireEnvironment = {
+                windKph: fc.wind_speed,
+                windDirDeg: fc.wind_direction,
+                temperatureC: fc.temperature,
+                humidityPct: fc.humidity,
+                drynessGrass: fc.dryness_grass,
+            };
+
+            setEnv((prev) => 
+                prev &&
+                prev.windKph === next.windKph &&
+                prev.windDirDeg === next.windDirDeg &&
+                prev.temperatureC === next.temperatureC &&
+                prev.humidityPct === next.humidityPct &&
+                prev.drynessGrass === next.drynessGrass 
+                    ? prev : next
+            );
+        };
         fetchEnv();
         const id = setInterval(fetchEnv, REFRESH_MS);
         return () => {

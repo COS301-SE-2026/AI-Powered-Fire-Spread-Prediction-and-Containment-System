@@ -61,13 +61,13 @@ export default function LandingPage() {
             <Link
               href='/start'
               aria-label='Get started with FireAway'
-              className='w-full sm:w-auto btn btn-primary uppercase px-10 text-base font-display tracking-wider shadow-lg shadow-primary/25 text-lg hover:shadow-primary/45 transition-all text-white'
+              className='w-full sm:w-auto btn btn-primary uppercase px-10 text-lg font-bold font-display tracking-wider shadow-lg shadow-primary/25 hover:shadow-primary/45 transition-all text-white'
             >
               GET STARTED
             </Link>
             <Link
-              href='/help_menu/help_menu'
-              aria-label='Learn more about FirAway'
+              href='#about'
+              aria-label='Learn more about FireAway'
               className='w-full sm:w-auto btn btn-ghost bg-carbon-side/70 border border-carbon-stroke hover:bg-carbon-stroke text-text-primary px-8 text-base font-display uppercase tracking-wide backdrop-blur-sm'
             >
               Learn More
@@ -109,6 +109,17 @@ export default function LandingPage() {
           <p>Copyright © {new Date().getFullYear()} - Group Elephant Limited</p>
         </aside>
       </footer>
+
+      <Link
+        href='/help_menu/help_menu'
+        aria-label='Open the help page'
+        className='fixed bottom-6 right-6 z-50 tooltip tooltip-left'
+        data-tip='Need help?'
+      >
+        <span className='btn btn-circle btn-primary btn-lg text-white text-2xl font-bold font-display shadow-lg shadow-primary/20 hover:scale-110 hover:shadow-primary/40 transition-all'>
+          ?
+        </span>
+      </Link>
     </div>
   )
 }

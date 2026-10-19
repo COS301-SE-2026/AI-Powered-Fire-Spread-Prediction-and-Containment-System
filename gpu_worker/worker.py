@@ -247,6 +247,13 @@ def touch_heartbeat() -> None:
 def handle_message(message: dict) -> None:
     body = json.loads(message["Body"])
     job_id = body.get("job_id", "<unknown>")
+
+    expires_at = body.get("expires_at")
+    if expires_at and time.time() > expires_at:
+        log.info("Skipping expired job %s: the backend already stopped waiting for it", job_id)
+        sqs.delete_message(QueueUrl=INFERENCE_QUEUE_URL, ReceiptHandle=message["ReceiptHandle"])
+        return
+
     log.info("Processing job %s", job_id)
 
     result = run_inference(body)

@@ -123,13 +123,18 @@ export default function Login() {
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
           <div className="mb-8">
-            <Image
-              src="/images/logo-large.png"
-              alt="Fire Spread Prediction Logo"
-              width={450}
-              height={450}
-              className="mx-auto"
-            />
+            <Link
+              href='/'
+              aria-label='Back to home page'
+            >
+              <Image
+                src="/images/logo-large.png"
+                alt="Fire Spread Prediction Logo"
+                width={450}
+                height={450}
+                className="mx-auto transition-transform duration-300 hover:scale-110"
+              />
+            </Link>
           </div>
           <div className="w-full max-w-md bg-carbon-card border border-carbon-stroke rounded-xl p-6 shadow-2xl backdrop-blur-sm">
             <h2 className="text-2xl font-bold text-text-primary text-center mb-6">Welcome back</h2>
