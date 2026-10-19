@@ -68,6 +68,7 @@ interface MapProps {
   disableGrowth?: boolean;
   savedLocations?: SavedLocation[];
   showSavedLocations?: boolean;
+  focus?: { lat: number; lng: number; zoom: number } | null;
 }
 
 function wktCoords(wkt: string): number[][] {
@@ -102,6 +103,7 @@ export function FireMap({ lat,
   clusterPredictions = [],
   savedLocations = [],
   showSavedLocations = true,
+  focus = null,
 }: MapProps) {
 
   const mapRef = useRef<MapRef | null>(null);
@@ -538,6 +540,7 @@ export function FireMap({ lat,
     }
     return features;
   }, [predictions, clusterPredictions, currentTick]);
+
   useEffect(() => {
     if (recenter === 0 || lat == null || lng == null) return;
     setViewState((v) => ({ ...v, longitude: lng, latitude: lat, zoom: Math.max(v.zoom, 13) }));
@@ -554,6 +557,20 @@ export function FireMap({ lat,
       zoom: Math.max(v.zoom, 13),
     }));
   }, [selectedResourceId, resources]);
+
+  // for saved locations on the profile page 
+  useEffect(() => {
+    if (!focus) {
+      return;
+    }
+    hasCentered.current = true;
+    setViewState((v) => ({
+      ...v,
+      longitude: focus.lng,
+      latitude: focus.lat,
+      zoom: focus.zoom,
+    }));
+  }, [focus]);
 
   const simulationShown = girdFeautures.length > 0;
   return (
