@@ -123,7 +123,7 @@ def test_service_actions_valid_request_updates_and_commits( action, start_status
 
 # search_report_table
 @patch.object(service, "role_request_list")
-def test_search_report_table_returns_data_and_total():
+def test_search_report_table_returns_data_and_total(mock_build):
     rows = [object(), object()]
     db = MagicMock()
     db.query.return_value.outerjoin.return_value.filter.return_value.all.return_value = rows
