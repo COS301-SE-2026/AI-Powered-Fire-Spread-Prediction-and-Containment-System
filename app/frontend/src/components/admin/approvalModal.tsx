@@ -1,7 +1,7 @@
+import { X } from 'lucide-react';
 import { RoleRequest, UserSummary } from '../../types/RoleRequest';
 import { RoleStatusBadge } from './RoleStatusBadge';
 import { ScoreBadge } from './ScoreBadge';
-import { X } from 'lucide-react';
 
 interface RoleApprovalModalProps {
   request: RoleRequest;
