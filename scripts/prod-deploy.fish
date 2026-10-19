@@ -12,31 +12,12 @@ function fail
     exit 1
 end
 
+source (dirname (status filename))/lib/ssm.fish
+
 function instance_id -a colour
     aws ec2 describe-instances --region $region \
         --filters Name=tag:Name,Values=fireaway-prod-$colour Name=instance-state-name,Values=pending,running,stopping,stopped \
         --query 'Reservations[0].Instances[0].InstanceId' --output text
-end
-
-function run_ssm -a instance cmd
-    set -l id (aws ssm send-command --region $region --instance-ids $instance \
-        --document-name AWS-RunShellScript \
-        --parameters (jq -cn --arg c $cmd '{commands: [$c]}') \
-        --query Command.CommandId --output text); or return 1
-    set -l st ""
-    while true
-        set st (aws ssm get-command-invocation --region $region --command-id $id \
-            --instance-id $instance --query Status --output text 2>/dev/null)
-        switch "$st"
-            case Pending InProgress Delayed ''
-                sleep 5
-            case '*'
-                break
-        end
-    end
-    aws ssm get-command-invocation --region $region --command-id $id --instance-id $instance \
-        --query '[StandardOutputContent,StandardErrorContent]' --output text | tail -n 15
-    test "$st" = Success
 end
 
 function swap_to -a instance colour
@@ -51,7 +32,7 @@ test (count $argv) -eq 2; or fail "usage: prod-deploy.fish <backend_tag> <fronte
 for pair in fireaway-ryan-backend:$argv[1] fireaway-ryan-frontend:$argv[2]
     set -l parts (string split : $pair)
     aws ecr describe-images --region $region --repository-name $parts[1] \
-        --image-ids imageTag=$parts[2] >/dev/null 2>&1; or fail "image $pair not found in ECR"
+        --image-ids imageTag=$parts[2] >/dev/null 2>&1; or fail "image $pair not found in ECR (was this exact tree deployed to staging first?)"
 end
 set -l backend $repo/fireaway-ryan-backend:$argv[1]
 set -l frontend $repo/fireaway-ryan-frontend:$argv[2]
@@ -80,15 +61,8 @@ echo "live: $live ($live_id)  deploying to: $idle ($idle_id)"
 # start idle
 aws ec2 start-instances --region $region --instance-ids $idle_id >/dev/null
 aws ec2 wait instance-running --region $region --instance-ids $idle_id
-set -l ping ""
-for i in (seq 60)
-    set ping (aws ssm describe-instance-information --region $region \
-        --filters Key=InstanceIds,Values=$idle_id \
-        --query 'InstanceInformationList[0].PingStatus' --output text)
-    test "$ping" = Online; and break
-    sleep 5
-end
-test "$ping" = Online; or fail "$idle never registered with ssm"
+
+wait_ssm $idle_id; or fail "$idle never registered with ssm"
 
 #deploy to idle
 echo "deploying $argv[1] $argv[2] to $idle..."
