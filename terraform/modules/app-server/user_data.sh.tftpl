@@ -3,6 +3,17 @@ set -euxo pipefail
 exec > >(tee /var/log/fireaway-bootstrap.log) 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
+
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile || dd if=/dev/zero of=/swapfile bs=1M count=2048
+  chmod 600 /swapfile
+  mkswap /swapfile
+fi
+swapon /swapfile 2>/dev/null || true
+grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+echo 'vm.swappiness=10' > /etc/sysctl.d/99-swap.conf
+sysctl -p /etc/sysctl.d/99-swap.conf
+
 apt-get update
 apt-get install -y ca-certificates curl unzip jq
 

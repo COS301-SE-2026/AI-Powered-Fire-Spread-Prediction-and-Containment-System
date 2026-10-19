@@ -22,11 +22,12 @@ services:
     depends_on:
       valkey:
           condition: service_started
+    memswap_limit: 2048M
     deploy:
       resources:
         limits:
           cpus: "1.0"
-          memory: 768M
+          memory: 1024M
         reservations:
           cpus: "0.25"
           memory: 256M
@@ -100,7 +101,7 @@ services:
       resources:
         limits:
           cpus: "0.2"
-          memory: 384M
+          memory: 320M
         reservations:
           cpus: "0.05"
           memory: 128M
