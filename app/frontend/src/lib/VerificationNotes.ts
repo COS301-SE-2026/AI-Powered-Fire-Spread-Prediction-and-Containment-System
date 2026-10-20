@@ -26,6 +26,14 @@ const MATCHING_DECISION: Partial<Record<ReportStatus, string>> = {
   rejected: 'auto_reject',
 };
 
+function getDecision(notes: string): string {
+  const separatorIndex = notes.indexOf(': ');
+  if (separatorIndex === -1) {
+    return notes;
+  }
+  return notes. slice(0, separatorIndex);
+}
+
 function describeAutoDecision(notes: string): string{
   const separatorIndex = notes.indexOf(': ');
   if (separatorIndex === -1) {
@@ -40,14 +48,6 @@ function describeAutoDecision(notes: string): string{
   const reasonCode = notes.slice(separatorIndex + 2) ;
   const reasonLabel = REASONS[reasonCode] ?? reasonCode.replaceAll('_', ' ');
   return `${decisionLabel} - ${reasonLabel}`;
-}
-
-function getDecision(notes: string): string {
-  const separatorIndex = notes.indexOf(': ');
-  if (separatorIndex === -1) {
-    return notes;
-  }
-  return notes. slice(0, separatorIndex);
 }
 
 export function VerificationNotes(notes: string | null | undefined, status: ReportStatus ): string {
