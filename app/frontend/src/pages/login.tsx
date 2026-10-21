@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import PasswordInput from '../components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
+import EmberField from '../components/ui/EmberEffect';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -119,6 +120,7 @@ export default function Login() {
           <div className="ga-bloom-primary" />
           <div className="ga-bloom-secondary" />
           <div className="ga-bloom-tertiary" />
+          <EmberField density={35} />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">

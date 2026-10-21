@@ -5,6 +5,7 @@ import PasswordInput from '@/components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
 import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
+import EmberField from '../components/ui/EmberEffect';
 
 interface RegisterForm {
   name: string;
@@ -154,6 +155,7 @@ export default function Register() {
           <div className="ga-bloom-primary" />
           <div className="ga-bloom-secondary" />
           <div className="ga-bloom-tertiary" />
+          <EmberField density={35} />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
