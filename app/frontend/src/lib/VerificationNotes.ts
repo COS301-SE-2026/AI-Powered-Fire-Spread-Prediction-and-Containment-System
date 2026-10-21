@@ -54,7 +54,7 @@ export function VerificationNotes(notes: string | null | undefined, status: Repo
   const isFinal = status === 'verified' || status === 'rejected';
   if (!notes) {
     if (isFinal) {
-      return 'No automated check recorded';
+      return `Manually ${status}`;
     }
     return 'Not yet verified';
   }
