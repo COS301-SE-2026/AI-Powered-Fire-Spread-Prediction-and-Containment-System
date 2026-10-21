@@ -159,7 +159,8 @@ def test_revoke_orphaned_user_raises(db):
 def test_get_role_requests_empty(db):
     """With no requests in db, listing should be empty with total 0"""
     result = role_request.get_role_requests(db)
-    assert result == {"data": [], "total": 0}
+    assert result.data == []
+    assert result.total == 0
     
 def test_get_role_requests_returns_created_requests(db):
     """Listing should include requests that were created"""
@@ -168,6 +169,18 @@ def test_get_role_requests_returns_created_requests(db):
     req1 = make_role_request(db, user1, role="admin", status="pending")
     req2 = make_role_request(db, user2, role="firefighter", status="pending")
     result = role_request.get_role_requests(db)
-    ids = {r.request_id for r in result["data"]}
+    ids = {r.request_id for r in result.data}
     assert {req1.request_id, req2.request_id} <= ids
-    assert result["total"] == len(result["data"])
+    assert result.total == len(result.data)
+
+def test_get_role_requests_new_user_has_no_trust_score(db) :
+    """A requester with no verified or rejected reports has no score and zero counts"""
+    user = make_user (db, role="user")
+    make_role_request(db, user, role="admin", status="pending")
+
+    result = role_request.get_role_requests(db)
+
+    item = result.data[0]
+    assert item.trust_score is None 
+    assert item.reports_verified == 0
+    assert item.reports_rejected == 0

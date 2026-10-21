@@ -7,10 +7,15 @@ from sqlalchemy.orm import Session
 from app.backend.src.enums.role_request_status import RequestStatus
 from app.backend.src.models.role_request import RoleRequest
 from app.backend.src.models.users import User
+from app.backend.src.schemas.role_request import RoleRequestList, RoleRequestResponse
+from app.backend.src.services.verification.reporter_trust import (
+    reporter_report_counts,
+    trust_score_from_counts,
+)
 
 def get_role_requests(db: Session):
     request = db.query(RoleRequest).all()
-    return {"data": request, "total": len(request)}
+    return role_request_list(db, request)
 
 
 def approve_role_request(request_id: str, admin_id: str, db: Session):
@@ -93,5 +98,19 @@ def search_report_table(db: Session, key: str):
         )
         .all()
     )
-    return {"data": request, "total": len(request)}
+    return role_request_list(db, request)
+
+def role_request_list(db: Session, requests: list[RoleRequest]) -> RoleRequestList:
+    """List with each reporters trust data"""
+    counts = reporter_report_counts([req.user_id for req in requests], db)
+
+    items: list[RoleRequestResponse] = []
+    for req in requests:
+        verified, rejected = counts[req.user_id]
+        item = RoleRequestResponse.model_validate(req)
+        item.reports_verified = verified 
+        item.reports_rejected = rejected
+        item.trust_score = trust_score_from_counts(verified, rejected)
+        items.append(item)
+    return RoleRequestList(data=items, total=len(items))
 
