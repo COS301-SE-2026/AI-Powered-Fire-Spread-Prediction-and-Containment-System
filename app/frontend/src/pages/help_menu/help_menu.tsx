@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { SideBar } from '../../components/layout/SideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { ActionCard } from '../../components/firefighter/actionCard';
+import FaqItem from '@/components/shared/FaqItem';
 
 export default function HelpPage() {
   const faqs = [
@@ -255,23 +256,13 @@ export default function HelpPage() {
           />
         </div>
         {/* FAQ's */}
-        <div className="px-6 space-y-3">
-          {faqs.map((faq, index) => (
-            <div
-              key={faq.id}
-              className="group hover:bg-white/5 border border-white/5 rounded-[var(--radius-md)] px-3 py-2.5 transition-colors cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-display font-bold text-sm uppercase tracking-wide text-white/80 group-hover:text-white transition-colors">
-                  {faq.q}
-                </span>
-                <span className="text-white/40 group-hover:text-white/80">▼</span>
-              </div>
-              <div className="overflow-hidden max-h-0 group-hover:max-h-[500px] transition-all duration-300 ease-in-out">
-                <p className="pt-2 text-white/70 text-sm">{faq.a}</p>
-              </div>
-            </div>
-          ))}
+        <div className='px-6'>
+          <h2 className='font-display font-bold text-xl uppercase tracking-wide text-white m4-4'>FAQs</h2>
+          <div className='space-y-3'>
+            {faqs.map((faq) => (
+              <FaqItem key={faq.id} question={faq.q} answer={faq.a} />
+            ))}
+          </div>
         </div>
         <div className="mt-10 px-6 pb-6">
           <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-white/70 text-sm">
