@@ -45,7 +45,7 @@ export default function VolunteerPage() {
 
                     <div className='flex justify-end mb-6'>
                         <button type="button" onClick={() => setIsAddGPUOpen(true)}
-                            className='min-h-[44px] px-4 py-2 rounded-box btn btn-primary text-lg hover:bg-flare active:bg-ember text-sm font-bold font-display uppercase tracking-wide text-white flex items-center gap-2 transition-colors cursor-pointer shrink-0 shadow-md'
+                            className='min-h-[2.75rem] px-4 py-2 rounded-box btn btn-primary text-lg hover:bg-flare active:bg-ember text-sm font-bold font-display uppercase tracking-wide text-white flex items-center gap-2 transition-colors cursor-pointer shrink-0 shadow-md'
                         >
                             <Plus className='size-4' />
                             Add a machine

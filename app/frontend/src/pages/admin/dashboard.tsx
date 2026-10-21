@@ -6,7 +6,6 @@ import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { DashboardMetrics } from '../../components/admin/adminDashboardMetrics';
-import { SystemMetrics } from '../../components/admin/systemMetrics';
 import { MiniMetric } from '../../types/AdminDashboard';
 
 export const AdminDashBoardDetailed: React.FC = () => {
@@ -129,7 +128,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
             </div>
           </section>
 
-          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[300px] ">
+          <section className="bg-base-200 border border-base-300 rounded shadow-sm p-6 flex flex-col justify-between min-h-[18.75rem] ">
             <div className="w-full">
               <h2 className="text-medium font-bold uppercase tracking-wider text-base-content/70 mb-6 font-display">
                 Incidents this week
@@ -143,12 +142,12 @@ export const AdminDashBoardDetailed: React.FC = () => {
                       key={day.day}
                       className="flex flex-col items-center flex-1 group mx-1.5 h-full justify-end"
                     >
-                      <div className="text-[10px] font-mono text-primary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="text-[0.625rem] font-mono text-primary mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         {day.count}
                       </div>
                       <div
                         className="w-full bg-primary/80 rounded-t-sm border-t border-x border-primary group-hover:bg-primary transition-colors"
-                        style={{ height: `${percentageHeight}%`, minHeight: '4px' }}
+                        style={{ height: `${percentageHeight}%`, minHeight: '0.25rem' }}
                       />
                       <span className="text-medium font-medium text-text-muted mt-2 block font-mono">
                         {day.day}
@@ -159,7 +158,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-base-300 text-[15px] text-text-muted font-mono flex justify-between">
+            <div className="mt-4 pt-4 border-t border-base-300 text-[0.9375rem] text-text-muted font-mono flex justify-between">
               <span>Y-Axis Max: {maxCount} Alerts</span>
               <span> Spatial Log Distribution Context</span>
             </div>
