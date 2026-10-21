@@ -14,7 +14,8 @@
 
 <p align="center">
   <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml"><img src="https://img.shields.io/github/actions/workflow/status/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/cicd.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=build%20and%20tests" /></a>
-   <a href="https:///github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml?query=branch%3Amain"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/python-coverage-comment-action-data/endpoint.json&style=for-the-badge"/></a>
+   <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml?query=branch%3Amain"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/python-coverage-comment-action-data-unit/endpoint.json&style=for-the-badge&label=unit%20coverage" alt="Unit test coverage"/></a>
+  <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/actions/workflows/cicd.yml?query=branch%3Amain"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/python-coverage-comment-action-data-integration/endpoint.json&style=for-the-badgelabel=integration%20coverage" alt="Integration test coverage"/></a>
 </p>
 <p align="center">
   <a href="https://github.com/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System/issues"><img src="https://img.shields.io/github/issues/COS301-SE-2026/AI-Powered-Fire-Spread-Prediction-and-Containment-System?style=for-the-badge&logo=github" /></a>
