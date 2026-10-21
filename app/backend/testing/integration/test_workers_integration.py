@@ -94,9 +94,7 @@ class TestKeysAndRegistration:
         assert res1.status_code == 200
 
         res2 = client.post("/api/v1/workers/register", json=payload(key))
-        assert res2.status_code == 200
-        
-        assert res1.json()["worker_id"] == res2.json()["worker_id"]
+        assert res2.status_code == 401 #key is burned on first use
 
 class TestWebSocketControl:
     def test_connect_joins_idle_pool_and_answers_ping(self, client, test_valkey, user_headers):
@@ -112,17 +110,17 @@ class TestWebSocketControl:
         assert not test_valkey.sismember("worker:pool:idle", body["worker_id"])
 
     def test_invalid_token_reject(self, client, test_valkey):
-        with pytest.raises(WebSocketDisconnect) as exc:
-            with client.websocket_connect(WS_path, headers=ws_headers("not-a-jwt")):
-                pass
-        assert exc.value.code == 1008
+        with client.websocket_connect(WS_path, headers=ws_headers("not-a-jwt")) as ws:
+            with pytest.raises(WebSocketDisconnect) as exc:
+                ws.receive_text()
+        assert exc.value.code == 4401
 
     def test_user_token_cannot_conn_as_worker(self, client, test_valkey, user_headers):
         _, headers = user_headers
-        with pytest.raises(WebSocketDisconnect) as exc:
-            with client.websocket_connect(WS_path, headers=headers):
-                pass
-        assert exc.value.code == 1008
+        with client.websocket_connect(WS_path, headers=headers) as ws:
+            with pytest.raises(WebSocketDisconnect) as exc:
+                ws.receive_text()
+        assert exc.value.code == 4401
 
 class TestQuarantine:
     def quaratine(self, db, worker_id, until):

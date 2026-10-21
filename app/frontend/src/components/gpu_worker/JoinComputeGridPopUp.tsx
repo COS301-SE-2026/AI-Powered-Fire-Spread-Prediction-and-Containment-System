@@ -81,7 +81,7 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
 
     return (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 font-body backdrop-blur-xs'>
-            <div className='relative w-full max-w-md rounded-box border border-carbon-stroke bg-carbon-card p-6 shadow-2xl text-text-primary'>
+            <div className='relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-box border border-carbon-stroke bg-carbon-card p-6 shadow-2xl text-text-primary'>
                 <button type="button" onClick={handleClose} aria-label="Close dialog"
                     className='absolute right-4 top-4 text-text-muted hover:text-text-primary transition-colors'
                 >
@@ -142,13 +142,13 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
                     </div>
                 ) : (
                     <div className='space-y-4'>
-                        <p className='text-xs text-text-muted leading-relaxed'>
-                            This key works once and expires in 24 hours. Run the command below on your machine.
-                            <span className='block mt-1 text-text-disabled font-mono text-[11px]'>*Docker necessary</span>
+                        <p className='text-sm text-text-muted leading-relaxed'>
+                            Run this command in a terminal on the machine you want to volunteer. It workers once and expires in 7 days.
+                            You'll need Docker installed, plus NVIDIA GPU support for Docker
                         </p>
 
                         <div>
-                            <label className='block text-sm font-semibold text-text-primary mb-1.5 font-display'>
+                            <label className='block text-base font-semibold text-text-primary mb-1.5 font-display'>
                                 Docker command
                             </label>
                             <div className='relative rounded-sm border border-carbon-stroke bg-carbon-input p-3'>
@@ -169,9 +169,31 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
                             </div>
                         </div>
 
+                        <div>
+                            <p className='text-base font-semibold text-text-primary mb-1.5 font-display'>What happens next:</p>
+                            <ol className='list-decimal list-inside text-sm text-text-muted leading-relaxed '>
+                                <li>The worker downloads (a few GB the first tinme) and checks yout GPU.</li>
+                                <li>It runs a quick benchmark, then registers with FireAway.</li>
+                                <li>Your machine appears in the table as active and starts receiving jobs.</li>
+                                <li>it restarts automatically with Docker, so you only run this command once.</li>
+                            </ol>
+                        </div>
+
+                        <details className='text-sm text-text-muted'>
+                            <summary className='cursor-pointer text-base font-semibold text-text-primary font-display'>
+                                Troubleshoot
+                            </summary>
+                            <ul className='list-disc list-inside mt-2 leading-relaxed'>
+                                <li><span className='font-mono'>docker: command not found</span>: Docker is not installed, or docker desktop isn't running.</li>
+                                <li><span className='font-mono'>could not select device driver</span>: GPU support for Docker is missing. Update your NVIDIA driver (Windows) or install the NVIDIA Container Toolkit (Linux).</li>
+                                <li>See what the worker is doing with <span className='font-mono'>docker logs -f fireaway-worker</span>.</li>
+                                <li>Lost the command? Use the <span className='text-text-primary'>Command</span> button next to your machine in the table.</li>
+                            </ul>
+                        </details>
+
                         <div className='flex justify-end pt-3'>
                             <button type="button" onClick={handleClose}
-                                className='min-h-[44px] px-6 py-2 rounded-box bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-display transition-colors cursor-pointer shadow-md'
+                                className='min-h-[44px] px-6 py-2 rounded-box bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-white transition-colors cursor-pointer shadow-md'
                             >
                                 Done
                             </button>

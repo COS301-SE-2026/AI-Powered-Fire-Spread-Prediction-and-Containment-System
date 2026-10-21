@@ -21,9 +21,8 @@ export function useFuelConditions(lat: number| null, lng: number | null) {
             setConditions(data);
         }).catch(err => {
             if (cancelled) return;
-            console.error('Failed to load fuel conditions', err);
+            console.warn('Failed to load fuel conditions', err);
             setError(err instanceof Error ? err.message : 'Unkown error');
-            setConditions(null);
         }).finally(() => {
             if (!cancelled) setLoading(false);
         })

@@ -25,7 +25,7 @@ router = APIRouter(prefix="/api/firefighter", tags=["Firefighter"])
 @router.get(
     "/dashboard",
     response_model=DashboardData,
-    responses={404: {"description": "No nearby fires found"}},
+    responses={404: {"description": "No nearby fires found"}, 503: {"description": "Weather service unavailable"}},
 )
 def get_nearby_fires(
     lat: float, lng: float, radius_km: float = 20, db: Session = Depends(get_db)
@@ -41,8 +41,8 @@ def get_nearby_fires(
             lat, lng
         )
 
-    except ValueError as error:
-        raise HTTPException(status_code=404, detail=str(error))
+    except ValueError:
+        environment_variables = None
 
     return {
         "nearby_fires": nearby_fires,

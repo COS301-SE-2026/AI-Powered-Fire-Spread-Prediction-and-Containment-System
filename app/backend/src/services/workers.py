@@ -25,8 +25,42 @@ valkey_client = redis.Redis(
     decode_responses=True,
 )
 
-REGISTRATION_KEY_TTL = 86400 # 24 hours
+REGISTRATION_KEY_TTL = 86400 * 7 # 7 days
+WORKER_TOKEN_LIFETIME = timedelta(days=365)
+WORKER_CONTAINER_NAME = "fireaway-worker"
+WORKER_VOLUME_NAME = "fireaway-worker-data"
 MIN_VRAM_MB = 3584
+
+def build_docker_command(label: str, request_host:str | None, reg_key: str | None = None) -> str:
+    backend_url = public_backend_url(request_host)
+    worker_image = os.getenv("WORKER_IMAGE", "ghcr.io/axil1ty/fireaway-worker:latest")
+
+    if backend_url.startswith("https://"):
+        ws_url = "wss://" + backend_url[len("https://"):] + "/api/v1/workers/connect"
+    elif backend_url.startswith("http://"):
+        ws_url = "ws://" + backend_url[len("http://"):] + "/api/v1/workers/connect"
+    else:
+        ws_url = backend_url + "/api/v1/workers/connect"
+
+    parts = [
+        "docker run",
+        "--pull always",
+        f"--name {WORKER_CONTAINER_NAME}",
+        "--restart unless-stopped",
+        "--gpus all",
+        '--memory="8g" --memory-swap="8g"',
+        f"-v {WORKER_VOLUME_NAME}:/data",
+    ]
+
+    if reg_key:
+        parts.append(f"-e REGISTRATION_KEY={shlex.quote(reg_key)}")
+    parts += [
+        f"-e WORKER_LABEL={shlex.quote(label)}",
+        f"-e BACKEND_BASE_URL={shlex.quote(backend_url)}",
+        f"-e WEBSOCKET_URL={shlex.quote(ws_url)}",
+        shlex.quote(worker_image),
+    ]
+    return " ".join(parts)
 
 def public_backend_url(request_host: str | None) -> str:
     """uses the host that user is on"""
@@ -148,10 +182,10 @@ def remove_worker_node(
 def generate_worker_key(
         user_id: str,
         label: str = "volunteer-desktop",
-        gpu_name: str = "Unkown GPU",
+        gpu_name: str = "Unknown GPU",
         request_host: str | None = None,
 ) -> dict:
-    """Generates single-use setup key and stores in Valkey with 24 h TTL to authenticate user"""
+    """Generates single-use setup key and stores in Valkey with a 7 day TTL to authenticate user"""
 
     token_suffix = secrets.token_hex(8).upper()
     reg_key = f"REG-{token_suffix}"
@@ -161,30 +195,33 @@ def generate_worker_key(
     # SETEX worker:reg:<key> 86400 <user_id>
     valkey_client.setex(valkey_storage_key, REGISTRATION_KEY_TTL, user_id)
 
-    backend_url = public_backend_url(request_host)
-    worker_image = os.getenv("WORKER_IMAGE", "fireaway-worker:latest")
-
-    if backend_url.startswith("https://"):
-        ws_url = "wss://" + backend_url[len("https://"):] + "/api/v1/workers/connect"
-    elif backend_url.startswith("http://"):
-        ws_url = "ws://" + backend_url[len("http://"):] + "/api/v1/workers/connect"
-    else:
-        ws_url = backend_url + "/api/v1/workers/connect"
-
     return {
         "registration_key": reg_key,
         "expires_in_seconds": REGISTRATION_KEY_TTL,
-        "docker_command": (
-            f'docker run --rm --gpus all --memory="8g" '
-            f'-e REGISTRATION_KEY={shlex.quote(reg_key)} '
-            f'-e WORKER_LABEL={shlex.quote(label)} '
-            f'-e BACKEND_BASE_URL={shlex.quote(backend_url)} '
-            f'-e WEBSOCKET_URL={shlex.quote(ws_url)} '
-            f'{shlex.quote(worker_image)}'
-        ),
+        "docker_command": build_docker_command(label, request_host, reg_key),
     }
 
 issue_enrollment_key = generate_worker_key
+
+def get_owned_node(db: Session, worker_id: str, user_id: str) -> WorkerNode:
+    node = db.query(WorkerNode).filter(WorkerNode.id == worker_id).first()
+    if not node:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker node not found")
+    if node.user_id != user_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to manage this worker node")
+    if node.status == WorkerStatus.removed:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This worker was removed. Add it again as a new machine")
+    return node
+
+def get_worker_command(db: Session, worker_id: str, user_id: str, request_host: str | None) -> dict:
+    """Run command without a registration key; the worker reconnects with its saved credentials."""
+    node = get_owned_node(db, worker_id, user_id)
+    return {"docker_command": build_docker_command(node.label, request_host)}
+
+def reset_worker_key(db: Session, worker_id: str, user_id: str, request_host: str | None) -> dict:
+    """Issues a new key with this node's label, so registration re-attaches to the same row"""
+    node = get_owned_node(db, worker_id, user_id)
+    return generate_worker_key(user_id, label=node.label, gpu_name=node.gpu_name, request_host=request_host)
 
 
 def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> dict:
@@ -205,7 +242,7 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
 
     valkey_storage_key = f"worker:reg:{register_data.registration_key}"
 
-    user_id = valkey_client.get(valkey_storage_key)
+    user_id = valkey_client.getdel(valkey_storage_key)
 
     if not user_id:
         raise HTTPException(
@@ -220,7 +257,8 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
         .filter(
             WorkerNode.user_id == user_id,
             WorkerNode.label == label,
-            WorkerNode.gpu_name == register_data.gpu_name
+            WorkerNode.gpu_name == register_data.gpu_name,
+            WorkerNode.status != "removed"
         )
         .first()
     )
@@ -257,7 +295,7 @@ def register_worker_node(db: Session, register_data: WorkerRegisterRequest) -> d
             "role": "worker_node",
             "type": "worker_device",
         },
-        expires_delta=timedelta(days=7)
+        expires_delta=WORKER_TOKEN_LIFETIME
     )
 
     return {

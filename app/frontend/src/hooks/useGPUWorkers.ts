@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiCall } from '@/lib/api';
 import type { GPUWorker } from '../types/GPUWorkers';
 import { useDebounce } from './useDebounce';
@@ -27,13 +27,8 @@ export function useGPUWorkers(searchKey: string = ''): UseGPUWorkersReturn {
         setLoading(true);
         setError(null);
 
-        const key = debouncedSearch.trim();
-        const endpoint = key
-            ? `/api/v1/workers?key=${encodeURIComponent(key)}`
-            : '/api/v1/workers';
-
         try{
-            const data = await apiCall(endpoint);
+            const data = await apiCall('/api/v1/workers');
             setWorkers(Array.isArray(data) ? data : []);
         }catch(err: unknown){
             setError(err instanceof Error ? err.message : 'Error fetching workers');
@@ -42,7 +37,7 @@ export function useGPUWorkers(searchKey: string = ''): UseGPUWorkersReturn {
             setLoading(false);
         }
         
-    }, [debouncedSearch]);
+    }, []);
 
     const runAction = useCallback(
         async (id: string, action: 'activate' | 'deactivate' | 'remove', body?: unknown): Promise<void> => {
@@ -60,12 +55,20 @@ export function useGPUWorkers(searchKey: string = ''): UseGPUWorkersReturn {
     const deactivate = useCallback((id: string) => runAction(id, 'deactivate'), [runAction]);
     const remove = useCallback((id: string, reason?: string) => runAction(id, 'remove', { reason: reason?.trim() || null}), [runAction]);
 
+    const filteredWorkers = useMemo(() => {
+        const key = debouncedSearch.trim().toLowerCase();
+        if (!key) return workers;
+        return workers.filter((w) => 
+            [w.label, w.gpu_name, w.id].some((field) => field?.toLowerCase().includes(key))
+        )
+    }, [workers, debouncedSearch])
+
     useEffect(() => {
         fetchWorkers();
     }, [fetchWorkers]);
 
     return {
-        workers,
+        workers: filteredWorkers,
         loading,
         error,
         actionError,

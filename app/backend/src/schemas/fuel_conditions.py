@@ -42,3 +42,4 @@ class FuelConditions(BaseModel):
 
     observed_at: str
     source: str = "open-meteo"
+    stale: bool = False
