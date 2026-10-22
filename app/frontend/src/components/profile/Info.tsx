@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import type { UserResponse, UserUpdate } from "../../types/User";
 import { useUpdateProfile } from "../../hooks/useUpdateProfile";
+import PasswordInput from "../shared/PasswordInput";
+import { apiCall } from "../../lib/api";
 
 interface InfoProps {
     readonly user: UserResponse;
