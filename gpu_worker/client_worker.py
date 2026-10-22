@@ -20,7 +20,7 @@ import requests
 import torch
 import websockets
 
-from app.backend.src.ai.model_pipeline import run_convlstm_dca, WeatherForecaster, load_weather_forecaster
+from app.backend.src.ai.model_pipeline import run_convlstm_dca, WeatherForecaster, load_weather_forecaster, model_summary, summarize_hourly_weather
 from app.backend.src.ai.simulation import build_boundary_ignition_mask, build_multi_boundary_ignition_mask
 from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
@@ -219,7 +219,7 @@ def execute_pipeline_task(forecaster: Optional[WeatherForecaster], payload: dict
     )
 
     report("running_model", "Running fire spread model")
-    history = run_convlstm_dca(
+    history, hourly_weather = run_convlstm_dca(
         forecaster=forecaster,
         weather_history=weather_tensor,
         static_grids=static_grids,
@@ -242,6 +242,9 @@ def execute_pipeline_task(forecaster: Optional[WeatherForecaster], payload: dict
         "status": "completed",
         "history_z": base64.b64encode(zlib.compress(hist.tobytes(), 6)).decode("ascii"),
         "history_shape": list(hist.shape),
+        "weather_by_hour": summarize_hourly_weather(hourly_weather),
+        "forecast_source": "convlstm" if forecaster is not None else "current_weather",
+        "forecast_model": model_summary(forecaster),
     }
 
 async def run_worker_loop(forecaster: Optional[WeatherForecaster], worker_jwt: str):

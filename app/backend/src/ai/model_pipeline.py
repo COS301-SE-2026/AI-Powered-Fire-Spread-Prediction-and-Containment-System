@@ -21,6 +21,7 @@ class WeatherForecaster:
     delta_norm: DeltaNormalizer
     wind_scale: float #m/s -> model wind units
     max_hours: int
+    meta: dict # meatadata.json skills scores, channels, and units
 
 def load_weather_forecaster(model_dir: str | Path, device: str | torch.device) -> WeatherForecaster:
     """Builds the convLSTM exactly as it is trained using metadata.json"""
@@ -42,9 +43,38 @@ def load_weather_forecaster(model_dir: str | Path, device: str | torch.device) -
         raw_norm=raw_norm,
         delta_norm=delta_norm,
         wind_scale=KMH_PER_MS if meta["units"]["wind_u"] == "km/h" else 1.0,
-        max_hours=meta["rollout_steps"]
+        max_hours=meta["rollout_steps"],
+        meta=meta
     )
 
+def summarize_hourly_weather(hourly_weather: list[dict[str, np.ndarray]]) -> list[dict]:
+    """Grid average weather, per hour"""
+    summary = []
+    for hour, w in enumerate(hourly_weather):
+        u,v = float(np.mean(w["wind_u"])), float(np.mean(w["wind_v"]))
+        summary.append({
+            "hour": hour,
+            "temperature_c": round(float(np.mean(w["temperature"])), 1),
+            "rel_humidity_pct": round(float(np.mean(w["rel_humidity"])), 1),
+            "wind_speed_kmh": round(float(np.hypot(u, v)) * KMH_PER_MS, 1),
+            "wind_dir_deg": round(float(np.degrees(np.arctan2(-u, -v)) % 360)),
+        })
+    return summary
+
+def model_summary(forecaster: WeatherForecaster | None) -> dict | None:
+    """Accuracy of the forecast model on held out year for display"""
+    if forecaster is None:
+        return None
+    meta = forecaster.meta
+    return {
+        "mean_skill": round(meta["mean_skill"], 3),
+        "val_years": [f.removeprefix("weather_tensors_").removesuffix(".npz") for f in meta.get("val_files", [])],
+        "skill_by_channel": {
+            ch: {hour: round(v["skill"], 3) for hour, v in steps.items()}
+            for ch, steps in meta["val_metrics"].items()
+        }
+    }
+    
 def autoregressive_weather_forecast(
     forecaster: WeatherForecaster,
     init_weather_history: torch.Tensor,
@@ -114,9 +144,9 @@ def run_convlstm_dca(
     containment_lines: list[str] | None = None,
     grid_bounds: tuple[float, float, float, float] | None = None,
     params: dict | None = None,
-) -> list[np.ndarray]:
+) -> tuple[list[np.ndarray], list[dict[str, np.ndarray]]]:
     """
-    Combines the two models for the spread simulation
+    Combines the two models for the spread simulation and returns burn history and weather grids per hour
     """
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -146,4 +176,4 @@ def run_convlstm_dca(
         params=params,
     )
 
-    return history
+    return history, hourly_weather

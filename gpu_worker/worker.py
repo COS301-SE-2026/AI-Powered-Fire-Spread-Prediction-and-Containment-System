@@ -17,7 +17,7 @@ from app.backend.src.ai.simulation import (
     build_multi_boundary_ignition_mask,
 )
 #from app.backend.src.ai.dca import run_dca
-from app.backend.src.ai.model_pipeline import run_convlstm_dca, load_weather_forecaster, WeatherForecaster
+from app.backend.src.ai.model_pipeline import run_convlstm_dca, load_weather_forecaster, WeatherForecaster, model_summary, summarize_hourly_weather
 from app.backend.src.ai.sim_constants import MAXSTEPS, TICKS_PER_HOUR
 from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
@@ -170,7 +170,7 @@ def run_inference(job: dict) -> dict:
         for k, v in raw_params.items()
     }
     
-    history = run_convlstm_dca(
+    history, hourly_weather = run_convlstm_dca(
         forecaster=convlstm_forecaster,
         weather_history=weather_history_tensor,
         static_grids=static_grids,
@@ -194,6 +194,9 @@ def run_inference(job: dict) -> dict:
         "status": "completed",
         "history_z": base64.b64encode(zlib.compress(hist.tobytes(), 6)).decode("ascii"),
         "history_shape": list(hist.shape),
+        "weather_by_hour": summarize_hourly_weather(hourly_weather),
+        "forecast_source": "convlstm" if convlstm_forecaster is not None else "current_weather",
+        "forecast_model": model_summary(convlstm_forecaster),
     }
     
 def write_result_to_artifacts(job_id: str, result: dict) -> str:
