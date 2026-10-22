@@ -1,0 +1,73 @@
+train: 15 files, val: ['weather_tensors_2022', 'weather_tensors_2023', 'weather_tensors_2024']
+epoch 000  tf_p=1.00  train_loss=0.1507   val_loss=0.2653 skill=0.435
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 001  tf_p=0.98  train_loss=0.1262   val_loss=0.2631 skill=0.442
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 002  tf_p=0.97  train_loss=0.1220   val_loss=0.2595 skill=0.451
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 003  tf_p=0.95  train_loss=0.1199   val_loss=0.2567 skill=0.459
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 004  tf_p=0.94  train_loss=0.1186   val_loss=0.2701 skill=0.435
+epoch 005  tf_p=0.93  train_loss=0.1179   val_loss=0.2601 skill=0.450
+epoch 006  tf_p=0.91  train_loss=0.1173   val_loss=0.2555 skill=0.462
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 007  tf_p=0.90  train_loss=0.1167   val_loss=0.2500 skill=0.475
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 008  tf_p=0.88  train_loss=0.1166   val_loss=0.2521 skill=0.471
+epoch 009  tf_p=0.86  train_loss=0.1164   val_loss=0.2517 skill=0.473
+epoch 010  tf_p=0.85  train_loss=0.1161   val_loss=0.2558 skill=0.464
+epoch 011  tf_p=0.83  train_loss=0.1164   val_loss=0.2623 skill=0.446
+epoch 012  tf_p=0.82  train_loss=0.1163   val_loss=0.2477 skill=0.481
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 013  tf_p=0.80  train_loss=0.1165   val_loss=0.2502 skill=0.474
+epoch 014  tf_p=0.79  train_loss=0.1166   val_loss=0.2446 skill=0.486
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 015  tf_p=0.78  train_loss=0.1167   val_loss=0.2472 skill=0.483
+epoch 016  tf_p=0.76  train_loss=0.1168   val_loss=0.2449 skill=0.487
+epoch 017  tf_p=0.74  train_loss=0.1172   val_loss=0.2498 skill=0.474
+epoch 018  tf_p=0.73  train_loss=0.1172   val_loss=0.2484 skill=0.481
+epoch 019  tf_p=0.71  train_loss=0.1175   val_loss=0.2474 skill=0.480
+epoch 020  tf_p=0.70  train_loss=0.1179   val_loss=0.2447 skill=0.487
+epoch 021  tf_p=0.69  train_loss=0.1178   val_loss=0.2452 skill=0.484
+epoch 022  tf_p=0.67  train_loss=0.1180   val_loss=0.2432 skill=0.491
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 023  tf_p=0.66  train_loss=0.1182   val_loss=0.2440 skill=0.488
+epoch 024  tf_p=0.64  train_loss=0.1186   val_loss=0.2424 skill=0.493
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 025  tf_p=0.62  train_loss=0.1187   val_loss=0.2433 skill=0.490
+epoch 026  tf_p=0.61  train_loss=0.1189   val_loss=0.2432 skill=0.491
+epoch 027  tf_p=0.59  train_loss=0.1191   val_loss=0.2416 skill=0.494
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 028  tf_p=0.58  train_loss=0.1193   val_loss=0.2414 skill=0.494
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 029  tf_p=0.57  train_loss=0.1198   val_loss=0.2420 skill=0.492
+epoch 030  tf_p=0.55  train_loss=0.1200   val_loss=0.2410 skill=0.496
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 031  tf_p=0.54  train_loss=0.1203   val_loss=0.2411 skill=0.495
+epoch 032  tf_p=0.52  train_loss=0.1204   val_loss=0.2410 skill=0.494
+epoch 033  tf_p=0.51  train_loss=0.1208   val_loss=0.2414 skill=0.493
+epoch 034  tf_p=0.49  train_loss=0.1210   val_loss=0.2405 skill=0.496
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 035  tf_p=0.48  train_loss=0.1213   val_loss=0.2399 skill=0.498
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 036  tf_p=0.46  train_loss=0.1216   val_loss=0.2407 skill=0.495
+epoch 037  tf_p=0.45  train_loss=0.1220   val_loss=0.2401 skill=0.496
+epoch 038  tf_p=0.43  train_loss=0.1224   val_loss=0.2397 skill=0.498
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 039  tf_p=0.42  train_loss=0.1227   val_loss=0.2392 skill=0.499
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 040  tf_p=0.40  train_loss=0.1227   val_loss=0.2395 skill=0.498
+epoch 041  tf_p=0.39  train_loss=0.1231   val_loss=0.2399 skill=0.498
+epoch 042  tf_p=0.37  train_loss=0.1237   val_loss=0.2390 skill=0.499
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 043  tf_p=0.35  train_loss=0.1239   val_loss=0.2389 skill=0.500
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 044  tf_p=0.34  train_loss=0.1244   val_loss=0.2388 skill=0.500
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 045  tf_p=0.32  train_loss=0.1245   val_loss=0.2388 skill=0.500
+epoch 046  tf_p=0.31  train_loss=0.1251   val_loss=0.2387 skill=0.500
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 047  tf_p=0.30  train_loss=0.1253   val_loss=0.2387 skill=0.500
+  saved checkpoint -> app/artifact_store/models/weather_convlstm/LATEST
+epoch 048  tf_p=0.28  train_loss=0.1258   val_loss=0.2387 skill=0.500
+epoch 049  tf_p=0.27  train_loss=0.1260   val_loss=0.2387 skill=0.500

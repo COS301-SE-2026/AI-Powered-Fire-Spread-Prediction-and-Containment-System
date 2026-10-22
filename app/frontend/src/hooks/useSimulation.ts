@@ -2,6 +2,20 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { SIM_MAX_STEPS } from '../types/simulation';
 
+export interface HourlyWeather {
+  hour: number;
+  temperature_c: number;
+  rel_humidity_pct: number;
+  wind_speed_kmh: number;
+  wind_dir_deg: number;
+}
+
+export interface ForecastModelInfo{
+  mean_skill: number;
+  val_years: string[];
+  skill_by_channel: Record<string, Record<string, number>>;
+}
+
 export interface Prediction {
   ref: string;
   lat: number;
@@ -15,6 +29,9 @@ export interface Prediction {
   grid_h: number;
   grid_w: number;
   cell_size_m: number;
+  weather_by_hour?: HourlyWeather[];
+  forecast_source?: 'convlstm' | 'current_weather' | 'unknown';
+  forecast_model?: ForecastModelInfo | null;
 }
 
 export interface ClusterPrediction {
@@ -30,6 +47,9 @@ export interface ClusterPrediction {
   grid_h: number;
   grid_w: number;
   cell_size_m: number;
+  weather_by_hour?: HourlyWeather[];
+  forecast_source?: 'convlstm' | 'current_weather' | 'unknown';
+  forecast_model?: ForecastModelInfo | null;
 }
 
 export interface SimulationResult {

@@ -26,4 +26,35 @@ def reporter_trust_score(user_id: str | None, session: Session) -> float:
         return DEFAULT_SCORE
 
     verified_count = sum(1 for status in statuses if status == ReportStatus.verified)
-    return (verified_count / len(statuses)) * 100
+    score = trust_score_from_counts(verified_count, len(statuses) - verified_count)
+    if score is None:
+        return DEFAULT_SCORE
+    return score
+
+# for displaying the admin reporter score
+def trust_score_from_counts(verified: int, rejected: int) -> float | None:
+    """Compute a 0-1 trust score from report counts"""
+
+    total = verified + rejected
+    if total == 0:
+        return None 
+    return (verified / total) * 100
+
+def reporter_report_counts(user_ids: list[str], session: Session) -> dict[str, tuple[int, int]]:
+    """Counts each user's verified and rejected reports in a single query."""
+    counts = {user_id: (0, 0) for user_id in user_ids}
+    if not user_ids: 
+        return counts
+    
+    query = select(FireReports.user_id, FireReports.status).where(
+        FireReports.user_id.in_(user_ids),
+        FireReports.status.in_([ReportStatus.verified, ReportStatus.rejected]),
+    )
+
+    for user_id, status in session.execute(query).all():
+        verified, rejected = counts[user_id]
+        if status == ReportStatus.verified:
+            counts[user_id] = (verified + 1, rejected)
+        else:
+            counts[user_id] = (verified, rejected + 1)
+    return counts

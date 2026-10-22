@@ -33,7 +33,7 @@ MIN_VRAM_MB = 3584
 
 def build_docker_command(label: str, request_host:str | None, reg_key: str | None = None) -> str:
     backend_url = public_backend_url(request_host)
-    worker_image = os.getenv("WORKER_IMAGE", "fireaway-worker:latest")
+    worker_image = os.getenv("WORKER_IMAGE", "ghcr.io/axil1ty/fireaway-worker:latest")
 
     if backend_url.startswith("https://"):
         ws_url = "wss://" + backend_url[len("https://"):] + "/api/v1/workers/connect"
@@ -44,6 +44,7 @@ def build_docker_command(label: str, request_host:str | None, reg_key: str | Non
 
     parts = [
         "docker run",
+        "--pull always",
         f"--name {WORKER_CONTAINER_NAME}",
         "--restart unless-stopped",
         "--gpus all",

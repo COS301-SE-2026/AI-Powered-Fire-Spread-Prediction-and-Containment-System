@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import argparse
 import random
 from dataclasses import dataclass, field
@@ -7,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
 from app.backend.ml.features.normalization import DeltaNormalizer, RawChannelNormalizer
 from app.backend.ml.models.nowcast_model import WeatherDeltaModel, WeatherDeltaModelConfig
@@ -19,12 +20,16 @@ from app.backend.ml.training.dataset import (
 )
 from app.backend.ml.training.losses import SmoothL1DeltaLoss
 from app.backend.ml.training.metrics import MetricTracker
+from app.backend.ml.features.weather_grid_loader import DYNAMIC_CHANNELS
+
+# units as stored in the npz files (confirm wind against the historical fetch script)
+CHANNEL_UNITS = {"wind_u": "km/h", "wind_v": "km/h", "temperature": "degC", "relative_humidity": "%"}
 
 
 @dataclass
 class TrainConfig:
     weather_tensors_dir: str = "app/datasets/processed/weather_tensors"
-    static_tensor_path: str = "app/datasets/processed/static/static_tensor.npz"
+    artifact_dir: str = "app/artifact_store/models/weather_convlstm/LATEST"
     input_hours: int = 6
     rollout_steps: int = 4
     hidden_dims: list[int] = field(default_factory=lambda: [48, 48])
@@ -37,7 +42,7 @@ class TrainConfig:
     tf_p_start: float = 1.0
     tf_p_end: float = 0.25
     tf_p_anneal_epochs: int = 50
-    val_fraction: float = 0.15
+    val_years: int = 3 # most recent years held for validation
     seed: int = 7
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -113,6 +118,10 @@ class Trainer:
         )
 
         self.best_val_loss = float("inf")
+        self.raw_normalizer = raw_normalizer
+        self.delta_normalizer = delta_normalizer
+        self.history: list[dict] = []
+        self.extra_metadata: dict = {}
 
     def _attach_and_normalize(
         self, dynamic_raw: torch.Tensor, hour_sin: torch.Tensor, hour_cos: torch.Tensor
@@ -228,15 +237,26 @@ class Trainer:
             train_loss = self.train_epoch(epoch)
             val_loss, val_metrics = self.validate_epoch()
             tf_p = tf_p_for_epoch(epoch, self.cfg)
+            mean_skill = float(np.nanmean(
+                [s["skill"] for ch in val_metrics.values() for s in ch.values()]
+            ))
             print(
-                f"epoch {epoch:03d}  tf_p={tf_p:.2f}  train_loss={train_loss:.4f}  val_loss={val_loss:.4f}"
+                f"epoch {epoch:03d}  tf_p={tf_p:.2f}  train_loss={train_loss:.4f}   "
+                f"val_loss={val_loss:.4f} skill={mean_skill:.3f}" 
             )
+            self.history.append({
+                "epoch": epoch, "tf_p": tf_p, "train_loss": train_loss,
+                "val_loss": val_loss, "mean_skill": mean_skill,
+            })
+            out_dir = Path(self.cfg.artifact_dir)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            (out_dir / "history.json").write_text(json.dumps(self.history, indent=2))
 
             is_best = val_loss < self.best_val_loss
             if is_best:
                 self.best_val_loss = val_loss
                 epochs_without_improvement = 0
-                self.save_checkpoint(epoch, val_metrics, is_best=True)
+                self.save_checkpoint(epoch, val_metrics, mean_skill, is_best=True)
             else:
                 epochs_without_improvement += 1
                 if epochs_without_improvement >= early_stopping_patience:
@@ -246,27 +266,32 @@ class Trainer:
                     break
 
     def save_checkpoint(
-        self, epoch: int, val_metrics: dict, is_best: bool = False
+        self, epoch: int, val_metrics: dict, mean_skill: float, is_best: bool = False
     ) -> None:
         """
-        Whenever the validation loss reaches a new low, this method serializes
-        the model weights to a
-        model.pt file and dumps the performance metrics to a metadata.json
-        file inside the app/artifact_store/weather_convlstm/LATEST directory.
+        On a new best value loss saves model.pt both the normalizers and the metadata.json
+        (metrics + channel order, units, and input layout for inference)
         """
         if not is_best:
             return
-        out_dir = Path("app/artifact_store/weather_convlstm/LATEST")
+        out_dir = Path(self.cfg.artifact_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
         torch.save(self.model.state_dict(), out_dir / "model.pt")
-        import json
-
+        self.raw_normalizer.save(str(out_dir / "raw_normalizer.json"))
+        self.delta_normalizer.save(str(out_dir / "delta_normalizer.json"))
         (out_dir / "metadata.json").write_text(
             json.dumps(
                 {
                     "epoch": epoch,
                     "val_loss": self.best_val_loss,
+                    "mean_skill": mean_skill,
                     "val_metrics": val_metrics,
+                    "channels": DYNAMIC_CHANNELS,
+                    "units": CHANNEL_UNITS,
+                    "input_dim": self.model.cfg.input_dim,
+                    "input_hours": self.cfg.input_hours,
+                    "rollout_steps": self.cfg.rollout_steps,
+                    **self.extra_metadata,
                 },
                 indent=2,
             )
@@ -285,8 +310,8 @@ def build_normalizers(
     raw_frames, delta_frames = [], []
     for p in npz_paths:
         data = np.load(p)
-        hourly = data["hourly_tensor"][::24]
-        timestamps = [str(t) for t in data["hourly_timestamps"][::24]]
+        hourly = data["hourly_tensor"][::7]
+        timestamps = [str(t) for t in data["hourly_timestamps"][::7]]
         hs, hc = _hour_angle(timestamps)
         full = attach_static_and_time(hourly, static_tensor, hs, hc)  # (T,9,H,W)
         raw_frames.append(full)
@@ -309,14 +334,14 @@ def main() -> None:
     """
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--weather-tensors-dir", default=TrainConfig.weather_tensors_dir)
-    ap.add_argument("--static-tensor-path", default=TrainConfig.static_tensor_path)
+    ap.add_argument("--artifact-dir", default=TrainConfig.artifact_dir)
     ap.add_argument("--epochs", type=int, default=TrainConfig.epochs)
     ap.add_argument("--batch-size", type=int, default=TrainConfig.batch_size)
     args = ap.parse_args()
 
     cfg = TrainConfig(
         weather_tensors_dir=args.weather_tensors_dir,
-        static_tensor_path=args.static_tensor_path,
+        artifact_dir=args.artifact_dir,
         epochs=args.epochs,
         batch_size=args.batch_size,
     )
@@ -332,46 +357,43 @@ def main() -> None:
             "run app.backend.ml.training.build_weather_dataset first."
         )
 
-    static_path = Path(cfg.static_tensor_path)
-    if not static_path.exists():
-        raise FileNotFoundError(
-            f"{static_path} not found — static rasters (elevation/slope/aspect) "
-            "haven't been wired up yet."
-        )
-    static_tensor = np.load(static_path)["static_tensor"]
+    H, W = np.load(npz_paths[0])["hourly_tensor"].shape[-2:]
+    static_tensor = np.zeros((0, H, W), dtype=np.float32)
 
-    raw_norm, delta_norm = build_normalizers(npz_paths, static_tensor)
+    if len(npz_paths) <= cfg.val_years:
+        raise ValueError(f"Need more than {cfg.val_years} files, only found {len(npz_paths)}")
+    train_paths, val_paths = npz_paths[: -cfg.val_years], npz_paths[-cfg.val_years :]
+    print(f"train: {len(train_paths)} files, val: {[Path(p).stem for p in val_paths]}")
+
+    #fit on training years only validation stays unseen
+    raw_norm, delta_norm = build_normalizers(train_paths, static_tensor)
 
     split_cfg = WeatherDatasetSplitConfig(
         input_hours=cfg.input_hours, rollout_steps=cfg.rollout_steps
     )
-    full_dataset = WeatherRolloutDataset(
-        npz_paths, static_tensor, raw_norm, delta_norm, split_cfg
-    )
 
-    n_val = int(len(full_dataset) * cfg.val_fraction)
-    n_train = len(full_dataset) - n_val
-    train_set, val_set = random_split(
-        full_dataset,
-        [n_train, n_val],
-        generator=torch.Generator().manual_seed(cfg.seed),
-    )
-    # NOTE: random_split here is a placeholder — the real framing calls for
-    # a TIME-BASED split (contiguous months/fire-seasons), not a random one,
-    # to avoid leaking near-identical adjacent hours into validation. Swap
-    # this out once the fire-season stratification approach is settled.
+    train_set = WeatherRolloutDataset(train_paths, static_tensor, raw_norm, delta_norm, split_cfg)
+    val_set =WeatherRolloutDataset(val_paths, static_tensor, raw_norm, delta_norm, split_cfg)
 
     train_loader = DataLoader(train_set, batch_size=cfg.batch_size, shuffle=True)
     val_loader = DataLoader(val_set, batch_size=cfg.batch_size, shuffle=False)
 
     model_cfg = WeatherDeltaModelConfig(
-        hidden_dims=cfg.hidden_dims, kernel_size=cfg.kernel_size
+        input_dim=4 + static_tensor.shape[0] + 2,
+        hidden_dims=cfg.hidden_dims, 
+        kernel_size=cfg.kernel_size
     )
     model = WeatherDeltaModel(model_cfg)
 
     trainer = Trainer(
         model, train_loader, val_loader, static_tensor, raw_norm, delta_norm, cfg
     )
+
+    trainer.extra_metadata = {
+        "train_files": [Path(p).name for p in train_paths],
+        "val_files": [Path(p).name for p in val_paths],
+    }
+
     trainer.fit(cfg.epochs)
 
 
