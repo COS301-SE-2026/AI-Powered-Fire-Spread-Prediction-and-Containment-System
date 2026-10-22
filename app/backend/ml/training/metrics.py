@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-VARIABLES = ["wind_u", "wind_v", "relative_humidity", "temperature"]
+from app.backend.ml.features.weather_grid_loader import DYNAMIC_CHANNELS
+VARIABLES = DYNAMIC_CHANNELS
 
 
 class MetricTracker:
