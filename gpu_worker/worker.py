@@ -12,13 +12,12 @@ import numpy as np
 import requests
 import torch
 
-from app.backend.ml.models.nowcast_model import WeatherDeltaModel
 from app.backend.src.ai.simulation import (
     build_boundary_ignition_mask,
     build_multi_boundary_ignition_mask,
 )
 #from app.backend.src.ai.dca import run_dca
-from app.backend.src.ai.model_pipeline import run_convlstm_dca
+from app.backend.src.ai.model_pipeline import run_convlstm_dca, load_weather_forecaster, WeatherForecaster, model_summary, summarize_hourly_weather
 from app.backend.src.ai.sim_constants import MAXSTEPS, TICKS_PER_HOUR
 from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
@@ -37,9 +36,9 @@ s3 = boto3.client("s3", region_name=AWS_REGION)
 # messages are capped at 256KB and simulation output can easily exceed that
 
 RESULTS_DIR = ARTIFACTS_ROOT / "results"
-CONVLSTM_CHECKPOINT_PATH = Path(os.environ.get(
-    "CONVLSTM_CHECKPOINT_PATH",
-    str(ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST" / "model.pt")
+CONVLSTM_MODEL_DIR = Path(os.environ.get(
+    "CONVLSTM_MODEL_DIR",
+    str(ARTIFACTS_ROOT / "models" / "weather_convlstm" / "LATEST")
 ))
 DCA_PARAMS_PATH = ARTIFACTS_ROOT / "models" / "dca_params" / "calibrated_params.json"
 
@@ -67,27 +66,21 @@ VISIBILITY_TIMEOUT_SECONDS = 300
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-def load_convlstm_model() -> WeatherDeltaModel:
+def load_convlstm_model() -> WeatherForecaster | None:
     """
-    Loads the trained ConvLSTM checkpoint fron the mounted artifacts bucket per teammate's
-    exact loading contract:
-    
-        checkpoint = torch.load("app/artifact_store/weather_convlstm/LATEST")
-        model.load_state_dict(checkpoint["model_state_dict"])
+    Loads model and its normalizers
     """
-    model = WeatherDeltaModel()
-    checkpoint = torch.load(CONVLSTM_CHECKPOINT_PATH, map_location=DEVICE)
-    # If wrapped in a dict with 'model_state_dict', unwrap it; otherwise use directly
-    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-        state_dict = checkpoint["model_state_dict"]
-    else:
-        state_dict = checkpoint
-    model.load_state_dict(state_dict)
-    model.to(DEVICE)
-    model.eval()
-    
-    log.info("Loaded ConvLSTM checkpoin from %s", CONVLSTM_CHECKPOINT_PATH)
-    return model
+    try:
+        forecaster = load_weather_forecaster(CONVLSTM_MODEL_DIR, DEVICE)
+        log.info("Loaded convLSTM forecaster from %s", CONVLSTM_MODEL_DIR)
+        return forecaster
+    except Exception as err:
+        log.warning("Could not load ConvLSTM from %s (%s). Simulations will use current weather", CONVLSTM_MODEL_DIR, err)
+        return None
+
+# loaded once to keep weights on gpu across the job
+convlstm_forecaster = load_convlstm_model()
+default_dca_params = dict(DEFAULT_DCA_PARAMS)
 
 def load_dca_params() -> dict:
     """
@@ -102,16 +95,6 @@ def load_dca_params() -> dict:
             DCA_PARAMS_PATH,
         )
         return dict(DEFAULT_DCA_PARAMS)
-    
-# Loaded once at process startup, not per-job - model weights stay resident in memory/GPY across
-# every job worker picks up. Wrapped so import doesn't hard-crash when checkpoint isn't available yet.
-# Individual jobs will fail with a clear error instead if inference is actually attempted without a model
-try:
-    convlstm_model = load_convlstm_model()
-except FileNotFoundError as e:
-    log.warning("ConvLSTM checkppoint not available yet (%s) - inference will fail until it exists", e)
-    convlstm_model = None
-default_dca_params = dict(DEFAULT_DCA_PARAMS)
 
 # def build_ignition_mask(center_lat: float, center_lon: float, grid_bounds: list, grid_h: int, grid_w: int) -> np.ndarray:
 #     min_lon, min_lat, max_lon, max_lat = grid_bounds
@@ -150,10 +133,6 @@ OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 def run_inference(job: dict) -> dict:
     # 'job' is whatever payload app side published to fire-system-gpu-inference.
     # Must return a JSON-serializable dict. Needs enough identifying info (min 'job_id' and 'region_id')so backend's results-consumer background task can key result correctly in Valkey
-   
-    if convlstm_model is None:
-        raise RuntimeError("ConvLSTM model not loaded - checkpoint missing at "
-                           f"{CONVLSTM_CHECKPOINT_PATH}. Cannot run inference")
     
     job_id = job.get("job_id", job.get("fire_id"))
     region_id = job.get("region_id", job.get("fire_id"))
@@ -191,8 +170,8 @@ def run_inference(job: dict) -> dict:
         for k, v in raw_params.items()
     }
     
-    history = run_convlstm_dca(
-        convlstm_model=convlstm_model,
+    history, hourly_weather = run_convlstm_dca(
+        forecaster=convlstm_forecaster,
         weather_history=weather_history_tensor,
         static_grids=static_grids,
         cell_size_m=job["cell_size_m"],
@@ -215,6 +194,9 @@ def run_inference(job: dict) -> dict:
         "status": "completed",
         "history_z": base64.b64encode(zlib.compress(hist.tobytes(), 6)).decode("ascii"),
         "history_shape": list(hist.shape),
+        "weather_by_hour": summarize_hourly_weather(hourly_weather),
+        "forecast_source": "convlstm" if convlstm_forecaster is not None else "current_weather",
+        "forecast_model": model_summary(convlstm_forecaster),
     }
     
 def write_result_to_artifacts(job_id: str, result: dict) -> str:
