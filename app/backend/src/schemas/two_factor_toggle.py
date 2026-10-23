@@ -4,8 +4,7 @@ class TwoFAStatusResponse(BaseModel):
     enabled: bool
 
 class TwoFAEnableRequest (BaseModel):
-    code: str
+    enabled: bool
 
-class TwoFADisableRequest(BaseModel):
-    password: str
-    code: str
+class TwoFAToggleRequest(BaseModel):
+    enabled: bool
