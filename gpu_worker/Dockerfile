@@ -41,8 +41,7 @@ COPY app/artifact_store ./app/artifact_store
 
 # copy client worker script and model weights
 COPY gpu_worker/client_worker.py ./
-COPY app/artifact_store/models/weather_convlstm/LATEST/model.pt /app/model/weather_convlstm.pt
-ENV MODEL_WEIGHTS_PATH=/app/model/weather_convlstm.pt
+ENV MODEL_DIR=/app/app/artifact_store/models/weather_convlstm/LATEST
 
 RUN mkdir -p /data
 VOLUME ["/data"]

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useReducer, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import { useRouter } from 'next/router';
 import { FireMap } from '../shared/DynamicUserMap';
 import { LOCATION_PLACEHOLDER } from '../reportfire/locationConstants';
@@ -14,6 +14,7 @@ import { Availability } from './Availability';
 import {useSubmitResource } from '../../hooks/useSubmitResource';
 import { validateResourceForm } from '../../lib/ValidateResource';
 import type { ResourceFormErrors } from '../../lib/ValidateResource';
+import { Alert } from '../shared/Alerts';
 
 interface RegisterResourceProps {
   showHeaderIcons?: boolean;
@@ -151,6 +152,15 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
   const { submitResource, submitting, error } = useSubmitResource();
   const [showErrors, setShowErrors] = useState(false);
   const errors = validateResourceForm(form);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    if (showSuccess) {
+      const timer = setTimeout(() => setShowSuccess(false), 6000);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [showSuccess]);
 
   let shown: ResourceFormErrors = {};
     if (showErrors) {
@@ -200,9 +210,12 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
   function handleCancel() {
     dispatch({ type: 'RESET_AFTER_SUBMIT' });
     setShowErrors(false);
+    setShowSuccess(false);
   }
 
   async function handleSubmit() {
+    setShowSuccess(false);
+
     if(Object.keys(errors).length > 0){
       setShowErrors(true);
       return;
@@ -212,6 +225,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
     if (created){
       dispatch({ type: 'RESET_AFTER_SUBMIT' });
       setShowErrors(false);
+      setShowSuccess(true);
       // router.push('/resources');//change to real route
     }
   }
@@ -219,6 +233,15 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
   let submitError = null;
   if (error) {
     submitError = <p className="text-error text-sm mt-3">{error}</p>;
+  }
+
+  let successMessage = null;
+  if (showSuccess) {
+    successMessage = (
+      <div className="mt-3">
+        <Alert variant="success" message="Resource registered successfully. " />
+      </div>
+    );
   }
 
   let submitLabel = 'Register resource';
@@ -262,6 +285,7 @@ export default function RegisterResourcePage({ showHeaderIcons = true }: Registe
             <Availability value={{ availableFrom: form.availableFrom, availableUntil: form.availableUntil }} onChange={handleAvailabilityChange} />
 
             {submitError}
+            {successMessage}
             <div className="flex items-center justify-between gap-3 mt-4">
               <button type="button" className="btn btn-ghost" onClick={handleCancel} disabled={submitting}>
                 Cancel

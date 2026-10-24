@@ -64,7 +64,7 @@ export function ReportsTable({ requests, filter, onView }: ReportsTableProp) {
                   <ReportStatusBadge status={req.status} />
                 </td>
                 <td className="px-4 text-sm text-text-primary">
-                  {VerificationNotes(req.verification_notes)}
+                  {VerificationNotes(req.verification_notes, req.status)}
                 </td>
                 <td className="py-4 text-sm text-text-primary border-t border-carbon-card">
                   {req.size} ha
