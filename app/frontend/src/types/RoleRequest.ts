@@ -24,6 +24,9 @@ export interface RoleRequest {
   created_at: string;
   reviewed_by: string | null;
   reviewed_at: string | null;
+  trust_score: number | null;
+  reports_verified: number;
+  reports_rejected: number;
 }
 
 export interface RoleRequestList {

@@ -67,7 +67,7 @@ export function FireReportsTable({ reports, filter }: FireReportsTableProps) {
                   <ReportStatusBadge status={report.status} />
                 </td>
                 <td className="px-4 text-sm text-text-primary">
-                  {VerificationNotes(report.verification_notes)}
+                  {VerificationNotes(report.verification_notes, report.status)}
                 </td>
                 <td className="px-4 text-sm text-text-primary">{report.size} ha</td>
                 <td className="px-4 text-sm text-text-primary">

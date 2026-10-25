@@ -60,8 +60,13 @@ def fetch_weather_history(job: dict) -> list:
     response.raise_for_status()
     hourly = response.json()["hourly"]
 
+    n_available = len(hourly["time"])
+    if n_available < WEATHER_HISTORY_LENGTH:
+        raise(f"Open-Meteo returned {n_available} hours, need {WEATHER_HISTORY_LENGTH}")
+    start = n_available - WEATHER_HISTORY_LENGTH
+
     frames = []
-    for i in range(WEATHER_HISTORY_LENGTH):
+    for i in range(start, n_available):
         temperature_c = hourly["temperature_2m"][i]
         rel_humidity_pct = hourly["relative_humidity_2m"][i]
         wind_speed_ms = hourly["wind_speed_10m"][i]
