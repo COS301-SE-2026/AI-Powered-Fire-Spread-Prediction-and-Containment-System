@@ -20,8 +20,7 @@ import requests
 import torch
 import websockets
 
-from app.backend.ml.models.nowcast_model import WeatherDeltaModel
-from app.backend.src.ai.model_pipeline import run_convlstm_dca
+from app.backend.src.ai.model_pipeline import run_convlstm_dca, WeatherForecaster, load_weather_forecaster, model_summary, summarize_hourly_weather
 from app.backend.src.ai.simulation import build_boundary_ignition_mask, build_multi_boundary_ignition_mask
 from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
 
@@ -35,7 +34,7 @@ BACKEND_BASE_URL = os.getenv("BACKEND_BASE_URL")
 WEBSOCKET_URL = os.getenv("WEBSOCKET_URL")
 REGISTRATION_KEY = os.getenv("REGISTRATION_KEY")
 WORKER_LABEL = os.getenv("WORKER_LABEL", os.getenv("HOSTNAME", "volunteer-desktop"))
-MODEL_WEIGHTS_PATH = os.getenv("MODEL_WEIGHTS_PATH", "app/cached/ml/models/weather_convlstm.pt")
+MODEL_DIR = os.getenv("MODEL_DIR", "app/artifact_store/models/weather_convlstm/LATEST")
 CREDENTIALS_PATH = os.getenv("WORKER_CREDENTIALS_PATH", "/data/worker_credentials.json")
 
 MIN_VRAM_MB = 3584
@@ -127,25 +126,15 @@ def run_pre_flight_check() -> Tuple[bool, str, int]:
     return True, gpu_name, total_vram_mb
 
 
-def load_inference_model() -> WeatherDeltaModel:
-    model = WeatherDeltaModel()
-    if os.path.exists(MODEL_WEIGHTS_PATH):
-        try:
-            checkpoint = torch.load(MODEL_WEIGHTS_PATH, map_location=DEVICE)
-            if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
-                state_dict = checkpoint["model_state_dict"]
-            else:
-                state_dict = checkpoint
-            model.load_state_dict(state_dict)
-            log.info("Loaded custom model checkpoint from %s", MODEL_WEIGHTS_PATH)
-        except Exception as err:
-            log.warning("COuld not load weights from %s (%s). Using initialised head.", MODEL_WEIGHTS_PATH, err)
-    else:
-        log.warning("Weights path %s not found. Using zero-initialised model head.", MODEL_WEIGHTS_PATH)
-
-    model.to(DEVICE)
-    model.eval()
-    return model
+def load_inference_model() -> Optional[WeatherForecaster]:
+    """loads the weather model with its normalizers and metadata"""
+    try:
+        forecaster = load_weather_forecaster(MODEL_DIR, DEVICE)
+        log.info("Loaded weather model from %s", MODEL_DIR)
+        return forecaster
+    except Exception as err:
+        log.warning("Could not load the weather model from %s (%s). Simulations will use current weather without a forecast", MODEL_DIR, err)
+        return None
 
 
 def register_worker(reg_key: str, gpu_name: str, vram_mb: int) -> Optional[Tuple[str, str]]:
@@ -178,7 +167,7 @@ def register_worker(reg_key: str, gpu_name: str, vram_mb: int) -> Optional[Tuple
         return None
 
 
-def execute_pipeline_task(model: WeatherDeltaModel, payload: dict, report=lambda stage, message: None) -> dict:
+def execute_pipeline_task(forecaster: Optional[WeatherForecaster], payload: dict, report=lambda stage, message: None) -> dict:
     job_id = payload.get("job_id", "sim_task")
     log.info("Fetching remote terrain and weather data for job: %s", job_id)
 
@@ -230,8 +219,8 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict, report=lambda
     )
 
     report("running_model", "Running fire spread model")
-    history = run_convlstm_dca(
-        convlstm_model=model,
+    history, hourly_weather = run_convlstm_dca(
+        forecaster=forecaster,
         weather_history=weather_tensor,
         static_grids=static_grids,
         cell_size_m=payload["cell_size_m"],
@@ -253,9 +242,12 @@ def execute_pipeline_task(model: WeatherDeltaModel, payload: dict, report=lambda
         "status": "completed",
         "history_z": base64.b64encode(zlib.compress(hist.tobytes(), 6)).decode("ascii"),
         "history_shape": list(hist.shape),
+        "weather_by_hour": summarize_hourly_weather(hourly_weather),
+        "forecast_source": "convlstm" if forecaster is not None else "current_weather",
+        "forecast_model": model_summary(forecaster),
     }
 
-async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
+async def run_worker_loop(forecaster: Optional[WeatherForecaster], worker_jwt: str):
     headers = {"Authorization" : f"Bearer {worker_jwt}"}
 
     while True:
@@ -286,7 +278,7 @@ async def run_worker_loop(model: WeatherDeltaModel, worker_jwt: str):
                         report("received", "Job picked up by this gpu")
                         try:
                             start_t = time.monotonic()
-                            result = await asyncio.to_thread(execute_pipeline_task, model, job_payload, report)
+                            result = await asyncio.to_thread(execute_pipeline_task, forecaster, job_payload, report)
                             duration = time.monotonic() - start_t
                             log.info("Job %s completed in %.2fs. Sending results.", job_id, duration)
 
@@ -364,9 +356,9 @@ def main():
         save_credentials(*credentials)
 
     jwt_token, worker_id = credentials
-    model = load_inference_model()
+    forecaster = load_inference_model()
 
-    asyncio.run(run_worker_loop(model, jwt_token))
+    asyncio.run(run_worker_loop(forecaster, jwt_token))
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,11 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { UserResponse, UserUpdate } from "../../types/User";
 import { useUpdateProfile } from "../../hooks/useUpdateProfile";
+import { useEditPassword } from "../../hooks/useEditPassword";
+import PasswordInput from "../shared/PasswordInput";
+import { Alert } from "../shared/Alerts";
 
 interface InfoProps {
     readonly user: UserResponse;
@@ -16,6 +19,7 @@ function formatDate(createdAt: string): string{
 
 export function Info({ user, onUpdated }: InfoProps) {
     const { updateProfile } = useUpdateProfile();
+    const { editPassword } = useEditPassword();
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(user.name);
     const [surname, setSurname] = useState(user.surname);
@@ -23,11 +27,37 @@ export function Info({ user, onUpdated }: InfoProps) {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
 
+    const [changingPassword, setChangingPassword] = useState(false);
+    const [current, setCurrent] = useState('');
+    const [next, setNext] = useState('');
+    const [confirm, setConfirm] = useState('');
+    const [pwError, setPwError] = useState('');
+    const [pwSaving, setPwSaving] = useState(false);
+    const [pwDone, setPwDone] = useState(false);
+    const [infoDone, setInfoDone] = useState(false);
+
+    useEffect(() => {
+        if (!pwDone) {
+            return;
+        }
+        const timer = setTimeout(() => setPwDone(false), 4000);
+        return () => clearTimeout(timer);
+    }, [pwDone]);
+
+    useEffect(() => {
+        if (!infoDone) {
+            return;
+        }
+        const timer = setTimeout(() => setInfoDone(false), 4000);
+        return () => clearTimeout(timer);
+    }, [infoDone]);
+
     function startEdit() {
         setName(user.name);
         setSurname(user.surname);
         setEmail(user.email);
         setError('');
+        setPwDone(false);
         setEditing(true);
     }
 
@@ -36,20 +66,90 @@ export function Info({ user, onUpdated }: InfoProps) {
         setError('');
     }
 
+    function openPassword() {
+        setPwDone(false);
+        setInfoDone(false);
+        setChangingPassword(true);
+    }
+
+    function closePassword(){
+        setChangingPassword(false);
+        setCurrent('');
+        setNext('');
+        setConfirm('');
+        setPwError('');
+    }
+
     async function handleSave() {
         setSaving(true);
+
+        if (!name.trim() || !surname.trim()) {
+            setError('Name and surname are required');
+            return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError('Enter a valid email address');
+            return;
+        }
+
         setError('');
         const payload: UserUpdate = { name, surname, email };
         try {
             const updated = await updateProfile(payload);
             onUpdated(updated);
             setEditing(false);
+            setInfoDone(true);
         } catch {
             setError('Failed to update profile');
         } finally {
             setSaving(false);
         }
     }
+
+    async function handlePasswordSave() {
+        setPwSaving(true) ;
+        setPwError ('');
+        try {
+            await editPassword(current, next, confirm); 
+            closePassword() ;
+            setPwDone(true) ;
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setPwError(err.message);
+            } else {
+                setPwError ('Could not change password');
+            }
+        } finally {
+            setPwSaving(false) ;
+        }
+    }
+        
+    if (changingPassword) 
+        return (
+            <div className="w-full rounded-2xl border border-carbon-stroke flex flex-col p-10">
+                <h2 className='uppercase mb-4'>Change Password</h2>
+                <div className="space-y-4 mb-4">
+                    <div>
+                        <label className='block uppercase text-text-muted font-bold text-sm mb-2' htmlFor="current-password">Current password</label>
+                        <PasswordInput id='current-password' value={current} onChange={(e) => setCurrent(e.target.value)} placeholder='Current password' autoComplete='current-password' />
+                    </div>
+                    <div>
+                        <label className='block uppercase text-text-muted font-bold text-sm mb-2' htmlFor="new-password">New password</label>
+                        <PasswordInput id='new-password' name='new-password' value={next} onChange={(e) => setNext(e.target.value)} placeholder='New password' autoComplete='new-password' />
+                    </div>
+                    <div>
+                        <label className='block uppercase text-text-muted font-bold text-sm mb-2' htmlFor="confirm-new-password">Confirm new password</label>
+                        <PasswordInput id='confirm-new-password' value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder='Repeat new password' autoComplete='new-password' />
+                    </div>
+                </div>
+                {pwDone && <p className="text-success text-sm mb-3">Password changed successfully.</p>}
+                <div className="flex gap-2">
+                    <button type="button" onClick={handlePasswordSave} disabled={pwSaving} className='text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>Save</button>
+                    <button type="button" onClick={closePassword} disabled={pwSaving} className='text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>Cancel</button>
+                </div>
+            </div>
+        );
 
         if (!editing) {
             return (
@@ -75,7 +175,20 @@ export function Info({ user, onUpdated }: InfoProps) {
                             <p className="text-text-primary font-semibold">{formatDate(user.created_at)}</p>
                         </div>
                     </div>
-                    <button type='button' onClick={startEdit} className="self-start text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors">Edit Info</button>
+                    {infoDone && (
+                        <div className="mb-3">
+                            <Alert variant="success" message="Profile updated successfully." />
+                        </div>
+                    )}
+                    {pwDone && (
+                        <div className="mb-3">
+                            <Alert variant="success" message="Password changed successfully." />
+                        </div>
+                    )}
+                    <div className="flex gap-2">
+                        <button type='button' onClick={startEdit} className='text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>Edit Info</button>
+                        <button type='button' onClick={openPassword} className='text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>Change Password</button>
+                    </div>
                 </div>
             );
         }
@@ -96,7 +209,11 @@ export function Info({ user, onUpdated }: InfoProps) {
                         <input id='account-name' className='input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-primary' value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
                 </div>
-                {error ? <p className="text-error text-xs mb-3">{error}</p> : null}
+                {pwError && (
+                <div className="mb-3">
+                    <Alert variant="error" message={pwError} />
+                </div>
+                )}
                 <div className="flex gap-2">
                     <button type="button" onClick={handleSave} disabled={saving} className="text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors">{saving ? 'Saving...' : 'Save'}</button>
                     <button type="button" onClick={cancelEdit} disabled={saving} className="text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors">Cancel</button>
