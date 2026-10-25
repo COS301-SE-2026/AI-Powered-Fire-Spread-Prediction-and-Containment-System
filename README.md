@@ -9,17 +9,18 @@
 | app/backend/main.py                                              |       64 |        9 |        8 |        4 |     82% |40, 43, 47, 52-54, 71, 102, 110 |
 | app/backend/ml/features/fuel\_load.py                            |      137 |       61 |       26 |        4 |     50% |85-90, 113, 167-182, 196, 219, 236-239, 261-338 |
 | app/backend/ml/features/geo\_utils.py                            |       14 |        1 |        2 |        1 |     88% |        34 |
-| app/backend/ml/features/normalization.py                         |       41 |        8 |        0 |        0 |     80% |16, 20, 43-45, 48-49, 52 |
+| app/backend/ml/features/normalization.py                         |       41 |        5 |        0 |        0 |     88% |20, 43-45, 52 |
 | app/backend/ml/features/terrain.py                               |       25 |        0 |        0 |        0 |    100% |           |
+| app/backend/ml/features/weather\_grid\_loader.py                 |       33 |       25 |        6 |        0 |     21% |13-15, 22-55 |
 | app/backend/ml/models/conv\_lstm.py                              |       41 |        2 |       14 |        4 |     89% |22, 36, 39-\>42, 56-\>60 |
 | app/backend/ml/models/conv\_lstm\_cell.py                        |       26 |        0 |        0 |        0 |    100% |           |
 | app/backend/ml/models/nowcast\_model.py                          |       27 |        0 |        2 |        1 |     97% | 34-\>exit |
 | app/backend/ml/training/\_\_init\_\_.py                          |        0 |        0 |        0 |        0 |    100% |           |
 | app/backend/ml/training/dataset.py                               |       83 |       17 |       16 |        2 |     75% |40-43, 55, 157-177 |
 | app/backend/ml/training/losses.py                                |        9 |        0 |        0 |        0 |    100% |           |
-| app/backend/ml/training/metrics.py                               |       32 |        0 |        8 |        0 |    100% |           |
+| app/backend/ml/training/metrics.py                               |       33 |        0 |        8 |        0 |    100% |           |
 | app/backend/ml/training/synthetic\_data.py                       |       60 |        1 |       10 |        2 |     96% |102-\>100, 126 |
-| app/backend/ml/training/train\_convlstm.py                       |      187 |       35 |       24 |        4 |     79% |51, 241-246, 258, 310-375, 379 |
+| app/backend/ml/training/train\_convlstm.py                       |      201 |       36 |       24 |        4 |     80% |56, 261-266, 276, 335-397, 401 |
 | app/backend/ml/training/train\_ignition.py                       |       61 |       24 |       10 |        1 |     59% |32-35, 103-157, 168 |
 | app/backend/src/\_\_init\_\_.py                                  |        0 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/ai/\_\_init\_\_.py                               |        0 |        0 |        0 |        0 |    100% |           |
@@ -32,13 +33,13 @@
 | app/backend/src/ai/geo.py                                        |       16 |        1 |        2 |        1 |     89% |        50 |
 | app/backend/src/ai/ignition.py                                   |       29 |        0 |        2 |        0 |    100% |           |
 | app/backend/src/ai/inspect\_fire.py                              |       33 |       33 |        6 |        0 |      0% |      1-84 |
-| app/backend/src/ai/job\_builder.py                               |       51 |       30 |        4 |        0 |     38% |46-83, 91-122, 146 |
-| app/backend/src/ai/model\_pipeline.py                            |       39 |       39 |        2 |        0 |      0% |     1-166 |
+| app/backend/src/ai/job\_builder.py                               |       55 |       34 |        6 |        0 |     34% |46-88, 96-127, 151 |
+| app/backend/src/ai/model\_pipeline.py                            |       84 |       84 |       12 |        0 |      0% |     1-179 |
 | app/backend/src/ai/resolve\_tiles.py                             |       57 |       39 |       10 |        0 |     27% |36-41, 50-59, 78-116, 138-148 |
 | app/backend/src/ai/schema.py                                     |        8 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/ai/sim\_constants.py                             |        6 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/ai/simulation.py                                 |       95 |       75 |       22 |        0 |     17% |17-30, 36-42, 69-82, 91-100, 110-137, 145-149, 154-158, 172-212 |
-| app/backend/src/ai/simulation\_api.py                            |      307 |      142 |       66 |        7 |     48% |72-73, 76, 80, 97-98, 160, 174-200, 203-205, 217-252, 259-268, 293-383, 450, 528-608, 632-662, 684-736 |
+| app/backend/src/ai/simulation\_api.py                            |      323 |      142 |       66 |        7 |     50% |72-73, 76, 80, 97-98, 177, 191-217, 220-222, 234-269, 276-285, 310-403, 470, 551-631, 655-685, 707-759 |
 | app/backend/src/ai/suggest\_containment.py                       |      147 |        7 |       22 |        7 |     92% |44, 78, 86, 184, 188, 195, 199 |
 | app/backend/src/dependencies/\_\_init\_\_.py                     |        0 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/dependencies/auth.py                             |       78 |       21 |       20 |        4 |     70% |25-26, 31, 39, 57, 62-63, 84-85, 89, 119-128, 133-138 |
@@ -70,12 +71,14 @@
 | app/backend/src/routes/admin/analytics.py                        |       16 |        4 |        0 |        0 |     75% |     26-29 |
 | app/backend/src/routes/admin/fire\_reports.py                    |       28 |        3 |        0 |        0 |     89% |30, 35, 42 |
 | app/backend/src/routes/admin/role\_requests.py                   |       48 |        5 |        6 |        0 |     91% |     76-81 |
-| app/backend/src/routes/auth/\_\_init\_\_.py                      |       10 |        0 |        0 |        0 |    100% |           |
+| app/backend/src/routes/auth/\_\_init\_\_.py                      |       14 |        0 |        0 |        0 |    100% |           |
+| app/backend/src/routes/auth/edit\_password.py                    |       17 |        5 |        0 |        0 |     71% |     17-21 |
 | app/backend/src/routes/auth/forgot\_password.py                  |       21 |       10 |        2 |        0 |     48% |21-27, 33-38 |
 | app/backend/src/routes/auth/login.py                             |       24 |       11 |        2 |        0 |     50% | 27-47, 55 |
 | app/backend/src/routes/auth/logout.py                            |        6 |        2 |        0 |        0 |     67% |       8-9 |
 | app/backend/src/routes/auth/register.py                          |       13 |        5 |        0 |        0 |     62% |     13-19 |
 | app/backend/src/routes/auth/two\_factor.py                       |       30 |       16 |        0 |        0 |     47% |22-25, 34-49, 57-72 |
+| app/backend/src/routes/auth/two\_factor\_toggle.py               |       22 |        6 |        0 |        0 |     73% | 23, 27-31 |
 | app/backend/src/routes/firefighter/\_\_init\_\_.py               |        8 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/routes/firefighter/fire\_reports.py              |       28 |       12 |        0 |        0 |     57% |28-29, 39-44, 54-59 |
 | app/backend/src/routes/firefighter/fire\_terrain\_bias.py        |       10 |        2 |        0 |        0 |     80% |     19-20 |
@@ -96,13 +99,14 @@
 | app/backend/src/routes/users/resources.py                        |       21 |        2 |        0 |        0 |     90% |    43, 52 |
 | app/backend/src/routes/users/role\_request.py                    |       23 |        9 |        2 |        0 |     56% |17, 22-25, 29-33 |
 | app/backend/src/routes/users/saved\_location.py                  |       35 |       18 |        0 |        0 |     49% |16, 20-23, 31-34, 43-46, 50-54 |
-| app/backend/src/routes/workers.py                                |      289 |       88 |       66 |       22 |     67% |49-56, 62-65, 104-105, 115-116, 128-129, 147-148, 168-169, 185, 195, 203-220, 270-\>275, 272-\>275, 276-277, 288-289, 292-293, 299, 333-\>335, 338-339, 347-\>350, 352-\>356, 359-\>323, 364, 368-374, 386-389, 403-404, 412-414, 418-420, 434-435, 442-444, 469, 471-495, 501-504 |
+| app/backend/src/routes/workers.py                                |      289 |       41 |       66 |       13 |     84% |55-56, 62-65, 104-105, 270-\>275, 272-\>275, 276-277, 299, 333-\>335, 347-\>350, 352-\>356, 359-\>323, 370-\>374, 386-389, 403-404, 412-414, 418-420, 434-435, 442-444, 485-495, 501-502 |
 | app/backend/src/schemas/\_\_init\_\_.py                          |        0 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/admin\_analytics.py                      |        5 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/admin\_dashboard.py                      |        7 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/audit\_log.py                            |        9 |        9 |        0 |        0 |      0% |      1-19 |
 | app/backend/src/schemas/auth.py                                  |       28 |        1 |        0 |        0 |     96% |        20 |
 | app/backend/src/schemas/containment\_lines.py                    |       10 |        0 |        0 |        0 |    100% |           |
+| app/backend/src/schemas/edit\_password.py                        |        2 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/fire\_report.py                          |       29 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/fire\_terrain\_bias.py                   |        3 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/firefighter\_dashboard.py                |       11 |        0 |        0 |        0 |    100% |           |
@@ -111,8 +115,9 @@
 | app/backend/src/schemas/notification.py                          |       10 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/push.py                                  |        3 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/resource.py                              |       93 |        8 |       34 |        8 |     87% |60, 67, 71, 83, 100, 102, 104, 114 |
-| app/backend/src/schemas/role\_request.py                         |       20 |        0 |        0 |        0 |    100% |           |
+| app/backend/src/schemas/role\_request.py                         |       23 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/saved\_locations.py                      |       14 |        0 |        0 |        0 |    100% |           |
+| app/backend/src/schemas/two\_factor\_toggle.py                   |        4 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/user.py                                  |       13 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/user\_location.py                        |        4 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/schemas/workers.py                               |       39 |        0 |        0 |        0 |    100% |           |
@@ -120,14 +125,16 @@
 | app/backend/src/services/admin/\_\_init\_\_.py                   |        0 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/services/admin/analytics\_service.py             |       30 |       17 |        8 |        0 |     34% |17-38, 47-79, 83 |
 | app/backend/src/services/admin/dashboard\_service.py             |       66 |       51 |       24 |        0 |     17% |14-19, 25-48, 52-67, 76-118, 122-137, 141-148, 152 |
-| app/backend/src/services/admin/role\_request.py                  |       61 |        3 |       18 |        0 |     96% |     84-96 |
+| app/backend/src/services/admin/role\_request.py                  |       74 |        3 |       20 |        0 |     97% |    89-101 |
 | app/backend/src/services/auth/\_\_init\_\_.py                    |        0 |        0 |        0 |        0 |    100% |           |
+| app/backend/src/services/auth/edit\_password.py                  |       13 |        8 |        6 |        0 |     26% |      8-16 |
 | app/backend/src/services/auth/email.py                           |       20 |       11 |        2 |        0 |     41% |17-33, 36-45 |
 | app/backend/src/services/auth/forgot\_password.py                |       51 |       32 |       14 |        0 |     29% |26, 29, 32-50, 53-74 |
 | app/backend/src/services/auth/login.py                           |       61 |       41 |       12 |        0 |     27% |34, 39-54, 62-86, 92-95, 100-122 |
 | app/backend/src/services/auth/pending\_registration.py           |       26 |       12 |        0 |        0 |     54% |18, 22-33, 36-38, 41 |
 | app/backend/src/services/auth/register.py                        |       13 |        4 |        2 |        0 |     60% |     14-18 |
 | app/backend/src/services/auth/two\_factor.py                     |       49 |       35 |       14 |        0 |     22% |18-32, 35-60, 64-107 |
+| app/backend/src/services/auth/two\_factor\_toggle.py             |        7 |        4 |        2 |        0 |     33% |       6-9 |
 | app/backend/src/services/cache.py                                |        9 |        2 |        0 |        0 |     78% |     18-19 |
 | app/backend/src/services/fire\_growth.py                         |       13 |        0 |        2 |        0 |    100% |           |
 | app/backend/src/services/firefighter/\_\_init\_\_.py             |        0 |        0 |        0 |        0 |    100% |           |
@@ -163,11 +170,11 @@
 | app/backend/src/services/verification/rejection\_checks.py       |       92 |       23 |       30 |       10 |     73% |54, 57-59, 77-92, 98, 117, 151, 156, 161, 165, 167, 169, 173-175 |
 | app/backend/src/services/verification/report\_corroboration.py   |       18 |        0 |        0 |        0 |    100% |           |
 | app/backend/src/services/verification/report\_spam\_detection.py |       21 |        1 |        4 |        1 |     92% |        18 |
-| app/backend/src/services/verification/reporter\_trust.py         |       15 |        0 |        4 |        0 |    100% |           |
+| app/backend/src/services/verification/reporter\_trust.py         |       34 |        5 |       14 |        2 |     81% | 31, 55-59 |
 | app/backend/src/services/verification/verification\_runner.py    |       41 |       22 |       12 |        2 |     40% |29, 40-65, 69-70 |
-| app/backend/src/services/workers.py                              |      131 |       65 |       38 |        4 |     44% |39, 43, 54-\>56, 77-80, 89-110, 119-143, 153-178, 206-213, 217-218, 222-223, 267-273 |
+| app/backend/src/services/workers.py                              |      131 |       23 |       38 |       13 |     78% |39, 43, 78-81, 92, 98, 104, 122, 134, 156, 162, 168, 209, 211, 268-274 |
 | app/backend/startup\_migrations.py                               |       18 |       18 |        0 |        0 |      0% |      3-97 |
-| **TOTAL**                                                        | **5810** | **2053** | **1036** |  **143** | **61%** |           |
+| **TOTAL**                                                        | **6027** | **2064** | **1074** |  **145** | **62%** |           |
 
 
 ## Setup coverage badge
