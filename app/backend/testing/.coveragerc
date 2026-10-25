@@ -3,6 +3,38 @@ data_file = .coverage
 branch= true
 relative_files = true
 source = app/backend
+omit = 
+    app/backend/testing/*
+    app/backend/seed.py
+    app/backend/test_api.py
+
+    # DB Migration plumbing
+    app/backend/migrations/*
+    app/backend/alembic.ini
+
+    # Training/data-generation commands
+    app/backend/ml/training/build_*.py
+    app/backend/ml/training/train_*.py
+    app/backend/ml/training/evaluate_*.py
+    app/backend/ml/training/inspect_*.py
+
+    # AI dataset/build/inspection utilities
+    app/backend/src/ai/build_*.py
+    app/backend/src/ai/inspect_*.py
+    app/backend/src/ai/debug_*.py
+    app/backend/src/ai/plot_*.py
+
+    # Standalone data/download utilities
+    app/backend/datasets/scripts/*
+    app/backend/src/ai/fetch_*.py
+    app/backend/src/ai/download_*.py
+    app/backend/src/ai/export_*.py
+
+    app/backend/src/ai/build_training_manifest.py
+    app/backend/src/ai/inspect_fire.py
+
+    # Empty package initializers
+    app/backend/**/__init__.py
 
 [paths]
 source =
