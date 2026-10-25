@@ -86,10 +86,10 @@ export function SideBar({
           {!hideLoginRegister && (
             <Link
               href="/login"
-              className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center lg:justify-center lg:group-hover:justify-start gap-4"
+              className="p-2.5 px-4 w-full rounded-lg flex items-center justify-start lg:justify-center lg:group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-text-primary hover:text-text-primary"
             >
-              <UserCircle className="size-6 shrink-0 text-ignite" />
-              <span className="text-sm font-semibold inline lg:hidden lg:group-hover:inline">
+              <UserCircle className="size-5 shrink-0 ml-1 lg:group-hover:ml-6 transition-all text-ignite" />
+              <span className="text-sm font-medium tracking-wide inline lg:hidden lg:group-hover:inline opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-20 whitespace-nowrap">
                 Login / Register
               </span>
             </Link>
