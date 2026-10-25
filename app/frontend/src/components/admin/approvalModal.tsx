@@ -1,5 +1,7 @@
+import { X } from 'lucide-react';
 import { RoleRequest, UserSummary } from '../../types/RoleRequest';
 import { RoleStatusBadge } from './RoleStatusBadge';
+import { ScoreBadge } from './ScoreBadge';
 
 interface RoleApprovalModalProps {
   request: RoleRequest;
@@ -7,6 +9,13 @@ interface RoleApprovalModalProps {
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
   onRevoke: (id: string) => void;
+}
+
+function getReportBreakdown(verified: number, rejected: number): string {
+  if (verified + rejected === 0){
+    return 'No report history';
+  }
+  return `${verified} verified | ${rejected} rejected`;
 }
 
 export function RoleApprovalModal({
@@ -22,35 +31,35 @@ export function RoleApprovalModal({
     <dialog
       open
       data-testid="approval-modal"
-      className="modal modal-open backdrop-blur-sm bg-black/40 items-start sm:items-center overflow-y-auto py-14"
-    >
-      <div className="modal-box bg-gradient-to-br from-carbon-side to-carbon-bg border border-ignite/60 border-l-4 border-l-ignite rounded-2xl shadow-2xl shadow-ignite/5 max-w-md max-h-[calc(100vh-3rem)] overflow-y-auto p-8 sm:my-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-4 border-b border-ignite/30">
-          <h3 className="font-display font-bold text-xl tracking-wider text-text-primary uppercase">
+      className="modal modal-open items-start sm:items-center overflow-y-auto py-14 mb-6"
+    > 
+      <div className="modal-box bg-carbon-side border border-carbon-stroke rounded-lg p-6 max-w-[calc(56vh-3rem)] max-h-[calc(100vh-3rem)] overflow-y-auto sm:my-auto">
+        <div className="flex justify-between items-center gap-4 mb-6">
+          <h3 className="text-2xl text-text-primary">
             Role request - {request.user.name} {request.user.surname}
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-text-primary/40 hover:text-text-primary transition-colors"
+            aria-label="Close"
+            className="text-text-muted hover:text-text-primary"
           >
-            ✕
+            <X size={16} />
           </button>
         </div>
 
         {/* Info grid */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6 mb-4">
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+            <p className="text-sm text-text-muted mb-1">
               Full Name
             </p>
-            <p className="text-sm font-semibold text-text-primary">
+            <p className="text-base font-semibold text-text-primary">
               {request.user.name} {request.user.surname}
             </p>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+            <p className="text-sm text-text-muted mb-1">
               Account Created
             </p>
             <p className="text-sm font-semibold text-text-primary">
@@ -64,48 +73,59 @@ export function RoleApprovalModal({
             </p>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+            <p className="text-sm text-text-muted mb-1">
               Email
             </p>
-            <p className="text-sm font-semibold text-text-primary">{request.user.email ?? '—'}</p>
+            <p className="text-base font-semibold text-text-primary break-all">{request.user.email ?? '—'}</p>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-primary/40 uppercase mb-1">
+            <p className="text-sm text-text-muted mb-1">
               Status
             </p>
             <RoleStatusBadge status={request.status} />
           </div>
+          <div className='col-span-2'>
+            <p className="text-sm text-text-muted mb-1">
+                Trust Score
+            </p>
+            <div className='flex items-center gap-3'>
+              <ScoreBadge score={request.trust_score} />
+              <span className="text-base font-semibold text-text-primary">
+                {getReportBreakdown(request.reports_verified, request.reports_rejected)}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="border-t border-ignite/30 my-4" />
+        <div className="border-t border-carbon-stroke my-6" />
 
         {/* Current role */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-4 mb-6">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6 mb-6">
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-muted uppercase mb-1">
+            <p className="text-sm text-text-muted mb-1">
               Current Role
             </p>
-            <p className="text-sm font-semibold text-text-primary">{request.current_role}</p>
+            <p className="text-base font-semibold text-text-primary capitalize">{request.current_role}</p>
           </div>
           <div>
-            <p className="text-xs font-bold tracking-widest text-text-muted uppercase mb-1">
+            <p className="text-sm text-text-muted mb-1">
               Requested Role
             </p>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-torch/20 text-torch border border-torch/30">
+            <p className="text-base font-semibold text-text-primary capitalize">
               {request.requested_role}
-            </span>
+            </p>
           </div>
         </div>
 
         {/* Actions */}
-        <div className="border-t border-ignite/30 pt-4 flex justify-end gap-2">
+        <div className="border-t border-carbon-stroke pt-2 flex justify-end gap-3">
           {request.status === 'pending' && (
             <>
               <button
                 type="button"
                 data-testid="reject-btn"
                 onClick={() => onReject(request.request_id)}
-                className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors"
+                className="btn btn-sm btn-error text-lg font-semibold rounded-md border-carbon-stroke text-text-primary hover:bg-smoke-hover"
               >
                 Reject
               </button>
@@ -113,7 +133,7 @@ export function RoleApprovalModal({
                 type="submit"
                 data-testid="approve-btn"
                 onClick={() => onApprove(request.request_id)}
-                className="text-xs font-semibold px-4 py-2 rounded-lg bg-humidity/20 text-humidity border border-humidity/30 hover:bg-humidity/30 transition-colors"
+                className="btn btn-sm text-lg font-bold rounded-md bg-primary border-primary text-text-primary hover:bg-primary/90"
               >
                 Approve
               </button>
@@ -123,7 +143,7 @@ export function RoleApprovalModal({
             <button
               data-testid="revoke-btn"
               onClick={() => onRevoke(request.request_id)}
-              className="text-xs font-semibold px-4 py-2 rounded-lg border border-ignite/30 text-flare hover:bg-ignite/10 transition-colors"
+              className="btn btn-sm btn-error text-lg font-semibold rounded-md border-carbon-stroke text-text-primary hover:bg-smoke-hover"
             >
               Revoke
             </button>

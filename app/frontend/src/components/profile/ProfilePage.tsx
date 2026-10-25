@@ -15,6 +15,7 @@ import { RoleRequests } from './RoleRequests';
 import { SavedLocations } from './SavedLocations';
 import { RotateHint } from '../shared/RotateHint';
 import { useRotate } from '../../hooks/useRotate';
+import { TwoFactorToggle } from './TwoFactorToggle';
 
 type ReportFilter = 'All' | ReportStatus;
 type ResourceFilter = 'All' | Status;
@@ -77,6 +78,7 @@ export default function ProfilePage(){
                         <h4 className="text-text-muted mt-0.5 uppercase">{displayUser.role}</h4>
                     ) : null}
                 </div>
+                {user ? <TwoFactorToggle /> : null}
             </div>
             {displayUser ? (
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>

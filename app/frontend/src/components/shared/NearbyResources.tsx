@@ -36,6 +36,9 @@ export function NearbyResources({ resources, selectedResourceId = null, onSelect
                 <p className="text-sm text-text-muted">
                     {r.distance.toFixed(1)} km · {r.location}
                 </p>
+                <p className="text-sm text-text-muted">
+                  <span className="text-sm  text-white">{r.name}: </span>{r.contact}
+                </p>
             </div>
             <ChevronRight className="size-4 opacity-30" />
           </button>

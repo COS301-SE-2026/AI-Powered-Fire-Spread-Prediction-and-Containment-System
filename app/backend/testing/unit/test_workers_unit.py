@@ -123,7 +123,7 @@ class TestExecutePipelineTask:
 
         def fake_run(**kwargs):
             captured["weather"] = kwargs["weather_history"]
-            return [np.zeros((5, 5), dtype=np.int8)]
+            return [np.zeros((5, 5), dtype=np.int8)], []
 
         payload = {
             "job_id": "unit-1", 
@@ -139,7 +139,7 @@ class TestExecutePipelineTask:
              patch.object(cw, "fetch_static_grids", return_value=static), \
              patch.object(cw, "build_boundary_ignition_mask", return_value=np.zeros((5,5), bool)), \
              patch.object(cw, "run_convlstm_dca", side_effect=fake_run):
-            result = cw.execute_pipeline_task(MagicMock(), payload)
+            result = cw.execute_pipeline_task(None, payload)
 
         wt = captured["weather"]
         assert tuple(wt.shape) == (1, T, 4, 5, 5)

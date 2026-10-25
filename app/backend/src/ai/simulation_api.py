@@ -109,6 +109,17 @@ def grid_dimensions_for_extent(
 
     return H, W
 
+class HourlyWeather(BaseModel):
+    hour: int
+    temperature_c: float
+    rel_humidity_pct: float
+    wind_speed_kmh: float
+    wind_dir_deg: float
+
+class ForecastModelInfo(BaseModel):
+    mean_skill: float
+    val_years: list[str] = Field(default_factory=list)
+    skill_by_channel: dict[str, dict[str, float]] = Field(default_factory=dict)
 
 class Prediction(BaseModel):
     ref: str
@@ -123,6 +134,9 @@ class Prediction(BaseModel):
     grid_h: int
     grid_w: int
     cell_size_m: float
+    weather_by_hour: list[HourlyWeather] = Field(default_factory=list)
+    forecast_source: str = "unknown"
+    forecast_model: ForecastModelInfo | None = None
 
 class ClusterPrediction(BaseModel):
     fire_refs: list[str]
@@ -137,6 +151,9 @@ class ClusterPrediction(BaseModel):
     grid_h: int
     grid_w: int
     cell_size_m: float
+    weather_by_hour: list[HourlyWeather] = Field(default_factory=list)
+    forecast_source: str = "unknown"
+    forecast_model: ForecastModelInfo | None = None
 
 class SimulationResponse(BaseModel):
     # Flattened burn-state grids per tick (list of (H*W) ints in {0=unburned, 1=burning, 2=burned})
@@ -377,6 +394,9 @@ async def simulate_single_fire(
             "grid_h": H,
             "grid_w": W,
             "cell_size_m": cell_size_m,
+            "weather_by_hour": raw_result.get("weather_by_hour", []),
+            "forecast_source": raw_result.get("forecast_source", "unknown"),
+            "forecast_model": raw_result.get("forecast_model"),
         }
 
         await asyncio.to_thread(cache_prediction, cache_key, prediction_payload)
@@ -505,6 +525,9 @@ async def simulate_fire_cluster(
             "grid_h": H,
             "grid_w": W,
             "cell_size_m": cell_size_m,
+            "weather_by_hour": raw_result.get("weather_by_hour", []),
+            "forecast_source": raw_result.get("forecast_source", "unknown"),
+            "forecast_model": raw_result.get("forecast_model"),
         }
 
         await asyncio.to_thread(cache_cluster_prediction, cache_key, prediction_payload, 1800)

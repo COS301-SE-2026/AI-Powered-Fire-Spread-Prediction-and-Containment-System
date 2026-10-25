@@ -1,9 +1,8 @@
 import { LocalLine } from '@/types/ContainmentLines';
-import { AlertTriangle, Droplets, Flame, Thermometer, Wind } from 'lucide-react';
+import { AlertTriangle, ArrowUp, BrainCircuit, Droplets, Flame, Thermometer, Wind } from 'lucide-react';
 import { TICKS_PER_HOUR } from '@/types/simulation';
-import { EnvironmentWidgets } from './EnvironmentWidgets';
 import { LoggedContainmentLine } from './containmentLineCard';
-import { Prediction, SimulationStatus, ClusterPrediction } from '../../hooks/useSimulation';
+import { Prediction, SimulationStatus, ClusterPrediction, ForecastModelInfo } from '../../hooks/useSimulation';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useFuelConditions } from '../../hooks/useFuelConditions';
 import { Sparkline } from './Sparkline';
@@ -51,6 +50,23 @@ function formatKm2(km2: number): string{
   if(km2 < 0.01) return '< 0.01';
   if(km2 < 1) return km2.toFixed(2);
   return km2.toFixed(1);
+}
+
+const CHANNEL_LABELS: Record<string, string> = {
+  temperature: 'Temperature',
+  relative_humidity: 'Humidity',
+  wind_u: 'Wind (east-west)',
+  wind_v: 'Wind (north-south)',
+}
+
+function skillToolTip(model: ForecastModelInfo): string{
+  const pct = (v: number | undefined) => `${Math.round((v ?? 0) * 100)}%`
+  return [
+    'Lower error than assuming weather stays the same:',
+    ...Object.entries(model.skill_by_channel).map(
+      ([ch, byHour]) => `${CHANNEL_LABELS[ch] ?? ch}: ${pct(byHour['1'])} at 1h, ${pct(byHour['4'])} at 4h`
+    ),
+  ].join('\n')
 }
 
 export function SimulationResults({
@@ -109,6 +125,14 @@ export function SimulationResults({
 
   const bandColor = conditions ? BAND_COLOR[conditions.fdi_color] ?? 'text-text-primary' : '';
 
+  const weatherRun = selectedPrediction ?? clusterPredictions[0] ?? predictions[0];
+  const weatherHours = weatherRun?.weather_by_hour ?? [];
+  const simHour = Math.floor(currentTick / TICKS_PER_HOUR);
+  const hourWeather = weatherHours.length ? weatherHours[Math.min(simHour, weatherHours.length - 1)] : undefined;
+  const beyondForecast = weatherHours.length > 0 && simHour > weatherHours.length - 1;
+  const forecastModel = weatherRun?.forecast_model;
+  const valYears = forecastModel?.val_years ?? [];
+
   return (
     <div className="w-full shrink-0 flex flex-col gap-3 px-2 py-3 overflow-auto">
       {/* Simulation header */}
@@ -144,6 +168,57 @@ export function SimulationResults({
             <span className='text-xs text-text-muted uppercase'>Active front</span>
             <span className='text-sm font-semibold text-text-primary'>{totals.burning} cells</span>
           </div>
+        </div>
+      )}
+
+      {hourWeather && (
+        <div>
+          <div className='flex items-center justify-between'>
+            <p className='text-sm uppercase py-2'>simulated weather</p>
+            <span className='text-[10px] font-mono text-text-disabled'>
+              {simHour === 0 ? 'now' : `+${simHour} h`}
+              {beyondForecast && ' · held from last forecast hour'}
+            </span>
+          </div>
+
+          <div className='grid grid-cols-3 gap-2'>
+            <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+              <span className='flex items-center gap-1 text-xs text-text-muted uppercase'>
+                <Thermometer size={12}/> TEMP
+              </span>
+              <span className='text-sm font-semibold text-text-primary'>{hourWeather.temperature_c.toFixed(1)}°C</span>
+            </div>
+            <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+              <span className='flex items-center gap-1 text-xs text-text-muted uppercase'>
+                <Droplets size={12}/> RH
+              </span>
+              <span className='text-sm font-semibold text-text-primary'>{hourWeather.rel_humidity_pct.toFixed(0)}%</span>
+            </div>
+            <div className='flex flex-col p-2 rounded-lg bg-carbon-bg border border-carbon-stroke'>
+              <span className='flex items-center gap-1 text-xs text-text-muted uppercase'>
+                <Wind size={12}/> {compass(hourWeather.wind_dir_deg)}
+              </span>
+              <span className='flex items-center gap-1 text-sm font-semibold text-text-primary'>
+                <ArrowUp size={14} style={{ transform: `rotate(${hourWeather.wind_dir_deg + 180}deg)`}}/>
+                {hourWeather.wind_speed_kmh.toFixed(0)} km/h
+              </span>
+            </div>
+          </div>
+        
+        {weatherRun?.forecast_source === 'convlstm' && forecastModel ? (
+          <div
+            className='mt-2 flex items-center gap-1.5 text-xs text-text-muted'
+            title={skillToolTip(forecastModel)}
+          >
+            <BrainCircuit size={12} className='shrink-0'/>
+            <span>
+              ConvLSTM forecast · {Math.round(forecastModel.mean_skill * 100)}% lower error than no-change
+              {valYears.length > 0 && ` (tested on ${valYears[0]}-${valYears[valYears.length-1]})`}
+            </span>
+          </div>
+        ) : weatherRun?.forecast_source === 'current_weather' ? (
+          <p className='mt-2 text-xs text-text-disabled'>Using the current weather (forecast model unavailable)</p>
+        ): null}
         </div>
       )}
 
@@ -301,7 +376,7 @@ export function SimulationResults({
           <div className="flex flex-col gap-2">
             {[1, 3, 6, 12, 24, 48, 72].map((hour) => {
               // const p = predictions[0];
-              const tickHour = hour * 4;
+              const tickHour = hour * TICKS_PER_HOUR;
               const radiusses: number[] = [];
 
               for(const p of runs){

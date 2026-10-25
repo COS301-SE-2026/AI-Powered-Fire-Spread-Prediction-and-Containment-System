@@ -1,6 +1,5 @@
 import React, {useState} from "react";
 
-
 interface PasswordInputProps {
   id: string;
   name?: string;
@@ -16,7 +15,7 @@ const baseFieldClass =(hasError?: string)=>{
     if(hasError){
         return 'input input-error w-full pr-10'
     }
-    return 'input input-neutral focus:border-primary w-full pr-10'
+    return 'input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-primary pr-10'
 };
 
 export default function PasswordInput({
@@ -46,7 +45,7 @@ export default function PasswordInput({
                 type="button"
                 aria-label={visible ? 'Hide password' : 'Show password'}
                 onClick={() => setVisble((prev) => !prev)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-white/60 hover:text-white rounded-md focus:outline-none focus:ring-1 focus:ring-primary"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center text-text-muted hover:text-text-primary rounded-md focus:outline-none"
             >
                 {visible ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
