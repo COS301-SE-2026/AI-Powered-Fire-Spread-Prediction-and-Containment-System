@@ -914,7 +914,7 @@ export function FireMap({ lat,
         type='button'
         onClick={handleRecenter}
         aria-label='Center map location on me'
-        className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+        className='absolute bottom-14 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
       >
         <LocateFixed className='w-5 h-5' />
       </button>

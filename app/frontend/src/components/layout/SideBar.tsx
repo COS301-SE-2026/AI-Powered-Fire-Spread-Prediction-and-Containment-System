@@ -37,8 +37,9 @@ export function SideBar({
             alt="FireAway"
             className="h-8 w-auto object-contain"
           />
-          <label htmlFor='mobile-nav-drawer' className='btn btn-ghost btn-circle' aria-label="Open navigation menu">
+          <label htmlFor='mobile-nav-drawer' className='btn btn-ghost btn-circle'>
             <Menu className='size-6 text-text-primary' />
+            <span className='sr-only'>Open navigation menu</span>
           </label>
         </div>
 
@@ -51,7 +52,9 @@ export function SideBar({
 
       {/* desktop */}
       <div className='drawer-side z-50'>
-        <label htmlFor='mobile-nav-drawer' aria-label='close sidebar' className='drawer-overlay'/>
+        <label htmlFor='mobile-nav-drawer' className='drawer-overlay'>
+          <span className='sr-only'>Close sidebar</span>
+        </label>
 
         <aside className="flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen w-64 lg:w-23 lg:hover:w-64 transition-all duration-300 ease-in group shrink-0 shadow-2xl shadow-black/50">
           {/* logos */}
