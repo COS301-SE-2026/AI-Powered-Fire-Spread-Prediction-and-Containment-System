@@ -577,7 +577,7 @@ export function FireMap({ lat,
     <div className='relative w-full h-full'>
       {/* key for map legend */}
       {showKey && (
-        <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
+        <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-40 md:w-48'>
           <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
           <div className='flex items-center justify-between text-xs'>
             <div className='flex items-center gap-2'>
