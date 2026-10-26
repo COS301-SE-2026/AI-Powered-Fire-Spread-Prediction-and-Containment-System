@@ -25,8 +25,8 @@ export default function FirefighterDashboard() {
   const [drawMode, setDrawMode] = useState(false);
   const [clearDrawings, setClearDrawings] = useState(0);
   const [showWater, setShowWater] = useState(true);
-  const { userLocation, searchLocation, nearbyFires, environmentVariables } = useNearbyFires();
-  const { nearbyResources } = useNearbyResources(searchLocation);
+  const { userLocation, searchLocation, nearbyFires, environmentVariables, loading: firesLoading } = useNearbyFires();
+  const { nearbyResources, loading: resourcesLoading } = useNearbyResources(searchLocation);
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const { showHint, dismiss } = useRotate();
@@ -135,7 +135,7 @@ export default function FirefighterDashboard() {
                   focus={focus}
                 />
               </div>
-              <MapStatsOverlay nearbyFires={nearbyFires} />
+              <MapStatsOverlay nearbyFires={nearbyFires} loading={firesLoading && nearbyFires.length === 0} />
               {lineError && (
                 <div className='absolute bottom-4 left-4 z-20 max-w-xs rounded-lg bg-carbon-bg/90 border-red-400/30 px-3 py-2 text-xs text-red-300'>
                   Line not saved: {lineError}
@@ -155,7 +155,7 @@ export default function FirefighterDashboard() {
                 <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
                   Environment Variables
                 </h3>
-                <EnvironmentWidgets variables={environmentVariables} />
+                <EnvironmentWidgets variables={environmentVariables} loading={firesLoading && !environmentVariables} />
               </div>
               <div className="flex flex-col">
                 <h3 className="font-bold tracking-widest text-text-muted uppercase mb-3">
@@ -172,14 +172,14 @@ export default function FirefighterDashboard() {
                 Nearby Reports
               </p>
               <div className="shrink-0 max-h-64 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-                <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+                <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire} loading={firesLoading && nearbyFires.length === 0} />
               </div>
 
               <p className=" text-text-muted uppercase shrink-0">
                 Available Resources
               </p>
               <div className="min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource}/>
+                <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource} loading={resourcesLoading && availableResources.length === 0} />
               </div>
             </div>
         </div>

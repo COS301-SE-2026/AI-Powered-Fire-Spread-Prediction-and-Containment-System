@@ -1,13 +1,17 @@
 import { ChevronRight } from 'lucide-react';
 import type { NearbyFire } from '../../types/FirefighterDashboard';
+import { ListSkeleton } from '../ui/skeleton/ListSkeleton';
 
 interface NearbyFireReports {
   readonly nearbyFires: NearbyFire[];
   readonly selectedFireId?: string | null;
   readonly onSelectFire?: (ref: string) => void;
+  readonly loading?: boolean;
 }
 
-export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire = undefined }: NearbyFireReports) {
+export function NearbyReports({ nearbyFires, selectedFireId = null, onSelectFire = undefined, loading = false }: NearbyFireReports) {
+  if (loading) return <ListSkeleton rows={3} label='Loading nearby reports' className='p-2' />;
+
   const fires = (nearbyFires ?? []).filter((f) => f.status?.toLowerCase() === 'verified');
 
   if (fires.length === 0) {
