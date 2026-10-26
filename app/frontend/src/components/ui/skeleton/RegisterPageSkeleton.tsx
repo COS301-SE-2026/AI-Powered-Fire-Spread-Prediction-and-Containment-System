@@ -2,7 +2,7 @@ import { SkeletonRegion } from './SkeletonRegion';
 import { Skeleton } from './Skeleton';
 import { SkeletonCard } from './SkeletonCard';
 
-export function RegistrationPageSkeleton({ label ='Loading page' }: Readonly<{ label?: string }>) {
+export function RegisterPageSkeleton({ label ='Loading page' }: Readonly<{ label?: string }>) {
     return (
         <SkeletonRegion label={label} className='min-h-screen flex flex-col items-center justify-center gap-6 p-4'>
             <Skeleton className='h-24 w-60 rounded-xl' />
