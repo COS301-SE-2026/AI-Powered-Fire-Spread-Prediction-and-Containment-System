@@ -12,7 +12,7 @@
         <SkeletonRegion label={label} className='p-3 md:p-6 flex flex-col w-full'>
             {showHeader && <SkeletonPageHeader />}
             <SkeletonToolbar />
-            <SkeletonTable />
+            <SkeletonTable rows={rows} cols={5} />
         </SkeletonRegion>
     );
  }
