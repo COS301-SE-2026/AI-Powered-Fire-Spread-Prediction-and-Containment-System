@@ -69,7 +69,7 @@ export default function MapView() {
             />
           </div>
           {/* Map */}
-          <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-96 sm:h-104 lg:h-140 w-full shadow-md">
+          <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-120 sm:h-130 lg:h-[72vh] w-full shadow-md">
             <PublicFireMap
               lat={userLocation?.lat ?? null}
               lng={userLocation?.lng ?? null}
@@ -108,14 +108,14 @@ export default function MapView() {
         </div>
 
         {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
-        <div className="xl:col-span-4 flex flex-col gap-3 xl:h-150">
+        <div className="xl:col-span-4 flex flex-col gap-3 xl:h-[calc(72vh+3.25rem)]">
           <p className="tracking-widest text-text-muted uppercase shrink-0">
             Nearby Reports
           </p>
 
           {/* Enforces strict scrolling constraints tailored to Ryan's height layout tree */}
           <div
-            className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
+            className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130 xl:max-h-none xl:flex-1 xl:min-h-0">
             <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire} loading={firesLoading && nearbyFires.length === 0} />
           </div>
 
