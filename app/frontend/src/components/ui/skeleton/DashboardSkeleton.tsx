@@ -1,9 +1,9 @@
-import { SkeletonRegion } from "./SkeletonRegion";
-import { Skeleton } from "./Skeleton";
-import { SkeletonPageHeader } from "./SkeletonPageHeader";
-import { SkeletonStatCards } from "./SkeletonStatCards";
-import { SkeletonCard } from "./SkeletonCard";
-import { SkeletonListBody } from "./SkeletonListBody";
+import { SkeletonRegion } from './SkeletonRegion';
+import { Skeleton } from './Skeleton';
+import { SkeletonPageHeader } from './SkeletonPageHeader';
+import { SkeletonStatCards } from './SkeletonStatCards';
+import { SkeletonCard } from './SkeletonCard';
+import { SkeletonListBody } from './SkeletonListBody';
 
 export function DashboardSkeleton({ label = 'Loading dashboard' }: Readonly<{ label?: string}>) {
     return (
@@ -18,7 +18,7 @@ export function DashboardSkeleton({ label = 'Loading dashboard' }: Readonly<{ la
                             key={i}
                             aria-hidden='true'
                             style={{ height: `${h}%` }}
-                            className='flex-1 flex items-end gap-2 md:gap-4 pt-4'
+                            className='skeleton flex-1 rounded-t-md rounded-b-none'
                         />
                     ))}
                 </div>

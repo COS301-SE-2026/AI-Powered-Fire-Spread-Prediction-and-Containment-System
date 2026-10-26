@@ -4,7 +4,7 @@ import { SkeletonStatCards } from "./SkeletonStatCards";
 export function CardSkeleton({
     count = 4,
     label = 'Loading',
-    className,
+    className = undefined,
 }: Readonly<{ count?: number; label?: string; className?: string }>) {
     return (
         <SkeletonRegion label={label} className={className}>

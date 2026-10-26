@@ -1,9 +1,9 @@
-import { SkeletonRegion } from "./SkeletonRegion";
-import { Skeleton } from "./Skeleton";
-import { SkeletonText } from "./SkeletonText";
-import { SkeletonPageHeader } from "./SkeletonPageHeader";
-import { SkeletonCard } from "./SkeletonCard";
-import { SkeletonListBody } from "./SkeletonListBody";
+import { SkeletonRegion } from './SkeletonRegion';
+import { Skeleton } from './Skeleton';
+import { SkeletonText } from './SkeletonText';
+import { SkeletonPageHeader } from './SkeletonPageHeader';
+import { SkeletonCard } from './SkeletonCard';
+import { SkeletonListBody } from './SkeletonListBody';
 
 export function DetailPageSkeleton({ label = 'Loading page' }: Readonly<{ label?: string }>) {
     return (
