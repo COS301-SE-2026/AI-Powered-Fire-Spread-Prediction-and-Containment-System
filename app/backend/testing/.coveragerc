@@ -44,3 +44,5 @@ omit =
     # Empty package initializers
     app/backend/**/__init__.py
 
+    app/backend/src/ai/inspect_fire.py
+    app/backend/src/ai/build_ignition_dataset.py

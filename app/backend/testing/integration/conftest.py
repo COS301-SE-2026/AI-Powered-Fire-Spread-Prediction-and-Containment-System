@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import pyotp
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -338,3 +339,4 @@ def make_orphaned_role_request(db, role="admin", status="pending"):
     db.execute(text("ALTER TABLE role_requests ENABLE TRIGGER ALL"))
     db.commit()
     return request
+
