@@ -4,7 +4,7 @@ import { SkeletonMapBody } from "./SkeletonMapBody";
 
 export function MapSkeleton({
     label = 'Initializing Map',
-    className,
+    className = undefined,
 }: Readonly<{ label?: string; className?: string }>) {
     return (
         <SkeletonRegion label='Loading map' className={cx('flex-1 w-full h-full', className)}> 

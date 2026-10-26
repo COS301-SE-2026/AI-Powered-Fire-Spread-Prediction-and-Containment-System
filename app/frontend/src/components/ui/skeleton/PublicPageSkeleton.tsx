@@ -1,6 +1,6 @@
-import { SkeletonRegion } from "./SkeletonRegion";
-import { Skeleton } from "./Skeleton";
-import { SkeletonCard } from "./SkeletonCard";
+import { SkeletonRegion } from './SkeletonRegion';
+import { Skeleton } from './Skeleton';
+import { SkeletonCard } from './SkeletonCard';
 
 export function PublicPageSkeleton({ label = 'Loading page' }: Readonly<{ label?: string }>) {
     return (
