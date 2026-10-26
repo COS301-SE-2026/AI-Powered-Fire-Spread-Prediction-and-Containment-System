@@ -1,4 +1,3 @@
-import { Skeleton } from "./Skeleton"
 import { SkeletonRegion } from "./SkeletonRegion";
 import { SkeletonTable } from "./SkeletonTable";
 
