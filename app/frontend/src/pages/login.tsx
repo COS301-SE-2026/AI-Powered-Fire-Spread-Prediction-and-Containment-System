@@ -5,6 +5,7 @@ import Image from 'next/image';
 import PasswordInput from '../components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 import EmberField from '../components/ui/EmberEffect';
+import { PublicPageSkeleton } from '@/components/ui/skeleton/PublicPageSkeleton';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -112,6 +113,10 @@ export default function Login() {
     }, 1000);
     return () => clearInterval(timer);
   }, [cooldown]);
+
+  if (isAuthLoading || (isAuth && role)) {
+    return <PublicPageSkeleton label='checking your session' />;
+  }
 
   return (
     <main>

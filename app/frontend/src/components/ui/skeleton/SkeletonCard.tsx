@@ -2,8 +2,8 @@ import React from 'react';
 import { cx } from '@/lib/cx';
 
 export function SkeletonCard({
-    className,
-    children,
+    className = undefined,
+    children = undefined,
 }: Readonly<{ className?: string; children?: React.ReactNode}>) {
     return (
         <div

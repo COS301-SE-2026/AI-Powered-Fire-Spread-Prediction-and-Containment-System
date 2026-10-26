@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
 import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
 import EmberField from '../components/ui/EmberEffect';
+import { RegisterPageSkeleton } from '@/components/ui/skeleton/RegisterPageSkeleton';
 
 interface RegisterForm {
   name: string;
@@ -147,6 +148,10 @@ export default function Register() {
       setIsLoading(false);
     }
   };
+
+  if (isAuthLoading || (isAuth && role)) {
+    return <RegisterPageSkeleton label='Checking your session' />
+  }
 
   return (
     <main>
