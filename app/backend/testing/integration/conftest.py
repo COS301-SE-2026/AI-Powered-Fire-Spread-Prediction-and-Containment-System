@@ -353,3 +353,39 @@ def make_orphaned_role_request(db, role="admin", status="pending"):
 def flush_fake_redis():
     fakeredis.FakeRedis(server=_fake_server).flushall()
     yield
+
+@pytest.fixture
+def make_registered_user(db, sample_user):
+    """Factory: insert a fully registered user, bypassing pending registration.
+ 
+    Returns (credentials, totp_secret). totp_secret is None unless enable_2fa=True.
+    """
+ 
+    def _make(enable_2fa: bool = False):
+        secret = pyotp.random_base32() if enable_2fa else None
+        db.add(
+            User(
+                id=str(uuid.uuid4()),
+                email=sample_user["email"],
+                hashed_password=hash_password(sample_user["password"]),
+                name=sample_user["name"],
+                surname=sample_user["surname"],
+                id_number=sample_user["id_number"],
+                role="user",
+                is_active=True,
+                is_2fa_enabled=enable_2fa,
+                totp_secret=secret,  # ASSUMPTION: stored as plain base32
+            )
+        )
+        db.commit()
+        return sample_user, secret
+ 
+    return _make
+ 
+ 
+@pytest.fixture
+def registered_user(make_registered_user):
+    """A registered user with 2FA disabled."""
+    creds, _ = make_registered_user(enable_2fa=False)
+    return creds
+ 

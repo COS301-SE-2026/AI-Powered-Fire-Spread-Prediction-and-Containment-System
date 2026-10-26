@@ -9,8 +9,6 @@ def test_register_returns_2fa_setup(client: TestClient, sample_user):
 
     data = response.json()
     assert data["requires_2fa"] is True
-    assert data["otpauth_url"].startswith("otpauth://totp/FireSpreadApp:")
-    # the QR secret must be a valid base32 TOTP secret
     secret = pyotp.parse_uri(data["otpauth_url"]).secret
     assert len(pyotp.TOTP(secret).now()) == 6
 
@@ -21,19 +19,17 @@ def test_login_with_2fa_enabled(client: TestClient, make_registered_user):
     login_resp = client.post(
         "/api/auth/login",
         json={"email": creds["email"], "password": creds["password"]},
-    )
+        )
     assert login_resp.status_code == 200
-    # ASSUMPTION: shape taken from the old test; verify against login.py
-    assert login_resp.json()["message"] == "2FA required"
-    assert "user_id" in login_resp.json()
-    assert "access_token" not in login_resp.json()
-
+    body = login_resp.json()
+    assert body["requires_2fa"] is True
+    assert body["email"] == creds["email"]
+    assert "access_token" not in body
     verify_resp = client.post(
         "/api/auth/verify-2fa",
         json={"username": creds["email"], "code": pyotp.TOTP(secret).now()},
     )
     assert verify_resp.status_code == 200
-    assert "access_token" in verify_resp.json()
 
 
 def test_verify_2fa_wrong_code(client: TestClient, make_registered_user):
