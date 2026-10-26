@@ -8,9 +8,10 @@ import { SearchBar } from '../../components/shared/Searchbar';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { useRotate } from '../../hooks/useRotate'
 import { PageHeader } from '../../components/layout/pageHeader';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 
-  type ReportFilter = 'all' | ReportStatus;
-  const REPORT_FILTERS: readonly ReportFilter[] = ['all', 'pending', 'verified', 'rejected'];
+type ReportFilter = 'all' | ReportStatus;
+const REPORT_FILTERS: readonly ReportFilter[] = ['all', 'pending', 'verified', 'rejected'];
 
 export default function ReportTable() {
   const [statusFilter, setStatusFilter] = useState<ReportFilter>('all');
@@ -32,9 +33,7 @@ export default function ReportTable() {
         {error && <div className="text-error text-sm">{error}</div>}
 
         {loading ? (
-          <div className="flex justify-center items-center min-h-[40vh]">
-            <span className="loading loading-spinner loading-lg text-primary" />
-          </div>
+          <TableSkeleton rows={8} cols={5} label='Loading reported fires' />
         ) : (
           <ReportsTable
             requests={reports}

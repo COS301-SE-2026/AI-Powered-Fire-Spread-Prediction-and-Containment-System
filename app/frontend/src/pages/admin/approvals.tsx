@@ -7,6 +7,7 @@ import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import { StatusFilter } from '../../components/shared/Filter';
 import { SearchBar} from '../../components/shared/Searchbar';
 
@@ -49,9 +50,7 @@ export default function RoleApprovalPage() {
         {/* table */}
         <div className='flex-1 min-h-0'>
           {loading ? (
-            <div className="p-6 flex justify-center items-center min-h-[60vh]">
-              <span className="loading loading-spinner loading-lg text-primary" />
-            </div>
+            <TableSkeleton rows={8} cols={5} label='Loading role requests' />
             ) : (
             <RoleRequestsTable requests={requests} filter={filter} onView={setSelectedRequest} />
           )}

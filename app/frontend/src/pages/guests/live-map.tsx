@@ -14,17 +14,14 @@ import { NotificationToastHost } from '../../components/notification/Notificatio
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useMapLink } from '../../hooks/useMapLink';
+import { MapSkeleton } from '@/components/ui/skeleton/MapSkeleton';
 
 
 const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex-1 flex items-center justify-center h-full w-full">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
-    ),
+    loading: () => <MapSkeleton />,
   }
 );
 

@@ -4,6 +4,7 @@ import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'luci
 import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { DashboardSkeleton } from '@/components/ui/skeleton/DashboardSkeleton';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { DashboardMetrics } from '../../components/admin/adminDashboardMetrics';
 import { MiniMetric } from '../../types/AdminDashboard';
@@ -15,9 +16,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
   if (loading) {
     return (
       <AdminSideBar hideLoginRegister>
-        <div className="w-full min-h-screen flex items-center justify-center">
-          <span className="loading loading-spinner loading-lg text-primary" />
-        </div>
+        <DashboardSkeleton label='Loading dashboard' />
       </AdminSideBar>
     );
   }

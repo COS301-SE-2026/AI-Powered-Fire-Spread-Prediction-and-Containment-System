@@ -6,6 +6,7 @@ import { useGPUWorkers } from '../../hooks/useGPUWorkers';
 import { GpuWorkersTable } from './GPUTable';
 import type { Status } from '../../types/GPUWorkers';
 import { PageHeader } from '../layout/pageHeader';
+import { TableSkeleton } from '../ui/skeleton/TableSkeleton';
 
 export default function VolunteerPage() {
     const { workers, loading, error, actionError,refetch, activate, deactivate, remove } = useGPUWorkers();
@@ -21,7 +22,9 @@ export default function VolunteerPage() {
         return (
             <div className='p-6 font-body'>
                 <PageHeader title="Your machines" subtitle="Lend your NVIDIA GPU to the compute grid while it is idle. Machines you add appear here." showIcons />
-                <p className='text-error text-sm mt-4'>Loading...</p>
+                <div className='mt-4'>
+                    <TableSkeleton rows={4} cols={4} label='Loading your machines' />
+                </div>
             </div>
         );
     }

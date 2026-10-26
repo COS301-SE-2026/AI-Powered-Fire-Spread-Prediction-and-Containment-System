@@ -11,6 +11,7 @@ import { offlineStore } from '../lib/offlineStore';
 import { probeHealth } from '../lib/offline/shared';
 import { OfflineBar } from '../components/shared/OfflineBar';
 import GpuNotification from '../components/gpu_worker/GpuNotification';
+import { RouteTransitionSkeleton } from '@/components/ui/RouteTransitionSkeleton';
 
 // function GlobalToast() {
 //   const { activeToast, dismissToast } = useNotifications();
@@ -61,6 +62,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name='apple-mobile-web-app-title' content='Fireaway' />
       </Head>
       <Component {...pageProps} />
+      <RouteTransitionSkeleton />
       {showGpuNotification && <GpuNotification />}
       <OfflineBar />
     </NotificationsProvider>

@@ -15,14 +15,11 @@ import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { MapLayerToggles } from '../shared/MapLayerToggles';
 import { useLocationToMap } from '../../hooks/useLocationToMap';
+import { MapSkeleton } from '../ui/skeleton/MapSkeleton';
 
 const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) => mod.FireMap), {
   ssr: false,
-  loading: () => (
-    <div className="flex-1 flex items-center justify-center h-full w-full">
-      <span className="loading loading-spinner loading-lg text-primary" />
-    </div>
-  ),
+  loading: () => <MapSkeleton />,
 });
 
 export default function MapView() {

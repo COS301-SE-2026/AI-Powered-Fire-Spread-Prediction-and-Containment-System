@@ -7,6 +7,7 @@ import { SearchBar } from '../../components/shared/Searchbar';
 import { useReportedFires } from '../../hooks/useReportedFires';
 import { useRotate } from '../../hooks/useRotate';
 import { PageHeader } from '../../components/layout/pageHeader';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import { RotateHint } from '../../components/shared/RotateHint';
 
 type ReportFilter = 'All' | ReportStatus;
@@ -43,9 +44,7 @@ export default function ReportedFiresPage() {
         {error && <div>{error}</div>}
 
         {loading ? (
-          <div className="flex justify-center items-center min-h-[40vh]">
-            <span className="loading loading-spinner loading-lg text-primary" />
-          </div>
+          <TableSkeleton rows={8} cols={5} label='Loading reported fires' />
         ) : (
           <FireReportsTable reports={filteredReports} filter={filter} />
        )}

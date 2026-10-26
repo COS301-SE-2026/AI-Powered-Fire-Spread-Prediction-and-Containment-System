@@ -5,6 +5,8 @@ import type { Status } from '../../types/GPUWorkers';
 import { PageHeader } from '../layout/pageHeader';
 import { StatusFilter } from '../shared/Filter';
 import { SearchBar } from '../shared/Searchbar';
+import { SkeletonToolbar } from '../ui/skeleton/SkeletonToolbar';
+import { TableSkeleton } from '../ui/skeleton/TableSkeleton';
 
 type WorkerFilter = 'All' | Status;
 const WORKER_FILTERS: readonly WorkerFilter[] = ['All', 'active', 'busy', 'offline', 'quarantined', 'deactivated', 'rejected', 'removed',];
@@ -18,7 +20,8 @@ export default function GpuWorkersPage() {
         return (
             <div className='p-6'>
                 <PageHeader title="GPU workers" subtitle="Manage every machine currently connected to the compute grid." showIcons />
-                <p className='text-error text-sm'>Loading...</p>
+                <SkeletonToolbar />
+                <TableSkeleton rows={6} cols={5} label='Loading GPU workers' />
             </div>
         );
     }
@@ -36,7 +39,6 @@ export default function GpuWorkersPage() {
                 <SearchBar value={search} placeholder="Search GPU workers" onChange={setSearch} />
                 <StatusFilter<WorkerFilter> options={WORKER_FILTERS} filter={filter} onChange={setFilter} />
             </div>
-            {loading && <p className='text-sm'>Loading...</p>}
             {!loading && (
                 <GpuWorkersTable workers={workers} filter={filter} variant="admin" onActivate={activate} onDeactivate={deactivate} onRemove={remove} />
             )}

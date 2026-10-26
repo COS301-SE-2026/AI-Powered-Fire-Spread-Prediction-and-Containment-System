@@ -19,7 +19,6 @@ export function RouteSkeleton({ url }: Readonly<{ url: string }>) {
         return section === 'admin' ? <DashboardSkeleton /> : <MapPageSkeleton />;
     }
 
-    if (page === 'analytics') return <DashboardSkeleton label='Loading analytics' />
     if (['live-map', 'simulation'].includes(page)) return <MapPageSkeleton />;
     if (['reported-fire', 'reported-fires', 'approvals', 'gpuworkers', 'gpuvolunteer'].includes(page)) {
         return <TablePageSkeleton />;
