@@ -1,17 +1,24 @@
 import { Skeleton } from './Skeleton';
 
 
-export function SkeletonPageHeader() {
+export function SkeletonPageHeader({
+    showSubtitle = true,
+    showIcons = true,
+}: Readonly<{ showSubtitle?: boolean; showIcons?: boolean }>) {
     return (
-        <div aria-hidden='true' className='flex items-start justify-between gap-4 mb-4 md:mb-6'>
-            <div className='flex flex-col gap-3 flex-1'>
-                <Skeleton className='h-8 md:h-10 w-3/5 max-w-md' />
-                <Skeleton className='h-4 w-4/5 max-w-md' />
+        <header aria-hidden='true' className='mb-4 mt-2'>
+            <div className='flex items-start justify-between gap-1'>
+                <div className='min-w-0 flex flex-col gap-2'>
+                    <Skeleton className='h-9 w-64 ax-w-full' />
+                    {showSubtitle && <Skeleton className='h-5 w-80 max-w-full' />}
+                </div>
+                {showIcons && (
+                    <div className='flex ites-center gap-1'>
+                        <Skeleton className='size-12 rounded-full' />
+                        <Skeleton className='size-12 rounded-full' />
+                    </div>
+                )}
             </div>
-            <div className='flex gap-3 shrink-0'>
-                <Skeleton className='size-8 rounded-full' />
-                <Skeleton className='size-8 rounded-full' />
-            </div>
-        </div>
+        </header>
     );
 }
