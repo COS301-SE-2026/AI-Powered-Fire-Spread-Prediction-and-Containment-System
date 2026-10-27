@@ -5,6 +5,7 @@ import '../styles/globals.css';
 import 'mapbox-gl/dist/mapbox-gl.css'
 import Head from 'next/head';
 import { usePushSubscription } from '@/hooks/usePushSubscription';
+import { RouteTransitionSkeleton } from '@/components/ui/RouteTransitionSkeleton';
 import { NotificationsProvider, useNotifications } from '../hooks/useNotification';
 import { NotificationToast } from '../components/notification/NotificationToast';
 import { offlineStore } from '../lib/offlineStore';
@@ -61,6 +62,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name='apple-mobile-web-app-title' content='Fireaway' />
       </Head>
       <Component {...pageProps} />
+      <RouteTransitionSkeleton />
       {showGpuNotification && <GpuNotification />}
       <OfflineBar />
     </NotificationsProvider>

@@ -1,5 +1,7 @@
 import { Thermometer, Wind, Droplets, Flame } from 'lucide-react';
 import { StatCard } from './StatCard';
+import { Skeleton } from '../ui/skeleton/Skeleton';
+import { SkeletonRegion } from '../ui/skeleton/SkeletonRegion';
 
 export interface EnvironmentVariables {
   readonly wind: number;
@@ -13,6 +15,7 @@ export interface EnvironmentVariables {
 
 interface EnvironmentWidgetsProp {
   readonly variables: EnvironmentVariables | null;
+  readonly loading?: boolean;
 }
 
 function formatBand(band: string): string {
@@ -49,7 +52,17 @@ function WindDirection(degree: number): string {
   }
 }
 
-export function EnvironmentWidgets({ variables }: EnvironmentWidgetsProp) {
+export function EnvironmentWidgets({ variables, loading = false }: EnvironmentWidgetsProp) {
+  if (loading) {
+    return (
+      <SkeletonRegion label='Loading environment data' className='grid grid-cols-2 grid-rows-2 gap-3 h-full'>
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className='h-full min-h-20 rounded-xl' />
+        ))}
+      </SkeletonRegion>
+    );
+  }
+
   if (!variables) {
     return (
       <div className="grid grid-cols-2 grid-rows-2 gap-3 h-full">

@@ -226,7 +226,7 @@ export function SimulationResults({
       <div>
         <div className='flex items-center justify-between'>
           <p className='text-sm uppercase py-2'>weather inputs</p>
-          <span className='text-[10px] font-mono text-text-disabled'>
+          <span className='text-[0.625rem] font-mono text-text-disabled'>
             {selectedPrediction || fireLat ? 'at fire' : 'your location'}
           </span>
         </div>

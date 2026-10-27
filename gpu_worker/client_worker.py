@@ -22,7 +22,7 @@ import websockets
 
 from app.backend.src.ai.model_pipeline import run_convlstm_dca, WeatherForecaster, load_weather_forecaster, model_summary, summarize_hourly_weather
 from app.backend.src.ai.simulation import build_boundary_ignition_mask, build_multi_boundary_ignition_mask
-from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS
+from app.backend.src.ai.job_builder import fetch_static_grids, fetch_weather_history, DEFAULT_DCA_PARAMS, DataSourceError
 
 logging.basicConfig(
     level=logging.INFO,
@@ -175,7 +175,12 @@ def execute_pipeline_task(forecaster: Optional[WeatherForecaster], payload: dict
     report("fetching_weather", "Fetching weather data")
     weather_history = fetch_weather_history(payload)
     report("fetching_terrain", "Fetching terrain and satellite data")
-    static_grids = fetch_static_grids(payload)
+    try:
+        static_grids = fetch_static_grids(payload)
+    except DataSourceError:
+        raise
+    except Exception as err:
+        raise DataSourceError(f"Terrain/satellite fetch failed: {err}") from err
 
     # build the [1 T 4 H W] tensor for lstm
     frames = []
@@ -293,7 +298,7 @@ async def run_worker_loop(forecaster: Optional[WeatherForecaster], worker_jwt: s
                                     }
                                 )
                             )
-                        except requests.exceptions.RequestException as err:
+                        except (requests.exceptions.RequestException, DataSourceError) as err:
                             # upstream data source failed so gpu not quarentined
                             log.warning("Data source unavailable for %s: %s", job_id, err)
                             await websocket.send(

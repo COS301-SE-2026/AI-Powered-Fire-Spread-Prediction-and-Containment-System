@@ -31,7 +31,7 @@ export const SystemMetrics: React.FC<SystemMetricsProps> = ({ metrics }) => (
             {metric.value}
           </span>
           {metric.statusText ? (
-            <span className="px-1.5 py-0.5 bg-success/10 text-success border border-success/30 text-[9px] font-bold rounded uppercase tracking-wide">
+            <span className="px-1.5 py-0.5 bg-success/10 text-success border border-success/30 text-[0.5625rem] font-bold rounded uppercase tracking-wide">
               {metric.statusText}
             </span>
           ) : (

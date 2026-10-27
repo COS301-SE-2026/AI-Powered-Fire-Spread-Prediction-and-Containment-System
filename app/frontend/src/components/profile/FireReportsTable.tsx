@@ -27,7 +27,7 @@ export function MyFireReportsTable({ reports, filter }: MyFireReportsTableProps)
   const basePath = ROLE_PATHS[user?.role ?? 'user'] ?? 'users';
 
   return (
-    <div className="w-full overflow-x-auto overflow-y-auto max-h-[400px] rounded-2xl border border-carbon-stroke">
+    <div className="w-full overflow-x-auto overflow-y-auto max-h-[25rem] rounded-2xl border border-carbon-stroke">
       <table className="table table-pin-rows w-full">
         <thead>
           <tr className="[&>th]:bg-carbon-bg [&>th]:border-b [&>th]:border-primary/40">

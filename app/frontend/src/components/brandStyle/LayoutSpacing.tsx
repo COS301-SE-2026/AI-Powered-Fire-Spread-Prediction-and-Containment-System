@@ -23,13 +23,13 @@ const rules = [
 
 export default function LayoutSpacing() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <p
         style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '18px',
+          fontSize: '1.125rem',
           color: '#B0B8C8',
-          maxWidth: '800px',
+          maxWidth: '50rem',
           lineHeight: '1.75',
           fontWeight: 300,
         }}
@@ -50,7 +50,7 @@ export default function LayoutSpacing() {
       >
         <div
           style={{
-            padding: '14px 20px',
+            padding: '0.875rem 1.25rem',
             background: 'var(--color-carbon-input)',
             borderBottom: '1px solid var(--color-carbon-stroke)',
           }}
@@ -58,7 +58,7 @@ export default function LayoutSpacing() {
           <p
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '13px',
+              fontSize: '0.8125rem',
               color: '#A0ACC0',
               fontWeight: 600,
               letterSpacing: '0.15em',
@@ -74,8 +74,8 @@ export default function LayoutSpacing() {
             key={item.label}
             style={{
               display: 'grid',
-              gridTemplateColumns: '120px 80px 1fr',
-              padding: '16px 20px',
+              gridTemplateColumns: '7.5rem 5rem 1fr',
+              padding: '1rem 1.25rem',
               background:
                 index % 2 === 0 ? 'var(--color-carbon-card)' : 'var(--color-carbon-input)',
               borderBottom:
@@ -100,7 +100,7 @@ export default function LayoutSpacing() {
       >
         <div
           style={{
-            padding: '14px 20px',
+            padding: '0.875rem 1.25rem',
             background: 'var(--color-carbon-input)',
             borderBottom: '1px solid var(--color-carbon-stroke)',
           }}
@@ -108,7 +108,7 @@ export default function LayoutSpacing() {
           <p
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '13px',
+              fontSize: '0.8125rem',
               color: '#A0ACC0',
               fontWeight: 600,
               letterSpacing: '0.15em',
@@ -124,8 +124,8 @@ export default function LayoutSpacing() {
             key={bp.name}
             style={{
               display: 'grid',
-              gridTemplateColumns: '120px 100px 1fr',
-              padding: '16px 20px',
+              gridTemplateColumns: '7.5rem 6.25rem 1fr',
+              padding: '1rem 1.25rem',
               background:
                 index % 2 === 0 ? 'var(--color-carbon-card)' : 'var(--color-carbon-input)',
               borderBottom:
@@ -148,7 +148,7 @@ export default function LayoutSpacing() {
       >
         <div
           style={{
-            padding: '14px 20px',
+            padding: '0.875rem 1.25rem',
             background: 'var(--color-carbon-input)',
             borderBottom: '1px solid var(--color-carbon-stroke)',
           }}
@@ -156,7 +156,7 @@ export default function LayoutSpacing() {
           <p
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '13px',
+              fontSize: '0.8125rem',
               color: '#A0ACC0',
               fontWeight: 600,
               letterSpacing: '0.15em',
@@ -169,10 +169,10 @@ export default function LayoutSpacing() {
 
         <div
           style={{
-            padding: '24px',
+            padding: '1.5rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px',
+            gap: '0.75rem',
             background: 'var(--color-carbon-card)',
           }}
         >

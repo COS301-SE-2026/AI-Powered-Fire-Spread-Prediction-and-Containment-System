@@ -46,7 +46,7 @@ export function ReportMap({ lat, lng }: ReportMapProps) {
                 {/* Click to show badge */}
                 {showUserLocationTooltip && (
                   <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
-                  border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
+                  border border-carbon-stroke text-[0.6875rem] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
                     Your location
                   </div>
                 )}
