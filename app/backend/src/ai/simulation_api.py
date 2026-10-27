@@ -21,6 +21,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
+from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.ai.sim_constants import TICKS_PER_HOUR, MAXSTEPS, TARGET_CELL_SIZE_M
@@ -41,7 +42,7 @@ from collections import defaultdict
 from app.backend.src.ai.job_builder import fetch_weather_history, fetch_static_grids, build_volunteer_payload, DEFAULT_DCA_PARAMS
 from app.backend.src.routes.workers import dispatch_simulation_task, has_active_volunteer_workers, set_sim_progress,  clear_sim_progress
 
-router = APIRouter(prefix="/api", tags=["simulation"])
+router = APIRouter(prefix="/api", tags=["simulation"], dependencies=[Depends(get_current_user)])
 
 METRES_PER_DEG_LAT = 111_320.0
 MIN_GRID_DIMENSION = 10

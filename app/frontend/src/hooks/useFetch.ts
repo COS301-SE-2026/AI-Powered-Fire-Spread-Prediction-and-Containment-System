@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { handleExpiredSession } from '@/lib/api';
 
 export function useFetch<T>(url: string, options?: RequestInit) {
   const [data, setData] = useState<T | null>(null);
@@ -39,6 +40,9 @@ export function useFetch<T>(url: string, options?: RequestInit) {
         setStatus(resp.status);
 
         if (!resp.ok) {
+          if (resp.status === 401 && !url.includes('/api/auth/')){
+            handleExpiredSession();
+          }
           const body = await resp.json().catch(() => null);
           if (cancelled) return;
           throw new Error(body?.detail || `Request failed: ${resp.status}`);
