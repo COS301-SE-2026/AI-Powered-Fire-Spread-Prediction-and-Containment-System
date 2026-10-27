@@ -10,7 +10,10 @@ interface RotateHintProps {
 
 export function RotateHint({ show, onDismiss }: RotateHintProps){
     const dismissRef = useRef(onDismiss);
-    dismissRef.current = onDismiss;
+
+    useEffect(() => {
+        dismissRef.current = onDismiss;
+    }, [onDismiss]);
 
     useEffect(() => {
         if (!show) return;
