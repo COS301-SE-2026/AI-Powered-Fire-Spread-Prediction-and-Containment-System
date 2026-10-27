@@ -28,7 +28,7 @@
 </p>
 <br>
 
-## Oveview
+## Overview
 
 Fire Away is an AI-powered wildfire spread prediction and containment system that helps emergency responders and the public react to fires faster. Our aim is to change fire response from reactive chaos to proactive defense, helping to keep first responders and communities safe. Fire Away combines live weather and terrain data, machine-learning models and community fire reports to simulate how a fire will grow, flag the areas at risk, and recommend where to build containment boundaries. The platform has separate experiences for guests, users, firefighters and administrators, and it works as an installable, offline-capable web app. 
 

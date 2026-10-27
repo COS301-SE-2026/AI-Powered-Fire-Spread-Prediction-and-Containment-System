@@ -11,7 +11,7 @@ export function Labled({ caption, children }) {
   return (
     <div className="flex flex-col items-center gap-1">
       {children}
-      <span className="text-[11px] font-mono text-text-muted">{caption}</span>
+      <span className="text-[0.6875rem] font-mono text-text-muted">{caption}</span>
     </div>
   );
 }

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
+import { PublicPageSkeleton } from '@/components/ui/skeleton/PublicPageSkeleton';
 import PasswordInput from '../components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
+import EmberField from '../components/ui/EmberEffect';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -112,6 +114,10 @@ export default function Login() {
     return () => clearInterval(timer);
   }, [cooldown]);
 
+  if (isAuthLoading || (isAuth && role)) {
+    return <PublicPageSkeleton label='checking your session' />;
+  }
+
   return (
     <main>
       <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -119,6 +125,7 @@ export default function Login() {
           <div className="ga-bloom-primary" />
           <div className="ga-bloom-secondary" />
           <div className="ga-bloom-tertiary" />
+          <EmberField density={35} />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">

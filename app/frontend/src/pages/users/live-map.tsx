@@ -17,9 +17,9 @@ import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { useLocationToMap } from '../../hooks/useLocationToMap';
 
 export default function RegisteredUserDashboard() {
-  const { userLocation, nearbyFires } = useNearbyFires();
+  const { userLocation, nearbyFires, loading: firesLoading } = useNearbyFires();
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
-  const { environmentVariables, recenter } = useGuestDashboard(20);
+  const { environmentVariables, recenter, loading: envLoading } = useGuestDashboard(20);
   const [recenterCount, setRecenterCount] = useState(0);
 
   const handleRecenter = () => {
@@ -65,13 +65,13 @@ export default function RegisteredUserDashboard() {
                 </button>
               </div>
             <div className='absolute bottom-0 inset-x-0 z-10 bg-carbon-bg/70 backdrop-blur-md border-t border-carbon-card p-2'>
-              <GuestEnvironment data={environmentVariables} />
+              <GuestEnvironment data={environmentVariables} loading={envLoading && !environmentVariables} />
             </div>
 
           </MapPanel>
 
           <SidePanelRight title="Nearby Reports" colSpan={4} maxHeight="33rem">
-            <NearbyReports nearbyFires={nearbyFires} selectedFireId={fireLocation} onSelectFire={handleSelectFire} />
+            <NearbyReports nearbyFires={nearbyFires} selectedFireId={fireLocation} onSelectFire={handleSelectFire} loading={firesLoading && nearbyFires.length === 0} />
           </SidePanelRight>
         </div>
       </div>

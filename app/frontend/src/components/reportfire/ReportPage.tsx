@@ -10,6 +10,7 @@ import { LOCATION_PLACEHOLDER } from './locationConstants';
 import { useUserReports } from '../../hooks/useUserReports';
 import { useSubmitReport } from '../../hooks/useSubmitReport';
 import { PageHeader } from '../layout/pageHeader';
+import { ListSkeleton } from '../ui/skeleton/ListSkeleton';
 
 interface ReportPageProps {
   showHeaderIcons?: boolean;
@@ -72,7 +73,7 @@ function formReducer(state: FormStateProps, action: FormAction): FormStateProps 
 
 export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) {
   const [form, dispatch] = useReducer(formReducer, initialFormState);
-  const { reports, refetch } = useUserReports();
+  const { reports, loading: reportsLoading, refetch } = useUserReports();
   const { submitReport, submitting, error } = useSubmitReport();
 
   function handleBoundarySizeChange(value: number) {
@@ -149,7 +150,9 @@ export default function ReportPage({ showHeaderIcons = true }: ReportPageProps) 
             <p className="mb-2">Report status</p>
             {error && <Alert variant="error" message={error} />}
 
-            {reports.length == 0 ? (
+            {reportsLoading && reports.length == 0 ? (
+              <ListSkeleton rows={2} label='Loading your reports' />
+            ) : reports.length == 0 ? (
               <p className="text-sm text-neutural">No reports submitted yet.</p>
             ) : (
               <div className="flex flex-col gap-3 max-h-15 overflow-y-auto">

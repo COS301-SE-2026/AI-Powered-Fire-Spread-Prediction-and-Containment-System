@@ -9,9 +9,12 @@ import { ReportPhoto } from './reportPhoto';
 import { useFireReport } from '../../hooks/useFireReport';
 import { PageHeader } from '../layout/pageHeader';
 import { useMyFireReport } from '../../hooks/useMyFireReport';
+import { DetailPageSkeleton } from '../ui/skeleton/DetailPageSkeleton';
+import { MapSkeleton } from '../ui/skeleton/MapSkeleton';
 
 const ReportMap = dynamic(() => import('./reportMapCard').then((mod) => mod.ReportMap), {
   ssr: false,
+  loading: () => <MapSkeleton label='' className='h-64' />
 });
 
 interface ViewProps {
@@ -26,12 +29,7 @@ export function ViewPage({ reportRef, role = 'admin' }: Readonly<ViewProps>) {
   const userResult = useMyFireReport(reportRef);
   const { report, loading, error, refetch } =  role === 'user' ? userResult : adminResult;
   
-  if (loading)
-    return (
-      <div className="p-6">
-        <p className="text-text-muted">Loading report...</p>
-      </div>
-    );
+  if (loading) return <DetailPageSkeleton label='Loading report' />;
 
   if (error || !report)
     return (
