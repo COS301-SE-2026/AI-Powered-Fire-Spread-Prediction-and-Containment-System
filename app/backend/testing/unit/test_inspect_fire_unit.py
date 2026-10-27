@@ -129,12 +129,12 @@ class TestInspectFireMain:
         test_args = ["inspect_fire.py", "--csv", "entry.csv"]
         monkeypatch.setattr(sys, "argv", test_args)
 
-        for mod in ("ai.inspect_fire", "app.backend.src.ai.inspect_fire"):
+        for mod in ("app.backend.src.ai.inspect_fire", "app.backend.src.ai.inspect_fire"):
             monkeypatch.delitem(sys.modules, mod, raising=False)
 
         mock_event = _create_mock_fire_event("fire_main", ticks_count=3)
-        with patch("ai.build_ignition_dataset.load_detections", return_value=["det1", "det2"]), \
-            patch("ai.build_ignition_dataset.cluster_fire_events", return_value=[0, 0]), \
-            patch("ai.build_ignition_dataset.build_fire_events", return_value=[mock_event]):
+        with patch("app.backend.src.ai.build_ignition_dataset.load_detections", return_value=["det1", "det2"]), \
+            patch("app.backend.src.ai.build_ignition_dataset.cluster_fire_events", return_value=[0, 0]), \
+            patch("app.backend.src.ai.build_ignition_dataset.build_fire_events", return_value=[mock_event]):
             import runpy
-            runpy.run_module("ai.inspect_fire", run_name="__main__")
+            runpy.run_module("app.backend.src.ai.inspect_fire", run_name="__main__")

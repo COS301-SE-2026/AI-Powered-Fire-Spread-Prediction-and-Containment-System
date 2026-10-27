@@ -1,11 +1,19 @@
+import os
+import time
+from pathlib import Path
+from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
-from unittest.mock import MagicMock, patch
+import requests
 
 from app.backend.src.ai.job_builder import (
+    DataSourceError,
     fetch_weather_history,
     fetch_static_grids,
     build_volunteer_payload,
+    static_cache_path,
+    load_static_cache,
+    save_static_cache,
     WEATHER_HISTORY_LENGTH,
     DEFAULT_DCA_PARAMS,
 )
@@ -61,8 +69,76 @@ def test_fetch_weather_history_insufficient_hours(mock_job_dict):
     mock_resp.raise_for_status = MagicMock()
 
     with patch("app.backend.src.ai.job_builder._HTTP.get", return_value=mock_resp):
-        with pytest.raises(TypeError):
+        with pytest.raises(DataSourceError, match="Open-Meteo returned 1 hours, need 6"):
             fetch_weather_history(mock_job_dict)
+
+@pytest.mark.parametrize("exception_cls", [requests.RequestException, ValueError, KeyError])
+def test_fetch_weather_history_network_and_parse_errors(mock_job_dict, exception_cls):
+    with patch("app.backend.src.ai.job_builder._HTTP.get", side_effect=exception_cls("Network fail")):
+        with pytest.raises(DataSourceError, match="Open-Meteo unavailable"):
+            fetch_weather_history(mock_job_dict)
+
+
+def test_static_cache_path(mock_job_dict, monkeypatch, tmp_path):
+    monkeypatch.setattr("app.backend.src.ai.job_builder.STATIC_CACHE_DIR", None)
+    assert static_cache_path(mock_job_dict) is None
+
+    monkeypatch.setattr("app.backend.src.ai.job_builder.STATIC_CACHE_DIR", str(tmp_path))
+    path = static_cache_path(mock_job_dict)
+    assert path is not None
+    assert path.parent == tmp_path
+    assert path.name.startswith("static_")
+    assert path.name.endswith(".npz")
+
+
+def test_load_static_cache_success_and_expiry(tmp_path, monkeypatch):
+    cache_file = tmp_path / "valid.npz"
+    data = {"elevation": np.ones((5, 5), dtype=np.float32)}
+    np.savez_compressed(cache_file, **data)
+
+    monkeypatch.setattr("app.backend.src.ai.job_builder.STATIC_CACHE_TTL_S", 3600)
+    loaded = load_static_cache(cache_file)
+    assert loaded is not None
+    assert np.array_equal(loaded["elevation"], data["elevation"])
+
+    monkeypatch.setattr("app.backend.src.ai.job_builder.STATIC_CACHE_TTL_S", 0)
+    assert load_static_cache(cache_file) is None
+
+    assert load_static_cache(None) is None
+    assert load_static_cache(tmp_path / "non_existent.npz") is None
+
+
+def test_load_static_cache_exception_handling(tmp_path):
+    corrupted_file = tmp_path / "corrupted.npz"
+    corrupted_file.write_bytes(b"corrupted binary data")
+    assert load_static_cache(corrupted_file) is None
+
+
+def test_save_static_cache_success_and_none_path(tmp_path):
+    save_static_cache(None, {"test": np.zeros((2, 2))})
+
+    target_path = tmp_path / "subdir" / "cache.npz"
+    sample_grids = {"elevation": np.ones((4, 4), dtype=np.float32)}
+    save_static_cache(target_path, sample_grids)
+
+    assert target_path.exists()
+    with np.load(target_path) as loaded:
+        assert "elevation" in loaded.files
+
+
+def test_save_static_cache_exception_handling(tmp_path):
+    bad_path = Path("/invalid_dir_never_created_98765/cache.npz")
+    save_static_cache(bad_path, {"test": np.zeros((2, 2))})
+
+
+def test_fetch_static_grids_cache_hit(mock_job_dict):
+    dummy_cached = {"elevation": np.zeros((10, 10), dtype=np.float32)}
+
+    with patch("app.backend.src.ai.job_builder.static_cache_path", return_value=Path("/tmp/fake.npz")), \
+         patch("app.backend.src.ai.job_builder.load_static_cache", return_value=dummy_cached):
+        result = fetch_static_grids(mock_job_dict)
+
+    assert result is dummy_cached
 
 def test_fetch_static_grids_single_dem_tile():
     mock_job = {
@@ -111,7 +187,7 @@ def test_fetch_static_grids_single_dem_tile():
     assert "aspect_cos" in grids
 
 
-def test_fetch_static_grids_single_and_multi_dem(mock_job_dict):
+def test_fetch_static_grids_multi_dem(mock_job_dict):
     h, w = mock_job_dict["grid_h"], mock_job_dict["grid_w"]
 
     dummy_terrain = {
@@ -188,8 +264,18 @@ def test_build_volunteer_payload():
 
     assert payload["job_id"] == "test-job-123"
     assert payload["cell_size_m"] == 30.0
-    assert payload["n_steps"] == 60
-    assert payload["params"] == DEFAULT_DCA_PARAMS
-    assert isinstance(payload["weather_history"], list)
-    assert isinstance(payload["static_grids"]["elevation"], list)
-    assert isinstance(payload["ignition_mask"], list)
+
+    custom_params = {"a": 0.05, "p_h": 0.1}
+    payload_custom = build_volunteer_payload(
+        job_id="test-job-456",
+        weather_history=weather_history,
+        static_grids=static_grids,
+        ignition_mask=ignition_mask,
+        cell_size_m=30.0,
+        n_steps=60,
+        grid_bounds=grid_bounds,
+        containment_lines=containment_lines,
+        params=custom_params,
+    )
+
+    assert payload_custom["params"] == custom_params
