@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import type { MouseEvent } from 'react';
 
 const navItems = [
     { label: 'Home', href: '#home', id: 'home'},
@@ -12,6 +13,16 @@ const navItems = [
 export function LandingNavbar() {
     const [activeSection, setActiveSection] = useState('home');
     const [menuOpen, setMenuOpen] = useState(false);
+
+    const scrollToSection = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
+        const target = document.getElementById(id);
+        if (!target) return;
+        e.preventDefault();
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        window.history.pushState(null, '', `#${id}`);
+        setActiveSection(id);
+    };
 
     useEffect(() => {
         const sectionElements = navItems
@@ -80,7 +91,7 @@ export function LandingNavbar() {
                     <li key={item.id}>
                         <Link
                             href={item.href}
-                            onClick={() => setMenuOpen(false)}
+                            onClick={(e) => { scrollToSection(e, item.id); setMenuOpen(false); }}
                             className={`transition-colors ${
                                 isActive ? 'text-text-primary font-bold bg-carbon-stroke/50' : 'text-text-muted hover:text-text-primary'
                             }`}
@@ -95,6 +106,7 @@ export function LandingNavbar() {
         </div>
         <Link
             href='#home'
+            onClick={(e) => scrollToSection(e, 'home')}
             className='flex items-center gap-2.5 px-2 py-1 group rounded-lg hover:opacity-90'
         >
             <Image
@@ -118,6 +130,7 @@ export function LandingNavbar() {
                     <li key={item.id}>
                         <Link
                             href={item.href}
+                            onClick={(e) => scrollToSection(e, item.id)}
                             className={`transition-colors ${
                                 isActive ? 'text-text-primary font-bold bg-carbon-stroke/50' : 'text-text-muted hover:text-text-primary'
                             }`}

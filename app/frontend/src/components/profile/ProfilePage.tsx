@@ -15,6 +15,8 @@ import { RoleRequests } from './RoleRequests';
 import { SavedLocations } from './SavedLocations';
 import { RotateHint } from '../shared/RotateHint';
 import { useRotate } from '../../hooks/useRotate';
+import { TwoFactorToggle } from './TwoFactorToggle';
+import { TableSkeleton } from '../ui/skeleton/TableSkeleton';
 
 type ReportFilter = 'All' | ReportStatus;
 type ResourceFilter = 'All' | Status;
@@ -77,6 +79,7 @@ export default function ProfilePage(){
                         <h4 className="text-text-muted mt-0.5 uppercase">{displayUser.role}</h4>
                     ) : null}
                 </div>
+                {user ? <TwoFactorToggle /> : null}
             </div>
             {displayUser ? (
                 <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
@@ -101,9 +104,7 @@ export default function ProfilePage(){
                     {reportsError && <div>{reportsError}</div>}
  
                     {reportsLoading ? (
-                    <div className="flex justify-center items-center min-h-[20vh]">
-                        <span className="loading loading-spinner loading-lg text-primary" />
-                    </div>
+                        <TableSkeleton rows={3} cols={4} label='Loading my reports' />
                     ) : (
                         <MyFireReportsTable reports={filteredReports} filter={filter} />
                     )}
@@ -124,9 +125,7 @@ export default function ProfilePage(){
                     {resourcesError && <div>{resourcesError}</div>}
  
                     {resourcesLoading ? (
-                    <div className="flex justify-center items-center min-h-[20vh]">
-                        <span className="loading loading-spinner loading-lg text-primary" />
-                    </div>
+                        <TableSkeleton rows={3} cols={4} label='Loading my resources' />
                     ) : (
                         <MyResourcesTable resources={filteredResources} filter={resourceFilter} onStatusChange={handleStatusChange} />
                     )}

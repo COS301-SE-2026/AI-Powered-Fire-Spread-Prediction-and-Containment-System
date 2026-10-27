@@ -45,7 +45,7 @@ export function Capacity({ value, unit, min, max, step=1, label='Capacity', help
 
             <div className="flex w-full justify-between px-1 mt-1">
                 {ticks.map((tick) => (
-                        <span key={tick} className="text-[10px] text-text-muted">
+                        <span key={tick} className="text-[0.625rem] text-text-muted">
                             {Math.round(tick).toLocaleString()}
                         </span>
                     ))}

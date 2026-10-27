@@ -3,6 +3,7 @@ import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { LocationCard } from './LocationCard';
 import { AddLocation } from './AddLocation';
 import { LiveMapRef } from '../../lib/SaveLocationMapRef';
+import { Skeleton } from '../ui/skeleton/Skeleton';
 
 
 const MAX_LOCATIONS = 6;
@@ -59,8 +60,11 @@ export function SavedLocations({ role }: SavedLocationsProps) {
             {error ? <div className='text-error text-sm mb-2'>{error}</div> : null}
             {deleteErrorMessage}
             {loading ? (
-                <div className='flex justify-center items-center min-h-[20vh]'>
-                    <span className="loading loading-spinner loading-lg text-primary" />
+                <div role='status' aria-busy='true' className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>
+                    <span className='sr-only'>Loading saved locations</span>
+                    {Array.from({ length: 3 }, (_, i) => (
+                        <Skeleton key={i} className='h-24 rounded-xl' />
+                    ))}
                 </div>
             ) : (
                 <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4'>

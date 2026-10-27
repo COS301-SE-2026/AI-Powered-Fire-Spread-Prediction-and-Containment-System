@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import type { ReportStatus } from '../../types/Report';
 import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { StatusFilter } from '../../components/shared/Filter';
@@ -43,9 +44,7 @@ export default function ReportedFiresPage() {
         {error && <div>{error}</div>}
 
         {loading ? (
-          <div className="flex justify-center items-center min-h-[40vh]">
-            <span className="loading loading-spinner loading-lg text-primary" />
-          </div>
+          <TableSkeleton rows={8} cols={5} label='Loading reported fires' />
         ) : (
           <FireReportsTable reports={filteredReports} filter={filter} />
        )}

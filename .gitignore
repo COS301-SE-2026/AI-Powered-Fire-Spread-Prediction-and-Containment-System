@@ -25,6 +25,8 @@ coverage.xml
 htmlcov/
 test-results/
 playwright-report/
+htmlcov-unit/
+htmlcov-integration/
 
 # Expo
 .expo/

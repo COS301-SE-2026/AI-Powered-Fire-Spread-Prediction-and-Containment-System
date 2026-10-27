@@ -12,19 +12,19 @@ export default function InfoCard({ label, value, desc }: InfoCardProps) {
       style={{
         border: '1px solid var(--color-carbon-stroke)',
         borderRadius: 'var(--radius-md)',
-        padding: '28px',
+        padding: '1.75rem',
         backgroundColor: 'var(--color-carbon-input)',
       }}
     >
       <p
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: '15px',
+          fontSize: '0.9375rem',
           color: '#A0ACC0',
           fontWeight: 600,
           letterSpacing: '0.15em',
           textTransform: 'uppercase',
-          marginBottom: '12px',
+          marginBottom: '0.75rem',
         }}
       >
         {label}
@@ -32,10 +32,10 @@ export default function InfoCard({ label, value, desc }: InfoCardProps) {
       <p
         style={{
           fontFamily: 'var(--font-display)',
-          fontSize: '24px', // Slightly larger for better visibility
+          fontSize: '1.5rem', // Slightly larger for better visibility
           color: '#EDEAE5',
           fontWeight: 700,
-          marginBottom: '8px',
+          marginBottom: '0.5rem',
         }}
       >
         {value}
@@ -43,7 +43,7 @@ export default function InfoCard({ label, value, desc }: InfoCardProps) {
       <p
         style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '16px',
+          fontSize: '1rem',
           color: '#A0A8B8',
           lineHeight: 1.6,
         }}

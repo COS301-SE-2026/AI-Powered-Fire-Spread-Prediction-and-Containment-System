@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { RotateCw, X } from 'lucide-react';
+
+const AUTO_DISMISS_MS = 5000;
 
 interface RotateHintProps {
     readonly show: boolean;
@@ -6,6 +9,18 @@ interface RotateHintProps {
 }
 
 export function RotateHint({ show, onDismiss }: RotateHintProps){
+    const dismissRef = useRef(onDismiss);
+
+    useEffect(() => {
+        dismissRef.current = onDismiss;
+    }, [onDismiss]);
+
+    useEffect(() => {
+        if (!show) return;
+        const timer = setTimeout(() => dismissRef.current(), AUTO_DISMISS_MS);
+        return () => clearTimeout(timer);
+    }, [show]);
+
     if (!show){
         return null;
     }

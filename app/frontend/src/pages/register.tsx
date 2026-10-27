@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import PasswordInput from '@/components/shared/PasswordInput';
+import { RegisterPageSkeleton } from '@/components/ui/skeleton/RegisterPageSkeleton';
 import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
 import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
+import EmberField from '../components/ui/EmberEffect';
 
 interface RegisterForm {
   name: string;
@@ -147,6 +149,10 @@ export default function Register() {
     }
   };
 
+  if (isAuthLoading || (isAuth && role)) {
+    return <RegisterPageSkeleton label='Checking your session' />
+  }
+
   return (
     <main>
       <div className="relative min-h-screen bg-carbon-bg overflow-hidden">
@@ -154,6 +160,7 @@ export default function Register() {
           <div className="ga-bloom-primary" />
           <div className="ga-bloom-secondary" />
           <div className="ga-bloom-tertiary" />
+          <EmberField density={35} />
         </div>
 
         <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
