@@ -9,7 +9,7 @@ from app.backend.src.services.admin import role_request
 
 from app.backend.src.dependencies.auth import get_current_admin_user
 from app.backend.src.models.users import User
-from app.backend.src.services.auth import (
+from app.backend.src.services.auth.email import (
     send_role_approved_email,
     send_role_rejected_email,
     send_role_revoked_email,

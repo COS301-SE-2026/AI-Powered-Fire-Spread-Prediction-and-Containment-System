@@ -153,7 +153,7 @@ def test_review_routes_request_not_found_raises_404(mock_service, route, service
     getattr(mock_service, service_fn).return_value = None
 
     with pytest.raises(HTTPException) as error:
-        route(request_id="req-1", db=MagicMock(), admin=MagicMock(id="admin-1"))
+        route(request_id="req-1", background_tasks=MagicMock(), db=MagicMock(), admin=MagicMock(id="admin-1"))
 
     assert error.value.status_code == 404
 
@@ -163,7 +163,7 @@ def test_review_routes_value_error_raises_400(mock_service, route, service_fn):
     getattr(mock_service, service_fn).side_effect = ValueError("bad state")
 
     with pytest.raises(HTTPException) as error:
-        route(request_id="req-1", db=MagicMock(), admin=MagicMock(id="admin-1"))
+        route(request_id="req-1", background_tasks=MagicMock(), db=MagicMock(), admin=MagicMock(id="admin-1"))
 
     assert error.value.status_code == 400
     assert error.value.detail == "bad state"
@@ -173,10 +173,10 @@ def test_review_routes_value_error_raises_400(mock_service, route, service_fn):
 @patch(PATCH)
 def test_review_routes_success_returns_request_and_passes_ids( mock_service, route, service_fn ):
     db = MagicMock()
-    updated_request = object()
+    updated_request = MagicMock()
     getattr(mock_service, service_fn).return_value = updated_request
 
-    result = route(request_id="req-1", db=db, admin=MagicMock(id="admin-1"))
+    result = route(request_id="req-1", background_tasks=MagicMock(), db=db, admin=MagicMock(id="admin-1"))
 
     assert result is updated_request
     getattr(mock_service, service_fn).assert_called_once_with("req-1", "admin-1", db)
