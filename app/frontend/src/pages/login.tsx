@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
+import { PublicPageSkeleton } from '@/components/ui/skeleton/PublicPageSkeleton';
 import PasswordInput from '../components/shared/PasswordInput';
 import { useAuth } from '../hooks/useAuth';
 import EmberField from '../components/ui/EmberEffect';
-import { PublicPageSkeleton } from '@/components/ui/skeleton/PublicPageSkeleton';
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

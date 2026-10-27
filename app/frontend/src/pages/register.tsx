@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import PasswordInput from '@/components/shared/PasswordInput';
+import { RegisterPageSkeleton } from '@/components/ui/skeleton/RegisterPageSkeleton';
 import { useAuth } from '../hooks/useAuth';
 import { apiCall } from '../lib/api';
 import type { RegisterRequest, TwoFARequiredResponse } from '../types/Auth';
 import EmberField from '../components/ui/EmberEffect';
-import { RegisterPageSkeleton } from '@/components/ui/skeleton/RegisterPageSkeleton';
 
 interface RegisterForm {
   name: string;

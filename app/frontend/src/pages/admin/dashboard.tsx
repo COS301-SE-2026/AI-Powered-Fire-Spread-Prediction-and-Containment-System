@@ -1,10 +1,10 @@
 // need to add sidebar still
 import React, { useState, useEffect } from 'react';
 import { LineChartIcon, DownloadCloudIcon, MicrochipIcon, HeartIcon } from 'lucide-react';
+import { DashboardSkeleton } from '@/components/ui/skeleton/DashboardSkeleton';
 import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { useAdminDashboard } from '../../hooks/useAdminDashboard';
 import { PageHeader } from '../../components/layout/pageHeader';
-import { DashboardSkeleton } from '@/components/ui/skeleton/DashboardSkeleton';
 import { NotificationToastHost } from '../../components/notification/NotificationToastHost';
 import { DashboardMetrics } from '../../components/admin/adminDashboardMetrics';
 import { MiniMetric } from '../../types/AdminDashboard';

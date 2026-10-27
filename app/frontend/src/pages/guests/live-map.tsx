@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { Map, CircleAlert, Plus, LocateFixed } from 'lucide-react';
+import { MapSkeleton } from '@/components/ui/skeleton/MapSkeleton';
 import { SideBar } from '../../components/layout/SideBar';
 import { NavLink } from '../../components/layout/NavLink';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
@@ -14,7 +15,6 @@ import { NotificationToastHost } from '../../components/notification/Notificatio
 import { NearbyReports } from '../../components/shared/nearbyReports';
 import { useNearbyFires } from '../../hooks/useNearbyFires';
 import { useMapLink } from '../../hooks/useMapLink';
-import { MapSkeleton } from '@/components/ui/skeleton/MapSkeleton';
 
 
 const PublicFireMap = dynamic(

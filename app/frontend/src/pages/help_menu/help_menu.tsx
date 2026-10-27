@@ -1,10 +1,10 @@
 import Head from 'next/head';
 import { Siren, CirclePlay, Headset, Cpu } from 'lucide-react';
 import { useRouter } from 'next/router';
+import FaqItem from '@/components/shared/FaqItem';
 import { SideBar } from '../../components/layout/SideBar';
 import { PageHeader } from '../../components/layout/pageHeader';
 import { ActionCard } from '../../components/firefighter/actionCard';
-import FaqItem from '@/components/shared/FaqItem';
 
 export default function HelpPage() {
   const faqs = [

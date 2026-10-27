@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import type { ReportStatus } from '../../types/Report';
 import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { StatusFilter } from '../../components/shared/Filter';
@@ -7,7 +8,6 @@ import { SearchBar } from '../../components/shared/Searchbar';
 import { useReportedFires } from '../../hooks/useReportedFires';
 import { useRotate } from '../../hooks/useRotate';
 import { PageHeader } from '../../components/layout/pageHeader';
-import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import { RotateHint } from '../../components/shared/RotateHint';
 
 type ReportFilter = 'All' | ReportStatus;

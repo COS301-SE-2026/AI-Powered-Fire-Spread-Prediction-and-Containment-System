@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import type { RoleRequest, RoleStatus } from '../../types/RoleRequest';
 import { useRoleRequests } from '../../hooks/useRoleRequests';
 import { useRotate } from '../../hooks/useRotate';
@@ -7,7 +8,6 @@ import { AdminSideBar } from '../../components/admin/AdminSideBar';
 import { RoleRequestsTable } from '../../components/admin/approvalTable';
 import { RotateHint } from '../../components/shared/RotateHint';
 import { PageHeader } from '../../components/layout/pageHeader';
-import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import { StatusFilter } from '../../components/shared/Filter';
 import { SearchBar} from '../../components/shared/Searchbar';
 

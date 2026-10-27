@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RotateHint } from '@/components/shared/RotateHint';
+import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 import { ReportStatus } from '../../types/Report';
 import { FirefighterSideBar } from '../../components/firefighter/FirefighterSidebar';
 import { ReportsTable } from '../../components/firefighter/reportsTable';
@@ -8,7 +9,6 @@ import { SearchBar } from '../../components/shared/Searchbar';
 import { useFirefighterReports } from '../../hooks/useFirefighterReports';
 import { useRotate } from '../../hooks/useRotate'
 import { PageHeader } from '../../components/layout/pageHeader';
-import { TableSkeleton } from '@/components/ui/skeleton/TableSkeleton';
 
 type ReportFilter = 'all' | ReportStatus;
 const REPORT_FILTERS: readonly ReportFilter[] = ['all', 'pending', 'verified', 'rejected'];

@@ -25,28 +25,24 @@ export function RouteSkeleton({ url }: Readonly<{ url: string }>) {
         return page === 'register' ? <RegisterPageSkeleton /> : <PublicPageSkeleton />;
     }
 
-    switch (page) {
-        case 'dashboard':
-            return section === 'admin' ? <AdminDashboardSkeleton /> : <FirefighterDashboardSkeleton />;
-        case 'live-map':
-            if (section === 'users') return <UserLiveMapSkeleton />;
-            if (section === 'guests') return <GuestLiveMapSkeleton />;
-        case 'simulation':
-            return <SimulationPageSkeleton />;
-        case 'reported-fire':
-        case 'reported-fires':
-        case 'approvals':
-        case 'gpuworkers':
-        case 'gpuvolunteer':
-            return <TablePageSkeleton />;
-        case 'report-fire':
-        case 'registerresource':
-            return <ReportPageSkeleton />;
-        case 'profile':
-            return <ProfilePageSkeleton />;
-        case 'help':
-            return <HelpPageSkeleton />;
-        default:
-            return <ReportDetailSkeleton />
+    const tablePages = ['reported-fire', 'reported-fires', 'approvals', 'gpuworkers', 'gpuvolunteer'];
+    const reportPages = ['report-fire', 'registerresource'];
+
+    if (page === 'dashboard') {
+        return section === 'admin' ? <AdminDashboardSkeleton /> : <FirefighterDashboardSkeleton />;
     }
+    
+    if (page === 'live-map'){
+        if (section === 'users') return <UserLiveMapSkeleton />;
+        if (section === 'guests') return <GuestLiveMapSkeleton />;
+        return <AdminLiveMapSkeleton />
+    }
+
+    if (page === 'simulation') return <SimulationPageSkeleton />;
+    if (tablePages.includes(page)) return <TablePageSkeleton />;
+    if (reportPages.includes(page)) return <ReportDetailSkeleton />;
+    if (page === 'profile') return <ProfilePageSkeleton />;
+    if (page === 'help') return <HelpPageSkeleton />;
+
+    return <ReportDetailSkeleton />;
 }

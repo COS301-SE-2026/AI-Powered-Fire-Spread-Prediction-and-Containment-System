@@ -9,7 +9,7 @@ export function RegisterPageSkeleton({ label ='Loading page' }: Readonly<{ label
             <SkeletonCard className='w-full max-w-3xl p-6 gap-4'>
                 <Skeleton className='h-6 w-40 self-center' />
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                    {/* name, surname*/}
+                    {/* name, surname */}
                     {[0, 1].map((i) => (
                         <div key={i} className='flex flex-col gap-2'>
                             <Skeleton className='h-3 w-16' />
