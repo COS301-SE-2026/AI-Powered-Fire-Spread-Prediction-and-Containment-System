@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import { isSectionRoute } from '@/lib/skeletonRoutes';
-import { RouteSkeleton } from './skeleton/RouteSkeleton';
 import { clear } from 'node:console'
+import { RouteSkeleton } from './skeleton/RouteSkeleton';
 
 const SHOW_AFTER_MS = 150;
 
