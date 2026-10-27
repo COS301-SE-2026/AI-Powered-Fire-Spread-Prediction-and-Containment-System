@@ -11,9 +11,11 @@
     "build": "yarn --cwd app/frontend/src build",
     "lint": "yarn --cwd app/frontend/src lint",
     "test:e2e": "yarn --cwd app/frontend/src test:e2e",
-    "test:e2e:backend": "pytest -q app/backend/src/testing_config/e2e",
-    "test:xgboost:unit": "pytest app/backend/src/tests/ai/test_xgboost_model_unit.py -v",
-    "test:xgboost:integration": "pytest app/backend/src/tests/ai/test_xgboost_model_integration.py -v"
+    "test:backend": "yarn --cwd app/backend test:backend",
+    "test:unit": "yarn --cwd app/backend test:unit",
+    "test:integration": "yarn --cwd app/backend test:integration",
+    "test:unit:cov": "yarn --cwd app/backend test:unit:cov",
+    "test:integration:cov": "yarn --cwd app/backend test:integration:cov"
   },
   "devDependencies": {
     "@types/react": "^18.3.1",
