@@ -44,7 +44,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
     );
   }
 
-  const maxCount = Math.max(...weeklyIncidents.map((d) => d.count));
+  const maxCount = Math.max(1, ...weeklyIncidents.map((d) => d.count))
 
   if (error || !topMetrics || !systemMetrics) {
     return (
@@ -106,7 +106,7 @@ export const AdminDashBoardDetailed: React.FC = () => {
               <div className="divide-y divide-base-300 border-b border-base-300">
                 {activityLog.length === 0 ? (
                   <div className="py-4 text-center text-medium text-text-muted">
-                    No recemt activity
+                    No recent activity
                   </div>
                 ) : (
                   activityLog.map((log) => (

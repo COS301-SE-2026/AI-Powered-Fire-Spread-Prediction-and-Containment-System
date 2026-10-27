@@ -1,5 +1,6 @@
 // All API communication and playback state for fire simulation
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { handleExpiredSession } from '@/lib/api';
 import { SIM_MAX_STEPS } from '../types/simulation';
 
 export interface HourlyWeather {
@@ -61,6 +62,7 @@ export interface SimulationResult {
 export type SimulationStatus = 'idle' | 'loading' | 'playing' | 'paused' | 'error';
 
 async function readError(resp: Response, prefix: string): Promise<string> {
+  if (resp.status === 401) handleExpiredSession();
   const text = await resp.text();
   try{
     const body = JSON.parse(text);
@@ -155,6 +157,7 @@ export function useSimulation() {
         if (fireId) {
           const resp = await fetch(`${API_BASE}/api/simulate/fire/${fireId}`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req),
             signal: controller.signal,
@@ -169,6 +172,7 @@ export function useSimulation() {
         } else {
           const resp = await fetch(`${API_BASE}/api/simulate`, {
             method: 'POST',
+            credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req),
             signal: controller.signal,
@@ -215,6 +219,7 @@ export function useSimulation() {
         };
         const resp = await fetch(`${API_BASE}/api/simulate/fires`, {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(req),
           signal: controller.signal,

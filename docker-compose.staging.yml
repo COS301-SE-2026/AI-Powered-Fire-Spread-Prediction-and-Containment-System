@@ -18,6 +18,7 @@ services:
     restart: always
     environment:
       RUN_SEED: "0"
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-720}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_staging?sslmode=require
       ENVIRONMENT: staging
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
