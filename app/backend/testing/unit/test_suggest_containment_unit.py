@@ -3,8 +3,8 @@ from unittest.mock import patch
 import numpy as np
 import pytest
 
-from ai.schema import UNBURNED
-from ai.suggest_containment import (
+from app.backend.src.ai.schema import UNBURNED
+from app.backend.src.ai.suggest_containment import (
     ContainmentSuggestion,
     compute_arrival_ticks,
     _standoff_mask,
@@ -140,8 +140,8 @@ class TestSuggestContainmentHelpers:
 
 
 class TestSuggestContainmentLineFlow:
-    @patch("ai.suggest_containment.bbox_from_fire")
-    @patch("ai.suggest_containment.build_boundary_ignition_mask")
+    @patch("app.backend.src.ai.suggest_containment.bbox_from_fire")
+    @patch("app.backend.src.ai.suggest_containment.build_boundary_ignition_mask")
     def test_suggest_containment_line_success(
         self, mock_build_mask, mock_bbox
     ):
@@ -176,8 +176,8 @@ class TestSuggestContainmentLineFlow:
             assert top.margin_min > 0
             assert top.shielded_cell_score >= 0
 
-    @patch("ai.suggest_containment.bbox_from_fire")
-    @patch("ai.suggest_containment.build_boundary_ignition_mask")
+    @patch("app.backend.src.ai.suggest_containment.bbox_from_fire")
+    @patch("app.backend.src.ai.suggest_containment.build_boundary_ignition_mask")
     def test_suggest_containment_line_skips_excluded_cells(
         self, mock_build_mask, mock_bbox
     ):
@@ -200,9 +200,9 @@ class TestSuggestContainmentLineFlow:
         )
         assert suggestions == []
 
-    @patch("ai.suggest_containment.bbox_from_fire")
-    @patch("ai.suggest_containment.build_boundary_ignition_mask")
-    @patch("ai.suggest_containment._make_candidate_segment")
+    @patch("app.backend.src.ai.suggest_containment.bbox_from_fire")
+    @patch("app.backend.src.ai.suggest_containment.build_boundary_ignition_mask")
+    @patch("app.backend.src.ai.suggest_containment._make_candidate_segment")
     def test_suggest_containment_line_zero_length_skip(
         self, mock_make_seg, mock_build_mask, mock_bbox
     ):
@@ -228,9 +228,9 @@ class TestSuggestContainmentLineFlow:
         )
         assert suggestions == []
 
-    @patch("ai.suggest_containment.bbox_from_fire")
-    @patch("ai.suggest_containment.build_boundary_ignition_mask")
-    @patch("ai.suggest_containment._rasterize_segment")
+    @patch("app.backend.src.ai.suggest_containment.bbox_from_fire")
+    @patch("app.backend.src.ai.suggest_containment.build_boundary_ignition_mask")
+    @patch("app.backend.src.ai.suggest_containment._rasterize_segment")
     def test_suggest_containment_line_no_arrivals_skip(
         self, mock_rasterize, mock_build_mask, mock_bbox
     ):
@@ -256,9 +256,9 @@ class TestSuggestContainmentLineFlow:
         )
         assert suggestions == []
 
-    @patch("ai.suggest_containment.bbox_from_fire")
-    @patch("ai.suggest_containment.build_boundary_ignition_mask")
-    @patch("ai.suggest_containment._rasterize_segment")
+    @patch("app.backend.src.ai.suggest_containment.bbox_from_fire")
+    @patch("app.backend.src.ai.suggest_containment.build_boundary_ignition_mask")
+    @patch("app.backend.src.ai.suggest_containment._rasterize_segment")
     def test_suggest_containment_line_negative_margin_skip(
         self, mock_rasterize, mock_build_mask, mock_bbox
     ):
@@ -285,10 +285,10 @@ class TestSuggestContainmentLineFlow:
         )
         assert suggestions == []
 
-    @patch("ai.suggest_containment.bbox_from_fire")
-    @patch("ai.suggest_containment.build_boundary_ignition_mask")
-    @patch("ai.suggest_containment._score_candidate", return_value=0.0)
-    @patch("ai.suggest_containment._rasterize_segment")
+    @patch("app.backend.src.ai.suggest_containment.bbox_from_fire")
+    @patch("app.backend.src.ai.suggest_containment.build_boundary_ignition_mask")
+    @patch("app.backend.src.ai.suggest_containment._score_candidate", return_value=0.0)
+    @patch("app.backend.src.ai.suggest_containment._rasterize_segment")
     def test_suggest_containment_line_zero_score_skip(
         self, mock_rasterize, mock_score, mock_build_mask, mock_bbox
     ):

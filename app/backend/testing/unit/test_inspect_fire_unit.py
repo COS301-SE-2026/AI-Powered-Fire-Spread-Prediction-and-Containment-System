@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 import pytest
 
-from ai.inspect_fire import inspect_fire_events, main
+from app.backend.src.ai.inspect_fire import inspect_fire_events, main
 
 
 def _create_mock_fire_event(fire_id: str, ticks_count: int, min_lon=18.0, min_lat=-34.0, max_lon=19.0, max_lat=-33.0):
@@ -18,9 +18,9 @@ def _create_mock_fire_event(fire_id: str, ticks_count: int, min_lon=18.0, min_la
 
 
 class TestInspectFireEvents:
-    @patch("ai.inspect_fire.build_fire_events")
-    @patch("ai.inspect_fire.cluster_fire_events")
-    @patch("ai.inspect_fire.load_detections")
+    @patch("app.backend.src.ai.inspect_fire.build_fire_events")
+    @patch("app.backend.src.ai.inspect_fire.cluster_fire_events")
+    @patch("app.backend.src.ai.inspect_fire.load_detections")
     def test_inspect_fire_events_with_limit_and_truncation(
         self, mock_load, mock_cluster, mock_build, capsys
     ):
@@ -51,9 +51,9 @@ class TestInspectFireEvents:
         assert "Fire ID = fire_3" not in captured
         assert "... (1 more not shown but you can use --limit to see more)" in captured
 
-    @patch("ai.inspect_fire.build_fire_events")
-    @patch("ai.inspect_fire.cluster_fire_events")
-    @patch("ai.inspect_fire.load_detections")
+    @patch("app.backend.src.ai.inspect_fire.build_fire_events")
+    @patch("app.backend.src.ai.inspect_fire.cluster_fire_events")
+    @patch("app.backend.src.ai.inspect_fire.load_detections")
     def test_inspect_fire_events_limit_none(
         self, mock_load, mock_cluster, mock_build, capsys
     ):
@@ -72,7 +72,7 @@ class TestInspectFireEvents:
 
 
 class TestInspectFireMain:
-    @patch("ai.inspect_fire.inspect_fire_events")
+    @patch("app.backend.src.ai.inspect_fire.inspect_fire_events")
     def test_main_with_nonzero_limit(self, mock_inspect, monkeypatch):
         test_args = [
             "inspect_fire.py",
@@ -102,7 +102,7 @@ class TestInspectFireMain:
             15,
         )
 
-    @patch("ai.inspect_fire.inspect_fire_events")
+    @patch("app.backend.src.ai.inspect_fire.inspect_fire_events")
     def test_main_with_zero_limit_converts_to_none(self, mock_inspect, monkeypatch):
         test_args = [
             "inspect_fire.py",

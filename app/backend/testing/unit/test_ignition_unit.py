@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 import xgboost as xgb
 
-from ai.ignition import IgnitionScorer
-from ai.schema import FEATURES, SCHEMA_VERSION, UNBURNED, BURNING, BURNED
+from app.backend.src.ai.ignition import IgnitionScorer
+from app.backend.src.ai.schema import FEATURES, SCHEMA_VERSION, UNBURNED, BURNING, BURNED
 
 
 class TestIgnitionScorerInit:
@@ -30,7 +30,7 @@ class TestIgnitionScorerInit:
 
 
 class TestIgnitionScorerLoad:
-    @patch("ai.ignition.artifact_store.resolve")
+    @patch("app.backend.src.ai.ignition.artifact_store.resolve")
     def test_load_schema_mismatch_features_raises_runtime_error(self, mock_resolve, tmp_path):
         metadata_file = tmp_path / "metadata.json"
         metadata = {
@@ -44,7 +44,7 @@ class TestIgnitionScorerLoad:
         with pytest.raises(RuntimeError, match="Schema mismatch"):
             IgnitionScorer.load("v0.1")
 
-    @patch("ai.ignition.artifact_store.resolve")
+    @patch("app.backend.src.ai.ignition.artifact_store.resolve")
     def test_load_schema_mismatch_schema_version_raises_runtime_error(self, mock_resolve, tmp_path):
         metadata_file = tmp_path / "metadata.json"
         metadata = {
@@ -58,8 +58,8 @@ class TestIgnitionScorerLoad:
         with pytest.raises(RuntimeError, match="Schema mismatch"):
             IgnitionScorer.load("v0.1")
 
-    @patch("ai.ignition.xgb.Booster")
-    @patch("ai.ignition.artifact_store.resolve")
+    @patch("app.backend.src.ai.ignition.xgb.Booster")
+    @patch("app.backend.src.ai.ignition.artifact_store.resolve")
     def test_load_success(self, mock_resolve, mock_booster_cls, tmp_path):
         metadata_file = tmp_path / "metadata.json"
         metadata = {
@@ -82,8 +82,8 @@ class TestIgnitionScorerLoad:
 
 
 class TestIgnitionScorerScoreGrid:
-    @patch("ai.ignition.grid_to_fmatrix")
-    @patch("ai.ignition.xgb.DMatrix")
+    @patch("app.backend.src.ai.ignition.grid_to_fmatrix")
+    @patch("app.backend.src.ai.ignition.xgb.DMatrix")
     def test_score_grid(self, mock_dmatrix, mock_grid_to_fmatrix):
         mock_booster = MagicMock(spec=xgb.Booster)
         scorer = IgnitionScorer(booster=mock_booster)
