@@ -47,6 +47,7 @@ def build_docker_command(label: str, request_host:str | None, reg_key: str | Non
         "--pull always",
         f"--name {WORKER_CONTAINER_NAME}",
         "--restart unless-stopped",
+        "--network host",
         "--gpus all",
         '--memory="8g" --memory-swap="8g"',
         f"-v {WORKER_VOLUME_NAME}:/data",

@@ -9,31 +9,31 @@ interface TeamMember {
 const teamMembers: TeamMember[] = [
     {
         name: 'Megan Lai',
-        role: 'Team Lead, Integration Engineer, Testing Engineer',
-        bio: 'As a final-year Computer Science and Data Science student, I am a driven problem-solver who thrives on tackling complex technical challenges. While I possess a solid foundation in frontend technologies, my primary expertise and professional passion lie in backend development. I am always looking for ways to expand my knowledge and learn new skills in order to build innovative and impactful solutions.',
+        role: 'Team Lead, Full Stack Engineer',
+        bio: 'I am a final-year student at the University of Pretoria, majoring in both Computer Science and Data Science. I am a driven problem-solver and aspiring software engineer who thrives on tackling complex technical challenges. While I possess a solid foundation in frontend technologies, my primary expertise and professional passion lie in backend development. I am passionate about software engineering and development, cybersecurity, artificial intelligence, and machine learning. I am always looking for ways to expand my knowledge and learn new skills in order to build innovative and impactful solutions.',
         image: '/images/team/Megan.jpeg',
     },
     {
         name: 'Ryan Lynn',
-        role: 'UI Engineer, Backend Engineer, Data Engineer, Simulation Engineer, DevOps Engineer',
+        role: 'Full Stack Engineer',
         bio: 'I am a final-year Computer Science student with a strong focus on backend development and system design. I take a structured and analytical approach to solving complex technical problems, with a particular interest in building efficient, scalable, and well-architected systems. ',
         image: '/images/team/Ryan.jpg',
     },
     {
         name: 'Inge Keyser',
-        role: 'Testing Engineer',
+        role: 'Full Stack Engineer',
         bio: 'I am a results-oriented BSc Computer Science student at the University of Pretoria with a strong foundation in data analysis, programming, and mathematics. I am passionate about leveraging data-driven insights to solve complex problems and am always looking to apply and expand my skills in Data Science. I am quick to adapt and master new technologies, I apply creative problem-solving skills and demonstrate high enthusiasm when tackling new projects. ',
         image: '/images/team/Inge.jpg',
     },
     {
         name: 'Janri du Toit',
-        role: 'UI Engineer',
+        role: 'Full Stack Engineer',
         bio: 'I am a final-year student with a growing interest and curiosity in all the facets of Computer Science. I gravitate more towards AI and data science where algorithms don\'t just solve problems, they uncover them. To me, the ability of a well-trained model to reveal invisible patterns, optimizing system performance and offering solutions to real-world challenges, is where logic meets true impact. ',
         image: '/images/team/Janri.jpg',
     },
     {
         name: 'Marco de Wit',
-        role: 'UI Engineer, Integration Engineer',
+        role: 'Full Stack Engineer',
         bio: 'I am a final-year Mathematics student with a strong foundation in software development, specialising in C++, TypeScript, and Python. I bring a combination of analytical thinking and practical problem-solving, allowing me to design efficient and optimised solutions grounded in mathematical principles.',
         image: '/images/team/Marco.jpg',
     }

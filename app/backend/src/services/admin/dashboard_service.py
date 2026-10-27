@@ -71,6 +71,11 @@ def get_top_metrics(db: Session) -> dict:
         "system_status": system_status,
     }
 
+def user_display_name(user: User | None) -> str:
+    if user is None:
+        return "Unknown user"
+    full = " ".join(p for p in (getattr(user, "first_name", None), getattr(user, "last_name", None)) if p)
+    return full or getattr(user, "name", None) or user.email
 
 def get_recent_activity(db: Session, limit: int = 7) -> list[dict]:
     recent_fires = (
@@ -80,7 +85,8 @@ def get_recent_activity(db: Session, limit: int = 7) -> list[dict]:
         .all()
     )
     recent_role_requests = (
-        db.query(RoleRequest)
+        db.query(RoleRequest, User)
+        .outerjoin(User, User.id == RoleRequest.user_id)
         .filter(RoleRequest.reviewed_at.isnot(None))
         .order_by(RoleRequest.reviewed_at.desc())
         .limit(limit)
@@ -97,11 +103,11 @@ def get_recent_activity(db: Session, limit: int = 7) -> list[dict]:
             }
         )
 
-    for rr in recent_role_requests:
+    for rr, user in recent_role_requests:
         activity_items.append(
             {
                 "id": f"role-{rr.request_id}",
-                "message": f"Role {rr.status.value} - {rr.user_id} ({rr.requested_role.value})",
+                "message": f"Role {rr.status.value} - {user_display_name(user)} ({rr.requested_role.value})",
                 "timeAgo": calculate_time_ago(rr.reviewed_at),
                 "_sort_ts": as_aware(rr.reviewed_at),
             }

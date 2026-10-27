@@ -1,13 +1,12 @@
 'use client';
 
-import { Feather, LocateFixed, MapPin } from 'lucide-react'
+import { LocateFixed, MapPin } from 'lucide-react'
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 import type { GeoJSONSource } from 'mapbox-gl';
 import circle from '@turf/circle';
 import { buffer } from '@turf/buffer';
-import { polygon } from '@turf/helpers';
 import bbox from '@turf/bbox';
 import type { Feature, LineString, Polygon, MultiPolygon } from 'geojson';
 import { Map, Marker, Popup, Layer, Source, NavigationControl } from 'react-map-gl/mapbox';
@@ -578,7 +577,7 @@ export function FireMap({ lat,
     <div className='relative w-full h-full'>
       {/* key for map legend */}
       {showKey && (
-        <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-48'>
+        <div className='absolute top-16 right-4 z-10 flex-col gap-2 bg-carbon-side/95 backdrop-blur-md p-3 rounded-xl border border-carbon-stroke text-text-primary shadow-2xl w-40 md:w-48'>
           <span className='text-sm font-semibold text-text-muted uppercase tracking-wider'>Map Key</span>
           <div className='flex items-center justify-between text-xs'>
             <div className='flex items-center gap-2'>
@@ -878,7 +877,7 @@ export function FireMap({ lat,
               {/* Click to show badge */}
               {showUserLocationTooltip && (
                 <div className='absolute -top-7 left-1/2 -translate-x-1/2 flex items-center px-2 py-0.5 rounded bg-carbon-side/95
-               border border-carbon-stroke text-[11px] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
+               border border-carbon-stroke text-[0.6875rem] font-medium text-text-primary whitespace-nowrap shadow-lg z-20 pointer-events-none'>
                   Your location
                 </div>
               )}
@@ -901,7 +900,7 @@ export function FireMap({ lat,
           loc.lat != null && loc.lng != null ? (
             <Marker key={loc.id} longitude={loc.lng} latitude={loc.lat} anchor='bottom'>
               <div title={loc.label} className='flex flex-col items-center pointer-events-auto'>
-                <span className='px-1.5 py-0.5 mb-0.5 rounded bg-carbon-side/95 border border-carbon-stroke text-[11px] text-text-primary whitespace-nowrap shadow-lg'>
+                <span className='px-1.5 py-0.5 mb-0.5 rounded bg-carbon-side/95 border border-carbon-stroke text-[0.6875rem] text-text-primary whitespace-nowrap shadow-lg'>
                   {loc.label}
                 </span>
                 <MapPin className='size-6 text-text-primary drop-shadow-lg' />
@@ -915,7 +914,7 @@ export function FireMap({ lat,
         type='button'
         onClick={handleRecenter}
         aria-label='Center map location on me'
-        className='absolute bottom-6 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
+        className='absolute bottom-14 right-4 z-10 w-11 h-11 rounded-full bg-carbon-bg/90 backdrop-blur shadow-lg flex items-center justify-center text-text-primary hover:bg-smoke-hover active:scale-95 transition disabled:opacity-50'
       >
         <LocateFixed className='w-5 h-5' />
       </button>
