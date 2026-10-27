@@ -1,7 +1,7 @@
 // All API communication and playback state for fire simulation
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { SIM_MAX_STEPS } from '../types/simulation';
 import { handleExpiredSession } from '@/lib/api';
+import { SIM_MAX_STEPS } from '../types/simulation';
 
 export interface HourlyWeather {
   hour: number;

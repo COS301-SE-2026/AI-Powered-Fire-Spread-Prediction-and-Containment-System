@@ -9,11 +9,35 @@ export class ApiError extends Error {
   }
 }
 
+export async function logout() {
+  try{
+    const response = await fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+    });
+
+    if(!response.ok){
+      console.error('Logout request failed with status:', response.status);
+    }
+  }catch (error) {
+    console.error('Network error loading:', error);
+  }finally{
+    if(typeof window !== 'undefined'){
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.assign('/login');
+    }
+  }
+}
+
 export function handleExpiredSession() {
   if (typeof window === 'undefined' || redirectingToLogin) return;
   if (!PROTECTED_PREFIXES.some((p) => window.location.pathname.startsWith(p))) return;
   redirectingToLogin = true;
-  void logout();
+  logout().catch(() => undefined);
 }
 
 export async function apiCall(endpoint: string, method: string = 'GET', body: unknown = null) {
@@ -57,28 +81,4 @@ export async function apiCall(endpoint: string, method: string = 'GET', body: un
     throw new ApiError(detail, res.status);
   } 
   return data;
-}
-
-export async function logout() {
-  try{
-    const response = await fetch('/api/auth/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-    });
-
-    if(!response.ok){
-      console.error('Logout request failed with status:', response.status);
-    }
-  }catch (error) {
-    console.error('Network error loading:', error);
-  }finally{
-    if(typeof window !== 'undefined'){
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.assign('/login');
-    }
-  }
 }
