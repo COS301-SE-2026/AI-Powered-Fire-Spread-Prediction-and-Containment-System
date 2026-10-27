@@ -1,4 +1,20 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const PROTECTED_PREFIXES = ['/admin', '/firefighter', '/users'];
+let redirectingToLogin = false;
+
+export class ApiError extends Error {
+  constructor(message: string, public status: number) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+export function handleExpiredSession() {
+  if (typeof window === 'undefined' || redirectingToLogin) return;
+  if (!PROTECTED_PREFIXES.some((p) => window.location.pathname.startsWith(p))) return;
+  redirectingToLogin = true;
+  void logout();
+}
 
 export async function apiCall(endpoint: string, method: string = 'GET', body: unknown = null) {
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint: `/${endpoint}`;
@@ -22,6 +38,10 @@ export async function apiCall(endpoint: string, method: string = 'GET', body: un
   const data = hasJson ? await res.json().catch(() => null) : null;
 
   if (!res.ok){
+    if (res.status === 401 && !cleanEndpoint.startsWith('/api/auth/')){
+      handleExpiredSession();
+    }
+
     let detail = `Request failed (${res.status})`;
 
     if(data && typeof data == 'object' && 'detail' in data){
@@ -34,7 +54,7 @@ export async function apiCall(endpoint: string, method: string = 'GET', body: un
       }
     }
 
-    throw new Error(detail);
+    throw new ApiError(detail, res.status);
   } 
   return data;
 }

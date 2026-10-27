@@ -35,7 +35,6 @@ def http_session() -> requests.Session:
     retry = Retry(
         total=2,
         backoff_factor=1,
-        backoff_max=4,
         status_forcelist=(429, 500, 502, 503, 504),
         allowed_methods=("GET",),
         respect_retry_after_header=False,
