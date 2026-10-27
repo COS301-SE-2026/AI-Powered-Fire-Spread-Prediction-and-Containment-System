@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+import logging
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
@@ -7,6 +9,20 @@ from app.backend.src.services.admin import role_request
 
 from app.backend.src.dependencies.auth import get_current_admin_user
 from app.backend.src.models.users import User
+from app.backend.src.services.auth import (
+    send_role_approved_email,
+    send_role_rejected_email,
+    send_role_revoked_email,
+)
+
+logger = logging.getLogger(__name__)
+
+def send_email_safe(send_fn, to: str, name: str, role: str) -> None:
+    """"Runs after response. Email failure must never affect the decision"""
+    try:
+        send_fn(to, name, role)
+    except Exception:
+        logger.exception("Failed to send %s to %s", send_fn.__name__, to)
 
 router = APIRouter(
     prefix="/api/admin", tags=["Admin"], dependencies=[Depends(get_current_admin_user)]
@@ -21,6 +37,7 @@ def get_role_requests(db: Session = Depends(get_db)):
 @router.put("/role-requests/{request_id}/approve", response_model=RoleRequestResponse)
 def approve_role_request(
     request_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -31,6 +48,15 @@ def approve_role_request(
         if not request:
             raise HTTPException(status_code=404, detail="Role request is not found")
 
+        user = request.user
+        background_tasks.add_task(
+            send_email_safe,
+            send_role_approved_email,
+            user.email,
+            user.name,
+            request.requested_role.value,
+        )
+        
         return request
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
@@ -39,6 +65,7 @@ def approve_role_request(
 @router.put("/role-requests/{request_id}/reject", response_model=RoleRequestResponse)
 def reject_role_request(
     request_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -49,6 +76,15 @@ def reject_role_request(
         if not request:
             raise HTTPException(status_code=404, detail="Role request is not found")
 
+        user = request.user
+        background_tasks.add_task(
+            send_email_safe,
+            send_role_rejected_email,
+            user.email,
+            user.name,
+            request.requested_role.value,
+        )
+
         return request
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error))
@@ -57,6 +93,7 @@ def reject_role_request(
 @router.put("/role-requests/{request_id}/revoke", response_model=RoleRequestResponse)
 def revoke_role_request(
     request_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin_user),
 ):
@@ -66,6 +103,15 @@ def revoke_role_request(
 
         if not request:
             raise HTTPException(status_code=404, detail="Role request is not found")
+        
+        user = request.user
+        background_tasks.add_task(
+            send_email_safe,
+            send_role_revoked_email,
+            user.email,
+            user.name,
+            request.requested_role.value,
+        )
 
         return request
     except ValueError as error:
