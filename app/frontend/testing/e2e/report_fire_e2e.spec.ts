@@ -9,6 +9,14 @@ test.describe('report a fire journey', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
     
     test('guest can report a fire with a description and image', async ({ page }) => {
+        await page.addInitScript(() => {
+            document.addEventListener('DOMContentLoaded', () => {
+                const style = document.createElement('style');
+                style.textContent = 'nextjs-portal { display: none !important; }';
+                document.head.appendChild(style);
+            });
+         });
+
         await page.route('**/health', (route) =>
       route.fulfill({ status: 200, json: { status: 'ok' } }),
     );

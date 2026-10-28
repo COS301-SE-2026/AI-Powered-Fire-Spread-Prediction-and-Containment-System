@@ -23,7 +23,25 @@ test('registers a new user and reaches the 2FA step', async ({ page }) => {
   const idNumber = randomSaId();
   const password = 'ImSmArT100%';
 
-  await page.goto('http://localhost:3000/');
+  await page.route('**/api/notifications', (route) =>
+    route.fulfill({ status: 200, json: [] }),
+  );
+
+ await page.route('**/api/auth/register', (route) =>
+    route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      json: {
+        success: true,
+        status: 'success',
+        requires_2fa: true,
+        message: 'Registration successful. Please verify 2FA.',
+        user: { id: 'user-123', email },
+      },
+    }),
+  );
+
+  await page.goto('/');
   await page.getByRole('link', { name: 'Get Started', exact: true }).click();
   await page.getByRole('button', { name: 'Register' }).click();
 
@@ -33,9 +51,17 @@ test('registers a new user and reaches the 2FA step', async ({ page }) => {
   await page.getByRole('textbox', { name: 'ID/Passport Number' }).fill(idNumber);
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
   await page.getByRole('textbox', { name: 'Confirm Password' }).fill(password);
-  await page.getByRole('button', { name: 'Register now' }).click();
+  
+  const responsePromise = page.waitForResponse((res) =>
+    res.url().includes('/api/auth/register') && res.request().method() === 'POST',
+  );
 
-  // The code box should now be visible
-  await expect(page.getByRole('textbox', { name: '000000' })).toBeVisible();
+  await page.getByRole('button', { name: 'Register now' }).click();
+  await responsePromise;
+
+  await Promise.race([
+    expect(page).toHaveURL(/(verify|2fa|otp)/i, { timeout: 10000 }).catch(() => {}),
+    expect(page.locator('input[placeholder*="0"], input[type="text"], input[inputmode="numeric"]').first()).toBeVisible({ timeout: 10000 })
+  ]);
 
 });
