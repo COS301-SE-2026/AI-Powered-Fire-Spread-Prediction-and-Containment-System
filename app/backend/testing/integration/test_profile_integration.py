@@ -168,7 +168,7 @@ def test_get_my_reported_fire_other_users_report_returns_404(client, db, signed_
     other = make_user(db, email="other@example.com")
     report = make_report(db, user=other)
  
-    assert client.get(report_url(report.id)).status_code == 404
+    assert client.get(report_url(report.reference_number)).status_code == 404
  
  
 def test_get_my_reported_fire_unknown_report_returns_404(client, signed_in):
@@ -179,8 +179,8 @@ def test_get_my_reported_fire_foreign_and_unknown_are_indistinguishable(
     client, db, signed_in
 ):
     other = make_user(db, email="other@example.com")
-    foreign = client.get(report_url(make_report(db, user=other).id))
-    missing = client.get(report_url("does-not-exist"))
+    foreign = client.get(report_url(make_report(db, user=other).reference_number))
+    missing = client.get(report_url("FR-2026-NOPE00"))
  
     assert (foreign.status_code, foreign.json()) == (missing.status_code, missing.json())
  
