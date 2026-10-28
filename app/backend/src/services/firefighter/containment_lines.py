@@ -1,5 +1,6 @@
 import uuid
 import asyncio
+import logging
 import numpy as np
 from datetime import datetime, timezone
 
@@ -16,10 +17,15 @@ from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.ai.simulation_api import simulate_single_fire
 from app.backend.src.ai.suggest_containment import suggest_containment_line
 from app.backend.src.ai.sim_constants import MAXSTEPS
+from app.backend.src.ai.geo import bbox_from_fire
+from app.backend.src.ai.job_builder import fetch_static_grids
 from app.backend.src.schemas.containment_lines import (
     SuggestedContainmentLine,
     SuggestedContainmentLinesList,
 )
+
+log = logging.getLogger(__name__)
+
 MAX_RADIUS = 5  # max radius for containement auto-detection of nearby fire
 SUGGESTION_HORIZON_STEPS = MAXSTEPS #72h as in dca.py
 
@@ -112,6 +118,34 @@ def delete_containment_line(db: Session, line_id: str):
     db.delete(line)
     db.commit()
 
+async def _load_nonburnable(fire, prediction) -> np.ndarray | None:
+    """
+    Loads the nonburnable grid used in simulation. 
+    Returns None on any failures.
+    This is used to avoid suggesting containment lines that touch nonburnable cells.
+    """
+    bounds = bbox_from_fire(
+        lat=fire.lat,
+        lng=fire.lng,
+        boundary_radius_m=float(fire.boundary_radius) * 1000,
+        n_steps=SUGGESTION_HORIZON_STEPS,
+    )
+    job = {
+        "grid_bounds": list(bounds),
+        "grid_h": prediction.grid_h,
+        "grid_w": prediction.grid_w,
+    }
+    try:
+        grids = await asyncio.to_thread(fetch_static_grids, job)
+        return np.asarray(grids["nonburnable"], dtype=bool)
+    except Exception:
+        log.warning(
+            "Could not load nonburnable mask for %s; suggesting without it",
+            fire.reference_number,
+            exc_info=True,
+        )
+        return None
+
 async def get_suggested_containment_lines(
     db: Session, fire_ref: str, top_n: int = 1
 ) -> SuggestedContainmentLinesList:
@@ -144,6 +178,9 @@ async def get_suggested_containment_lines(
         np.array(tick, dtype=np.int64).reshape(prediction.grid_h, prediction.grid_w)
         for tick in prediction.history
     ]
+
+    nonburnable = await _load_nonburnable(fire, prediction)
+
     suggestions = suggest_containment_line(
         history=history,
         fire_lat=fire.lat,
@@ -152,6 +189,7 @@ async def get_suggested_containment_lines(
         cell_size_m=prediction.cell_size_m,
         n_steps=SUGGESTION_HORIZON_STEPS,
         top_n=top_n,
+        nonburnable=nonburnable,
     )
     return SuggestedContainmentLinesList(
         data=[SuggestedContainmentLine(**s.__dict__) for s in suggestions],
