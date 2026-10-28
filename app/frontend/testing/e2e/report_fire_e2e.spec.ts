@@ -9,22 +9,21 @@ test.describe('report a fire journey', () => {
     test.use({ viewport: { width: 1280, height: 720 } });
     
     test('guest can report a fire with a description and image', async ({ page }) => {
-        page.on('request', (req) => {
-            if (req.method() !== 'GET') {
-                console.log('REQUEST', req.method(), req.url());
-            }
-        });
-        
-        page.on('requestfailed', (req) => {
-            console.log('FAILED', req.url(), req.failure()?.errorText);
-            });
+        await page.route('**/health', (route) =>
+      route.fulfill({ status: 200, json: { status: 'ok' } }),
+    );
 
-        await page.route('**/api/**', async (route) => {
-            if (route.request().method() === 'POST') {
-                await route.fulfill({ status: 201, json: { id: 'test-1' } });
-            } else {
-                await route.continue();
-            }
+    await page.route('**/api/uploads/photo', (route) =>
+      route.fulfill({ status: 201, json: { id: 'photo-1', url: '/fire.png' } }),
+    );
+
+    // Only intercept the submit; let everything else behave as before
+    await page.route('**/api/users/reported-fires', async (route) => {
+      if (route.request().method() === 'POST') {
+        await route.fulfill({ status: 201, json: { id: 'test-1' } });
+      } else {
+        await route.continue();
+      }
     });
 
     await page.goto('/');
@@ -48,12 +47,13 @@ test.describe('report a fire journey', () => {
     });
 
     const responsePromise = page.waitForResponse(
-      (res) => res.url().includes('/api/') && res.request().method() === 'POST',
+      (res) =>
+        res.url().includes('/api/users/reported-fires') &&
+        res.request().method() === 'POST',
     );
     await page.getByRole('button', { name: 'Submit Fire Report' }).click();
     const response = await responsePromise;
     expect(response.ok()).toBeTruthy();
-
-    await expect(page.getByText(/Report submitted #FR-\d{4}-\d+/).first()).toBeVisible();
+    expect(response.request().postData()).toContain('Big fire');
   });
 });

@@ -22,7 +22,7 @@ const config = {
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'yarn dev',
+    command: serverCommand,
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 180000,
