@@ -3,8 +3,6 @@ import { test, expect, Page } from '@playwright/test';
 const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'sipho.n@fireaway.co.za';
 const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
 
-const STATUSES = ['pending', 'approved', 'rejected', 'revoked'];
-
 async function login(page: Page) {
   await page.goto('/');
   await page.getByRole('link', { name: 'Get Started', exact: true }).click();
@@ -13,6 +11,11 @@ async function login(page: Page) {
   await page.getByRole('textbox', { name: 'Password' }).fill(ADMIN_PASSWORD as string);
   await page.getByRole('button', { name: 'Login' }).click();
   await page.waitForURL('**/admin/**', { timeout: 15000 });
+}
+
+async function filterByStatus(page: Page, status: string) {
+  await page.getByRole('button', { name: status, exact: true }).click();
+  await expect(page.getByRole('row').filter({ hasText: status }).first()).toBeVisible();
 }
 
 test.describe('admin role approvals', () => {
@@ -29,11 +32,9 @@ test.describe('admin role approvals', () => {
     await expect(page.getByRole('heading', { name: 'Role Approvals' })).toBeVisible();
     await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
 
-    for (const status of STATUSES) {
-      await page.getByRole('button', { name: status, exact: true }).click();
-      await expect(
-        page.getByRole('row').filter({ hasText: status }).first(),
-      ).toBeVisible();
-    }
+    await filterByStatus(page, 'pending');
+    await filterByStatus(page, 'approved');
+    await filterByStatus(page, 'rejected');
+    await filterByStatus(page, 'revoked');
   });
 });
