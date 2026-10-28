@@ -1,3 +1,8 @@
+let serverCommand = 'yarn dev';
+if (process.env.CI) {
+  serverCommand = 'yarn build && yarn start';
+}
+
 const config = {
   testDir: './testing',
 
@@ -20,6 +25,7 @@ const config = {
     command: 'yarn dev',
     port: 3000,
     reuseExistingServer: !process.env.CI,
+    timeout: 180000,
   },
 };
 

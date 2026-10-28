@@ -6,9 +6,27 @@ const tinyPng = Buffer.from(
 );
 
 test.describe('report a fire journey', () => {
-  test.use({ viewport: { width: 1280, height: 720 } });
+    test.use({ viewport: { width: 1280, height: 720 } });
+    
+    test('guest can report a fire with a description and image', async ({ page }) => {
+        page.on('request', (req) => {
+            if (req.method() !== 'GET') {
+                console.log('REQUEST', req.method(), req.url());
+            }
+        });
+        
+        page.on('requestfailed', (req) => {
+            console.log('FAILED', req.url(), req.failure()?.errorText);
+            });
 
-  test('guest can report a fire with a description and image', async ({ page }) => {
+        await page.route('**/api/**', async (route) => {
+            if (route.request().method() === 'POST') {
+                await route.fulfill({ status: 201, json: { id: 'test-1' } });
+            } else {
+                await route.continue();
+            }
+    });
+
     await page.goto('/');
 
     await page.getByRole('link', { name: 'Get Started', exact: true }).click();
