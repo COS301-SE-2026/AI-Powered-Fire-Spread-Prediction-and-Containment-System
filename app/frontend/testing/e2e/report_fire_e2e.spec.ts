@@ -26,7 +26,7 @@ test.describe('report a fire journey', () => {
     );
 
     // Only intercept the submit; let everything else behave as before
-    await page.route('**/api/users/reported-fires', async (route) => {
+    await page.route('**/api/**/reported-fires', async (route) => {
       if (route.request().method() === 'POST') {
         await route.fulfill({ status: 201, json: { id: 'test-1' } });
       } else {

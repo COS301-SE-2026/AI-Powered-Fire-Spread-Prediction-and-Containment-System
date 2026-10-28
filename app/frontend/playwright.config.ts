@@ -1,4 +1,4 @@
-let serverCommand = 'yarn dev';
+const SERVER_COMMAND = 'yarn dev';
 
 const config = {
   testDir: './testing',
@@ -20,7 +20,7 @@ const config = {
     trace: 'on-first-retry',
   },
   webServer: {
-    command: serverCommand,
+    command: SERVER_COMMAND,
     port: 3000,
     reuseExistingServer: !process.env.CI,
     timeout: 240000,
