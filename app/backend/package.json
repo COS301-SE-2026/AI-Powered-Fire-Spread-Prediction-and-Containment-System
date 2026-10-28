@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:backend": "cd ../.. && PYTHONPATH=app/backend/src:. pytest app/backend/testing",
-    "test:unit": "cd ../.. && PYTHONPATH=app/backend/src:. pytest app/backend/testing/unit",
-    "test:integration": "cd ../.. && PYTHONPATH=app/backend/src:. pytest app/backend/testing/integration",
+    "test:backend": "cd ../.. && pytest -c app/backend/testing/pytest.ini app/backend/testing",
+    "test:unit": "cd ../.. && pytest -c app/backend/testing/pytest.ini app/backend/testing/unit",
+    "test:integration": "cd ../.. && pytest -c app/backend/testing/pytest.ini app/backend/testing/integration",
+    "test:unit:cov": "cd ../.. && coverage erase && pytest -c app/backend/testing/pytest.ini --cov --cov-report=term --cov-report=html:htmlcov-unit --cov-report=xml:app/backend/testing/coverage.xml app/backend/testing/unit",
+    "test:integration:cov": "cd ../.. && coverage erase && pytest -c app/backend/testing/pytest.ini --cov --cov-report=term --cov-report=html:htmlcov-integration --cov-report=xml:app/backend/testing/coverage.xml app/backend/testing/integration",
     "test:local": "SKIP_DB_INIT=1 SKIP_SEED=1 pytest",
-    "test:coverage": "pytest --cov",
-    "test:xgboost:unit": "pytest app/backend/src/tests/test_xgboost_model_unit.py -v ",
     "lint": "PYTHONPATH=src:. pylint --recursive=y ."
   }
 }

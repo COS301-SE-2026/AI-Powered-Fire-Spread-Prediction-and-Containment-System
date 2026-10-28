@@ -15,24 +15,21 @@ import { useGuestDashboard } from '../../hooks/useGuestDashboard';
 import { useSavedLocations } from '../../hooks/useSavedLocations';
 import { MapLayerToggles } from '../shared/MapLayerToggles';
 import { useLocationToMap } from '../../hooks/useLocationToMap';
+import { MapSkeleton } from '../ui/skeleton/MapSkeleton';
 
 const PublicFireMap = dynamic(() => import('../firefighter/FireMap').then((mod) => mod.FireMap), {
   ssr: false,
-  loading: () => (
-    <div className="flex-1 flex items-center justify-center h-full w-full">
-      <span className="loading loading-spinner loading-lg text-primary" />
-    </div>
-  ),
+  loading: () => <MapSkeleton />,
 });
 
 export default function MapView() {
-  const { userLocation, searchLocation, nearbyFires } = useNearbyFires();
-  const { location, environmentVariables, recenter } = useGuestDashboard(20);
+  const { userLocation, searchLocation, nearbyFires, loading: firesLoading } = useNearbyFires();
+  const { location, environmentVariables, recenter, loading: envLoading } = useGuestDashboard(20);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const [recenterCount, setRecenterCount] = useState(0);
   const [showWater, setShowWater] = useState(true);
 
-  const { nearbyResources } = useNearbyResources(searchLocation);
+  const { nearbyResources, loading: resourcesLoading } = useNearbyResources(searchLocation);
   const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null);
   const [showResources, setShowResources] = useState(true);
 
@@ -72,7 +69,7 @@ export default function MapView() {
             />
           </div>
           {/* Map */}
-          <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-96 sm:h-104 lg:h-140 w-full shadow-md">
+          <div className="relative rounded-2xl overflow-hidden border border-carbon-card h-120 sm:h-130 lg:h-[72vh] w-full shadow-md">
             <PublicFireMap
               lat={userLocation?.lat ?? null}
               lng={userLocation?.lng ?? null}
@@ -104,29 +101,29 @@ export default function MapView() {
             </div>
 
             <div className="absolute bottom-0 inset-x-0 z-10 bg-carbon-bg/70 backdrop-blur-md border-t border-carbon-card p-2">
-              <GuestEnvironment data={environmentVariables} />
+              <GuestEnvironment data={environmentVariables} loading={envLoading && !environmentVariables} />
             </div>
           </div>
           <ResourceMapLegend />
         </div>
 
         {/* Right Column Area (span-4: Scrolling Incident Feed Records) */}
-        <div className="xl:col-span-4 flex flex-col gap-3 xl:h-150">
+        <div className="xl:col-span-4 flex flex-col gap-3 xl:h-[calc(72vh+3.25rem)]">
           <p className="tracking-widest text-text-muted uppercase shrink-0">
             Nearby Reports
           </p>
 
           {/* Enforces strict scrolling constraints tailored to Ryan's height layout tree */}
           <div
-            className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
-            <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+            className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130 xl:max-h-none xl:flex-1 xl:min-h-0">
+            <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire} loading={firesLoading && nearbyFires.length === 0} />
           </div>
 
           <p className="tracking-widest text-text-muted uppercase shrink-0">
             Available Resources
           </p>
           <div className="max-h-64 xl:max-h-none xl:flex-1 xl:min-h-0 rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto">
-            <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource}/>
+            <NearbyResources resources={availableResources}  selectedResourceId={selectedResourceId} onSelectResource={handleSelectResource} loading={resourcesLoading && availableResources.length === 0} />
           </div>
         </div>
       </div>

@@ -19,9 +19,9 @@ import Image from 'next/image';
 
 export default function LogoSection() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* logo variants */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
         {/* large logo */}
         <div
           style={{
@@ -32,7 +32,7 @@ export default function LogoSection() {
         >
           <div
             style={{
-              height: '160px',
+              height: '10rem',
               backgroundColor: 'var(--color-carbon-side)',
               display: 'flex',
               alignItems: 'center',
@@ -42,12 +42,12 @@ export default function LogoSection() {
             <Image
               src="/images/logo-large.png"
               alt="Fireaway large logo"
-              style={{ height: '80px', objectFit: 'contain' }}
+              style={{ height: '5rem', objectFit: 'contain' }}
             />
           </div>
           <div
             style={{
-              padding: '12px 16px',
+              padding: '0.75rem 1rem',
               backgroundColor: 'var(--color-carbon-card)',
               borderTop: '1px solid var(--color-carbon-stroke)',
             }}
@@ -55,14 +55,14 @@ export default function LogoSection() {
             <p
               style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '15px',
+                fontSize: '0.9375rem',
                 color: '#EDEAE5',
-                marginBottom: '4px',
+                marginBottom: '0.25rem',
               }}
             >
               logo-large.png
             </p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9375rem', color: '#A0ACC0' }}>
               Sidebar expanded · min-width 120px
             </p>
           </div>
@@ -78,7 +78,7 @@ export default function LogoSection() {
         >
           <div
             style={{
-              height: '160px',
+              height: '10rem',
               backgroundColor: 'var(--color-carbon-side)',
               display: 'flex',
               alignItems: 'center',
@@ -88,12 +88,12 @@ export default function LogoSection() {
             <Image
               src="/images/logo-small.png"
               alt="Fireaway small logo"
-              style={{ height: '48px', objectFit: 'contain' }}
+              style={{ height: '3rem', objectFit: 'contain' }}
             />
           </div>
           <div
             style={{
-              padding: '12px 16px',
+              padding: '0.75rem 1rem',
               backgroundColor: 'var(--color-carbon-card)',
               borderTop: '1px solid var(--color-carbon-stroke)',
             }}
@@ -101,14 +101,14 @@ export default function LogoSection() {
             <p
               style={{
                 fontFamily: 'var(--font-mono)',
-                fontSize: '15px',
+                fontSize: '0.9375rem',
                 color: '#EDEAE5',
-                marginBottom: '4px',
+                marginBottom: '0.25rem',
               }}
             >
               logo-small.png
             </p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '15px', color: '#A0ACC0' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9375rem', color: '#A0ACC0' }}>
               Sidebar collapsed · 40×48px
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function LogoSection() {
       >
         <div
           style={{
-            padding: '12px 16px',
+            padding: '0.75rem 1rem',
             backgroundColor: 'var(--color-carbon-input)',
             borderBottom: '1px solid var(--color-carbon-stroke)',
           }}
@@ -132,7 +132,7 @@ export default function LogoSection() {
           <p
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: '13px',
+              fontSize: '0.8125rem',
               color: '#A0ACC0',
               fontWeight: 600,
               letterSpacing: '0.15em',
@@ -154,8 +154,8 @@ export default function LogoSection() {
             style={{
               display: 'flex',
               alignItems: 'flex-start',
-              gap: '12px',
-              padding: '12px 16px',
+              gap: '0.75rem',
+              padding: '0.75rem 1rem',
               backgroundColor:
                 i % 2 === 0 ? 'var(--color-carbon-card)' : 'var(--color-carbon-input)',
               borderBottom: i < arr.length - 1 ? '1px solid var(--color-carbon-stroke)' : 'none',
@@ -164,7 +164,7 @@ export default function LogoSection() {
             <p
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: '15px',
+                fontSize: '0.9375rem',
                 color: '#A0ACC0',
                 lineHeight: 1.6,
               }}
@@ -180,12 +180,12 @@ export default function LogoSection() {
         <p
           style={{
             fontFamily: 'var(--font-mono)',
-            fontSize: '15px',
+            fontSize: '0.9375rem',
             color: '#A0ACC0',
             fontWeight: 600,
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            marginBottom: '16px',
+            marginBottom: '1rem',
           }}
         >
           Icon Library - Lucide React
@@ -199,7 +199,7 @@ export default function LogoSection() {
         >
           <div
             style={{
-              padding: '12px 16px',
+              padding: '0.75rem 1rem',
               backgroundColor: 'var(--color-carbon-input)',
               borderBottom: '1px solid var(--color-carbon-stroke)',
             }}
@@ -218,7 +218,7 @@ export default function LogoSection() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(8.125rem, 1fr))',
               gap: '1px',
               backgroundColor: 'var(--color-carbon-stroke)',
             }}
@@ -243,12 +243,12 @@ export default function LogoSection() {
               <div
                 key={name}
                 style={{
-                  padding: '16px',
+                  padding: '1rem',
                   backgroundColor: 'var(--color-carbon-card)',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '0.5rem',
                   textAlign: 'center',
                 }}
               >
@@ -256,14 +256,14 @@ export default function LogoSection() {
                 <p
                   style={{
                     fontFamily: 'var(--font-mono)',
-                    fontSize: '16px',
+                    fontSize: '1rem',
                     color: '#EDEAE5',
                     lineHeight: 1.3,
                   }}
                 >
                   {name}
                 </p>
-                <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', color: '#A0ACC0' }}>
+                <p style={{ fontFamily: 'var(--font-body)', fontSize: '1rem', color: '#A0ACC0' }}>
                   {usage}
                 </p>
               </div>

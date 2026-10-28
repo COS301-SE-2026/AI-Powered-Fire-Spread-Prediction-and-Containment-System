@@ -2,15 +2,19 @@ import { ChevronRight } from 'lucide-react';
 import type { NearbyResource } from '../../hooks/useNearbyResources';
 import { resourceLabel, capacityLabel } from '../../lib/ResourceLabels';
 import { RESOURCE_GROUPS, GROUP_BY_RESOURCE } from '../../lib/ResourceGroups';
+import { ListSkeleton } from '../ui/skeleton/ListSkeleton';
 
 
 interface NearbyResourceList {
   readonly resources: NearbyResource[];
   readonly selectedResourceId?: string | null;
   readonly onSelectResource?: (r: NearbyResource) => void;
+  readonly loading?: boolean;
 }
 
-export function NearbyResources({ resources, selectedResourceId = null, onSelectResource = undefined }: NearbyResourceList) {
+export function NearbyResources({ resources, selectedResourceId = null, onSelectResource = undefined, loading = false }: NearbyResourceList) {
+  if (loading) return <ListSkeleton rows={3} label='Loading nearby resources' className='p-2' />;
+  
   if (resources.length === 0) {
     return (
       <div className="h-full flex items-center justify-center p-4">

@@ -134,7 +134,7 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
 
                         <div className='flex items-center justify-end gap-3 pt-4 border-t border-carbon-stroke'>
                             <button type="button" onClick={handleGetSetupKey} disabled={loading}
-                                className='min-h-[44px] px-4 py-2 rounded-sm bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-white transition-colors disabled:opacity-50 cursor-pointer'
+                                className='min-h-[2.75rem] px-4 py-2 rounded-sm bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-white transition-colors disabled:opacity-50 cursor-pointer'
                             >
                                 {loading ? 'Generating...' : 'Get setup key'}
                             </button>
@@ -193,7 +193,7 @@ export const JoinComputeGridPopUp: React.FC<JoinComputeGridPopUpProps> = ({
 
                         <div className='flex justify-end pt-3'>
                             <button type="button" onClick={handleClose}
-                                className='min-h-[44px] px-6 py-2 rounded-box bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-white transition-colors cursor-pointer shadow-md'
+                                className='min-h-[2.75rem] px-6 py-2 rounded-box bg-ignite hover:bg-flare active:bg-ember text-sm font-bold tracking-wide uppercase font-display text-white transition-colors cursor-pointer shadow-md'
                             >
                                 Done
                             </button>

@@ -280,18 +280,20 @@ export default function SimulationPage() {
                   <p className="text-red-400 text-sm font-mono text-center max-w-xs">
                     {error ?? 'Simulation failed. Check the backend is running'}
                   </p>
-                  <button
-                    onClick={handleRerun}
-                    className="btn btn-sm btn-outline text-neutral/70 mt-2"
-                  >
-                    Retry
-                  </button>
-                  <button
-                    onClick={clearMap}
-                    className="btn btn-sm btn-outline text-neutral/70 mt-2"
-                  >
-                    Dismiss
-                  </button>
+                  <div className='flex flex-col sm:flex-row items-center gap-3 mt-2'>
+                    <button
+                      onClick={handleRerun}
+                      className="btn btn-sm btn-primary min-w-28 text-white"
+                    >
+                      Retry
+                    </button>
+                    <button
+                      onClick={clearMap}
+                      className='btn btn-sm btn-outline min-w-28 border-text-primary/50 text-text-primary hover:bg-text-primary/10 hover:border-text-primary hover:text-text-primary'
+                    >
+                      Dismiss
+                    </button>
+                  </div>
                 </div>
               )}
 
