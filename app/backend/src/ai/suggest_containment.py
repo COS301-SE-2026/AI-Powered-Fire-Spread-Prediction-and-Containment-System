@@ -20,7 +20,9 @@ MAX_FRONTIER_CANDIDATES = 1000
 FRONTIER_SAMPLE_STRIDE_CELLS = 5
 LOOKAHEAD_PAD_M = 300.0
 PLANNING_HORIZON_FRACTION = 0.4 # plan against front at 40% of run
-
+# a candidate is rejected if clipping it to land leaves less than this fraction
+# of the min length. So we dont suggest tiny lines next to a lake.
+MIN_CLIPPED_FRACTION = 0.5
 
 @dataclass
 class ContainmentSuggestion:
@@ -48,10 +50,15 @@ def _standoff_mask(ignition_mask : np.array, standoff_cells: int) -> np.ndarray:
         mask = binary_dilation(mask, structure = struct)
     return mask
 
-def _frontier_cells(arrival: np.ndarray)-> list[tuple[int,int]]:
+def _frontier_cells(arrival: np.ndarray, nonburnable: np.ndarray | None = None)-> list[tuple[int,int]]:
     H, W = arrival.shape
     reached = arrival != -1
     never_reached = ~reached
+    if nonburnable is not None:
+        # Water/built-up/snow never burns, so a burned cell next to one is
+        # not an advancing front.
+        never_reached &= ~nonburnable
+
     neighbour_never_reached = np.zeros_like(reached)
     neighbour_never_reached[:-1, :] |= never_reached[1:, :]
     neighbour_never_reached[1:, :] |= never_reached[:-1, :]
@@ -114,8 +121,28 @@ def _rasterize_segment(
     valid = (rows >= 0) & (rows < H) & (cols >= 0) & (cols < W)
     return list(zip(rows[valid].tolist(), cols[valid].tolist()))
 
+ 
+def _longest_land_run(
+    cells: list[tuple[int, int]], nonburnable: np.ndarray
+) -> list[tuple[int, int]]:
+    """
+    Cells are ordered along the line. Returns the longest contiguous stretch
+    that does not touch a nonburnable (water / built-up / snow) cell.
+    """
+    best: list[tuple[int, int]] = []
+    cur: list[tuple[int, int]] = []
+    for rc in cells:
+        if nonburnable[rc]:
+            if len(cur) > len(best):
+                best = cur
+            cur = []
+        else:
+            cur.append(rc)
+    return cur if len(cur) > len(best) else best
+ 
+
 def _score_candidate(
-    cells: list(tuple[int,int]),
+    cells: list[tuple[int,int]],
     angle_rad: float,
     arrival: np.ndarray,
     lookahead_pad_cells:int,
@@ -148,9 +175,16 @@ def suggest_containment_line(
     cell_size_m: float,
     n_steps: int,
     top_n: int = 1,
+    nonburnable: np.ndarray | None = None,
 )-> list[ContainmentSuggestion]:
 
     H, W = history[0].shape
+    mask: np.ndarray | None = None
+    if nonburnable is not None:
+        mask = np.asarray(nonburnable, dtype=bool)
+        if mask.shape != (H, W):
+            raise ValueError(f"nonburnable shape {mask.shape} != grid shape {(H, W)}")
+
     bounds = bbox_from_fire(
         lat=fire_lat, lng=fire_lng, boundary_radius_m=boundary_radius_m, n_steps=n_steps
     )
@@ -175,14 +209,29 @@ def suggest_containment_line(
         p0, p1 = _make_candidate_segment(row_c, col_c, angle, line_len_cells/2)
         cells = _rasterize_segment(p0, p1, H, W)
 
+        if mask is not None and cells:
+            clipped = _longest_land_run(cells, mask)
+            if not clipped:
+                continue
+            if len(clipped) != len(cells):
+                # line gets trimmed to avoid water/built-up/snow. We want to keep the line
+                # +0.5 = cell centre, so int() truncation in
+                # convert_containment_line lands on the same cell.
+
+                p0 = (clipped[0][0] + 0.5, clipped[0][1] + 0.5)
+                p1 = (clipped[-1][0] + 0.5, clipped[-1][1] + 0.5)
+                cells = clipped
+
         if not cells or any(excluded[r, c] for r, c in cells):
             continue
         
         length_m = math.hypot(p1[0] - p0[0], p1[1] - p0[1]) * cell_size_m
-        
+
         if length_m <= 0:
             continue
-        
+        if mask is not None and length_m < MIN_LINE_LENGTH_M * MIN_CLIPPED_FRACTION:
+            continue
+
         arrivals_here = [arrival[r, c] for r, c in cells if arrival[r, c] != -1]
         if not arrivals_here:
             continue

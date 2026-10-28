@@ -1,0 +1,45 @@
+[run]
+data_file = .coverage
+branch= true
+relative_files = true
+source = app/backend
+omit = 
+    */testing/*
+    */seed.py
+    */test_api.py
+    */migrations/*
+    */alembic.ini
+    */ml/training/*
+    */src/ai/build_*
+    */src/ai/inspect_*
+    */src/ai/debug_*
+    */src/ai/plot_*
+    */datasets/scripts/*
+    */src/ai/fetch_*
+    */src/ai/download_*
+    */src/ai/export_*
+    */__init__.py
+
+[paths]
+source =
+    app/backend
+    /github/workspace/app/backend
+
+[report]
+show_missing = true
+omit = 
+    */testing/*
+    */seed.py
+    */test_api.py
+    */migrations/*
+    */alembic.ini
+    */ml/training/*
+    */src/ai/build_*
+    */src/ai/inspect_*
+    */src/ai/debug_*
+    */src/ai/plot_*
+    */datasets/scripts/*
+    */src/ai/fetch_*
+    */src/ai/download_*
+    */src/ai/export_*
+    */__init__.py
