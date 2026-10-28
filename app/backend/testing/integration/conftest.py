@@ -8,6 +8,18 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+import pyotp
+import fakeredis
+import redis
+
+_fake_server = fakeredis.FakeServer()  # shared state across every client
+
+
+def _fake_redis(*args, **kwargs):
+    return fakeredis.FakeRedis(server=_fake_server, **kwargs)
+
+
+redis.Redis = _fake_redis
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -136,16 +148,14 @@ def client(db):
 
 @pytest.fixture
 def sample_user():
-    unique_email = f"testuser_{uuid.uuid4()}@example.com"
     return {
-        "email": unique_email,
+        "email": f"testuser_{uuid.uuid4()}@example.com",
         "password": "test123",
         "name": "Test",
         "surname": "User",
-        "id_number": "12345678",
-        "role": "user",
+        "id_number": "8001015009087",  # Luhn-valid SA ID (1980-01-01)
+        "requested_role": "user",
     }
-
 
 def _split_full_name(full_name):
     parts = (full_name or "").strip().split(" ", 1)
@@ -328,3 +338,44 @@ def make_orphaned_role_request(db, role="admin", status="pending"):
     db.execute(text("ALTER TABLE role_requests ENABLE TRIGGER ALL"))
     db.commit()
     return request
+
+@pytest.fixture(autouse=True)
+def flush_fake_redis():
+    fakeredis.FakeRedis(server=_fake_server).flushall()
+    yield
+
+@pytest.fixture
+def make_registered_user(db, sample_user):
+    """Factory: insert a fully registered user, bypassing pending registration.
+ 
+    Returns (credentials, totp_secret). totp_secret is None unless enable_2fa=True.
+    """
+ 
+    def _make(enable_2fa: bool = False):
+        secret = pyotp.random_base32() if enable_2fa else None
+        db.add(
+            User(
+                id=str(uuid.uuid4()),
+                email=sample_user["email"],
+                hashed_password=hash_password(sample_user["password"]),
+                name=sample_user["name"],
+                surname=sample_user["surname"],
+                id_number=sample_user["id_number"],
+                role="user",
+                is_active=True,
+                is_2fa_enabled=enable_2fa,
+                totp_secret=secret,  # ASSUMPTION: stored as plain base32
+            )
+        )
+        db.commit()
+        return sample_user, secret
+ 
+    return _make
+ 
+ 
+@pytest.fixture
+def registered_user(make_registered_user):
+    """A registered user with 2FA disabled."""
+    creds, _ = make_registered_user(enable_2fa=False)
+    return creds
+ 
