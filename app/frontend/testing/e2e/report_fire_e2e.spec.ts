@@ -43,17 +43,22 @@ test.describe('report a fire journey', () => {
     let submittedBody = '';
     let reportRequestHit = false;
 
-    await page.route(/\/reported-fires(\?.*)?$/, async route => {
+    await page.route('**/api/**/reported-fires', async route => {
       if (route.request().method() === 'POST') {
         reportRequestHit = true;
         submittedBody = route.request().postData() || '';
+
         await route.fulfill({
           status: 201,
-          contentType: 'application/json',
-          json: { id: 'test-1', reference_number: 'TEST-001' },
+          json: {
+            id: 'test-1',
+            reference_number: 'TEST-001',
+          },
         });
+
         return;
       }
+
       await route.continue();
     });
 
@@ -81,9 +86,7 @@ test.describe('report a fire journey', () => {
     });
 
     await expect(map).toBeVisible();
-    page.on('request', req => console.log('REQ', req.method(), req.url()));
-    page.on('requestfailed', req => console.log('FAILED', req.url(), req.failure()?.errorText));
-    page.on('console', msg => console.log('BROWSER', msg.type(), msg.text()));
+
     await map.click({
       position: {
         x: 533,
