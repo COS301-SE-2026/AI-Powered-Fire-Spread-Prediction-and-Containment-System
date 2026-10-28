@@ -40,6 +40,7 @@ os.environ.setdefault("MINIO_ENDPOINT", "localhost:9002")
 from app.backend.src.enums.report_status import ReportStatus
 from app.backend.src.models.reported_fires import FireReports
 from app.backend.src.models.notification import Notification
+from app.backend.src.models.saved_location import SavedLocation
 
 from unittest.mock import patch
 
@@ -79,39 +80,28 @@ engine = create_engine(TEST_DB_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
+TEST_TABLES = [
+    User.__table__,
+    WorkerNode.__table__,
+    RoleRequest.__table__,
+    FireReports.__table__,
+    Notification.__table__,
+    ContainmentLines.__table__,
+    WaterResource.__table__,
+    SavedLocation.__table__,
+]
+
+
 @pytest.fixture(scope="session", autouse=True)
 def create_tables():
     """Build db schema in test cluster before tests start"""
     with engine.begin() as conn:
-        #  need for spacial columns
+        # need for spatial columns
         conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS postgis;")
 
-    Base.metadata.create_all(
-        bind=engine,
-        tables=[
-            User.__table__,
-            WorkerNode.__table__,
-            RoleRequest.__table__,
-            FireReports.__table__,
-            Notification.__table__,
-            ContainmentLines.__table__,
-            WaterResource.__table__,
-        ],
-    )
+    Base.metadata.create_all(bind=engine, tables=TEST_TABLES)
     yield
-
-    Base.metadata.drop_all(
-        bind=engine,
-        tables=[
-            User.__table__,
-            WorkerNode.__table__,
-            RoleRequest.__table__,
-            FireReports.__table__,
-            Notification.__table__,
-            ContainmentLines.__table__,
-            WaterResource.__table__,
-        ],
-    )
+    Base.metadata.drop_all(bind=engine, tables=TEST_TABLES)
 
 
 @pytest.fixture(scope="function")

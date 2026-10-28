@@ -7,6 +7,8 @@ import { useEditPassword } from "../../hooks/useEditPassword";
 import PasswordInput from "../shared/PasswordInput";
 import { Alert } from "../shared/Alerts";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface InfoProps {
     readonly user: UserResponse;
     readonly onUpdated: (user:UserResponse) => void;
@@ -81,8 +83,6 @@ export function Info({ user, onUpdated }: InfoProps) {
     }
 
     async function handleSave() {
-        setSaving(true);
-
         if (!name.trim() || !surname.trim()) {
             setError('Name and surname are required');
             return;
@@ -94,6 +94,7 @@ export function Info({ user, onUpdated }: InfoProps) {
         }
 
         setError('');
+        setSaving(true);
         const payload: UserUpdate = { name, surname, email };
         try {
             const updated = await updateProfile(payload);
@@ -143,7 +144,11 @@ export function Info({ user, onUpdated }: InfoProps) {
                         <PasswordInput id='confirm-new-password' value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder='Repeat new password' autoComplete='new-password' />
                     </div>
                 </div>
-                {pwDone && <p className="text-success text-sm mb-3">Password changed successfully.</p>}
+                {pwError && (
+                    <div className="mb-3">
+                        <Alert variant="error" message={pwError} />
+                    </div>
+                )}
                 <div className="flex gap-2">
                     <button type="button" onClick={handlePasswordSave} disabled={pwSaving} className='text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>Save</button>
                     <button type="button" onClick={closePassword} disabled={pwSaving} className='text-xs font-semibold btn btn-sm btn-outline border rounded-xl text-text-primary hover:bg-smoke-hover hover:text-text-primary transition-colors'>Cancel</button>
@@ -209,9 +214,9 @@ export function Info({ user, onUpdated }: InfoProps) {
                         <input id='account-name' className='input input-bordered w-full bg-surface-input border-carbon-stroke focus:outline-primary' value={email} onChange={(e) => setEmail(e.target.value)} />
                     </div>
                 </div>
-                {pwError && (
+                {error && (
                 <div className="mb-3">
-                    <Alert variant="error" message={pwError} />
+                    <Alert variant="error" message={error} />
                 </div>
                 )}
                 <div className="flex gap-2">
