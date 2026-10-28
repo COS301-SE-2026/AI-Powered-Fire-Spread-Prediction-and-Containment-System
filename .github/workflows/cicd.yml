@@ -316,6 +316,7 @@ jobs:
         env:
           CI: true
           BACKEND_INTERNAL_URL: "http://localhost:8000"
+          NEXT_PUBLIC_MAPBOX_TOKEN: ${{ secrets.NEXT_PUBLIC_MAPBOX_TOKEN }}
         run: yarn test
 
       - name: Upload Playwright Report
