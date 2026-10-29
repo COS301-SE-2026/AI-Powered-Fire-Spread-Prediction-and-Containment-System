@@ -1,4 +1,9 @@
 import logging
+import hashlib
+import json
+import os
+import time
+from pathlib import Path
 import requests
 import numpy as np
 from requests.adapters import HTTPAdapter
@@ -10,6 +15,9 @@ from app.backend.ml.features.terrain import extract_terrain_features
 from app.backend.ml.features.fuel_load import process_sentinal2_and_worldcover
 
 log = logging.getLogger("job_builder")
+
+class DataSourceError(Exception):
+    """upstream data source error failed"""
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 WEATHER_HISTORY_LENGTH = 6
@@ -25,11 +33,11 @@ DEFAULT_DCA_PARAMS = {
 def http_session() -> requests.Session:
     """Retries request failures from openMeteo with backoff instead of failing a job"""
     retry = Retry(
-        total=4,
-        backoff_factor=1.5,
+        total=2,
+        backoff_factor=1,
         status_forcelist=(429, 500, 502, 503, 504),
         allowed_methods=("GET",),
-        respect_retry_after_header=True,
+        respect_retry_after_header=False,
     )
 
     session = requests.Session()
@@ -37,6 +45,41 @@ def http_session() -> requests.Session:
     return session
 
 _HTTP = http_session()
+
+STATIC_CACHE_DIR = os.getenv("STATIC_CACHE_DIR")
+STATIC_CACHE_TTL_S = int(os.getenv("STATIC_CACHE_TTL_S", str(24 * 3600)))
+
+def static_cache_path(job: dict) -> Path | None:
+    if not STATIC_CACHE_DIR:
+        return None
+    key = json.dumps(
+        {"b": [round(v, 5) for v in job["grid_bounds"]], "h": job["grid_h"], "w": job["grid_w"]},
+        sort_keys=True,
+    )
+    return Path(STATIC_CACHE_DIR) / f"static_{hashlib.sha256(key.encode()).hexdigest()[:20]}.npz"
+
+def load_static_cache(path: Path | None) -> dict | None:
+    try:
+        if path and path.exists() and time.time() - path.stat().st_mtime < STATIC_CACHE_TTL_S:
+            with np.load(path) as data:
+                log.info("Static grids cache hit (%s)", path.name)
+                return {k: data[k] for k in data.files}
+    except Exception as err:
+        log.warning("Static grids cache read failed (%s), refetching", err)
+    return None
+
+def save_static_cache(path: Path | None, grids: dict) -> None:
+    if not path:
+        return
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_suffix(".tmp")
+        with open(tmp, "wb") as f:
+            np.savez_compressed(f, **grids)
+        os.replace(tmp, path)
+    except Exception as err:
+        log.warning("Static grids cache write failed (%s)", err)
 
 def fetch_weather_history(job: dict) -> list:
     """
@@ -56,13 +99,16 @@ def fetch_weather_history(job: dict) -> list:
         "timezone": "UTC"
     }
 
-    response = _HTTP.get(OPEN_METEO_URL, params=params, timeout=10)
-    response.raise_for_status()
-    hourly = response.json()["hourly"]
+    try:
+        response = _HTTP.get(OPEN_METEO_URL, params=params, timeout=10)
+        response.raise_for_status()
+        hourly = response.json()["hourly"]
+    except (requests.exceptions.RequestException, ValueError, KeyError) as err:
+        raise DataSourceError(f"Open-Meteo unavailable: {err}") from err
 
     n_available = len(hourly["time"])
     if n_available < WEATHER_HISTORY_LENGTH:
-        raise(f"Open-Meteo returned {n_available} hours, need {WEATHER_HISTORY_LENGTH}")
+        raise DataSourceError(f"Open-Meteo returned {n_available} hours, need {WEATHER_HISTORY_LENGTH}")
     start = n_available - WEATHER_HISTORY_LENGTH
 
     frames = []
@@ -92,6 +138,11 @@ def fetch_static_grids(job: dict) -> dict:
     """
     Fetches static terrain and vegetation grids for the bounding boxes using existing project feature extraction
     """
+
+    cache_path = static_cache_path(job)
+    cached = load_static_cache(cache_path)
+    if cached is not None:
+        return cached
 
     min_lon, min_lat, max_lon, max_lat = job["grid_bounds"]
     target_shape = (job["grid_h"], job["grid_w"])
@@ -124,7 +175,7 @@ def fetch_static_grids(job: dict) -> dict:
             scl_path=s2.scl_path,
         )
         
-    return {
+    grids = {
         "elevation": terrain["elevation"],
         "slope": terrain["slope"],
         "aspect_sin": aspect_sin,
@@ -133,6 +184,9 @@ def fetch_static_grids(job: dict) -> dict:
         "dryness": vegetation["dryness"],
         "nonburnable": vegetation["nonburnable"]
     }
+
+    save_static_cache(cache_path, grids)
+    return grids
 
 def build_volunteer_payload(
     job_id: str,

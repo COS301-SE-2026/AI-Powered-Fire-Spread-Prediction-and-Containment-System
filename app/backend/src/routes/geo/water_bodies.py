@@ -33,8 +33,10 @@ OVERPASS_ENDPOINTS = [
 ]
 
 CACHE_TTL_SECONDS = 60 * 60 * 24 * 7
+FAILURE_TTL_SECONDS = 60 * 5
 REQUEST_TIMEOUT_SECONDS = 25
 MAX_BBOX_SIDE_DEG = 1.0
+USER_AGENT = "FireAway/1.0 (COS301 capstone; https://fireaway.csml.co.za)"
 
 def build_query(min_lat: float, min_lng: float, max_lat: float, max_lng: float) -> str:
     bbox = f"{min_lat},{min_lng},{max_lat},{max_lng}"
@@ -86,16 +88,23 @@ def cache_key(min_lat: float, min_lng: float, max_lat: float, max_lng: float, mi
 
 async def query_overpass(query: str) -> dict:
     last_error: Optional[Exception] = None
-    async with httpx.AsyncClient(timeout=REQUEST_TIMEOUT_SECONDS) as http_client:
+    async with httpx.AsyncClient(
+        timeout=REQUEST_TIMEOUT_SECONDS, headers={"User-Agent": USER_AGENT}
+    ) as http_client:
         for endpoint in OVERPASS_ENDPOINTS:
             try:
                 resp = await http_client.post(endpoint, data={"data": query})
                 resp.raise_for_status()
-                return resp.json()
+                data = resp.json()
+                if not data.get("elements") and data.get("remark"):
+                    raise RuntimeError(f"Overpass remark: {data['remark']}")
+                return data
             except Exception as exc:
+                logger.warning("Overpass endpoint %s failed: %r", endpoint, exc)
                 last_error = exc
                 continue
-    raise HTTPException(status_code=502, detail=f"Overpass query failed: {last_error}")
+    logger.error("All Overpass endpoints failed, last error: %r", last_error)
+    raise HTTPException(status_code=502, detail="Water body data is temporarily unavailable")
 
 def elements_to_geojson(elements: list[dict], min_area_m2: float) -> dict:
     features = []
@@ -178,16 +187,28 @@ async def get_water_bodies(
         raise HTTPException(status_code=400, detail=f"Bounding box too large; each side must be under {MAX_BBOX_SIDE_DEG} degrees",)
     
     key = cache_key(min_lat, min_lng, max_lat, max_lng, min_area_m2)
+    fail_key = f"{key}:failed"
 
     try:
         cached = cache_client.get(key)
         if cached:
             return json.loads(cached)
+        if cache_client.get(fail_key):
+            raise HTTPException(status_code=502, detail="Water body data is temporarily unavailable")
+    except HTTPException:
+        raise
     except Exception:
         logger.warning("water-bodies cache read failed", exc_info=True)
     
     query = build_query(min_lat, min_lng, max_lat, max_lng)
-    raw = await query_overpass(query)
+    try:
+        raw = await query_overpass(query)
+    except HTTPException:
+        try:
+            cache_client.set(fail_key, "1", ex=FAILURE_TTL_SECONDS)
+        except Exception:
+            logger.warning("water-bodies failure cache write failed", exc_info=True)
+        raise
     geojson = elements_to_geojson(raw.get("elements", []), min_area_m2)
 
     try:

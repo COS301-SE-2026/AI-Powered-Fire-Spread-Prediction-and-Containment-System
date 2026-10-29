@@ -1,33 +1,40 @@
-// // NOTE: This e2e test is using mock data for now until we have a proper db setup.
-// // Once proper db is setup, the proper endpoints will be subbed in
-// // NOTE: This e2e test is using mock data for now until we have a proper db setup.
-// // Once proper db is setup, the proper endpoints will be subbed in
+import { test, expect, Page } from '@playwright/test';
 
-// import { test, expect, Page } from '@playwright/test';
-// import { test, expect, Page } from '@playwright/test';
+const ADMIN_EMAIL = process.env.E2E_ADMIN_EMAIL || 'sipho.n@fireaway.co.za';
+const ADMIN_PASSWORD = process.env.E2E_ADMIN_PASSWORD;
 
-// async function login(page: Page) {
-//   await page.goto('http://localhost:3000/');
-//   await page.getByRole('button', { name: 'Login' }).click();
-//   await page.getByRole('textbox', { name: 'Email' }).click();
-//   await page.getByRole('textbox', { name: 'Email' }).fill('sipho.n@fireaway.co.za');
-//   await page.getByRole('textbox', { name: 'Password' }).click();
-//   await page.getByRole('textbox', { name: 'Password' }).fill('Password123!');
-//   await page.getByRole('button', { name: 'Login' }).click();
-//   await page.waitForURL('**/admin/**', { timeout: 15000 });
-// }
-// test('test', async ({ page }) => {
-//   await login(page);
-//   await page.locator('aside').hover();
-//   await page.getByRole('link', { name: 'Role Approvals' }).click();
-//   await expect(page.getByRole('heading', { name: 'Role Approvals' })).toBeVisible();
-//   await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
-//   await page.getByRole('button', { name: 'pending' }).click();
-//   await expect(page.getByText('pending').nth(1)).toBeVisible();
-//   await page.getByRole('button', { name: 'approved' }).click();
-//   await expect(page.getByText('approved').nth(1)).toBeVisible();
-//   await page.getByRole('button', { name: 'rejected' }).click();
-//   await expect(page.getByText('rejected').nth(1)).toBeVisible();
-//   await page.getByRole('button', { name: 'revoked' }).click();
-//   await expect(page.getByText('revoked').nth(1)).toBeVisible();
-// });
+async function login(page: Page) {
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Get Started', exact: true }).click();
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.getByRole('textbox', { name: 'Email' }).fill(ADMIN_EMAIL);
+  await page.getByRole('textbox', { name: 'Password' }).fill(ADMIN_PASSWORD as string);
+  await page.getByRole('button', { name: 'Login' }).click();
+  await page.waitForURL('**/admin/**', { timeout: 15000 });
+}
+
+async function filterByStatus(page: Page, status: string) {
+  await page.getByRole('button', { name: status, exact: true }).click();
+  await expect(page.getByRole('row').filter({ hasText: status }).first()).toBeVisible();
+}
+
+test.describe('admin role approvals', () => {
+  test.use({ viewport: { width: 1280, height: 720 } });
+
+  test.skip(!ADMIN_PASSWORD, 'Set E2E_ADMIN_PASSWORD to run this test');
+
+  test('admin can filter role requests by status', async ({ page }) => {
+    await login(page);
+
+    await page.locator('aside').hover();
+    await page.getByRole('link', { name: 'Role Approvals' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Role Approvals' })).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+
+    await filterByStatus(page, 'pending');
+    await filterByStatus(page, 'approved');
+    await filterByStatus(page, 'rejected');
+    await filterByStatus(page, 'revoked');
+  });
+});

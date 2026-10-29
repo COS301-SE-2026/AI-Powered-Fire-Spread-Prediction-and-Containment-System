@@ -2,9 +2,22 @@ import React from 'react';
 import { Thermometer, Wind, Droplets, Flame } from 'lucide-react';
 import type { EnvironmentVariables } from '../../types/FirefighterDashboard';
 import { StatCard } from './GuestStatCard';
+import { Skeleton } from '../ui/skeleton/Skeleton';
+import { SkeletonRegion } from '../ui/skeleton/SkeletonRegion';
 
-export function GuestEnvironment({ data }: { readonly data: EnvironmentVariables | null }) {
+export function GuestEnvironment({ data, loading = false }: { readonly data: EnvironmentVariables | null; readonly loading?: boolean }) {
   if (!data) return <div className="text-xs opacity-50">No environment data</div>;
+
+  if (loading) {
+    return (
+      <SkeletonRegion label='Loading environment data' className='grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2'>
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className='h-14 rounded-xl' />
+        ))}
+      </SkeletonRegion>
+    );
+  }
+  if (!data) return <div className='text-xs opacity-50'>No environment data</div>
 
   const { temperature, humidity, wind, wind_dir: windDeg, fire_danger: fireDanger, fdi } = data;
 

@@ -1,16 +1,31 @@
 import { Flame } from 'lucide-react';
 import { NearbyFire } from '../../types/FirefighterDashboard';
+import { Skeleton } from '../ui/skeleton/Skeleton';
+import { SkeletonRegion } from '../ui/skeleton/SkeletonRegion';
 
 interface NearbyFireReports {
   readonly nearbyFires: NearbyFire[];
   readonly positionClass?: string;
+  readonly loading?: boolean;
 }
 
-export function MapStatsOverlay({ nearbyFires, positionClass = 'top-14 md:top-16 left-2 md:left-4' }: NearbyFireReports) {
+export function MapStatsOverlay({ nearbyFires, positionClass = 'top-14 md:top-16 left-2 md:left-4', loading = false }: NearbyFireReports) {
   const verified = nearbyFires.filter((fire) => fire.status === 'verified');
   const activeFires = verified.length;
   const nearestFire = verified.length ? Math.min(...verified.map((f) => f.distance)) : null;
   const nearestText = nearestFire !== null ? `${nearestFire}` : '-';
+
+  if (loading) {
+    return (
+      <SkeletonRegion label='Loading fire stats' className={`absolute ${positionClass} z-10`}>
+        <Skeleton className='md:hidden h-8 w-44 rounded-full' />
+        <div className='hidden md:flex flex-col gap-2'>
+          <Skeleton className='h-24 w-44 rounded-xl' />
+          <Skeleton className='h-24 w-44 rounded-xl' />
+        </div>
+      </SkeletonRegion>
+    );
+  }
 
   return (
     <div className={`absolute ${positionClass} z-10`}>

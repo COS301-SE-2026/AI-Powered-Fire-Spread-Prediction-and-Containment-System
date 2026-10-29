@@ -59,15 +59,15 @@ const context = [
 
 export default function VoiceAndToneSection() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
         <h2
           style={{
             fontFamily: 'var(--font-display)',
-            fontSize: '28px',
+            fontSize: '1.75rem',
             color: '#B0B8C8',
             fontWeight: 700,
-            paddingBottom: '16px',
+            paddingBottom: '1rem',
             borderBottom: '1px solid var(--color-carbon-stroke)',
           }}
         >
@@ -78,9 +78,9 @@ export default function VoiceAndToneSection() {
       <p
         style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '18px',
+          fontSize: '1.125rem',
           color: '#B0B8C8',
-          maxWidth: '800px',
+          maxWidth: '50rem',
           lineHeight: '1.75',
           fontWeight: 300,
         }}
@@ -97,7 +97,7 @@ export default function VoiceAndToneSection() {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '24px',
+          gap: '1.5rem',
         }}
       >
         {principles.map(({ label, value, desc }) => (
