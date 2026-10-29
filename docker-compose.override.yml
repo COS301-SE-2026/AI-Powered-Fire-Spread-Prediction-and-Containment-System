@@ -22,6 +22,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       RUN_SEED: "1"
+      SES_SENDER_EMAIL: ${SES_SENDER_EMAIL:-noreply@fireaway.site}
+      SES_AWS_REGION: ${SES_AWS_REGION:-us-east-1}
     volumes:
       - ~/.aws:/root/.aws:ro
       - ./app/__init__.py:/app/app/__init__.py:ro,z
