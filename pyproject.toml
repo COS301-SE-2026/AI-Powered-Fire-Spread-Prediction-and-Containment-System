@@ -3,26 +3,47 @@ data_file = ".coverage"
 branch = true
 relative_files = true
 source = ["app/backend"]
-omit = [
-    "app/backend/testing/*",
-    "app/backend/seed.py",
-    "app/backend/test_api.py",
-    "app/backend/ml/training/build_*.py",
-    "app/backend/ml/training/load_real_dataset.py",
-    "app/backend/ml/training/synthetic_data.py",
-    "app/backend/ml/training/train_ignition.py",
-    "app/backend/src/ai/build_*.py",
-    "app/backend/src/ai/inspect_fire.py",
-    "app/backend/migrations/*",
-    "app/backend/startup_migrations.py",
-]
 
 [tool.coverage.paths]
-source = ["app/backend", "/github/workspace/app/backend"]
+source = [
+    "app/backend",
+    "/github/workspace/app/backend",
+    "/app",
+]
 
 [tool.coverage.report]
 show_missing = true
 exclude_also = [
     "if __name__ == .__main__.:",
     "raise NotImplementedError",
+    "def __repr__",
+    "pragma: no cover",
+]
+omit = [
+    "*/testing/*",
+    "*/tests/*",
+    "*/seed.py",
+    "*/test_api.py",
+    "*/ml/training/build_*.py",
+    "*/ml/training/load_real_dataset.py",
+    "*/ml/training/synthetic_data.py",
+    "*/ml/training/train_ignition.py",
+    "*/src/ai/build_*.py",
+    "*/src/ai/inspect_fire.py",
+    "*/migrations/*",
+    "*/startup_migrations.py",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["app/backend/testing"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: integration tests requiring external dependencies",
+    "unit: fast isolated unit tests",
 ]
