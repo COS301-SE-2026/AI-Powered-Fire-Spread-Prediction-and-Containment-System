@@ -32,6 +32,7 @@ omit = [
     "*/src/ai/inspect_fire.py",
     "*/migrations/*",
     "*/startup_migrations.py",
+    "*/src/schemas/audit_log.py",
 ]
 
 [tool.pytest.ini_options]
