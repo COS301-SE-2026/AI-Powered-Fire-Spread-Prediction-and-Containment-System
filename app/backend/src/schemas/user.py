@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from app.backend.src.enums.user_role import UserRole
 
@@ -29,4 +29,4 @@ class UserResponse(BaseModel):
 class UserUpdate(BaseModel):
     name: Optional[str] = None
     surname: Optional[str] = None
-    email: Optional[str] = None
+    email: Optional[EmailStr] = None

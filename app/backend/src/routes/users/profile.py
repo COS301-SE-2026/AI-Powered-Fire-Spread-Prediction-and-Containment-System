@@ -1,17 +1,16 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.backend.db import get_db
 from app.backend.src.dependencies.auth import get_current_user
 from app.backend.src.models.users import User
-from app.backend.src.schemas.user import UserResponse
+from app.backend.src.schemas.user import UserResponse, UserUpdate
 
 from app.backend.src.schemas.fire_report import FireReportDetailResponse
 from app.backend.src.services.users import fire_report
 
-from app.backend.src.schemas.user import UserResponse, UserUpdate
 from app.backend.src.services.users import profile as profile_service
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
@@ -38,7 +37,7 @@ def get_my_reported_fires(
         report = fire_report.get_fire_report_by_id(report_ref, db)
     except ValueError:
         raise HTTPException(status_code=404, detail="Report not found")
-    if report["user_id"] != current_user.id:
+    if report.get("user_id") != current_user.id:
         raise HTTPException(status_code=404, detail="Report not found")
     return report
 
