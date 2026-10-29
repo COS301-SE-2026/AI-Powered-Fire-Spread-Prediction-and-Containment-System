@@ -1,3 +1,4 @@
+import html 
 import os
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
@@ -48,7 +49,7 @@ def send_password_reset_email(to: str, token: str) -> None:
 def send_role_approved_email(to: str, name: str, role: str) -> None:
     role_label = role.replace("_", " ").title()
     body = (
-        f"<p>Hello {name},</p>"
+        f"<p>Hello {html.escape(name)},</p>"
         f"<p>Your request for the <strong>{role_label}</strong> role has been approved. "
         f"Your account not has {role_label} access.</p>"
         f"<p><a href='{FRONTEND_URL}/login'>Login</a> to get started. "
@@ -60,7 +61,7 @@ def send_role_approved_email(to: str, name: str, role: str) -> None:
 def send_role_rejected_email(to: str, name: str, role: str) -> None:
     role_label = role.replace("_", " ").title()
     body = (
-        f"<p>Hello {name},</p>"
+        f"<p>Hello {html.escape(name)},</p>"
         f"<p>Unfortunately, your request for the <strong>{role_label}</strong> role "
         f"was been rejected. Your account role has not been changed.</p>"
         f"<p>If you have any questions, please contact an administrator.</p>"
@@ -71,7 +72,7 @@ def send_role_rejected_email(to: str, name: str, role: str) -> None:
 def send_role_revoked_email(to: str, name: str, role: str) -> None:
     role_label = role.replace("_", " ").title()
     body = (
-        f"<p>Hello {name},</p>"
+        f"<p>Hello {html.escape(name)},</p>"
         f"<p>Your <strong>{role_label}</strong> role has been revoked bu an administrator. "
         f"Your account has been returned to it's previous role.</p>"
         f"<p>If you believe this to be a mistake, please contact an administrator.</p>"

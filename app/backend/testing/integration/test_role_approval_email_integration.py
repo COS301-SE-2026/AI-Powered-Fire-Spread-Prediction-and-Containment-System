@@ -102,7 +102,7 @@ def test_reject_still_succeeds_when_email_fails(client, db):
         res = call(client, "reject", req.request_id, admin)
         
     assert res.status_code == 200
-    db.refresh
+    db.refresh(req)
     assert req.status == RequestStatus.rejected
     
 # Test revoke

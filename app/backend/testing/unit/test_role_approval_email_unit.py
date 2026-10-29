@@ -48,6 +48,16 @@ def test_builders_format_underscored_role_as_title(mock_send):
     assert "Super Admin" in subject
     
 @pytest.mark.parametrize("builder, role, label, keyword", BUILDERS)
+@patch.object(email_service, "send_email")
+def test_builders_escape_html_in_name(mock_send, builder, role, label, keyword):
+    builder("jane@example.com", "<script>alert(1)</script>", role)
+    
+    body = mock_send.call_args.args[2]
+    assert "<script>" not in body
+    assert "&lt;script&gt;" in body
+
+
+@pytest.mark.parametrize("builder, role, label, keyword", BUILDERS)
 @patch.object(email_service, "send_email", side_effect=RuntimeError("ses down"))
 def test_builders_propagate_send_failure(mock_send, builder, role, label, keyword):
     """The builders don't swallow errors. The route wrapper is what handles them"""
