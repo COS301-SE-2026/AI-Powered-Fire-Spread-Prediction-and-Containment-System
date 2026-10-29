@@ -3,6 +3,21 @@ data_file = ".coverage"
 branch = true
 relative_files = true
 source = ["app/backend"]
+omit = [
+    "*/testing/*",
+    "*/tests/*",
+    "*/seed.py",
+    "*/test_api.py",
+    "*/ml/training/build_*.py",
+    "*/ml/training/load_real_dataset.py",
+    "*/ml/training/synthetic_data.py",
+    "*/ml/training/train_ignition.py",
+    "*/src/ai/build_*.py",
+    "*/src/ai/inspect_fire.py",
+    "*/migrations/*",
+    "*/startup_migrations.py",
+    "*/audit_log.py",
+]
 
 [tool.coverage.paths]
 source = [
@@ -32,7 +47,7 @@ omit = [
     "*/src/ai/inspect_fire.py",
     "*/migrations/*",
     "*/startup_migrations.py",
-    "*/src/schemas/audit_log.py",
+    "*/audit_log.py",
 ]
 
 [tool.pytest.ini_options]
