@@ -3,6 +3,16 @@ data_file = ".coverage"
 branch = true
 relative_files = true
 source = ["app/backend"]
+
+[tool.coverage.paths]
+source = ["app/backend", "/github/workspace/app/backend"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_also = [
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
 omit = [
     "app/backend/testing/*",
     "app/backend/seed.py",
@@ -15,14 +25,4 @@ omit = [
     "app/backend/src/ai/inspect_fire.py",
     "app/backend/migrations/*",
     "app/backend/startup_migrations.py",
-]
-
-[tool.coverage.paths]
-source = ["app/backend", "/github/workspace/app/backend"]
-
-[tool.coverage.report]
-show_missing = true
-exclude_also = [
-    "if __name__ == .__main__.:",
-    "raise NotImplementedError",
 ]
