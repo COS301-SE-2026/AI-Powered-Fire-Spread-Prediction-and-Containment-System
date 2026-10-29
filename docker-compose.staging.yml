@@ -18,12 +18,16 @@ services:
     restart: always
     environment:
       RUN_SEED: "0"
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-720}
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_staging?sslmode=require
       ENVIRONMENT: staging
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
       STORAGE_BUCKET: fireaway-ryan-fire-reports
+      SES_SENDER_EMAIL: ${SES_SENDER_EMAIL:-noreply@fireaway.site}
+      SES_AWS_REGION: ${SES_AWS_REGION:-us-east-1}
+      FRONTEND_URL: ${FRONTEND_URL:-https://staging-fireaway.csml.co.za}
     networks:
       internal:
       edge:

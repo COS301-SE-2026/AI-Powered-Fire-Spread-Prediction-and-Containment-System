@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import React, { useState } from 'react';
 import { Map, CircleAlert, Plus, LocateFixed } from 'lucide-react';
+import { MapSkeleton } from '@/components/ui/skeleton/MapSkeleton';
 import { SideBar } from '../../components/layout/SideBar';
 import { NavLink } from '../../components/layout/NavLink';
 import { GuestEnvironment } from '../../components/guest/GuestEnvironment';
@@ -20,19 +21,15 @@ const PublicFireMap = dynamic(
   () => import('../../components/firefighter/FireMap').then((mod) => mod.FireMap),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex-1 flex items-center justify-center h-full w-full">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
-    ),
+    loading: () => <MapSkeleton />,
   }
 );
 
 export default function GuestPublicDashboard() {
-  const { location, environmentVariables, reports, recenter } = useGuestDashboard(20);
+  const { location, environmentVariables, reports, recenter, loading: envLoading } = useGuestDashboard(20);
   const { fireLocation, handleSelectFire, clearSelect } = useFireSelect();
   const [recenterCount, setRecenterCount] = useState(0);
-  const { userLocation, nearbyFires } = useNearbyFires();
+  const { userLocation, nearbyFires, loading: firesLoading } = useNearbyFires();
 
   useMapLink(handleSelectFire);
 
@@ -84,7 +81,7 @@ export default function GuestPublicDashboard() {
               </div>
 
               <div className="absolute bottom-0 inset-x-0 z-10 bg-carbon-bg/70 backdrop-blur-md border-t border-carbon-card p-2">
-                <GuestEnvironment data={environmentVariables} />
+                <GuestEnvironment data={environmentVariables} loading={envLoading && !environmentVariables} />
               </div>
             </div>
           </div>
@@ -96,7 +93,7 @@ export default function GuestPublicDashboard() {
             </p>
             <div
               className="rounded-2xl bg-carbon-side/40 backdrop-blur-md border border-carbon-card overflow-y-auto max-h-130">
-              <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire}/>
+              <NearbyReports nearbyFires={nearbyFires}  selectedFireId={fireLocation} onSelectFire={handleSelectFire} loading={firesLoading && nearbyFires.length === 0} />
             </div>
           </div>
         </div>

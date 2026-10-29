@@ -21,13 +21,13 @@ export default function AccessibilitySection() {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <p
         style={{
           fontFamily: 'var(--font-body)',
-          fontSize: '18px',
+          fontSize: '1.125rem',
           color: '#B0B8C8',
-          maxWidth: '800px',
+          maxWidth: '50rem',
           lineHeight: '1.75',
           fontWeight: 300,
         }}
@@ -41,7 +41,7 @@ export default function AccessibilitySection() {
         style={{
           display: 'grid',
           gridTemplateColumns: '1fr',
-          gap: '16px',
+          gap: '1rem',
           width: '100%',
         }}
       >

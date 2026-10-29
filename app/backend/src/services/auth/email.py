@@ -1,3 +1,4 @@
+import html 
 import os
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
@@ -43,3 +44,38 @@ def send_password_reset_email(to: str, token: str) -> None:
         f"The Team"
     )
     send_email(to, "Password Reset Request", body)
+
+# ---- Role request approval email notification
+def send_role_approved_email(to: str, name: str, role: str) -> None:
+    role_label = role.replace("_", " ").title()
+    body = (
+        f"<p>Hello {html.escape(name)},</p>"
+        f"<p>Your request for the <strong>{role_label}</strong> role has been approved. "
+        f"Your account not has {role_label} access.</p>"
+        f"<p><a href='{FRONTEND_URL}/login'>Login</a> to get started. "
+        f"You may need to logout and back in for the changes to take effect.</p>"
+        f"<p>Best regards,<br>The Fire Away Team</p>"
+    )
+    send_email(to, f"Your {role_label} role request has been approved", body)
+    
+def send_role_rejected_email(to: str, name: str, role: str) -> None:
+    role_label = role.replace("_", " ").title()
+    body = (
+        f"<p>Hello {html.escape(name)},</p>"
+        f"<p>Unfortunately, your request for the <strong>{role_label}</strong> role "
+        f"was been rejected. Your account role has not been changed.</p>"
+        f"<p>If you have any questions, please contact an administrator.</p>"
+        f"<p>Best regards,<br>The Fire Away Team</p>"
+    )
+    send_email(to, f"Your {role_label} role request has been rejected", body)
+    
+def send_role_revoked_email(to: str, name: str, role: str) -> None:
+    role_label = role.replace("_", " ").title()
+    body = (
+        f"<p>Hello {html.escape(name)},</p>"
+        f"<p>Your <strong>{role_label}</strong> role has been revoked bu an administrator. "
+        f"Your account has been returned to it's previous role.</p>"
+        f"<p>If you believe this to be a mistake, please contact an administrator.</p>"
+        f"<p>Best regards,<br>The Fire Away Team</p>"
+    )
+    send_email(to, f"Your {role_label} role has been revoked", body)

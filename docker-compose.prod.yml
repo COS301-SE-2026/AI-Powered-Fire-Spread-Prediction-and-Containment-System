@@ -8,6 +8,7 @@ services:
     restart: always
     environment:
       ENVIRONMENT: production
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-720}
       RUN_SEED: "0"
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${RDS_ENDPOINT}:5432/fireaway_prod?sslmode=require
       AWS_REGION: ${AWS_REGION}
@@ -19,6 +20,9 @@ services:
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
       STORAGE_BUCKET: fireaway-ryan-fire-reports
+      SES_SENDER_EMAIL: ${SES_SENDER_EMAIL:-noreply@fireaway.site}
+      SES_AWS_REGION: ${SES_AWS_REGION:-us-east-1}
+      FRONTEND_URL: ${FRONTEND_URL:-https://fireaway.csml.co.za}
     depends_on:
       valkey:
           condition: service_started
@@ -55,7 +59,7 @@ services:
           cpus: "0.1"
           memory: 128M
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
       interval: 10s
       timeout: 3s
       retries: 5

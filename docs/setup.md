@@ -145,5 +145,5 @@ yarn test
 yarn test:headed
 yarn test:report
 yarn test:install
-yarn eslint . --ext .js,.jsx,.ts,.tsx  # for eslint
+yarn eslint . --ext .js,.jsx,.ts,.tsx --fix # for eslint
 ```

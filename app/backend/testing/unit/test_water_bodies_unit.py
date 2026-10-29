@@ -279,8 +279,22 @@ class TestGetWaterBodiesEndpoint:
         
         assert resp.status_code == 502
         assert "Overpass query failed" in resp.json()["detail"]
-        mock_cache.set.assert_not_called()
-        
+        mock_cache.set.assert_called_once()
+        key, value = mock_cache.set.call_args.args
+        assert key.endswith(":failed")
+        assert value == "1"
+        assert mock_cache.set.call_args.kwargs["ex"] == 300
+    
+    @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
+    @patch(f"{MODULE}.cache_client")
+    def test_recent_failure_skips_overpass(self, mock_cache, mock_query_overpass, client):
+        mock_cache.get.side_effect = lambda k: "1" if k.endswith(":failed") else None
+
+        resp = client.get("/api/geo/water-bodies", params=VALID_BBOX)
+
+        assert resp.status_code == 502
+        mock_query_overpass.assert_not_called()
+    
     @patch(f"{MODULE}.query_overpass", new_callable=AsyncMock)
     @patch(f"{MODULE}.cache_client")
     def test_min_area_filter_is_forwarded_to_overpass_results(

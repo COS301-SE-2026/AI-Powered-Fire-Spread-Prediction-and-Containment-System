@@ -38,13 +38,14 @@ export async function middleware(req: NextRequest) {
     const { payload } = await jwtVerify(token, secret);
     const role = payload.role as string;
 
-    console.log('JWT_SECRET present:', !!JWT_SECRET, 'token present:', !!token, 'role:', role);
     if (!matched.roles.includes(role)) {
       return noStore(NextResponse.redirect(new URL('/login', req.url)));
     }
   } catch (err) {
     console.error('JWT verify failed:', err);
-    return noStore(NextResponse.redirect(new URL('/login', req.url))); // if token missing/expired/signiture invalid
+    const res = NextResponse.redirect(new URL('/login', req.url));
+    res.cookies.delete('access_token');
+    return noStore(res); // if token missing/expired/signiture invalid
   }
 
   return noStore(NextResponse.next());

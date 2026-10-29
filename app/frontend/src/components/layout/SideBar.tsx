@@ -37,8 +37,9 @@ export function SideBar({
             alt="FireAway"
             className="h-8 w-auto object-contain"
           />
-          <label htmlFor='mobile-nav-drawer' className='btn btn-ghost btn-circle' aria-label="Open navigation menu">
+          <label htmlFor='mobile-nav-drawer' className='btn btn-ghost btn-circle'>
             <Menu className='size-6 text-text-primary' />
+            <span className='sr-only'>Open navigation menu</span>
           </label>
         </div>
 
@@ -51,7 +52,9 @@ export function SideBar({
 
       {/* desktop */}
       <div className='drawer-side z-50'>
-        <label htmlFor='mobile-nav-drawer' aria-label='close sidebar' className='drawer-overlay'/>
+        <label htmlFor='mobile-nav-drawer' className='drawer-overlay'>
+          <span className='sr-only'>Close sidebar</span>
+        </label>
 
         <aside className="flex flex-col items-center bg-carbon-side border-r border-carbon-card h-screen w-64 lg:w-23 lg:hover:w-64 transition-all duration-300 ease-in group shrink-0 shadow-2xl shadow-black/50">
           {/* logos */}
@@ -83,10 +86,10 @@ export function SideBar({
           {!hideLoginRegister && (
             <Link
               href="/login"
-              className="p-2 text-text-primary hover:text-white rounded-lg hover:bg-smoke-hover transition-colors w-full flex items-center justify-center lg:justify-center lg:group-hover:justify-start gap-4"
+              className="p-2.5 px-4 w-full rounded-lg flex items-center justify-start lg:justify-center lg:group-hover:justify-start gap-4 hover:bg-smoke-hover active:scale-[0.98] transition-all text-left text-text-primary hover:text-text-primary"
             >
-              <UserCircle className="size-6 shrink-0 text-ignite" />
-              <span className="text-sm font-semibold inline lg:hidden lg:group-hover:inline">
+              <UserCircle className="size-5 shrink-0 ml-1 lg:group-hover:ml-6 transition-all text-ignite" />
+              <span className="text-sm font-medium tracking-wide inline lg:hidden lg:group-hover:inline opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-20 whitespace-nowrap">
                 Login / Register
               </span>
             </Link>
