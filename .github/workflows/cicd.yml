@@ -42,8 +42,7 @@ jobs:
         run: |
           coverage erase
           pytest -c app/backend/testing/pytest.ini \
-                 --cov-config=app/backend/testing/.coveragerc \
-                 --cov=app/backend/src \
+                 --cov-config=pyproject.toml \
                  --cov \
                  --cov-report=term \
                  --cov-report=xml:app/backend/testing/coverage.xml \
@@ -131,8 +130,7 @@ jobs:
         run: |
           coverage erase 
           pytest -c app/backend/testing/pytest.ini \
-                 --cov-config=app/backend/testing/.coveragerc \
-                 --cov=app/backend/src \
+                 --cov-config=pyproject.toml \
                  --cov \
                  --cov-report=term \
                  --cov-report=xml:app/backend/testing/coverage.xml \

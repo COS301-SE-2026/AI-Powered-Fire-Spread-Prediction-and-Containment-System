@@ -3,6 +3,20 @@ data_file = ".coverage"
 branch = true
 relative_files = true
 source = ["app/backend"]
+omit = [
+    "*/testing/*",
+    "*/seed.py",
+    "*/test_api.py",
+    "*/ml/training/build_*.py",
+    "*/ml/training/load_real_dataset.py",
+    "*/ml/training/synthetic_data.py",
+    "*/ml/training/train_ignition.py",
+    "*/src/ai/build_*.py",
+    "*/src/ai/inspect_fire.py",
+    "*/migrations/*",
+    "*/startup_migrations.py",
+    "*/audit_log.py"
+]
 
 [tool.coverage.paths]
 source = ["app/backend", "/github/workspace/app/backend"]
@@ -14,16 +28,16 @@ exclude_also = [
     "raise NotImplementedError",
 ]
 omit = [
-    "app/backend/testing/*",
-    "app/backend/seed.py",
-    "app/backend/test_api.py",
-    "app/backend/ml/training/build_*.py",
-    "app/backend/ml/training/load_real_dataset.py",
-    "app/backend/ml/training/synthetic_data.py",
-    "app/backend/ml/training/train_ignition.py",
-    "app/backend/src/ai/build_*.py",
-    "app/backend/src/ai/inspect_fire.py",
-    "app/backend/migrations/*",
-    "app/backend/startup_migrations.py",
+    "*/testing/*",
+    "*/seed.py",
+    "*/test_api.py",
+    "*/ml/training/build_*.py",
+    "*/ml/training/load_real_dataset.py",
+    "*/ml/training/synthetic_data.py",
+    "*/ml/training/train_ignition.py",
+    "*/src/ai/build_*.py",
+    "*/src/ai/inspect_fire.py",
+    "*/migrations/*",
+    "*/startup_migrations.py",
     "*/audit_log.py"
 ]
