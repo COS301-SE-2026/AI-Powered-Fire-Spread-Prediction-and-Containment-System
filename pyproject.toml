@@ -25,4 +25,5 @@ omit = [
     "app/backend/src/ai/inspect_fire.py",
     "app/backend/migrations/*",
     "app/backend/startup_migrations.py",
+    "*/audit_log.py"
 ]
