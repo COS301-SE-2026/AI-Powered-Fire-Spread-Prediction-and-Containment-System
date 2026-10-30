@@ -9,3 +9,4 @@ argon2-cffi-bindings==26.1.0
 click==8.5.0
 cryptography==50.0.1
 fakeredis>=2.26,<3.0
+pytest-asyncio>=0.23.0

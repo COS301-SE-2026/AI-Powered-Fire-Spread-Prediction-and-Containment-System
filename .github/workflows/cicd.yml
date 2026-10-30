@@ -38,11 +38,13 @@ jobs:
       
       - name: Run unit tests
         env:
-          PYTHONPATH: .
+          PYTHONPATH: .:app/backend:app/backend/src
         run: |
           coverage erase
           pytest -c app/backend/testing/pytest.ini \
-                 --cov \
+                 --cov-config=pyproject.toml \
+                 --cov=app/backend/src \
+                 --cov-branch \
                  --cov-report=term \
                  --cov-report=xml:app/backend/testing/coverage.xml \
                  app/backend/testing/unit
@@ -125,11 +127,13 @@ jobs:
 
       - name: Run integration tests
         env:
-          PYTHONPATH: .
+          PYTHONPATH: .:app/backend:app/backend/src
         run: |
-          coverage erase 
+          coverage erase
           pytest -c app/backend/testing/pytest.ini \
-                 --cov \
+                 --cov-config=pyproject.toml \
+                 --cov=app/backend/src \
+                 --cov-branch \
                  --cov-report=term \
                  --cov-report=xml:app/backend/testing/coverage.xml \
                  app/backend/testing/integration
