@@ -25,6 +25,9 @@ services:
       VALKEY_HOST: valkey
       VALKEY_PORT: 6379
       STORAGE_BUCKET: fireaway-ryan-fire-reports
+      SES_SENDER_EMAIL: ${SES_SENDER_EMAIL:-noreply@fireaway.site}
+      SES_AWS_REGION: ${SES_AWS_REGION:-us-east-1}
+      FRONTEND_URL: ${FRONTEND_URL:-https://staging-fireaway.csml.co.za}
     networks:
       internal:
       edge:
