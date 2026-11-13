@@ -1,7 +1,7 @@
 # <----------------------------------------------------------------------------------------->
 #  Stage 1: Base Runtime & Shared Dependencies
 # <----------------------------------------------------------------------------------------->
-FROM python:3.12-slim@sha256:dd29372629eeba2dd003fd9e9d35a5b8236c44727875a0364254b5127af88e65 AS base
+FROM python:3.15-slim@sha256:65a65fc7b30b06cb6df4930fd4650697cb23f4c2698ab81fc87e4b031bc36928 AS base
 
 # Install UV from official standalone binary
 COPY --from=ghcr.io/astral-sh/uv:0.5.11 /uv /bin/uv
