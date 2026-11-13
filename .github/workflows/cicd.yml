@@ -197,7 +197,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run React Doctor
-        uses: millionco/react-doctor@736abc183ac491b4e954fc6bedec3a9a1b73d38b
+        uses: millionco/react-doctor@dfffab3bd9f9da1977a7c23fa6bc5ed5abb4bdf6
         with:
           directory: app/frontend
           blocking: error
