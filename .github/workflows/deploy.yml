@@ -49,7 +49,7 @@ jobs:
                 aws-region: ${{ env.AWS_REGION }}
 
             - name: Login to ECR
-              uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd 
+              uses: aws-actions/amazon-ecr-login@7290e214a610b32bc0eef81748948b6d466a8783 
 
             - name: Build and push backend
               uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
